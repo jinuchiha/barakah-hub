@@ -51,11 +51,10 @@ h1,h2,h3{letter-spacing:-0.01em}
   radial-gradient(at 85% 30%,rgba(212,182,95,0.12) 0,transparent 50%),
   radial-gradient(at 50% 80%,rgba(58,102,75,0.15) 0,transparent 50%),
   #0a1024}
-.logo-frame{position:relative;display:inline-flex;padding:6px;border-radius:50%;background:conic-gradient(from 0deg,#d4b65f,#c08850,#a23838,#3b6a7c,#4a7d5d,#d4b65f);animation:logo-spin 12s linear infinite}
-.logo-frame::before{content:'';position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle,rgba(212,182,95,0.4) 0%,transparent 70%);filter:blur(20px);z-index:-1;animation:logo-pulse 3s ease-in-out infinite}
-.logo-frame img{position:relative;border-radius:50%;background:#0a1024;display:block}
-@keyframes logo-spin{to{transform:rotate(360deg)}}
-@keyframes logo-pulse{0%,100%{opacity:0.5;transform:scale(1)}50%{opacity:0.8;transform:scale(1.05)}}
+.logo-frame{position:relative;display:inline-flex;padding:0;border-radius:24px;box-shadow:0 0 0 1px rgba(212,182,95,0.25),0 20px 60px -10px rgba(15,25,41,0.4),0 0 80px -20px rgba(212,182,95,0.5)}
+.logo-frame::before{content:'';position:absolute;inset:-30px;border-radius:50%;background:radial-gradient(circle,rgba(212,182,95,0.25) 0%,rgba(36,63,108,0.15) 40%,transparent 70%);filter:blur(30px);z-index:-1;pointer-events:none}
+.logo-frame::after{content:'';position:absolute;inset:0;border-radius:24px;background:linear-gradient(135deg,rgba(255,255,255,0.15) 0%,transparent 50%,rgba(212,182,95,0.1) 100%);pointer-events:none}
+.logo-frame img{position:relative;border-radius:24px;display:block}
 .glow-text{text-shadow:0 0 20px rgba(212,182,95,0.4),0 0 40px rgba(212,182,95,0.2)}
 .kpi-number{font-variant-numeric:tabular-nums;font-feature-settings:"tnum","ss01";letter-spacing:-0.02em}
 .metric-card{position:relative;overflow:hidden;transition:transform 0.2s,box-shadow 0.2s}
@@ -120,7 +119,7 @@ h1,h2,h3{letter-spacing:-0.01em}
   <div class="w-full max-w-md relative">
     <div class="text-center mb-10">
       <div class="logo-frame mx-auto mb-2" x-show="!logoFailed">
-        <img src="images/logo.png.png" alt="BalochSath" class="w-32 h-32 object-cover" @error="logoFailed=true">
+        <img src="images/logo.png.png" alt="BalochSath" class="w-36 h-36 object-cover" @error="logoFailed=true">
       </div>
       <svg class="w-24 h-24 mx-auto" x-show="logoFailed"><use href="#bsLogo"/></svg>
       <h1 class="text-3xl font-extrabold tracking-tight mt-5 text-slate-900 dark:text-white shimmer-text">BalochSath</h1>
@@ -183,9 +182,9 @@ h1,h2,h3{letter-spacing:-0.01em}
 
 <aside class="hidden md:flex md:w-64 md:flex-col bg-white dark:bg-zinc-900 border-r border-zinc-200 dark:border-zinc-800 z-30 no-print flex-shrink-0">
   <div class="p-5 border-b border-zinc-200 dark:border-zinc-800 flex items-center gap-3">
-    <div class="relative w-12 h-12 flex-shrink-0" x-show="!logoFailed">
-      <div class="absolute inset-0 rounded-full bg-accent-400/20 blur-md"></div>
-      <img src="images/logo.png.png" alt="BalochSath" class="relative w-12 h-12 rounded-full object-cover ring-2 ring-accent-300/40" @error="logoFailed=true">
+    <div class="relative w-11 h-11 flex-shrink-0" x-show="!logoFailed">
+      <div class="absolute inset-0 rounded-xl bg-gradient-to-br from-accent-400/30 to-gold-400/20 blur-sm"></div>
+      <img src="images/logo.png.png" alt="BalochSath" class="relative w-11 h-11 rounded-xl object-cover shadow-md ring-1 ring-accent-300/30" @error="logoFailed=true">
     </div>
     <svg class="w-12 h-14 flex-shrink-0" x-show="logoFailed"><use href="#bsLogo"/></svg>
     <div x-show="lang==='en'">
