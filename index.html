@@ -1,0 +1,1330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>BalochSath · بلوچ ساتھ</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config={darkMode:'class',theme:{extend:{fontFamily:{sans:['Inter','system-ui','sans-serif'],urdu:['"Noto Nastaliq Urdu"','serif'],arabic:['"Amiri"','serif'],serif:['"Source Serif 4"','Georgia','serif']},colors:{accent:{50:'#eff5fb',100:'#dbe7f3',200:'#bccfe5',300:'#90aed1',400:'#5d85ba',500:'#3a66a0',600:'#2b4f85',700:'#243f6c',800:'#1f3357',900:'#1a2944',950:'#0f1929'},slate:{50:'#f8f9fa',100:'#e9ecef',200:'#cbd1d9',300:'#a8b2bd',400:'#6c7889',500:'#475467',600:'#33405b',700:'#243149',800:'#1a2332',900:'#101724',950:'#080d17'},gold:{200:'#f5e8c4',300:'#e8d18e',400:'#d4b65f',500:'#b8893a',600:'#956a28',700:'#6f4f1c'},copper:{300:'#e6c8a0',400:'#d4a577',500:'#c08850',600:'#a07040',700:'#7a5630'},crimson:{500:'#a23838',600:'#822a2a',700:'#671f1f'},teal:{500:'#3b6a7c',600:'#2c5566',700:'#1e3f4d'},forest:{500:'#4a7d5d',600:'#3a6549'},cream:{50:'#fdfaf3',100:'#faf5e6',200:'#f3eccf',300:'#e8dcb0'}}}}}
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Inter:wght@400;500;600;700;800&family=Source+Serif+4:wght@400;600;700&family=Noto+Nastaliq+Urdu:wght@400;700&display=swap" rel="stylesheet">
+<style>
+html,body{font-family:'Inter',system-ui,sans-serif;-webkit-font-smoothing:antialiased;font-size:15px;line-height:1.55}
+h1,h2,h3{letter-spacing:-0.01em}
+[x-cloak]{display:none!important}
+.num{font-variant-numeric:tabular-nums}
+.urdu{font-family:'Noto Nastaliq Urdu',serif;line-height:2.2}
+.arabic{font-family:'Amiri',serif;line-height:1.9;direction:rtl}
+.serif{font-family:'Source Serif 4',Georgia,serif}
+.scrollbar-thin::-webkit-scrollbar{width:5px;height:5px}
+.scrollbar-thin::-webkit-scrollbar-thumb{background:rgba(27,122,58,.25);border-radius:3px}
+@media print{.no-print{display:none!important}body{background:#fff!important;color:#000!important}aside,header,nav{display:none!important}main{margin-left:0!important}.print-page{padding:1rem}}
+@keyframes ticker{0%{transform:translateX(100%)}100%{transform:translateX(-100%)}}
+.ticker-wrap{overflow:hidden;white-space:nowrap}
+.ticker-text{display:inline-block;animation:ticker 180s linear infinite}
+.ticker-wrap:hover .ticker-text{animation-play-state:paused}
+.nav-item{transition:all .15s;border-left:3px solid transparent}
+.nav-item.active{background:#eff5fb;color:#1a2944;font-weight:700;border-left-color:#243f6c}
+.dark .nav-item.active{background:rgba(36,63,108,.22);color:#bccfe5;border-left-color:#5d85ba}
+.pin-dot{width:12px;height:12px;border-radius:50%;transition:transform .15s}
+.pin-dot.filled{background:#243f6c;transform:scale(1.15)}
+.pin-dot.empty{background:#d4d4d8}
+.dark .pin-dot.empty{background:#3f3f46}
+@keyframes slideUp{from{transform:translateY(8px);opacity:0}to{transform:translateY(0);opacity:1}}
+.toast-enter{animation:slideUp .25s ease-out}
+.bg-pattern{background-image:radial-gradient(circle at 1px 1px,rgba(13,93,42,.06) 1px,transparent 0);background-size:24px 24px}
+.glass{background:rgba(255,255,255,0.7);backdrop-filter:blur(16px) saturate(180%);-webkit-backdrop-filter:blur(16px) saturate(180%);border:1px solid rgba(255,255,255,0.3)}
+.dark .glass{background:rgba(15,25,41,0.6);border-color:rgba(255,255,255,0.08)}
+.glass-card{background:linear-gradient(135deg,rgba(255,255,255,0.9) 0%,rgba(255,255,255,0.6) 100%);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.5);box-shadow:0 8px 32px rgba(15,25,41,0.06)}
+.dark .glass-card{background:linear-gradient(135deg,rgba(36,49,73,0.7) 0%,rgba(15,25,41,0.5) 100%);border-color:rgba(192,136,80,0.15);box-shadow:0 8px 32px rgba(0,0,0,0.4)}
+.mesh-bg{background:
+  radial-gradient(at 15% 20%,rgba(36,63,108,0.12) 0,transparent 50%),
+  radial-gradient(at 85% 30%,rgba(212,182,95,0.08) 0,transparent 50%),
+  radial-gradient(at 50% 80%,rgba(58,102,75,0.08) 0,transparent 50%),
+  #fafafb}
+.dark .mesh-bg{background:
+  radial-gradient(at 15% 20%,rgba(36,63,108,0.25) 0,transparent 50%),
+  radial-gradient(at 85% 30%,rgba(212,182,95,0.12) 0,transparent 50%),
+  radial-gradient(at 50% 80%,rgba(58,102,75,0.15) 0,transparent 50%),
+  #0a1024}
+.logo-frame{position:relative;display:inline-flex;padding:6px;border-radius:50%;background:conic-gradient(from 0deg,#d4b65f,#c08850,#a23838,#3b6a7c,#4a7d5d,#d4b65f);animation:logo-spin 12s linear infinite}
+.logo-frame::before{content:'';position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle,rgba(212,182,95,0.4) 0%,transparent 70%);filter:blur(20px);z-index:-1;animation:logo-pulse 3s ease-in-out infinite}
+.logo-frame img{position:relative;border-radius:50%;background:#0a1024;display:block}
+@keyframes logo-spin{to{transform:rotate(360deg)}}
+@keyframes logo-pulse{0%,100%{opacity:0.5;transform:scale(1)}50%{opacity:0.8;transform:scale(1.05)}}
+.glow-text{text-shadow:0 0 20px rgba(212,182,95,0.4),0 0 40px rgba(212,182,95,0.2)}
+.kpi-number{font-variant-numeric:tabular-nums;font-feature-settings:"tnum","ss01";letter-spacing:-0.02em}
+.metric-card{position:relative;overflow:hidden;transition:transform 0.2s,box-shadow 0.2s}
+.metric-card:hover{transform:translateY(-2px);box-shadow:0 12px 32px rgba(36,63,108,0.12)}
+.metric-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,#c08850,transparent);opacity:0.6}
+@keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+.shimmer-text{background:linear-gradient(90deg,#243f6c 0%,#c08850 50%,#243f6c 100%);background-size:200% auto;background-clip:text;-webkit-background-clip:text;-webkit-text-fill-color:transparent;animation:shimmer 4s linear infinite}
+.dark .bg-pattern{background-image:radial-gradient(circle at 1px 1px,rgba(196,160,98,.05) 1px,transparent 0)}
+.bg-arabesque{background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'><g fill='none' stroke='%230d5d2a' stroke-opacity='0.06' stroke-width='1'><path d='M30 0 L60 30 L30 60 L0 30 Z'/><circle cx='30' cy='30' r='15'/><path d='M15 15 L45 45 M45 15 L15 45'/></g></svg>")}
+.dark .bg-arabesque{background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'><g fill='none' stroke='%23c4a062' stroke-opacity='0.05' stroke-width='1'><path d='M30 0 L60 30 L30 60 L0 30 Z'/><circle cx='30' cy='30' r='15'/><path d='M15 15 L45 45 M45 15 L15 45'/></g></svg>")}
+.gradient-emerald{background:linear-gradient(135deg,#2b4f85 0%,#1a2944 50%,#0f1929 100%)}
+.gradient-navy{background:linear-gradient(135deg,#2b4f85 0%,#1a2944 50%,#0f1929 100%)}
+.gradient-slate{background:linear-gradient(135deg,#243f6c 0%,#1a2944 60%,#0f1929 100%)}
+.gradient-stone{background:linear-gradient(135deg,#1a2944 0%,#243f6c 50%,#1a2944 100%)}
+.gradient-copper{background:linear-gradient(135deg,#e6c8a0 0%,#c08850 50%,#7a5630 100%)}
+.gradient-gold{background:linear-gradient(135deg,#e8d18e 0%,#d4b65f 50%,#956a28 100%)}
+.text-shadow-gold{text-shadow:0 1px 0 rgba(212,182,95,.3),0 0 20px rgba(212,182,95,.15)}
+.divider-gold{height:1px;background:linear-gradient(90deg,transparent,#d4b65f 50%,transparent)}
+.divider-copper{height:1px;background:linear-gradient(90deg,transparent,#c08850 50%,transparent)}
+.stone-texture{background-image:radial-gradient(circle at 20% 30%,rgba(36,63,108,0.05) 0%,transparent 50%),radial-gradient(circle at 80% 70%,rgba(212,182,95,0.04) 0%,transparent 50%)}
+</style>
+</head>
+<body class="mesh-bg dark:bg-slate-950 text-slate-900 dark:text-slate-100 min-h-screen" x-data="app()" x-init="init()" :class="darkMode?'dark':''" x-cloak>
+
+<!-- ============== LOGO SVG (reusable) ============== -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="bsBg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#1a2944"/><stop offset="100%" stop-color="#0a1024"/></linearGradient>
+    <linearGradient id="bsAccent" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#f5e8c4"/><stop offset="100%" stop-color="#b8893a"/></linearGradient>
+    <symbol id="bsLogo" viewBox="0 0 120 120">
+      <rect width="120" height="120" rx="26" fill="url(#bsBg)"/>
+      <rect x="3" y="3" width="114" height="114" rx="23" fill="none" stroke="url(#bsAccent)" stroke-width="0.6" opacity="0.45"/>
+      <g transform="translate(60,60)">
+        <path d="M -8 -28 a 16 16 0 1 0 0 22 a 11 11 0 1 1 0 -22 Z" fill="url(#bsAccent)"/>
+        <circle cx="14" cy="-22" r="2.2" fill="url(#bsAccent)"/>
+      </g>
+      <g transform="translate(60,72)">
+        <path d="M -22 0 L -22 22 L 4 22 Q 16 22 16 14 Q 16 8 9 6 Q 14 4 14 -1 Q 14 -8 4 -8 L -22 -8 L -22 0 M -14 -2 L 2 -2 Q 7 -2 7 -5 Q 7 -8 2 -8 L -14 -8 Z M -14 16 L 4 16 Q 9 16 9 12 Q 9 8 4 8 L -14 8 Z" fill="#f5f1eb" fill-rule="evenodd"/>
+      </g>
+      <line x1="36" y1="100" x2="84" y2="100" stroke="url(#bsAccent)" stroke-width="1.8" stroke-linecap="round"/>
+      <circle cx="22" cy="22" r="1" fill="url(#bsAccent)" opacity="0.6"/>
+      <circle cx="98" cy="22" r="1" fill="url(#bsAccent)" opacity="0.6"/>
+      <circle cx="22" cy="98" r="1" fill="url(#bsAccent)" opacity="0.6"/>
+      <circle cx="98" cy="98" r="1" fill="url(#bsAccent)" opacity="0.6"/>
+    </symbol>
+  </defs>
+</svg>
+
+<!-- ============== TOASTS ============== -->
+<div class="fixed bottom-4 right-4 z-[100] space-y-2 no-print">
+  <template x-for="t in toasts" :key="t.id">
+    <div class="toast-enter px-4 py-2.5 rounded-lg shadow-lg flex items-center gap-2.5 min-w-[260px] text-sm font-medium border bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800">
+      <div class="w-2 h-2 rounded-full" :class="t.type==='success'?'bg-accent-500':t.type==='error'?'bg-rose-500':'bg-gold-500'"></div>
+      <span x-text="t.message"></span>
+    </div>
+  </template>
+</div>
+
+<!-- ============== LOGIN ============== -->
+<div x-show="!currentUser" class="fixed inset-0 z-50 mesh-bg flex items-center justify-center p-4 overflow-y-auto">
+  <div class="absolute inset-0 bg-pattern opacity-30 pointer-events-none"></div>
+  <div class="w-full max-w-md relative">
+    <div class="text-center mb-10">
+      <div class="logo-frame mx-auto mb-2" x-show="!logoFailed">
+        <img src="images/logo.png.png" alt="BalochSath" class="w-32 h-32 object-cover" @error="logoFailed=true">
+      </div>
+      <svg class="w-24 h-24 mx-auto" x-show="logoFailed"><use href="#bsLogo"/></svg>
+      <h1 class="text-3xl font-extrabold tracking-tight mt-5 text-slate-900 dark:text-white shimmer-text">BalochSath</h1>
+      <p class="text-[11px] text-slate-500 dark:text-gold-400 font-bold tracking-[0.4em] uppercase mt-3" x-show="lang==='en'">Unity · Hope · Progress</p>
+      <p class="urdu text-base text-slate-600 dark:text-gold-300 mt-3" x-show="lang==='ur'">اتحاد · امید · ترقی</p>
+    </div>
+    <template x-if="profiles.length===0">
+      <div class="bg-white rounded-2xl shadow-[0_8px_24px_rgba(15,25,41,0.08)] p-7 border border-slate-200/80">
+        <p class="arabic text-base text-slate-600 text-center mb-1 leading-relaxed">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</p>
+        <p class="text-[10px] text-slate-400 text-center italic mb-6">In the name of Allah, the Most Gracious, the Most Merciful</p>
+        <h2 class="text-lg font-bold mb-1 text-slate-900" :class="lang==='ur'?'urdu':''" x-text="lang==='ur'?'ایڈمن سیٹ اپ':'Get started'"></h2>
+        <p class="text-xs text-slate-500 mb-5" :class="lang==='ur'?'urdu':''" x-text="lang==='ur'?'پہلا پروفائل ایڈمن بنے گا':'First profile becomes admin'"></p>
+        <form @submit.prevent="createFirstAdmin()" class="space-y-3">
+          <input x-model="setupForm.name" :placeholder="lang==='ur'?'نام':'Your name'" required class="w-full px-3.5 py-2.5 rounded-lg bg-slate-50 border border-slate-200 text-sm focus:ring-2 focus:ring-accent-500/30 focus:border-accent-500 outline-none transition">
+          <input x-model="setupForm.pin" type="password" placeholder="PIN (4 digits)" pattern="[0-9]{4}" maxlength="4" required class="w-full px-3.5 py-2.5 rounded-lg bg-slate-50 border border-slate-200 num text-center text-xl tracking-[0.5em] focus:ring-2 focus:ring-accent-500/30 focus:border-accent-500 outline-none transition">
+          <input x-model="setupForm.pinConfirm" type="password" :placeholder="lang==='ur'?'PIN دوبارہ':'Confirm PIN'" pattern="[0-9]{4}" maxlength="4" required class="w-full px-3.5 py-2.5 rounded-lg bg-slate-50 border border-slate-200 num text-center text-xl tracking-[0.5em] focus:ring-2 focus:ring-accent-500/30 focus:border-accent-500 outline-none transition">
+          <button type="submit" class="w-full py-2.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white font-semibold text-sm shadow-sm transition" x-text="lang==='ur'?'اکاؤنٹ بنائیں':'Create account'"></button>
+        </form>
+      </div>
+    </template>
+
+    <template x-if="profiles.length>0 && !loginForm.profileId">
+      <div class="bg-white rounded-2xl shadow-[0_8px_24px_rgba(15,25,41,0.08)] p-6 border border-slate-200/80">
+        <div class="text-[11px] font-semibold text-slate-500 mb-4 uppercase tracking-[0.15em]" :class="lang==='ur'?'urdu normal-case':''" x-text="lang==='ur'?'پروفائل منتخب کریں':'Select profile'"></div>
+        <div class="space-y-1.5 max-h-72 overflow-y-auto scrollbar-thin">
+          <template x-for="p in activeProfiles()" :key="p.id">
+            <button @click="loginForm.profileId=p.id;loginForm.pin='';$nextTick(()=>$refs.pinInput?.focus())" class="w-full p-3 rounded-xl hover:bg-slate-50 hover:border-slate-300 flex items-center gap-3 text-left border border-slate-100 transition">
+              <div class="w-9 h-9 rounded-full bg-slate-100 text-slate-700 flex items-center justify-center font-semibold text-sm" x-text="p.name.charAt(0).toUpperCase()"></div>
+              <div class="flex-1"><div class="font-semibold text-sm text-slate-900" x-text="p.name"></div><div class="text-[10px] uppercase tracking-wider text-slate-500" x-text="roleLabel(p.role)"></div></div>
+              <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" d="M9 5l7 7-7 7"/></svg>
+            </button>
+          </template>
+        </div>
+      </div>
+    </template>
+
+    <template x-if="loginForm.profileId">
+      <div class="bg-white rounded-2xl shadow-[0_8px_24px_rgba(15,25,41,0.08)] p-7 border border-slate-200/80">
+        <button @click="loginForm.profileId='';loginForm.pin=''" class="text-xs text-slate-500 mb-5 hover:text-slate-900 flex items-center gap-1 font-medium">← Back</button>
+        <div class="text-center mb-5">
+          <div class="w-14 h-14 mx-auto rounded-full bg-slate-900 text-white flex items-center justify-center text-xl font-bold mb-3" x-text="profileById(loginForm.profileId)?.name.charAt(0).toUpperCase()"></div>
+          <h2 class="font-semibold text-base text-slate-900" x-text="profileById(loginForm.profileId)?.name"></h2>
+          <p class="text-xs text-slate-500 mt-0.5" x-text="roleLabel(profileById(loginForm.profileId)?.role)"></p>
+        </div>
+        <form @submit.prevent="tryLogin()">
+          <input x-ref="pinInput" x-model="loginForm.pin" type="password" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" required class="w-full px-3.5 py-3 rounded-lg bg-slate-50 border border-slate-200 num text-center text-2xl tracking-[0.5em] focus:ring-2 focus:ring-accent-500/30 focus:border-accent-500 outline-none transition">
+          <div class="flex justify-center gap-1.5 mt-3"><template x-for="i in 4" :key="i"><div class="pin-dot" :class="loginForm.pin.length>=i?'filled':'empty'"></div></template></div>
+          <p x-show="loginForm.error" class="text-xs text-rose-600 mt-3 text-center" x-text="loginForm.error"></p>
+          <button type="submit" class="w-full mt-4 py-2.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white font-semibold text-sm transition" :class="lang==='ur'?'urdu':''" x-text="t('signin')"></button>
+        </form>
+      </div>
+    </template>
+
+    <p class="text-center text-slate-400 text-xs mt-6 italic">Family fund · Single device storage</p>
+  </div>
+</div>
+
+<!-- ============== APP ============== -->
+<div x-show="currentUser" class="md:flex h-screen overflow-hidden">
+
+<aside class="hidden md:flex md:w-64 md:flex-col bg-white dark:bg-zinc-900 border-r border-zinc-200 dark:border-zinc-800 z-30 no-print flex-shrink-0">
+  <div class="p-5 border-b border-zinc-200 dark:border-zinc-800 flex items-center gap-3">
+    <div class="relative w-12 h-12 flex-shrink-0" x-show="!logoFailed">
+      <div class="absolute inset-0 rounded-full bg-accent-400/20 blur-md"></div>
+      <img src="images/logo.png.png" alt="BalochSath" class="relative w-12 h-12 rounded-full object-cover ring-2 ring-accent-300/40" @error="logoFailed=true">
+    </div>
+    <svg class="w-12 h-14 flex-shrink-0" x-show="logoFailed"><use href="#bsLogo"/></svg>
+    <div x-show="lang==='en'">
+      <div class="font-extrabold text-base tracking-tight text-slate-900 dark:text-slate-100" x-text="settings.brandName"></div>
+      <div class="text-[9px] uppercase tracking-[0.2em] text-accent-700 dark:text-accent-400 font-bold mt-0.5">Unity · Hope · Progress</div>
+    </div>
+    <div x-show="lang==='ur'">
+      <div class="urdu font-bold text-lg leading-none text-slate-900 dark:text-slate-100">بلوچ ساتھ</div>
+      <div class="urdu text-[11px] text-accent-700 dark:text-accent-400 mt-1">اتحاد · امید · ترقی</div>
+    </div>
+  </div>
+  <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto scrollbar-thin">
+    <template x-for="tab in visibleTabs()" :key="tab.id">
+      <button @click="activeTab=tab.id;$nextTick(()=>renderCharts())" class="nav-item w-full flex items-center gap-3 px-3 py-2 text-sm rounded-md font-medium" :class="activeTab===tab.id?'active':'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800/50'">
+        <span class="w-4 h-4 flex-shrink-0" x-html="tab.icon"></span>
+        <span class="flex-1 text-left" :class="lang==='ur'?'urdu':''" x-text="tab.label"></span>
+        <span x-show="tabBadge(tab.id)>0" class="text-[10px] num font-bold text-white bg-rose-500 px-1.5 rounded-full" x-text="tabBadge(tab.id)"></span>
+      </button>
+    </template>
+  </nav>
+  <div class="p-3 border-t border-zinc-200 dark:border-zinc-800">
+    <div class="flex items-center gap-2 p-2 rounded-lg bg-zinc-50 dark:bg-zinc-800">
+      <div class="w-8 h-8 rounded-full bg-accent-100 dark:bg-accent-900 text-accent-800 dark:text-accent-300 flex items-center justify-center font-bold text-sm" x-text="currentUser?.name.charAt(0).toUpperCase()"></div>
+      <div class="flex-1 min-w-0"><div class="text-sm font-bold truncate" x-text="currentUser?.name"></div><div class="text-[10px] uppercase tracking-wider text-accent-700 dark:text-accent-500 font-semibold" x-text="roleLabel(currentUser?.role)"></div></div>
+      <button @click="darkMode=!darkMode" class="p-1.5 hover:text-accent-700 rounded">
+        <svg x-show="!darkMode" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+        <svg x-show="darkMode" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><circle cx="12" cy="12" r="4"/><path stroke-linecap="round" d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+      </button>
+      <button @click="logout()" class="p-1.5 hover:text-rose-600 rounded"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" d="M17 16l4-4m0 0l-4-4m4 4H7"/></svg></button>
+    </div>
+  </div>
+</aside>
+
+<header class="md:hidden bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 px-4 py-3 flex items-center justify-between sticky top-0 z-30 no-print">
+  <button @click="mobileNavOpen=true" class="p-1.5"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+  <div class="flex items-center gap-2"><svg class="w-7 h-7"><use href="#bsLogo"/></svg><span class="serif font-bold text-sm">BalochSath</span></div>
+  <button @click="logout()" class="p-1.5"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" d="M17 16l4-4m0 0l-4-4m4 4H7"/></svg></button>
+</header>
+
+<div x-show="mobileNavOpen" class="md:hidden fixed inset-0 z-40 no-print" x-cloak>
+  <div class="absolute inset-0 bg-black/40" @click="mobileNavOpen=false"></div>
+  <aside class="relative w-72 bg-white dark:bg-zinc-900 h-full flex flex-col">
+    <div class="p-5 border-b border-zinc-200 dark:border-zinc-800 flex items-center gap-3">
+      <svg class="w-10 h-10"><use href="#bsLogo"/></svg>
+      <div x-show="lang==='en'"><div class="font-extrabold text-slate-900 dark:text-slate-100">BalochSath</div><div class="text-[10px] uppercase tracking-widest text-accent-700 dark:text-accent-400 font-bold">Unity · Hope · Progress</div></div>
+      <div x-show="lang==='ur'"><div class="urdu font-bold text-lg leading-none text-slate-900 dark:text-slate-100">بلوچ ساتھ</div><div class="urdu text-xs text-accent-700 dark:text-accent-400">اتحاد · امید · ترقی</div></div>
+    </div>
+    <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+      <template x-for="tab in visibleTabs()" :key="tab.id">
+        <button @click="activeTab=tab.id;mobileNavOpen=false;$nextTick(()=>renderCharts())" class="nav-item w-full flex items-center gap-3 px-3 py-2 text-sm rounded-md" :class="activeTab===tab.id?'active':''">
+          <span class="w-4 h-4" x-html="tab.icon"></span><span :class="lang==='ur'?'urdu':''" x-text="tab.label"></span>
+        </button>
+      </template>
+    </nav>
+  </aside>
+</div>
+
+<main class="flex-1 flex flex-col min-w-0 overflow-hidden bg-zinc-50/50 dark:bg-[#080a08] print-page">
+
+<!-- Verse ticker -->
+<div class="gradient-navy text-cream-100 h-14 flex items-center text-sm no-print font-medium border-b border-gold-500/40 overflow-hidden shadow-md">
+  <div class="ticker-wrap"><div class="ticker-text">
+    <template x-for="q in islamicQuotes"><span class="mx-10 inline-flex items-center gap-3"><svg class="w-4 h-4 text-gold-400" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L15 9H22L16.5 14L18.5 21L12 17L5.5 21L7.5 14L2 9H9L12 2Z"/></svg><span class="arabic text-xl text-gold-300 font-bold" x-text="q.ar"></span><span class="opacity-50">·</span><span class="text-sm text-cream-100" x-text="lang==='ur' ? (q.urdu || q.tr) : q.tr"></span><span class="text-gold-400 font-bold text-sm" x-text="q.cite"></span></span></template>
+  </div></div>
+</div>
+
+<!-- Top bar -->
+<div class="bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 px-4 sm:px-6 py-3 flex items-center justify-between gap-3 sticky top-0 z-10 no-print">
+  <div class="flex items-center gap-3 flex-1 min-w-0">
+    <h1 class="text-base font-bold" :class="lang==='ur'?'urdu':'capitalize'" x-text="tabLabel(activeTab)"></h1>
+    <div class="hidden md:flex relative w-64 ml-4">
+      <svg class="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+      <input x-ref="searchInput" x-model="globalSearch" placeholder="تلاش / Search..." class="w-full pl-8 pr-3 py-1.5 rounded-md bg-zinc-100 dark:bg-zinc-800 border-0 text-sm focus:ring-2 focus:ring-accent-500 outline-none">
+    </div>
+  </div>
+  <div class="flex items-center gap-2">
+    <div class="flex bg-zinc-100 dark:bg-zinc-800 rounded-md p-0.5 text-xs font-bold">
+      <button @click="lang='en'" class="px-2.5 py-1 rounded transition" :class="lang==='en'?'bg-white dark:bg-zinc-900 shadow-sm text-accent-700 dark:text-gold-400':'text-zinc-500'">EN</button>
+      <button @click="lang='ur'" class="px-2.5 py-1 rounded transition urdu" :class="lang==='ur'?'bg-white dark:bg-zinc-900 shadow-sm text-accent-700 dark:text-gold-400':'text-zinc-500'">اردو</button>
+    </div>
+    <button @click="showZakatModal=true" class="hidden sm:block px-3 py-1.5 bg-gold-100 text-accent-800 dark:bg-gold-600/20 dark:text-gold-400 rounded-md text-xs font-bold border border-gold-300 dark:border-gold-700/50" x-text="lang==='ur'?'زکوٰۃ کیلکولیٹر':'Zakat Calculator'"></button>
+    <div class="hidden lg:block text-xs text-zinc-500 px-2"><span x-text="todayHijri()"></span> · <span x-text="todayGregorian()"></span></div>
+  </div>
+</div>
+
+<div class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 scrollbar-thin">
+
+<!-- ============== DASHBOARD ============== -->
+<section x-show="activeTab==='dashboard'" class="space-y-4 max-w-7xl mx-auto">
+
+  <!-- Data Storage Banner -->
+  <div x-show="!storageBannerDismissed" class="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30 border border-amber-200 dark:border-amber-800/50 rounded-xl p-4 flex items-start gap-3">
+    <svg class="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
+    <div class="flex-1 min-w-0">
+      <div class="flex items-center justify-between gap-2 flex-wrap">
+        <h3 class="font-bold text-sm text-amber-900 dark:text-amber-200" :class="lang==='ur'?'urdu':''" x-text="lang==='ur'?'مقامی ڈیٹا موڈ':'Local Data Mode'"></h3>
+        <button @click="storageBannerDismissed=true" class="text-xs text-amber-700 hover:text-amber-900 font-medium">Dismiss</button>
+      </div>
+      <p class="text-xs text-amber-800 dark:text-amber-300 mt-1" x-show="lang==='en'">Data is stored in this browser only (~<span class="num font-bold" x-text="storageUsedKB()"></span> KB used). It will not sync across devices. <strong>Export JSON weekly</strong> as backup. <button @click="showCloudSyncModal=true" class="text-amber-900 dark:text-amber-100 font-bold underline">Upgrade to cloud sync →</button></p>
+      <p class="urdu text-xs text-amber-800 dark:text-amber-300 mt-1 leading-relaxed" x-show="lang==='ur'">ڈیٹا صرف اسی براؤزر میں محفوظ ہے (~<span class="num font-bold" x-text="storageUsedKB()"></span> KB)۔ دوسرے ڈیوائس پر سنک نہیں ہوگا۔ <strong>ہفتے میں JSON ایکسپورٹ کریں</strong>۔ <button @click="showCloudSyncModal=true" class="text-amber-900 dark:text-amber-100 font-bold underline">کلاؤڈ سنک →</button></p>
+    </div>
+  </div>
+
+  <!-- Sadaqah Rewards - Random Islamic Reference -->
+  <div x-show="showSadaqaCard" class="bg-gradient-to-br from-emerald-50 via-cream-50 to-amber-50 dark:from-emerald-950/30 dark:via-slate-900 dark:to-amber-950/30 rounded-xl border border-emerald-300 dark:border-emerald-800 p-5 relative overflow-hidden">
+    <button @click="showSadaqaCard=false" class="absolute top-2 right-2 text-slate-400 hover:text-slate-600 p-1"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" d="M6 18L18 6M6 6l12 12"/></svg></button>
+    <div class="flex items-start gap-4 flex-wrap">
+      <div class="flex-shrink-0">
+        <div class="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center shadow-md">
+          <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+        </div>
+      </div>
+      <div class="flex-1 min-w-0">
+        <div class="flex items-center gap-2 flex-wrap">
+          <h3 class="font-extrabold text-base text-emerald-900 dark:text-emerald-200">Reward of Sadaqah</h3>
+          <span class="text-[10px] font-bold uppercase tracking-widest text-emerald-700 dark:text-emerald-400 px-2 py-0.5 bg-emerald-100 dark:bg-emerald-900/40 rounded">Daily wisdom</span>
+        </div>
+        <template x-if="dailySadaqaReward()">
+          <div class="mt-2 space-y-2">
+            <p class="arabic text-xl text-emerald-900 dark:text-emerald-200 leading-loose" x-text="dailySadaqaReward().ar"></p>
+            <p class="text-sm text-slate-700 dark:text-slate-300 italic">« <span x-text="dailySadaqaReward().en"></span> »</p>
+            <div class="flex items-center gap-3 flex-wrap">
+              <span class="text-[11px] font-bold text-emerald-700 dark:text-emerald-400" x-text="'— ' + dailySadaqaReward().cite"></span>
+              <span class="text-xs font-extrabold text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 px-2 py-0.5 rounded-full" x-text="dailySadaqaReward().reward"></span>
+            </div>
+          </div>
+        </template>
+        <button @click="rotateSadaqaCard()" class="mt-3 text-xs font-bold text-emerald-700 dark:text-emerald-400 hover:underline flex items-center gap-1">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+          Show another reference
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- About + Impact combined -->
+  <div class="relative gradient-navy rounded-xl overflow-hidden shadow-xl">
+    <div class="absolute top-0 right-0 w-64 h-64 opacity-10 -translate-y-12 translate-x-12">
+      <svg viewBox="0 0 120 120" class="w-full h-full"><use href="#bsLogo"/></svg>
+    </div>
+    <div class="relative px-5 py-5 sm:px-6 sm:py-6 grid grid-cols-1 lg:grid-cols-3 gap-5 items-center">
+      <div class="lg:col-span-2 flex items-center gap-4">
+        <svg class="w-16 h-16 flex-shrink-0 drop-shadow-xl"><use href="#bsLogo"/></svg>
+        <div class="flex-1 min-w-0">
+          <h2 class="text-xl sm:text-2xl font-extrabold text-cream-50 tracking-tight" :class="lang==='ur'?'urdu':''" x-text="t('about')"></h2>
+          <p class="text-sm text-cream-100 leading-relaxed mt-1" :class="lang==='ur'?'urdu':''" x-text="t('mission')"></p>
+          <div class="flex flex-wrap gap-1.5 mt-2.5">
+            <template x-for="cat in categoryChips()"><span class="text-[10px] bg-cream-50/15 text-gold-300 border border-gold-400/30 px-2 py-0.5 rounded font-bold uppercase tracking-wider" :class="lang==='ur'?'urdu normal-case':''" x-text="cat"></span></template>
+          </div>
+        </div>
+      </div>
+      <div class="grid grid-cols-3 gap-2 border-t lg:border-t-0 lg:border-l border-gold-400/20 lg:pl-5 pt-4 lg:pt-0">
+        <div class="text-center"><div class="num text-xl font-extrabold text-gold-300" x-text="cases.filter(c=>c.status==='disbursed'||c.status==='closed').length"></div><div class="text-[9px] uppercase tracking-wider text-cream-200/80 font-bold mt-0.5" :class="lang==='ur'?'urdu normal-case':''" x-text="lang==='ur'?'مدد ملی':'Helped'"></div></div>
+        <div class="text-center"><div class="num text-xl font-extrabold text-gold-300" x-text="formatCurrency(totalOut())"></div><div class="text-[9px] uppercase tracking-wider text-cream-200/80 font-bold mt-0.5" :class="lang==='ur'?'urdu normal-case':''" x-text="lang==='ur'?'دیا':'Given'"></div></div>
+        <div class="text-center"><div class="num text-xl font-extrabold text-gold-300" x-text="activeMembers().length"></div><div class="text-[9px] uppercase tracking-wider text-cream-200/80 font-bold mt-0.5" :class="lang==='ur'?'urdu normal-case':''" x-text="lang==='ur'?'اراکین':'Members'"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="flex items-center justify-between flex-wrap gap-3">
+    <h2 class="text-xl font-bold tracking-tight" :class="lang==='ur'?'urdu':''" x-text="t('overview')"></h2>
+    <div class="flex gap-2">
+      <button x-show="can('add_contribution')" @click="openAddContrib()" class="px-3 py-1.5 bg-accent-700 hover:bg-accent-800 text-white rounded-md text-sm font-bold shadow-sm" :class="lang==='ur'?'urdu':''" x-text="'+ '+t('addContribution')"></button>
+      <button x-show="can('create_case')" @click="openAddCase()" class="px-3 py-1.5 bg-crimson-500 hover:bg-crimson-600 text-white rounded-md text-sm font-bold shadow-sm" :class="lang==='ur'?'urdu':''" x-text="'+ '+t('newCase')"></button>
+    </div>
+  </div>
+
+  <!-- Advanced Filters Bar -->
+  <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-3 flex flex-wrap items-center gap-2">
+    <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 px-1" :class="lang==='ur'?'urdu normal-case':''" x-text="lang==='ur'?'فلٹر':'Filters'"></span>
+    <select x-model="dashTimeFilter" class="px-2.5 py-1.5 text-xs rounded-md bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-bold" :class="lang==='ur'?'urdu':''">
+      <option value="month" x-text="t('thisMonth')"></option>
+      <option value="year" x-text="t('thisYear')"></option>
+      <option value="all" x-text="t('allTime')"></option>
+      <option value="custom" x-text="lang==='ur'?'مخصوص':'Custom'"></option>
+    </select>
+    <template x-if="dashTimeFilter==='custom'">
+      <div class="flex items-center gap-1">
+        <input type="date" x-model="dashCustomFrom" class="px-2 py-1 text-xs rounded-md bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+        <span class="text-xs text-slate-400">→</span>
+        <input type="date" x-model="dashCustomTo" class="px-2 py-1 text-xs rounded-md bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+      </div>
+    </template>
+    <select x-model="dashCityFilter" class="px-2.5 py-1.5 text-xs rounded-md bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-bold">
+      <option value="" x-text="lang==='ur'?'تمام شہر':'All Cities'"></option>
+      <template x-for="c in uniqueCities()" :key="c"><option :value="c" x-text="c"></option></template>
+    </select>
+    <select x-model="dashCategoryFilter" class="px-2.5 py-1.5 text-xs rounded-md bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-bold">
+      <option value="" x-text="lang==='ur'?'تمام اقسام':'All Categories'"></option>
+      <template x-for="c in categories" :key="c"><option :value="c" x-text="c"></option></template>
+    </select>
+    <button @click="dashTimeFilter='month';dashCityFilter='';dashCategoryFilter='';dashCustomFrom='';dashCustomTo=''" class="px-2.5 py-1.5 text-xs text-slate-500 hover:text-slate-900 dark:hover:text-slate-100 font-bold">Clear</button>
+    <div class="flex-1"></div>
+    <span class="text-[10px] text-slate-500" x-show="dashCityFilter||dashCategoryFilter||dashTimeFilter==='custom'">Filters active</span>
+  </div>
+
+  <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+    <div class="metric-card glass-card rounded-2xl p-5">
+      <div class="flex items-center justify-between">
+        <div class="text-[10px] uppercase tracking-[0.2em] font-bold text-slate-500 dark:text-slate-400" :class="lang==='ur'?'urdu normal-case':''" x-text="t('balance')"></div>
+        <div class="w-8 h-8 rounded-lg bg-accent-100 dark:bg-accent-900/40 flex items-center justify-center"><svg class="w-4 h-4 text-accent-700 dark:text-accent-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"/></svg></div>
+      </div>
+      <div class="kpi-number text-3xl font-black mt-3 text-slate-900 dark:text-white" x-text="formatCurrency(totalBalance())"></div>
+      <div class="text-[11px] text-slate-500 dark:text-slate-400 mt-1.5">Inflow: <span class="font-bold" x-text="formatCurrency(totalIn())"></span></div>
+    </div>
+    <div class="metric-card glass-card rounded-2xl p-5">
+      <div class="flex items-center justify-between">
+        <div class="text-[10px] uppercase tracking-[0.2em] font-bold text-emerald-700 dark:text-emerald-400" :class="lang==='ur'?'urdu normal-case':''" x-text="t('inflow')"></div>
+        <div class="w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center"><svg class="w-4 h-4 text-emerald-700 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3"><path stroke-linecap="round" d="M5 10l7-7m0 0l7 7m-7-7v18"/></svg></div>
+      </div>
+      <div class="kpi-number text-3xl font-black mt-3 text-emerald-700 dark:text-emerald-300" x-text="formatCurrency(dashFilteredIn())"></div>
+      <div class="text-[11px] text-slate-500 dark:text-slate-400 mt-1.5" x-text="dashFilterLabel()"></div>
+    </div>
+    <div class="metric-card glass-card rounded-2xl p-5">
+      <div class="flex items-center justify-between">
+        <div class="text-[10px] uppercase tracking-[0.2em] font-bold text-crimson-700 dark:text-crimson-500" :class="lang==='ur'?'urdu normal-case':''" x-text="t('outflow')"></div>
+        <div class="w-8 h-8 rounded-lg bg-rose-100 dark:bg-rose-900/40 flex items-center justify-center"><svg class="w-4 h-4 text-rose-700 dark:text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3"><path stroke-linecap="round" d="M19 14l-7 7m0 0l-7-7m7 7V3"/></svg></div>
+      </div>
+      <div class="kpi-number text-3xl font-black mt-3 text-crimson-700 dark:text-crimson-500" x-text="formatCurrency(dashFilteredOut())"></div>
+      <div class="text-[11px] text-slate-500 dark:text-slate-400 mt-1.5" x-text="dashFilterLabel()"></div>
+    </div>
+    <div class="metric-card glass-card rounded-2xl p-5">
+      <div class="flex items-center justify-between">
+        <div class="text-[10px] uppercase tracking-[0.2em] font-bold text-blue-700 dark:text-blue-400" :class="lang==='ur'?'urdu normal-case':''" x-text="t('members')"></div>
+        <div class="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center"><svg class="w-4 h-4 text-blue-700 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg></div>
+      </div>
+      <div class="kpi-number text-3xl font-black mt-3 text-slate-900 dark:text-white" x-text="activeMembers().length"></div>
+      <div class="text-[11px] text-slate-500 dark:text-slate-400 mt-1.5"><span class="num font-bold text-amber-600 dark:text-amber-400" x-text="pendingDuesCount()"></span> with pending dues</div>
+    </div>
+  </div>
+
+  <div class="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 p-5">
+    <div class="flex items-center justify-between mb-3"><div><h3 class="font-bold text-sm">12-Month Trend</h3><p class="urdu text-xs text-zinc-500 mt-0.5">سال بھر کا تجزیہ</p></div></div>
+    <div class="h-56"><canvas id="chartTrend"></canvas></div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+    <div class="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden">
+      <div class="px-4 py-3 border-b border-zinc-200 dark:border-zinc-800 flex justify-between items-center bg-accent-50/50 dark:bg-accent-950/20">
+        <h3 class="font-bold text-sm" :class="lang==='ur'?'urdu':''" x-text="t('recentInflows')"></h3>
+        <button @click="activeTab='contributions'" class="text-xs text-accent-700 dark:text-accent-400 font-bold hover:underline" :class="lang==='ur'?'urdu':''" x-text="lang==='ur'?'سب دیکھیں':'View all →'"></button>
+      </div>
+      <div class="divide-y divide-zinc-100 dark:divide-zinc-800 max-h-64 overflow-y-auto scrollbar-thin">
+        <template x-if="recentInflows().length===0"><div class="p-6 text-center text-xs text-zinc-400">No verified inflows yet</div></template>
+        <template x-for="c in recentInflows()" :key="c.id">
+          <div class="px-4 py-2.5 flex items-center gap-3">
+            <div class="flex-1 min-w-0"><div class="text-sm font-bold truncate" x-text="memberName(c.memberId)"></div><div class="text-[10px] text-zinc-500"><span x-text="c.method"></span> · <span x-text="formatDate(c.date)"></span></div></div>
+            <div class="num text-sm font-bold text-accent-700 dark:text-accent-400" x-text="'+ '+formatCurrency(c.amount)"></div>
+          </div>
+        </template>
+      </div>
+    </div>
+    <div class="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden">
+      <div class="px-4 py-3 border-b border-zinc-200 dark:border-zinc-800 flex justify-between items-center bg-crimson-500/10 dark:bg-crimson-700/20">
+        <h3 class="font-bold text-sm" :class="lang==='ur'?'urdu':''" x-text="t('recentOutflows')"></h3>
+        <button @click="activeTab='cases'" class="text-xs text-crimson-600 dark:text-crimson-500 font-bold hover:underline" :class="lang==='ur'?'urdu':''" x-text="lang==='ur'?'سب دیکھیں':'View all →'"></button>
+      </div>
+      <div class="divide-y divide-zinc-100 dark:divide-zinc-800 max-h-64 overflow-y-auto scrollbar-thin">
+        <template x-if="recentOutflows().length===0"><div class="p-6 text-center text-xs text-zinc-400">No disbursements yet</div></template>
+        <template x-for="cs in recentOutflows()" :key="cs.id">
+          <div class="px-4 py-2.5 flex items-center gap-3">
+            <div class="flex-1 min-w-0"><div class="text-sm font-bold truncate" x-text="cs.beneficiary"></div><div class="text-[10px] text-zinc-500"><span x-text="cs.category"></span> · <span x-text="formatDate(cs.disbursedAt?.slice(0,10) || '')"></span></div></div>
+            <div class="text-right"><div class="num text-sm font-bold text-rose-700 dark:text-rose-400" x-text="'- '+formatCurrency(cs.amount)"></div><div class="text-[9px] uppercase font-bold tracking-wider" :class="cs.type==='loan'?'text-amber-600':'text-zinc-400'" x-text="cs.type==='loan'?'Qarz':'Gift'"></div></div>
+          </div>
+        </template>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+    <div class="bg-white dark:bg-zinc-900 rounded-xl border border-amber-200 dark:border-amber-800 overflow-hidden">
+      <div class="px-4 py-3 border-b border-zinc-200 dark:border-zinc-800 bg-amber-50/50 dark:bg-amber-950/20">
+        <h3 class="font-bold text-sm" :class="lang==='ur'?'urdu':''" x-text="t('toVerify')"></h3>
+      </div>
+      <div class="divide-y divide-zinc-100 dark:divide-zinc-800 max-h-56 overflow-y-auto scrollbar-thin">
+        <template x-if="unverifiedContribs().length===0"><div class="p-6 text-center text-xs text-zinc-400 urdu">سب تصدیق شدہ</div></template>
+        <template x-for="c in unverifiedContribs().slice(0,5)" :key="c.id">
+          <button @click="openVerifyContrib(c)" class="w-full px-4 py-2 hover:bg-zinc-50 dark:hover:bg-zinc-800 text-left flex items-center gap-2">
+            <div class="flex-1 min-w-0"><div class="text-xs font-bold truncate" x-text="memberName(c.memberId)"></div><div class="text-[10px] text-zinc-500 num"><span x-text="(c.approvals?.filter(a=>a.decision==='approve').length||0)"></span>/<span x-text="settings.contributionApprovalsRequired"></span></div></div>
+            <div class="num text-xs font-bold" x-text="formatCurrency(c.amount)"></div>
+          </button>
+        </template>
+      </div>
+    </div>
+    <div class="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden">
+      <div class="px-4 py-3 border-b border-zinc-200 dark:border-zinc-800"><h3 class="font-bold text-sm" :class="lang==='ur'?'urdu':''" x-text="t('pendingDues')"></h3></div>
+      <div class="divide-y divide-zinc-100 dark:divide-zinc-800 max-h-56 overflow-y-auto scrollbar-thin">
+        <template x-if="pendingDuesList().length===0"><div class="p-6 text-center text-xs text-zinc-400 urdu">سب نے ادا کر دیا</div></template>
+        <template x-for="due in pendingDuesList()" :key="due.memberId">
+          <div class="px-4 py-2 flex items-center gap-2">
+            <div class="flex-1 min-w-0"><div class="text-xs font-bold truncate" x-text="due.name"></div><div class="text-[10px] text-zinc-500" x-text="due.city"></div></div>
+            <div class="num text-xs font-bold text-rose-600" x-text="formatCurrency(due.amount)"></div>
+            <button @click="whatsappShareMember(members.find(m=>m.id===due.memberId))" class="w-7 h-7 rounded-full bg-green-50 text-green-600 flex items-center justify-center hover:bg-green-500 hover:text-white transition"><svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884"/></svg></button>
+          </div>
+        </template>
+      </div>
+    </div>
+    <div class="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden">
+      <div class="px-4 py-3 border-b border-zinc-200 dark:border-zinc-800"><h3 class="font-bold text-sm" :class="lang==='ur'?'urdu':''" x-text="t('topContributors')"></h3></div>
+      <div class="divide-y divide-zinc-100 dark:divide-zinc-800 max-h-56 overflow-y-auto scrollbar-thin">
+        <template x-if="topContributors().length===0"><div class="p-6 text-center text-xs text-zinc-400">No data</div></template>
+        <template x-for="(t,i) in topContributors()" :key="t.memberId">
+          <div class="px-4 py-2 flex items-center gap-2">
+            <div class="num text-xs font-bold w-4 text-zinc-400" x-text="i+1"></div>
+            <div class="flex-1 min-w-0"><div class="text-xs font-bold truncate" x-text="t.name"></div><div class="text-[10px] text-zinc-500" x-text="t.city"></div></div>
+            <div class="num text-xs font-bold text-accent-700 dark:text-accent-400" x-text="formatCurrency(t.total)"></div>
+          </div>
+        </template>
+      </div>
+    </div>
+  </div>
+
+  <div x-show="currentUser?.role==='admin' && pendingMembers().length>0" class="bg-white dark:bg-zinc-900 rounded-xl border border-rose-200 dark:border-rose-800 overflow-hidden">
+    <div class="px-4 py-3 border-b border-rose-200 dark:border-rose-800 bg-rose-50/50 dark:bg-rose-950/20">
+      <h3 class="font-bold text-sm text-rose-900 dark:text-rose-200">New Members Awaiting Approval</h3>
+      <p class="urdu text-[11px] text-rose-600/70">نئے اراکین کی منظوری</p>
+    </div>
+    <div class="divide-y divide-zinc-100 dark:divide-zinc-800">
+      <template x-for="m in pendingMembers()" :key="m.id">
+        <div class="px-4 py-3 flex items-center gap-3 flex-wrap">
+          <div class="w-8 h-8 rounded-full bg-zinc-200 dark:bg-zinc-800 flex items-center justify-center font-bold text-xs" x-text="m.name.charAt(0).toUpperCase()"></div>
+          <div class="flex-1 min-w-0">
+            <div class="text-sm font-bold" x-text="m.name"></div>
+            <div class="text-[11px] text-zinc-500"><span x-text="m.city"></span> · <span x-text="formatCurrency(m.monthlyPledge||0)"></span> · approvals <span class="num font-bold" x-text="(m.adminApprovals?.length||0)+'/'+settings.memberApprovalsRequired"></span></div>
+          </div>
+          <button x-show="!hasApprovedMember(m)" @click="approveMember(m.id)" class="px-3 py-1 bg-accent-700 hover:bg-accent-800 text-white rounded text-xs font-bold">منظور</button>
+          <button @click="rejectMember(m.id)" class="px-3 py-1 hover:bg-rose-100 dark:hover:bg-rose-900/40 text-rose-600 rounded text-xs font-bold border border-rose-200 dark:border-rose-800">نا منظور</button>
+        </div>
+      </template>
+    </div>
+  </div>
+</section>
+
+<!-- ============== MEMBERS ============== -->
+<section x-show="activeTab==='members'" class="space-y-4 max-w-7xl mx-auto">
+  <div class="flex items-center justify-between flex-wrap gap-2">
+    <div><h2 class="text-2xl font-bold tracking-tight">Members <span class="urdu text-lg text-accent-700 dark:text-accent-400">اراکین</span></h2><p class="text-sm text-zinc-500 mt-0.5"><span class="num font-bold" x-text="activeMembers().length"></span> active <span x-show="pendingMembers().length>0">· <span class="num font-bold text-amber-600" x-text="pendingMembers().length"></span> pending</span></p></div>
+    <div class="flex gap-2">
+      <button @click="exportCSV('members')" class="px-3 py-1.5 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-md text-sm font-bold">Export CSV</button>
+      <button @click="openAddMember()" class="px-3 py-1.5 bg-accent-700 hover:bg-accent-800 text-white rounded-md text-sm font-bold">+ نیا رکن</button>
+    </div>
+  </div>
+
+  <div class="flex flex-wrap gap-2 items-center">
+    <span class="urdu text-xs text-zinc-500">شہر:</span>
+    <button @click="memberCityFilter=''" class="px-2.5 py-1 rounded-full text-xs font-bold" :class="memberCityFilter===''?'bg-accent-700 text-white':'bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300'">All</button>
+    <template x-for="c in uniqueCities()" :key="c"><button @click="memberCityFilter=c" class="px-2.5 py-1 rounded-full text-xs font-bold" :class="memberCityFilter===c?'bg-accent-700 text-white':'bg-zinc-100 dark:bg-zinc-800'" x-text="c"></button></template>
+  </div>
+
+  <div x-show="currentUser?.role==='admin' && pendingMembers().length>0" class="bg-white dark:bg-zinc-900 rounded-xl border border-amber-200 dark:border-amber-800 overflow-hidden">
+    <div class="px-4 py-3 border-b border-amber-200 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-950/20"><h3 class="font-bold text-sm">Awaiting Admin Approval (2 admins required)</h3><p class="urdu text-[11px] text-zinc-600">دو ایڈمن کی منظوری چاہیے</p></div>
+    <div class="divide-y divide-zinc-100 dark:divide-zinc-800">
+      <template x-for="m in pendingMembers()" :key="m.id">
+        <div class="px-4 py-3 flex items-center gap-3 flex-wrap">
+          <div class="flex-1 min-w-0"><div class="text-sm font-bold" x-text="m.name"></div><div class="text-[11px] text-zinc-500"><span x-text="m.city"></span> · pledge <span class="num" x-text="formatCurrency(m.monthlyPledge||0)"></span> · approvals <span class="num font-bold" x-text="(m.adminApprovals?.length||0)+'/'+settings.memberApprovalsRequired"></span></div></div>
+          <button x-show="!hasApprovedMember(m)" @click="approveMember(m.id)" class="px-3 py-1 bg-accent-700 hover:bg-accent-800 text-white rounded text-xs font-bold">منظور</button>
+          <button x-show="hasApprovedMember(m)" class="px-3 py-1 bg-zinc-100 dark:bg-zinc-800 text-zinc-400 rounded text-xs font-bold" disabled>Voted</button>
+          <button @click="rejectMember(m.id)" class="px-3 py-1 hover:bg-rose-100 dark:hover:bg-rose-900/40 text-rose-600 rounded text-xs font-bold border border-rose-200 dark:border-rose-800">نا منظور</button>
+        </div>
+      </template>
+    </div>
+  </div>
+
+  <div class="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden">
+    <div class="overflow-x-auto"><table class="w-full text-sm">
+      <thead class="bg-zinc-50 dark:bg-zinc-800/50 text-[11px] uppercase tracking-wider text-zinc-500 font-bold">
+        <tr><th class="px-4 py-3 text-left">Name / نام</th><th class="px-4 py-3 text-left">City / شہر</th><th class="px-4 py-3 text-left">Role</th><th class="px-4 py-3 text-right">Pledge</th><th class="px-4 py-3 text-right">Verified Total</th><th class="px-4 py-3 text-right">This Month</th><th></th></tr>
+      </thead>
+      <tbody class="divide-y divide-zinc-100 dark:divide-zinc-800">
+        <template x-if="filteredActiveMembers().length===0"><tr><td colspan="7" class="px-4 py-12 text-center text-xs text-zinc-400">No members</td></tr></template>
+        <template x-for="m in filteredActiveMembers()" :key="m.id">
+          <tr class="hover:bg-zinc-50 dark:hover:bg-zinc-800/40 cursor-pointer" @click="openMemberDetail(m)">
+            <td class="px-4 py-2.5 font-bold" x-text="m.name"></td>
+            <td class="px-4 py-2.5 text-zinc-600" x-text="m.city"></td>
+            <td class="px-4 py-2.5"><span class="text-[10px] bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded font-bold uppercase tracking-wider" x-text="roleLabel(m.role)"></span></td>
+            <td class="px-4 py-2.5 text-right num" x-text="formatCurrency(m.monthlyPledge||0)"></td>
+            <td class="px-4 py-2.5 text-right num font-bold text-accent-700 dark:text-accent-400" x-text="formatCurrency(memberTotalPaid(m.id))"></td>
+            <td class="px-4 py-2.5 text-right num" :class="memberMonthAmount(m.id,thisMonthISO())===0 && m.monthlyPledge>0 ?'text-rose-600':''" x-text="memberMonthAmount(m.id,thisMonthISO())===0?'—':formatCurrency(memberMonthAmount(m.id,thisMonthISO()))"></td>
+            <td class="px-4 py-2.5 text-right"><button @click.stop="openAddContrib(m.id)" x-show="can('add_contribution')" class="text-xs bg-accent-50 dark:bg-accent-950/40 text-accent-700 dark:text-accent-400 px-2 py-0.5 rounded font-bold">+ Funds</button></td>
+          </tr>
+        </template>
+      </tbody>
+    </table></div>
+  </div>
+</section>
+
+<!-- ============== CONTRIBUTIONS ============== -->
+<section x-show="activeTab==='contributions'" class="space-y-4 max-w-7xl mx-auto">
+  <div class="flex items-center justify-between flex-wrap gap-2">
+    <div>
+      <h2 class="text-2xl font-bold">Contributions <span class="urdu text-lg text-accent-700 dark:text-accent-400">چندہ</span></h2>
+      <p class="text-sm text-zinc-500 mt-0.5">
+        <span x-show="currentUser?.role==='admin'||currentUser?.role==='supervisor'||currentUser?.role==='collector'" :class="lang==='ur'?'urdu':''" x-text="lang==='ur'?'سب اراکین کا چندہ':'All members' contributions visible'"></span>
+        <span x-show="currentUser?.role!=='admin'&&currentUser?.role!=='supervisor'&&currentUser?.role!=='collector'" :class="lang==='ur'?'urdu':''" x-text="lang==='ur'?'صرف آپ کا چندہ':'Showing only your contributions'"></span>
+        · <span class="num font-bold" x-text="settings.contributionApprovalsRequired"></span> <span :class="lang==='ur'?'urdu':''" x-text="lang==='ur'?'تصدیقات':'verifications required'"></span>
+      </p>
+    </div>
+    <div class="flex gap-2"><button @click="exportCSV('contributions')" class="px-3 py-1.5 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-md text-sm font-bold">Export CSV</button><button x-show="can('add_contribution')" @click="openAddContrib()" class="px-3 py-1.5 bg-accent-700 hover:bg-accent-800 text-white rounded-md text-sm font-bold">+ چندہ درج</button></div>
+  </div>
+
+  <div class="border-b border-zinc-200 dark:border-zinc-800 flex">
+    <button @click="contribViewTab='unverified'" class="px-4 py-2 font-bold text-sm border-b-2 -mb-px" :class="contribViewTab==='unverified'?'border-accent-700 text-accent-700':'border-transparent text-zinc-500'">Pending (<span x-text="unverifiedContribs().length"></span>)</button>
+    <button @click="contribViewTab='verified'" class="px-4 py-2 font-bold text-sm border-b-2 -mb-px" :class="contribViewTab==='verified'?'border-accent-700 text-accent-700':'border-transparent text-zinc-500'">Verified (<span x-text="verifiedContribs().length"></span>)</button>
+    <button @click="contribViewTab='all'" class="px-4 py-2 font-bold text-sm border-b-2 -mb-px" :class="contribViewTab==='all'?'border-accent-700 text-accent-700':'border-transparent text-zinc-500'">All</button>
+  </div>
+
+  <div class="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden">
+    <div class="overflow-x-auto"><table class="w-full text-sm">
+      <thead class="bg-zinc-50 dark:bg-zinc-800/50 text-[11px] uppercase font-bold text-zinc-500 tracking-wider">
+        <tr><th class="px-4 py-3 w-10"></th><th class="px-4 py-3 text-left">Date</th><th class="px-4 py-3 text-left">Member</th><th class="px-4 py-3 text-left">Method</th><th class="px-4 py-3 text-left">Status</th><th class="px-4 py-3 text-right">Amount</th><th></th></tr>
+      </thead>
+      <tbody class="divide-y divide-zinc-100 dark:divide-zinc-800">
+        <template x-if="filteredContributions().length===0"><tr><td colspan="7" class="px-4 py-12 text-center text-xs text-zinc-400">No records</td></tr></template>
+        <template x-for="c in filteredContributions()" :key="c.id">
+          <tr class="hover:bg-zinc-50 dark:hover:bg-zinc-800/40">
+            <td class="px-4 py-2.5"><div class="w-9 h-9 rounded bg-zinc-100 dark:bg-zinc-800 overflow-hidden cursor-pointer" @click="c.slipPhoto && openImageView(c.slipPhoto)"><img x-show="c.slipPhoto" :src="c.slipPhoto" class="w-full h-full object-cover"></div></td>
+            <td class="px-4 py-2.5 num text-zinc-600" x-text="formatDate(c.date)"></td>
+            <td class="px-4 py-2.5 font-bold" x-text="memberName(c.memberId)"></td>
+            <td class="px-4 py-2.5"><span class="text-[10px] bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded font-bold uppercase" x-text="c.method"></span></td>
+            <td class="px-4 py-2.5"><span class="text-[10px] uppercase font-bold px-2 py-0.5 rounded" :class="c.status==='verified'?'bg-accent-50 text-accent-700 dark:bg-accent-950/40 dark:text-accent-400':c.status==='rejected'?'bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-400':'bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400'"><span x-text="c.status"></span><span x-show="c.status==='recorded'" class="num"> <span x-text="(c.approvals?.filter(a=>a.decision==='approve').length||0)+'/'+settings.contributionApprovalsRequired"></span></span></span></td>
+            <td class="px-4 py-2.5 text-right num font-bold" x-text="formatCurrency(c.amount)"></td>
+            <td class="px-4 py-2.5 text-right"><button x-show="c.status==='recorded' && can('verify_contribution') && !hasVotedContrib(c)" @click="openVerifyContrib(c)" class="px-3 py-1 bg-accent-700 hover:bg-accent-800 text-white rounded text-xs font-bold">تصدیق</button></td>
+          </tr>
+        </template>
+      </tbody>
+    </table></div>
+  </div>
+</section>
+
+<!-- ============== CASES ============== -->
+<section x-show="activeTab==='cases'" class="space-y-4 max-w-7xl mx-auto">
+  <div class="flex items-center justify-between flex-wrap gap-2">
+    <div><h2 class="text-2xl font-bold">Cases <span class="urdu text-lg text-accent-700 dark:text-accent-400">درخواستیں</span></h2><p class="text-sm text-zinc-500 mt-0.5"><span class="num font-bold" x-text="settings.requiredApprovals"></span> approvals required for disbursement</p></div>
+    <button x-show="can('create_case')" @click="openAddCase()" class="px-3 py-1.5 bg-gold-500 hover:bg-gold-600 text-white rounded-md text-sm font-bold">+ نئی درخواست</button>
+  </div>
+
+  <div class="flex flex-wrap gap-2">
+    <button @click="caseFilter.status=''" class="px-2.5 py-1 rounded-full text-xs font-bold" :class="caseFilter.status===''?'bg-accent-700 text-white':'bg-zinc-100 dark:bg-zinc-800'">All</button>
+    <button @click="caseFilter.status='pending'" class="px-2.5 py-1 rounded-full text-xs font-bold" :class="caseFilter.status==='pending'?'bg-accent-700 text-white':'bg-zinc-100 dark:bg-zinc-800'">Pending</button>
+    <button @click="caseFilter.status='approved'" class="px-2.5 py-1 rounded-full text-xs font-bold" :class="caseFilter.status==='approved'?'bg-accent-700 text-white':'bg-zinc-100 dark:bg-zinc-800'">Approved</button>
+    <button @click="caseFilter.status='disbursed'" class="px-2.5 py-1 rounded-full text-xs font-bold" :class="caseFilter.status==='disbursed'?'bg-accent-700 text-white':'bg-zinc-100 dark:bg-zinc-800'">Disbursed</button>
+    <button @click="caseFilter.status='closed'" class="px-2.5 py-1 rounded-full text-xs font-bold" :class="caseFilter.status==='closed'?'bg-accent-700 text-white':'bg-zinc-100 dark:bg-zinc-800'">Closed</button>
+  </div>
+
+  <template x-if="filteredCases().length===0"><div class="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 p-12 text-center text-sm text-zinc-400 urdu">کوئی درخواست نہیں</div></template>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    <template x-for="cs in filteredCases()" :key="cs.id">
+      <div class="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 p-5 hover:shadow-md hover:border-accent-300 dark:hover:border-accent-700 transition cursor-pointer" @click="openCaseDetail(cs)">
+        <div class="flex items-start justify-between gap-2 flex-wrap">
+          <h3 class="font-bold text-base" x-text="cs.beneficiary"></h3>
+          <span class="text-[10px] uppercase font-bold px-2 py-0.5 rounded" :class="cs.status==='pending'?'bg-amber-100 text-amber-800':cs.status==='approved'?'bg-blue-100 text-blue-800':(cs.status==='disbursed'||cs.status==='closed')?'bg-accent-100 text-accent-800':'bg-rose-100 text-rose-800'" x-text="cs.status"></span>
+        </div>
+        <div class="text-xs font-bold text-zinc-500 mt-2 flex flex-wrap gap-1">
+          <span class="bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded" x-text="cs.category"></span>
+          <span class="bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded" :class="cs.type==='loan'?'text-amber-600':''" x-text="cs.type==='loan'?'قرض حسنہ':'صدقہ'"></span>
+          <span x-show="cs.isEmergency" class="bg-rose-100 dark:bg-rose-900/40 text-rose-700 px-2 py-0.5 rounded">Emergency</span>
+          <span x-show="cs.type==='loan' && isLoanOverdue(cs)" class="bg-rose-600 text-white px-2 py-0.5 rounded">Overdue</span>
+        </div>
+        <p class="text-sm text-zinc-600 dark:text-zinc-400 mt-3 line-clamp-2" x-text="cs.description"></p>
+        <div class="flex justify-between items-end border-t border-zinc-100 dark:border-zinc-800 pt-3 mt-4">
+          <div class="text-[11px] text-zinc-500">
+            <div x-text="formatDate(cs.createdAt.slice(0,10))"></div>
+            <div x-show="cs.status==='pending'" class="num font-bold mt-0.5"><span x-text="cs.approvals.filter(a=>a.decision==='approve').length"></span> / <span x-text="settings.requiredApprovals"></span> votes</div>
+          </div>
+          <div class="num text-xl font-extrabold text-rose-600 dark:text-rose-400" x-text="formatCurrency(cs.amount)"></div>
+        </div>
+      </div>
+    </template>
+  </div>
+</section>
+
+<!-- ============== LOANS ============== -->
+<section x-show="activeTab==='loans'" class="space-y-4 max-w-7xl mx-auto">
+  <div><h2 class="text-2xl font-bold">Qarz-e-Hasna <span class="urdu text-lg text-accent-700 dark:text-accent-400">قرض حسنہ</span></h2><p class="text-sm text-zinc-500 mt-0.5">Outstanding total: <span class="num font-bold" x-text="formatCurrency(totalOutstandingLoans())"></span></p></div>
+
+  <div x-show="overdueLoans().length>0" class="bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-800 rounded-xl p-4">
+    <div class="font-bold text-rose-900 dark:text-rose-200 mb-2 text-sm">Overdue / زیادہ وقت گزر گیا (<span class="num" x-text="overdueLoans().length"></span>)</div>
+    <div class="space-y-2">
+      <template x-for="cs in overdueLoans()" :key="cs.id">
+        <div class="bg-white dark:bg-zinc-900 rounded-lg p-3 flex items-center gap-3">
+          <div class="flex-1 min-w-0"><div class="text-sm font-bold" x-text="cs.beneficiary"></div><div class="text-[11px] text-zinc-500">Due: <span x-text="formatDate(cs.loanDueDate)"></span></div></div>
+          <div class="num text-sm font-bold text-rose-700" x-text="formatCurrency(loanOutstanding(cs))"></div>
+          <button @click="openRepayment(cs)" class="px-3 py-1 bg-accent-700 hover:bg-accent-800 text-white rounded text-xs font-bold">+ Repay</button>
+        </div>
+      </template>
+    </div>
+  </div>
+
+  <template x-if="activeLoans().length===0"><div class="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 p-12 text-center text-sm text-zinc-400 urdu">کوئی فعال قرض نہیں. الحمد للہ.</div></template>
+
+  <div class="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden">
+    <div class="overflow-x-auto"><table class="w-full text-sm">
+      <thead class="bg-zinc-50 dark:bg-zinc-800/50 text-[11px] uppercase font-bold text-zinc-500 tracking-wider">
+        <tr><th class="px-4 py-3 text-left">Beneficiary</th><th class="px-4 py-3 text-left">Disbursed</th><th class="px-4 py-3 text-left">Due Date</th><th class="px-4 py-3 text-right">Amount</th><th class="px-4 py-3 text-right">Repaid</th><th class="px-4 py-3 text-right">Outstanding</th><th class="px-4 py-3 text-left">Progress</th><th></th></tr>
+      </thead>
+      <tbody class="divide-y divide-zinc-100 dark:divide-zinc-800">
+        <template x-for="cs in activeLoans()" :key="cs.id">
+          <tr class="hover:bg-zinc-50 dark:hover:bg-zinc-800/40 cursor-pointer" @click="openCaseDetail(cs)">
+            <td class="px-4 py-2.5 font-bold" x-text="cs.beneficiary"></td>
+            <td class="px-4 py-2.5 num text-zinc-600" x-text="formatDate(cs.disbursedAt?.slice(0,10) || '')"></td>
+            <td class="px-4 py-2.5 num" :class="isLoanOverdue(cs)?'text-rose-600 font-bold':'text-zinc-600'" x-text="cs.loanDueDate?formatDate(cs.loanDueDate):'—'"></td>
+            <td class="px-4 py-2.5 text-right num" x-text="formatCurrency(cs.amount)"></td>
+            <td class="px-4 py-2.5 text-right num text-accent-700 dark:text-accent-400" x-text="formatCurrency(cs.amount-loanOutstanding(cs))"></td>
+            <td class="px-4 py-2.5 text-right num font-bold text-amber-600" x-text="formatCurrency(loanOutstanding(cs))"></td>
+            <td class="px-4 py-2.5"><div class="bg-zinc-100 dark:bg-zinc-800 rounded h-1.5 w-24"><div class="h-full bg-accent-600 rounded" :style="`width:${((cs.amount-loanOutstanding(cs))/cs.amount*100).toFixed(1)}%`"></div></div></td>
+            <td class="px-4 py-2.5 text-right"><button x-show="can('disburse')" @click.stop="openRepayment(cs)" class="px-2 py-0.5 text-xs text-accent-700 hover:bg-accent-50 dark:hover:bg-accent-900/40 rounded font-bold">+ Repay</button></td>
+          </tr>
+        </template>
+      </tbody>
+    </table></div>
+  </div>
+</section>
+
+<!-- ============== STATEMENT ============== -->
+<section x-show="activeTab==='statement'" class="space-y-4 max-w-7xl mx-auto">
+  <div class="flex items-center justify-between flex-wrap gap-2">
+    <div><h2 class="text-2xl font-bold">Statement <span class="urdu text-lg text-accent-700 dark:text-accent-400">حساب کتاب</span></h2><p class="text-sm text-zinc-500 mt-0.5">Annual ledger</p></div>
+    <div class="flex gap-2"><select x-model="reportYear" class="px-3 py-1.5 text-sm rounded-md bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 font-bold"><template x-for="y in yearsAvailable()"><option :value="y" x-text="y"></option></template></select><button @click="window.print()" class="px-3 py-1.5 bg-accent-700 hover:bg-accent-800 text-white rounded-md text-sm font-bold">Print/PDF</button></div>
+  </div>
+
+  <div class="hidden print:block text-center mb-6 pb-4 border-b">
+    <div class="flex items-center justify-center gap-3 mb-2"><svg class="w-14 h-14"><use href="#bsLogo"/></svg><div class="text-left"><h1 class="serif text-2xl font-bold">BalochSath</h1><div class="urdu text-base">بلوچ ساتھ</div></div></div>
+    <p class="arabic text-base text-zinc-700">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</p>
+    <p class="text-xs text-zinc-500 mt-2"><span x-text="'Annual Statement '+reportYear"></span> · <span x-text="todayGregorian()+' ('+todayHijri()+')'"></span></p>
+  </div>
+
+  <div class="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden">
+    <div class="overflow-x-auto"><table class="w-full text-xs">
+      <thead class="bg-zinc-50 dark:bg-zinc-800/50 uppercase tracking-wider text-zinc-500 font-bold">
+        <tr><th class="p-3 text-left sticky left-0 bg-zinc-50 dark:bg-zinc-800">Member</th><th class="p-3 text-left">City</th><template x-for="m in monthsOfYear(reportYear)"><th class="p-2 text-right" x-text="monthShort(m)"></th></template><th class="p-3 text-right bg-zinc-100 dark:bg-zinc-700">Total</th></tr>
+      </thead>
+      <tbody class="divide-y divide-zinc-100 dark:divide-zinc-800">
+        <template x-for="m in activeMembers()" :key="m.id">
+          <tr><td class="p-3 font-bold sticky left-0 bg-white dark:bg-zinc-900" x-text="m.name"></td><td class="p-3 text-zinc-500" x-text="m.city"></td>
+            <template x-for="mo in monthsOfYear(reportYear)"><td class="p-2 text-right num" :class="memberMonthAmount(m.id,mo)===0 && monthIsPast(mo) && m.monthlyPledge>0?'text-rose-500':''" x-text="memberMonthAmount(m.id,mo)===0?'—':formatCurrency(memberMonthAmount(m.id,mo))"></td></template>
+            <td class="p-3 text-right num font-bold text-accent-700 dark:text-accent-400 bg-zinc-50 dark:bg-zinc-800/30" x-text="formatCurrency(memberYearTotal(m.id,reportYear))"></td>
+          </tr>
+        </template>
+        <tr class="bg-zinc-100 dark:bg-zinc-800 font-bold"><td class="p-3 sticky left-0 bg-zinc-100 dark:bg-zinc-800">Verified In</td><td></td><template x-for="mo in monthsOfYear(reportYear)"><td class="p-2 text-right num" x-text="formatCurrency(monthTotalIn(mo))"></td></template><td class="p-3 text-right num text-accent-700" x-text="formatCurrency(yearTotalIn(reportYear))"></td></tr>
+        <tr class="bg-rose-50 dark:bg-rose-950/30"><td class="p-3 sticky left-0 bg-rose-50 dark:bg-rose-950/30 font-bold">Disbursed</td><td></td><template x-for="mo in monthsOfYear(reportYear)"><td class="p-2 text-right num text-rose-700" x-text="monthTotalOut(mo)===0?'—':'-'+formatCurrency(monthTotalOut(mo))"></td></template><td class="p-3 text-right num font-bold text-rose-700" x-text="'-'+formatCurrency(yearTotalOut(reportYear))"></td></tr>
+        <tr class="bg-accent-50 dark:bg-accent-950/30 font-bold"><td class="p-3 sticky left-0 bg-accent-50 dark:bg-accent-950/30">Net</td><td></td><template x-for="mo in monthsOfYear(reportYear)"><td class="p-2 text-right num" x-text="formatCurrency(monthTotalIn(mo)-monthTotalOut(mo))"></td></template><td class="p-3 text-right num" x-text="formatCurrency(yearTotalIn(reportYear)-yearTotalOut(reportYear))"></td></tr>
+      </tbody>
+    </table></div>
+  </div>
+
+  <div class="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden">
+    <div class="px-4 py-3 border-b border-zinc-200 dark:border-zinc-800 text-sm font-bold">Disbursements <span class="urdu text-accent-700">اخراجات</span> · <span x-text="reportYear"></span></div>
+    <div class="overflow-x-auto"><table class="w-full text-sm">
+      <thead class="bg-zinc-50 dark:bg-zinc-800/50 text-[11px] uppercase font-bold text-zinc-500 tracking-wider">
+        <tr><th class="px-4 py-3 text-left">Date</th><th class="px-4 py-3 text-left">Beneficiary</th><th class="px-4 py-3 text-left">Category</th><th class="px-4 py-3 text-left">Type</th><th class="px-4 py-3 text-left">Approved by</th><th class="px-4 py-3 text-right">Amount</th></tr>
+      </thead>
+      <tbody class="divide-y divide-zinc-100 dark:divide-zinc-800">
+        <template x-if="disbursedInYear(reportYear).length===0"><tr><td colspan="6" class="px-4 py-8 text-center text-zinc-400 urdu">کوئی اخراجات نہیں</td></tr></template>
+        <template x-for="cs in disbursedInYear(reportYear)" :key="cs.id">
+          <tr><td class="px-4 py-2 num text-zinc-600" x-text="formatDate(cs.disbursedAt?.slice(0,10))"></td><td class="px-4 py-2 font-bold" x-text="cs.beneficiary"></td><td class="px-4 py-2" x-text="cs.category"></td><td class="px-4 py-2 text-xs" x-text="cs.type==='loan'?'Qarz':'Gift'"></td><td class="px-4 py-2 text-xs text-zinc-500" x-text="approverNames(cs)"></td><td class="px-4 py-2 num text-right font-bold" x-text="formatCurrency(cs.amount)"></td></tr>
+        </template>
+      </tbody>
+    </table></div>
+  </div>
+
+  <div class="hidden print:grid grid-cols-3 gap-8 mt-12 pt-4 border-t text-xs">
+    <div class="text-center"><div class="border-b border-zinc-400 h-10"></div><div class="mt-1">Fund Collector</div></div>
+    <div class="text-center"><div class="border-b border-zinc-400 h-10"></div><div class="mt-1">Supervisor</div></div>
+    <div class="text-center"><div class="border-b border-zinc-400 h-10"></div><div class="mt-1">Committee Chair</div></div>
+  </div>
+</section>
+
+<!-- ============== AUDIT ============== -->
+<section x-show="activeTab==='audit'" class="space-y-4 max-w-7xl mx-auto">
+  <div><h2 class="text-2xl font-bold">Audit Log <span class="urdu text-lg text-accent-700 dark:text-accent-400">کارروائی کا ریکارڈ</span></h2><p class="text-sm text-zinc-500 mt-0.5"><span class="num font-bold" x-text="audit.length"></span> entries</p></div>
+  <div class="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden max-h-[70vh] overflow-y-auto scrollbar-thin">
+    <template x-if="audit.length===0"><div class="p-8 text-center text-sm text-zinc-400 urdu">کوئی سرگرمی نہیں</div></template>
+    <template x-for="entry in [...audit].reverse()" :key="entry.id">
+      <div class="px-4 py-2.5 flex items-start gap-3 text-sm border-b border-zinc-100 dark:border-zinc-800 last:border-0">
+        <div class="w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0" :class="auditColor(entry.action)"></div>
+        <div class="flex-1 min-w-0"><div x-text="entry.message"></div><div class="text-xs text-zinc-500 mt-0.5"><span x-text="profileName(entry.actor)"></span> · <span x-text="formatDateTime(entry.timestamp)"></span></div></div>
+      </div>
+    </template>
+  </div>
+</section>
+
+<!-- ============== SETTINGS ============== -->
+<section x-show="activeTab==='settings'" class="space-y-5 max-w-3xl mx-auto pb-10">
+  <h2 class="text-2xl font-bold">Settings <span class="urdu text-lg text-accent-700 dark:text-accent-400">ترتیبات</span></h2>
+
+  <div class="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 p-5 space-y-3">
+    <h3 class="font-bold text-sm border-b border-zinc-100 dark:border-zinc-800 pb-2">Brand & Currency</h3>
+    <div><label class="text-xs font-bold text-zinc-600 dark:text-zinc-400">Brand name</label><input x-model="settings.brandName" class="w-full mt-1 px-3 py-1.5 rounded-md bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-sm"></div>
+    <div class="grid grid-cols-2 gap-3">
+      <div><label class="text-xs font-bold text-zinc-600 dark:text-zinc-400">Currency</label><select x-model="settings.currency" class="w-full mt-1 px-3 py-1.5 rounded-md bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-sm"><option>PKR</option><option>AED</option><option>SAR</option><option>USD</option><option>GBP</option></select></div>
+      <div><label class="text-xs font-bold text-zinc-600 dark:text-zinc-400">Emergency threshold</label><input x-model.number="settings.emergencyThreshold" type="number" class="w-full mt-1 px-3 py-1.5 rounded-md bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 num text-sm"></div>
+    </div>
+  </div>
+
+  <div class="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 p-5 space-y-3">
+    <h3 class="font-bold text-sm border-b border-zinc-100 dark:border-zinc-800 pb-2">Governance Rules <span class="urdu text-accent-700">قواعد</span></h3>
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <div>
+        <label class="text-xs font-bold text-zinc-600 dark:text-zinc-400">Member approvals</label>
+        <p class="urdu text-[10px] text-zinc-500">نئے رکن کے لیے ایڈمن منظوریاں</p>
+        <input x-model.number="settings.memberApprovalsRequired" type="number" min="1" max="5" class="w-full mt-1 px-3 py-1.5 rounded-md bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 num text-sm">
+      </div>
+      <div>
+        <label class="text-xs font-bold text-zinc-600 dark:text-zinc-400">Contribution verifications</label>
+        <p class="urdu text-[10px] text-zinc-500">چندہ کی تصدیق</p>
+        <input x-model.number="settings.contributionApprovalsRequired" type="number" min="1" max="5" class="w-full mt-1 px-3 py-1.5 rounded-md bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 num text-sm">
+      </div>
+      <div>
+        <label class="text-xs font-bold text-zinc-600 dark:text-zinc-400">Case approvals</label>
+        <p class="urdu text-[10px] text-zinc-500">درخواست کی منظوری</p>
+        <input x-model.number="settings.requiredApprovals" type="number" min="1" max="7" class="w-full mt-1 px-3 py-1.5 rounded-md bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 num text-sm">
+      </div>
+    </div>
+  </div>
+
+  <div x-show="currentUser?.role==='admin'" class="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 p-5 space-y-3">
+    <div class="flex items-center justify-between"><h3 class="font-bold text-sm">Login Profiles <span class="urdu text-accent-700">پروفائلز</span></h3><button @click="openAddProfile()" class="px-2.5 py-1 bg-accent-700 hover:bg-accent-800 text-white rounded text-xs font-bold">+ Add</button></div>
+    <div class="space-y-1">
+      <template x-for="p in profiles" :key="p.id">
+        <div class="flex items-center justify-between py-2">
+          <div class="flex items-center gap-2.5"><div class="w-7 h-7 rounded-full bg-accent-100 dark:bg-accent-900 text-accent-800 dark:text-accent-300 flex items-center justify-center text-xs font-bold" x-text="p.name.charAt(0).toUpperCase()"></div><div><div class="text-sm font-bold" x-text="p.name"></div><div class="text-xs text-zinc-500" x-text="roleLabel(p.role)"></div></div></div>
+          <button x-show="profiles.length>1 && p.id!==currentUser.id" @click="deleteProfile(p.id)" class="text-xs text-rose-600 hover:underline">Delete</button>
+        </div>
+      </template>
+    </div>
+  </div>
+
+  <div class="bg-gradient-to-br from-copper-100/50 to-cream-50 dark:from-slate-800 dark:to-slate-900 rounded-xl border border-copper-300 dark:border-copper-700/40 p-5 space-y-2">
+    <div class="flex items-start gap-2">
+      <svg class="w-5 h-5 text-copper-600 dark:text-copper-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      <div class="flex-1">
+        <h3 class="font-bold text-sm" :class="lang==='ur'?'urdu':''" x-text="lang==='ur'?'ڈیٹا کہاں محفوظ ہے':'Where is your data saved?'"></h3>
+        <p class="text-xs text-slate-700 dark:text-slate-300 mt-1" x-show="lang==='en'">All your data (members, contributions, cases, photos) is stored <strong>locally in this browser</strong>. It will not transfer to other devices. If you clear browser data, it is lost.</p>
+        <p class="urdu text-xs text-slate-700 dark:text-slate-300 mt-1 leading-relaxed" x-show="lang==='ur'">آپ کا تمام ڈیٹا (اراکین، چندہ، درخواستیں، تصاویر) <strong>اسی براؤزر میں محفوظ</strong> ہے۔ یہ دوسرے ڈیوائس پر نہیں جائے گا۔ اگر براؤزر کا ڈیٹا صاف کر دیا تو سب کچھ ختم ہو جائے گا۔</p>
+        <p class="text-xs text-copper-700 dark:text-copper-400 mt-2 font-bold" x-show="lang==='en'">→ Export JSON every week as backup</p>
+        <p class="urdu text-xs text-copper-700 dark:text-copper-400 mt-2 font-bold" x-show="lang==='ur'">→ ہفتے میں ایک بار JSON ایکسپورٹ کریں</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cloud Backend Roadmap -->
+  <div class="bg-gradient-to-br from-accent-50 to-cream-50 dark:from-accent-950/30 dark:to-slate-900 rounded-xl border-2 border-accent-300 dark:border-accent-800 p-5 space-y-3">
+    <div class="flex items-center gap-2">
+      <svg class="w-5 h-5 text-accent-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"/></svg>
+      <h3 class="font-bold text-sm">Cloud Backend <span class="text-[10px] bg-accent-100 text-accent-800 dark:bg-accent-900 dark:text-accent-200 px-2 py-0.5 rounded ml-2 font-bold">STAGE 3 · COMING</span></h3>
+    </div>
+    <p class="text-xs text-slate-600 dark:text-slate-400">Currently: data saved locally in this browser. <strong>Free upgrade path</strong> for multi-device sync, real auth, cloud photos, realtime committee voting:</p>
+    <div class="space-y-2">
+      <div class="bg-white dark:bg-slate-800 rounded-lg p-3 border border-slate-200 dark:border-slate-700">
+        <div class="flex items-start gap-2">
+          <span class="text-[10px] font-bold uppercase tracking-widest text-accent-700 dark:text-accent-400 px-2 py-0.5 bg-accent-100 dark:bg-accent-900/50 rounded flex-shrink-0">Frontend</span>
+          <div class="flex-1 text-xs">
+            <p class="font-bold">Vercel / Netlify / Cloudflare Pages</p>
+            <p class="text-slate-500 dark:text-slate-400">Free hosting · Custom domain · Global CDN · Auto-deploy from GitHub</p>
+          </div>
+        </div>
+      </div>
+      <div class="bg-white dark:bg-slate-800 rounded-lg p-3 border border-slate-200 dark:border-slate-700">
+        <div class="flex items-start gap-2">
+          <span class="text-[10px] font-bold uppercase tracking-widest text-accent-700 dark:text-accent-400 px-2 py-0.5 bg-accent-100 dark:bg-accent-900/50 rounded flex-shrink-0">Backend</span>
+          <div class="flex-1 text-xs">
+            <p class="font-bold">Supabase (Postgres + Auth + Storage + Realtime)</p>
+            <p class="text-slate-500 dark:text-slate-400">Free tier: 500MB DB · 1GB storage · 50K monthly active users · realtime subscriptions for live committee voting</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="text-xs text-accent-800 dark:text-accent-300 font-bold">→ Bolein "<strong>Stage 3 banao</strong>" — main full Supabase + Vercel version build kar dunga (Next.js 16 + auth + realtime).</p>
+  </div>
+
+  <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-5 space-y-3">
+    <h3 class="font-bold text-sm" :class="lang==='ur'?'urdu':''" x-text="lang==='ur'?'بیک اپ اور بحالی':'Backup & Restore'"></h3>
+    <div class="flex flex-wrap gap-2">
+      <button @click="exportData()" class="px-3 py-1.5 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded-md text-sm font-bold">Export JSON</button>
+      <label class="px-3 py-1.5 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded-md text-sm font-bold cursor-pointer">Import JSON<input type="file" accept=".json" @change="importData($event)" class="hidden"></label>
+      <button @click="if(confirm('Delete ALL data?')) resetAll()" class="px-3 py-1.5 hover:bg-rose-50 text-rose-600 rounded-md text-sm font-bold">Reset</button>
+    </div>
+  </div>
+</section>
+
+</div></main></div>
+
+<!-- ============== MODALS ============== -->
+
+<div x-show="showMemberModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 no-print" x-cloak><div class="absolute inset-0 bg-black/40" @click="showMemberModal=false"></div><div class="relative bg-white dark:bg-zinc-900 rounded-2xl shadow-xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto">
+  <h3 class="text-base font-bold mb-4" x-text="editingMember?'Edit Member':'Add Member'"></h3>
+  <form @submit.prevent="saveMember()" class="space-y-3">
+    <div><label class="text-xs font-bold text-zinc-600">Name <span class="text-rose-500">*</span></label><input x-model="memberForm.name" required class="w-full mt-1 px-3 py-1.5 rounded-md bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-sm"></div>
+    <div><label class="text-xs font-bold text-zinc-600">City / شہر <span class="text-rose-500">*</span></label><input x-model="memberForm.city" required class="w-full mt-1 px-3 py-1.5 rounded-md bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-sm"></div>
+    <div class="grid grid-cols-2 gap-3"><div><label class="text-xs font-bold text-zinc-600">Phone</label><input x-model="memberForm.phone" type="tel" placeholder="+923..." class="w-full mt-1 px-3 py-1.5 rounded-md bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-sm"></div>
+    <div><label class="text-xs font-bold text-zinc-600">Pledge</label><input x-model.number="memberForm.monthlyPledge" type="number" min="0" class="w-full mt-1 px-3 py-1.5 rounded-md bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 num text-sm"></div></div>
+    <div><label class="text-xs font-bold text-zinc-600">Role</label><select x-model="memberForm.role" class="w-full mt-1 px-3 py-1.5 rounded-md bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-sm"><option value="contributor">Contributor</option><option value="collector">Fund Collector</option><option value="supervisor">Supervisor</option><option value="committee">Committee</option><option value="emergency_committee">Emergency Committee</option></select></div>
+    <div class="grid grid-cols-2 gap-3">
+      <div>
+        <label class="text-xs font-bold text-zinc-600">Household name</label>
+        <input x-model="memberForm.household" placeholder="e.g. Khan family" class="w-full mt-1 px-3 py-1.5 rounded-md bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-sm">
+        <p class="text-[10px] text-slate-500 mt-1">Group multiple contributors of one home.</p>
+      </div>
+      <div>
+        <label class="text-xs font-bold text-zinc-600">Is Sarbrah (head)?</label>
+        <label class="flex items-center gap-2 mt-2"><input x-model="memberForm.isSarbrah" type="checkbox" class="rounded text-accent-600"><span class="text-sm">Head of household</span></label>
+        <p class="text-[10px] text-slate-500 mt-1">Sarbrah represents the household.</p>
+      </div>
+    </div>
+    <div x-show="currentUser?.role==='admin'">
+      <label class="text-xs font-bold text-zinc-600">Link to login profile (optional)</label>
+      <select x-model="memberForm.profileId" class="w-full mt-1 px-3 py-1.5 rounded-md bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-sm">
+        <option value="">— Not linked —</option>
+        <template x-for="p in profiles" :key="p.id"><option :value="p.id" x-text="p.name+' ('+roleLabel(p.role)+')'"></option></template>
+      </select>
+      <p class="text-[10px] text-slate-500 mt-1">Linked profile sees only their own contributions when logged in.</p>
+    </div>
+    <div><label class="text-xs font-bold text-zinc-600">Notes</label><textarea x-model="memberForm.notes" rows="2" class="w-full mt-1 px-3 py-1.5 rounded-md bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-sm"></textarea></div>
+    <p x-show="!editingMember && currentUser?.role!=='admin'" class="urdu text-[11px] text-amber-600">یہ <span class="num" x-text="settings.memberApprovalsRequired"></span> ایڈمنوں کی منظوری چاہے گا</p>
+    <div class="flex gap-2 pt-2"><button type="button" @click="showMemberModal=false" class="flex-1 px-3 py-2 rounded-md border border-zinc-200 dark:border-zinc-700 text-sm">Cancel</button><button type="submit" class="flex-1 px-3 py-2 rounded-md bg-accent-700 hover:bg-accent-800 text-white font-bold text-sm">Save</button></div>
+  </form>
+</div></div>
+
+<div x-show="showMemberDetail && currentMember" class="fixed inset-0 z-50 flex items-center justify-end no-print" x-cloak><div class="absolute inset-0 bg-black/40" @click="showMemberDetail=false"></div><template x-if="currentMember"><div class="relative bg-white dark:bg-zinc-900 w-full max-w-md h-full overflow-y-auto shadow-2xl p-6">
+  <div class="flex items-start justify-between gap-2 mb-4"><div class="flex items-center gap-3"><div class="w-12 h-12 rounded-full bg-accent-100 dark:bg-accent-900 text-accent-800 dark:text-accent-300 flex items-center justify-center font-bold text-lg" x-text="currentMember.name.charAt(0).toUpperCase()"></div><div><h3 class="font-bold text-lg" x-text="currentMember.name"></h3><p class="text-xs text-zinc-500"><span x-text="currentMember.city"></span> · <span x-text="roleLabel(currentMember.role)"></span></p></div></div><button @click="showMemberDetail=false" class="p-1 text-zinc-400 hover:text-zinc-900"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" d="M6 18L18 6M6 6l12 12"/></svg></button></div>
+  <div class="grid grid-cols-3 gap-2 mb-4"><div class="bg-zinc-50 dark:bg-zinc-800 rounded p-2.5"><div class="text-[10px] text-zinc-500 uppercase">Pledge</div><div class="num text-sm font-bold" x-text="formatCurrency(currentMember.monthlyPledge||0)"></div></div><div class="bg-zinc-50 dark:bg-zinc-800 rounded p-2.5"><div class="text-[10px] text-zinc-500 uppercase">Verified</div><div class="num text-sm font-bold text-accent-700" x-text="formatCurrency(memberTotalPaid(currentMember.id))"></div></div><div class="bg-zinc-50 dark:bg-zinc-800 rounded p-2.5"><div class="text-[10px] text-zinc-500 uppercase">This Month</div><div class="num text-sm font-bold" x-text="formatCurrency(memberMonthAmount(currentMember.id, thisMonthISO()))"></div></div></div>
+  <div class="flex gap-2 mb-5"><button x-show="can('add_contribution')" @click="showMemberDetail=false; openAddContrib(currentMember.id)" class="flex-1 px-3 py-1.5 bg-accent-700 text-white rounded-md text-sm font-bold">+ Funds</button><button @click="whatsappShareMember(currentMember)" class="px-3 py-1.5 border border-zinc-200 dark:border-zinc-700 rounded-md text-sm font-bold">WhatsApp</button><button x-show="can('manage_members')" @click="showMemberDetail=false; openEditMember(currentMember)" class="px-3 py-1.5 border border-zinc-200 dark:border-zinc-700 rounded-md text-sm font-bold">Edit</button></div>
+  <h4 class="text-xs font-bold uppercase tracking-wider text-zinc-500 mb-2">History <span class="urdu text-zinc-400">تاریخ</span></h4>
+  <template x-if="memberContributions(currentMember.id).length===0"><p class="text-sm text-zinc-500">No contributions yet.</p></template>
+  <template x-for="c in memberContributions(currentMember.id)" :key="c.id"><div class="flex items-center gap-3 py-2 border-b border-zinc-100 dark:border-zinc-800 last:border-0"><div class="flex-1 min-w-0"><div class="text-sm" x-text="formatDate(c.date)+' · '+c.method"></div><div class="text-[11px] text-zinc-500"><span x-text="c.status"></span></div></div><div class="num text-sm font-bold" x-text="formatCurrency(c.amount)"></div></div></template>
+</div></template></div>
+
+<div x-show="showContribModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 no-print" x-cloak><div class="absolute inset-0 bg-black/40" @click="showContribModal=false"></div><div class="relative bg-white dark:bg-zinc-900 rounded-2xl shadow-xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto">
+  <h3 class="text-base font-bold mb-4">Record Contribution / چندہ درج کریں</h3>
+  <form @submit.prevent="saveContrib()" class="space-y-3">
+    <div><label class="text-xs font-bold text-zinc-600">Member</label><select x-model="contribForm.memberId" required class="w-full mt-1 px-3 py-1.5 rounded-md bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-sm"><option value="">Select</option><template x-for="m in activeMembers()" :key="m.id"><option :value="m.id" x-text="m.name+' · '+m.city"></option></template></select></div>
+    <div class="grid grid-cols-2 gap-3"><div><label class="text-xs font-bold text-zinc-600">Amount / رقم</label><input x-model.number="contribForm.amount" type="number" step="0.01" min="0" required class="w-full mt-1 px-3 py-1.5 rounded-md bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 num text-sm"></div><div><label class="text-xs font-bold text-zinc-600">Date / تاریخ</label><input x-model="contribForm.date" type="date" required class="w-full mt-1 px-3 py-1.5 rounded-md bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-sm"></div></div>
+    <div><label class="text-xs font-bold text-zinc-600">For Month</label><input x-model="contribForm.monthFor" type="month" class="w-full mt-1 px-3 py-1.5 rounded-md bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-sm"></div>
+    <div><label class="text-xs font-bold text-zinc-600">Method / طریقہ</label><select x-model="contribForm.method" required class="w-full mt-1 px-3 py-1.5 rounded-md bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-sm"><option value="">Select</option><option>Cash</option><option>Bank Transfer</option><option>JazzCash</option><option>Easypaisa</option><option>Cheque</option></select></div>
+    <div x-show="contribForm.method && contribForm.method!=='Cash'"><label class="text-xs font-bold text-zinc-600">Slip Photo / پرچی <span class="text-rose-500">*</span></label><input type="file" accept="image/*" @change="handleSlip($event)" class="w-full mt-1 text-xs"><div x-show="contribForm.slipPhoto" class="mt-2"><img :src="contribForm.slipPhoto" class="w-full max-w-xs h-28 object-cover rounded border border-zinc-200 dark:border-zinc-700"></div></div>
+    <div><label class="text-xs font-bold text-zinc-600">Note</label><textarea x-model="contribForm.note" rows="2" class="w-full mt-1 px-3 py-1.5 rounded-md bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-sm"></textarea></div>
+    <p class="urdu text-[11px] text-amber-600"><span class="num font-bold" x-text="settings.contributionApprovalsRequired"></span> تصدیقیں درکار ہوں گی</p>
+    <div class="flex gap-2 pt-2"><button type="button" @click="showContribModal=false" class="flex-1 px-3 py-2 rounded-md border border-zinc-200 dark:border-zinc-700 text-sm">Cancel</button><button type="submit" class="flex-1 px-3 py-2 rounded-md bg-accent-700 hover:bg-accent-800 text-white font-bold text-sm">Save</button></div>
+  </form>
+</div></div>
+
+<div x-show="showVerifyContribModal && currentContrib" class="fixed inset-0 z-50 flex items-center justify-center p-4 no-print" x-cloak><div class="absolute inset-0 bg-black/40" @click="showVerifyContribModal=false"></div><div class="relative bg-white dark:bg-zinc-900 rounded-2xl shadow-xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto">
+  <h3 class="text-base font-bold mb-1">Verify Contribution / تصدیق</h3>
+  <p class="text-sm text-zinc-500 mb-4"><span class="font-bold" x-text="memberName(currentContrib?.memberId)"></span> · <span class="num font-bold" x-text="formatCurrency(currentContrib?.amount||0)"></span></p>
+  <div x-show="currentContrib?.slipPhoto" class="mb-4"><img :src="currentContrib?.slipPhoto" class="w-full rounded-md border border-zinc-200 dark:border-zinc-700"></div>
+  <form @submit.prevent="submitContribVote()" class="space-y-3">
+    <div class="grid grid-cols-2 gap-2"><label class="cursor-pointer"><input x-model="contribVoteForm.decision" type="radio" value="approve" required class="peer sr-only"><div class="p-2.5 rounded-md border peer-checked:border-accent-700 peer-checked:bg-accent-50 dark:peer-checked:bg-accent-950/30 text-center text-sm font-bold">منظور</div></label><label class="cursor-pointer"><input x-model="contribVoteForm.decision" type="radio" value="reject" required class="peer sr-only"><div class="p-2.5 rounded-md border peer-checked:border-rose-600 peer-checked:bg-rose-50 dark:peer-checked:bg-rose-950/30 text-center text-sm font-bold">نا منظور</div></label></div>
+    <div><label class="text-xs font-bold text-zinc-600">Note</label><textarea x-model="contribVoteForm.note" rows="2" class="w-full mt-1 px-3 py-1.5 rounded-md bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-sm"></textarea></div>
+    <div class="flex gap-2 pt-2"><button type="button" @click="showVerifyContribModal=false" class="flex-1 px-3 py-2 rounded-md border border-zinc-200 dark:border-zinc-700 text-sm">Cancel</button><button type="submit" class="flex-1 px-3 py-2 rounded-md bg-accent-700 hover:bg-accent-800 text-white font-bold text-sm">Submit</button></div>
+  </form>
+</div></div>
+
+<div x-show="showCaseModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 no-print" x-cloak><div class="absolute inset-0 bg-black/40" @click="showCaseModal=false"></div><div class="relative bg-white dark:bg-zinc-900 rounded-2xl shadow-xl w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto">
+  <h3 class="text-base font-bold mb-4">New Case / نئی درخواست</h3>
+  <form @submit.prevent="saveCase()" class="space-y-3">
+    <div class="grid grid-cols-2 gap-2"><label class="cursor-pointer"><input x-model="caseForm.type" type="radio" value="gift" required class="peer sr-only"><div class="p-3 rounded-md border peer-checked:border-accent-700 peer-checked:bg-accent-50 dark:peer-checked:bg-accent-950/30 text-center"><div class="font-bold text-sm">Gift / صدقہ</div><div class="text-[10px] text-zinc-500 mt-0.5">Wapas nahi karna</div></div></label><label class="cursor-pointer"><input x-model="caseForm.type" type="radio" value="loan" required class="peer sr-only"><div class="p-3 rounded-md border peer-checked:border-accent-700 peer-checked:bg-accent-50 dark:peer-checked:bg-accent-950/30 text-center"><div class="font-bold text-sm">Qarz-e-Hasna / قرض حسنہ</div><div class="text-[10px] text-zinc-500 mt-0.5">Repayable</div></div></label></div>
+    <div><label class="text-xs font-bold text-zinc-600">Beneficiary / مستحق <span class="text-rose-500">*</span></label><input x-model="caseForm.beneficiary" required class="w-full mt-1 px-3 py-1.5 rounded-md bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-sm"></div>
+    <div class="grid grid-cols-2 gap-3"><div><label class="text-xs font-bold text-zinc-600">Relation</label><input x-model="caseForm.relation" class="w-full mt-1 px-3 py-1.5 rounded-md bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-sm"></div><div><label class="text-xs font-bold text-zinc-600">City</label><input x-model="caseForm.city" class="w-full mt-1 px-3 py-1.5 rounded-md bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-sm"></div></div>
+    <div class="grid grid-cols-2 gap-3"><div><label class="text-xs font-bold text-zinc-600">Category / قسم</label><select x-model="caseForm.category" required class="w-full mt-1 px-3 py-1.5 rounded-md bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-sm"><template x-for="c in categories"><option :value="c" x-text="c"></option></template></select></div><div><label class="text-xs font-bold text-zinc-600">Amount / رقم</label><input x-model.number="caseForm.amount" type="number" min="0" required class="w-full mt-1 px-3 py-1.5 rounded-md bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 num text-sm"></div></div>
+    <div x-show="caseForm.type==='loan'"><label class="text-xs font-bold text-zinc-600">Return date / واپسی کی تاریخ</label><input x-model="caseForm.loanDueDate" type="date" class="w-full mt-1 px-3 py-1.5 rounded-md bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-sm"></div>
+    <div><label class="text-xs font-bold text-zinc-600">Reason / وجہ <span class="text-rose-500">*</span></label><textarea x-model="caseForm.description" rows="3" required class="w-full mt-1 px-3 py-1.5 rounded-md bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-sm"></textarea></div>
+    <div><label class="text-xs font-bold text-zinc-600">Documents</label><input type="file" accept="image/*" multiple @change="handleCaseDocs($event)" class="w-full mt-1 text-xs"><div class="mt-2 flex flex-wrap gap-1.5"><template x-for="(doc,i) in caseForm.docs" :key="i"><div class="relative w-14 h-14 rounded overflow-hidden border border-zinc-200 dark:border-zinc-700"><img :src="doc" class="w-full h-full object-cover"><button type="button" @click="caseForm.docs.splice(i,1)" class="absolute top-0.5 right-0.5 w-4 h-4 rounded-full bg-zinc-900/70 text-white text-xs leading-none">×</button></div></template></div></div>
+    <label class="flex items-center gap-2"><input x-model="caseForm.isEmergency" type="checkbox" class="rounded text-rose-600"><span class="text-sm">Emergency / ہنگامی</span></label>
+    <p class="text-[11px] text-amber-600 dark:text-amber-400"><span class="num font-bold" x-text="requiredVotesForCase()"></span> approvals required (majority of <span class="num font-bold" x-text="activeMembers().length"></span> active members). Every contributor votes; one vote per member.</p>
+    <div class="flex gap-2 pt-2"><button type="button" @click="showCaseModal=false" class="flex-1 px-3 py-2 rounded-md border border-zinc-200 dark:border-zinc-700 text-sm">Cancel</button><button type="submit" class="flex-1 px-3 py-2 rounded-md bg-accent-700 hover:bg-accent-800 text-white font-bold text-sm">Submit</button></div>
+  </form>
+</div></div>
+
+<div x-show="showCaseDetailModal && currentCase" class="fixed inset-0 z-50 flex items-center justify-center p-4 no-print" x-cloak><div class="absolute inset-0 bg-black/40" @click="showCaseDetailModal=false"></div><template x-if="currentCase"><div class="relative bg-white dark:bg-zinc-900 rounded-2xl shadow-xl w-full max-w-2xl p-6 max-h-[90vh] overflow-y-auto">
+  <div class="flex items-start justify-between gap-3 mb-4"><div><h3 class="text-xl font-bold" x-text="currentCase.beneficiary"></h3><div class="text-xs text-zinc-500 mt-1"><span x-text="currentCase.category"></span><span x-show="currentCase.relation"> · <span x-text="currentCase.relation"></span></span><span x-show="currentCase.city"> · <span x-text="currentCase.city"></span></span></div></div><div class="text-right"><div class="num text-xl font-bold" x-text="formatCurrency(currentCase.amount)"></div><div class="flex gap-1 justify-end mt-1"><span class="text-[10px] uppercase font-bold px-1.5 py-0.5 rounded" :class="currentCase.status==='pending'?'bg-amber-100 text-amber-800':currentCase.status==='approved'?'bg-blue-100 text-blue-800':currentCase.status==='disbursed'||currentCase.status==='closed'?'bg-accent-100 text-accent-800':'bg-rose-100 text-rose-800'" x-text="currentCase.status"></span><span class="text-[10px] uppercase font-bold px-1.5 py-0.5 rounded bg-zinc-100" x-text="currentCase.type==='loan'?'Qarz':'Gift'"></span></div></div></div>
+  <div class="bg-zinc-50 dark:bg-zinc-800 rounded p-3 mb-4"><div class="text-[10px] uppercase tracking-wider text-zinc-500 mb-1">Description</div><p class="text-sm" x-text="currentCase.description"></p></div>
+  <div x-show="currentCase.docs?.length>0" class="mb-4"><div class="text-[10px] uppercase tracking-wider text-zinc-500 mb-2">Documents</div><div class="flex flex-wrap gap-2"><template x-for="(doc,i) in currentCase.docs" :key="i"><a :href="doc" target="_blank" class="block w-16 h-16 rounded overflow-hidden border"><img :src="doc" class="w-full h-full object-cover"></a></template></div></div>
+  <div class="mb-4"><div class="text-[10px] uppercase tracking-wider text-zinc-500 mb-2">Votes (<span class="num" x-text="currentCase.approvals.filter(a=>a.decision==='approve').length+'/'+settings.requiredApprovals"></span>)</div><template x-if="currentCase.approvals.length===0"><p class="text-sm text-zinc-500">No votes yet</p></template><div class="space-y-1.5"><template x-for="vote in currentCase.approvals" :key="vote.by+vote.at"><div class="flex items-start gap-2 p-2 rounded bg-zinc-50 dark:bg-zinc-800"><div class="w-1.5 h-1.5 rounded-full mt-1.5" :class="vote.decision==='approve'?'bg-accent-600':'bg-rose-500'"></div><div class="flex-1"><div class="text-sm font-bold" x-text="profileName(vote.by)+' · '+vote.decision"></div><div class="text-[10px] text-zinc-500" x-text="formatDateTime(vote.at)"></div><div x-show="vote.note" class="text-sm mt-1" x-text="vote.note"></div></div></div></template></div></div>
+  <div x-show="currentCase.status==='disbursed'||currentCase.status==='closed'" class="bg-accent-50 dark:bg-accent-950/30 rounded p-3 mb-4"><div class="text-[10px] uppercase tracking-wider text-accent-700 mb-1">Disbursement</div><div class="text-sm" x-text="formatDateTime(currentCase.disbursedAt)+' by '+profileName(currentCase.disbursedBy)"></div><div x-show="currentCase.disbursementNote" class="text-sm mt-1" x-text="currentCase.disbursementNote"></div><div x-show="currentCase.receiptPhoto" class="mt-2"><a :href="currentCase.receiptPhoto" target="_blank"><img :src="currentCase.receiptPhoto" class="w-24 h-24 object-cover rounded border"></a></div></div>
+  <div x-show="currentCase.type==='loan' && currentCase.repayments?.length>0" class="mb-4"><div class="text-[10px] uppercase tracking-wider text-zinc-500 mb-2">Repayments</div><div class="space-y-1.5"><template x-for="r in currentCase.repayments" :key="r.id"><div class="flex items-center gap-2 p-2 rounded bg-zinc-50 dark:bg-zinc-800"><div class="flex-1"><div class="text-sm font-bold" x-text="formatDate(r.date)+(r.note?' · '+r.note:'')"></div><div class="text-[10px] text-zinc-500" x-text="profileName(r.by)"></div></div><div class="num text-sm font-bold text-accent-700" x-text="formatCurrency(r.amount)"></div><a x-show="r.slipPhoto" :href="r.slipPhoto" target="_blank" class="block w-8 h-8 rounded overflow-hidden"><img :src="r.slipPhoto" class="w-full h-full object-cover"></a></div></template></div><div class="mt-2 pt-2 border-t flex justify-between text-sm font-bold"><span>Outstanding</span><span class="num" :class="loanOutstanding(currentCase)>0?'text-amber-700':'text-accent-700'" x-text="formatCurrency(loanOutstanding(currentCase))"></span></div></div>
+  <div class="flex gap-2 flex-wrap"><button @click="showCaseDetailModal=false" class="px-3 py-1.5 rounded-md border border-zinc-200 dark:border-zinc-700 text-sm">Close</button><button x-show="currentCase.status==='pending' && can('vote_case') && !hasVoted(currentCase)" @click="showCaseDetailModal=false; openVote(currentCase)" class="px-3 py-1.5 rounded-md bg-accent-700 text-white font-bold text-sm">Vote / رائے</button><button x-show="currentCase.status==='approved' && can('disburse')" @click="showCaseDetailModal=false; openDisburse(currentCase)" class="px-3 py-1.5 rounded-md bg-gold-500 hover:bg-gold-600 text-white font-bold text-sm">Disburse</button><button x-show="currentCase.type==='loan' && currentCase.status==='disbursed' && loanOutstanding(currentCase)>0 && can('disburse')" @click="showCaseDetailModal=false; openRepayment(currentCase)" class="px-3 py-1.5 rounded-md bg-accent-700 text-white font-bold text-sm">+ Repayment</button><button x-show="currentCase.status==='disbursed' && (currentCase.type!=='loan'||loanOutstanding(currentCase)<=0) && can('disburse')" @click="closeCase(currentCase.id); showCaseDetailModal=false" class="px-3 py-1.5 rounded-md border border-zinc-200 dark:border-zinc-700 text-sm">Close case</button></div>
+</div></template></div>
+
+<div x-show="showVoteModal && currentCase" class="fixed inset-0 z-50 flex items-center justify-center p-4 no-print" x-cloak><div class="absolute inset-0 bg-black/40" @click="showVoteModal=false"></div><div class="relative bg-white dark:bg-zinc-900 rounded-2xl shadow-xl w-full max-w-md p-6">
+  <h3 class="text-base font-bold mb-1">Vote on Case / رائے دیں</h3>
+  <p class="text-sm text-zinc-500 mb-4"><span class="font-bold" x-text="currentCase?.beneficiary"></span> · <span class="num font-bold" x-text="formatCurrency(currentCase?.amount||0)"></span></p>
+  <form @submit.prevent="submitVote()" class="space-y-3">
+    <div class="grid grid-cols-2 gap-2"><label class="cursor-pointer"><input x-model="voteForm.decision" type="radio" value="approve" required class="peer sr-only"><div class="p-2.5 rounded-md border peer-checked:border-accent-700 peer-checked:bg-accent-50 dark:peer-checked:bg-accent-950/30 text-center text-sm font-bold">منظور</div></label><label class="cursor-pointer"><input x-model="voteForm.decision" type="radio" value="reject" required class="peer sr-only"><div class="p-2.5 rounded-md border peer-checked:border-rose-600 peer-checked:bg-rose-50 dark:peer-checked:bg-rose-950/30 text-center text-sm font-bold">نا منظور</div></label></div>
+    <div><label class="text-xs font-bold text-zinc-600">Note</label><textarea x-model="voteForm.note" rows="2" class="w-full mt-1 px-3 py-1.5 rounded-md bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-sm"></textarea></div>
+    <div class="flex gap-2 pt-2"><button type="button" @click="showVoteModal=false" class="flex-1 px-3 py-2 rounded-md border border-zinc-200 dark:border-zinc-700 text-sm">Cancel</button><button type="submit" class="flex-1 px-3 py-2 rounded-md bg-accent-700 hover:bg-accent-800 text-white font-bold text-sm">Submit</button></div>
+  </form>
+</div></div>
+
+<div x-show="showDisburseModal && currentCase" class="fixed inset-0 z-50 flex items-center justify-center p-4 no-print" x-cloak><div class="absolute inset-0 bg-black/40" @click="showDisburseModal=false"></div><div class="relative bg-white dark:bg-zinc-900 rounded-2xl shadow-xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto">
+  <h3 class="text-base font-bold mb-1">Mark Disbursed / ادائیگی</h3>
+  <p class="text-sm text-zinc-500 mb-4"><span x-text="currentCase?.beneficiary"></span> · <span class="num font-bold" x-text="formatCurrency(currentCase?.amount||0)"></span></p>
+  <form @submit.prevent="submitDisburse()" class="space-y-3">
+    <div><label class="text-xs font-bold text-zinc-600">Date</label><input x-model="disburseForm.date" type="date" required class="w-full mt-1 px-3 py-1.5 rounded-md bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-sm"></div>
+    <div><label class="text-xs font-bold text-zinc-600">Method</label><input x-model="disburseForm.note" placeholder="Bank, cash..." class="w-full mt-1 px-3 py-1.5 rounded-md bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-sm"></div>
+    <div><label class="text-xs font-bold text-zinc-600">Receipt photo</label><input type="file" accept="image/*" @change="handleReceipt($event)" class="w-full mt-1 text-xs"><div x-show="disburseForm.receipt" class="mt-2"><img :src="disburseForm.receipt" class="w-28 h-28 object-cover rounded border"></div></div>
+    <div class="flex gap-2 pt-2"><button type="button" @click="showDisburseModal=false" class="flex-1 px-3 py-2 rounded-md border border-zinc-200 dark:border-zinc-700 text-sm">Cancel</button><button type="submit" class="flex-1 px-3 py-2 rounded-md bg-gold-500 hover:bg-gold-600 text-white font-bold text-sm">Confirm</button></div>
+  </form>
+</div></div>
+
+<div x-show="showRepaymentModal && currentCase" class="fixed inset-0 z-50 flex items-center justify-center p-4 no-print" x-cloak><div class="absolute inset-0 bg-black/40" @click="showRepaymentModal=false"></div><div class="relative bg-white dark:bg-zinc-900 rounded-2xl shadow-xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto">
+  <h3 class="text-base font-bold mb-1">Record Repayment / واپسی</h3>
+  <p class="text-sm text-zinc-500 mb-4"><span x-text="currentCase?.beneficiary"></span> · Outstanding <span class="num font-bold" x-text="formatCurrency(loanOutstanding(currentCase||{}))"></span></p>
+  <form @submit.prevent="submitRepayment()" class="space-y-3">
+    <div class="grid grid-cols-2 gap-3"><div><label class="text-xs font-bold text-zinc-600">Amount</label><input x-model.number="repaymentForm.amount" type="number" min="0" required class="w-full mt-1 px-3 py-1.5 rounded-md bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 num text-sm"></div><div><label class="text-xs font-bold text-zinc-600">Date</label><input x-model="repaymentForm.date" type="date" required class="w-full mt-1 px-3 py-1.5 rounded-md bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-sm"></div></div>
+    <div><label class="text-xs font-bold text-zinc-600">Note</label><input x-model="repaymentForm.note" class="w-full mt-1 px-3 py-1.5 rounded-md bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-sm"></div>
+    <div><label class="text-xs font-bold text-zinc-600">Slip photo</label><input type="file" accept="image/*" @change="handleRepaymentSlip($event)" class="w-full mt-1 text-xs"><div x-show="repaymentForm.slipPhoto" class="mt-2"><img :src="repaymentForm.slipPhoto" class="w-28 h-28 object-cover rounded border"></div></div>
+    <div class="flex gap-2 pt-2"><button type="button" @click="showRepaymentModal=false" class="flex-1 px-3 py-2 rounded-md border border-zinc-200 dark:border-zinc-700 text-sm">Cancel</button><button type="submit" class="flex-1 px-3 py-2 rounded-md bg-accent-700 hover:bg-accent-800 text-white font-bold text-sm">Save</button></div>
+  </form>
+</div></div>
+
+<div x-show="showProfileModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 no-print" x-cloak><div class="absolute inset-0 bg-black/40" @click="showProfileModal=false"></div><div class="relative bg-white dark:bg-zinc-900 rounded-2xl shadow-xl w-full max-w-md p-6">
+  <h3 class="text-base font-bold mb-4">Add Login Profile</h3>
+  <form @submit.prevent="addProfile()" class="space-y-3">
+    <div><label class="text-xs font-bold text-zinc-600">Name</label><input x-model="profileForm.name" required class="w-full mt-1 px-3 py-1.5 rounded-md bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-sm"></div>
+    <div><label class="text-xs font-bold text-zinc-600">Role</label><select x-model="profileForm.role" required class="w-full mt-1 px-3 py-1.5 rounded-md bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-sm"><option value="admin">Admin</option><option value="collector">Fund Collector</option><option value="supervisor">Supervisor</option><option value="committee">Committee</option><option value="emergency_committee">Emergency Committee</option><option value="contributor">Contributor</option></select></div>
+    <div><label class="text-xs font-bold text-zinc-600">PIN</label><input x-model="profileForm.pin" type="password" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" required class="w-full mt-1 px-3 py-1.5 rounded-md bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 num text-center text-lg tracking-[0.4em]"></div>
+    <div class="flex gap-2 pt-2"><button type="button" @click="showProfileModal=false" class="flex-1 px-3 py-2 rounded-md border border-zinc-200 dark:border-zinc-700 text-sm">Cancel</button><button type="submit" class="flex-1 px-3 py-2 rounded-md bg-accent-700 hover:bg-accent-800 text-white font-bold text-sm">Create</button></div>
+  </form>
+</div></div>
+
+<div x-show="showZakatModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 no-print" x-cloak><div class="absolute inset-0 bg-black/40" @click="showZakatModal=false"></div><div class="relative bg-white dark:bg-zinc-900 rounded-2xl shadow-xl w-full max-w-md p-6">
+  <h3 class="text-base font-bold mb-1">Zakat Calculator <span class="urdu text-accent-700">زکوٰۃ کیلکولیٹر</span></h3>
+  <p class="text-xs text-zinc-500 mb-4 urdu">2.5% فی شرعی اصول</p>
+  <div class="space-y-3">
+    <div><label class="text-xs font-bold text-zinc-600">Cash & Savings <span class="urdu text-accent-700">نقد</span></label><input x-model.number="zakatForm.cash" @input="calculateZakat()" type="number" class="w-full mt-1 px-3 py-1.5 rounded-md bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 num text-sm"></div>
+    <div class="grid grid-cols-2 gap-3"><div><label class="text-xs font-bold text-zinc-600">Gold value <span class="urdu text-accent-700">سونا</span></label><input x-model.number="zakatForm.gold" @input="calculateZakat()" type="number" class="w-full mt-1 px-3 py-1.5 rounded-md bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 num text-sm"></div><div><label class="text-xs font-bold text-zinc-600">Silver value <span class="urdu text-accent-700">چاندی</span></label><input x-model.number="zakatForm.silver" @input="calculateZakat()" type="number" class="w-full mt-1 px-3 py-1.5 rounded-md bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 num text-sm"></div></div>
+    <div><label class="text-xs font-bold text-rose-600">Debts <span class="urdu">قرض</span></label><input x-model.number="zakatForm.debts" @input="calculateZakat()" type="number" class="w-full mt-1 px-3 py-1.5 rounded-md bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900 num text-sm"></div>
+    <div class="p-4 bg-accent-50 dark:bg-accent-950/40 rounded-lg text-center border border-accent-200 dark:border-accent-900"><div class="text-[10px] font-bold text-accent-700 uppercase tracking-widest">Total Zakat (2.5%)</div><div class="text-3xl font-extrabold text-accent-800 dark:text-accent-400 num mt-1" x-text="formatCurrency(zakatForm.totalZakat)"></div></div>
+  </div>
+  <button @click="showZakatModal=false" class="mt-5 w-full py-2.5 bg-zinc-100 dark:bg-zinc-800 rounded-md font-bold text-sm">Close</button>
+</div></div>
+
+<div x-show="imageViewSrc" @click="imageViewSrc=''" class="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4 no-print cursor-pointer" x-cloak><img :src="imageViewSrc" class="max-w-full max-h-full rounded"></div>
+
+<!-- Du'a Modal (shown after contribution) -->
+<div x-show="showDuaModal && currentDua" class="fixed inset-0 z-[60] flex items-center justify-center p-4 no-print" x-cloak>
+  <div class="absolute inset-0 bg-slate-900/70 backdrop-blur-sm" @click="showDuaModal=false"></div>
+  <div class="relative bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-lg p-7 border-2 border-gold-300 dark:border-gold-600/40 overflow-hidden">
+    <div class="absolute top-0 left-0 right-0 h-1 gradient-gold"></div>
+    <div class="text-center mb-5">
+      <svg class="w-12 h-12 mx-auto text-accent-700 dark:text-gold-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.32.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.32-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z"/></svg>
+      <p class="text-xs uppercase tracking-[0.3em] font-bold text-accent-700 dark:text-gold-400 mt-3" x-text="lang==='ur'?'دعا':'May Allah accept your contribution'"></p>
+    </div>
+    <template x-if="currentDua">
+      <div class="space-y-4">
+        <div class="bg-gradient-to-br from-accent-50/60 to-cream-50 dark:from-slate-800 dark:to-slate-900 rounded-xl p-5 border border-accent-200 dark:border-slate-700">
+          <p class="arabic text-2xl text-accent-900 dark:text-gold-200 leading-loose text-center" x-text="currentDua.ar"></p>
+        </div>
+        <div class="space-y-2 text-center">
+          <p class="urdu text-base text-slate-800 dark:text-slate-200 leading-relaxed" x-text="currentDua.ur"></p>
+          <p class="text-sm text-slate-600 dark:text-slate-400 italic" x-text="'« ' + currentDua.en + ' »'"></p>
+          <p class="text-xs text-accent-700 dark:text-gold-400 font-bold tracking-wider mt-2" x-text="'— ' + currentDua.cite"></p>
+        </div>
+        <div class="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/50 rounded-lg p-3 text-center">
+          <p class="text-sm font-bold text-emerald-800 dark:text-emerald-300" x-show="lang==='en'">JazakAllah Khair · Contribution recorded</p>
+          <p class="urdu text-sm font-bold text-emerald-800 dark:text-emerald-300" x-show="lang==='ur'">جزاک اللہ خیر · چندہ درج ہو گیا</p>
+        </div>
+      </div>
+    </template>
+    <button @click="showDuaModal=false" class="mt-5 w-full py-2.5 rounded-lg bg-accent-700 hover:bg-accent-800 text-white font-bold text-sm transition" x-text="lang==='ur'?'آمین':'Ameen'"></button>
+  </div>
+</div>
+
+<div x-show="showCloudSyncModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 no-print" x-cloak>
+  <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" @click="showCloudSyncModal=false"></div>
+  <div class="relative bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-lg p-7 max-h-[90vh] overflow-y-auto border border-slate-200 dark:border-slate-700">
+    <h3 class="text-2xl font-bold tracking-tight" :class="lang==='ur'?'urdu':''" x-text="lang==='ur'?'ڈیٹا کہاں محفوظ ہوگا':'Where is your data stored?'"></h3>
+    <p class="text-sm text-slate-500 mt-1" :class="lang==='ur'?'urdu':''" x-text="lang==='ur'?'موجودہ اور آنے والے اختیارات':'Current setup and upgrade options'"></p>
+    <div class="mt-5 space-y-3">
+      <div class="rounded-xl border border-amber-200 dark:border-amber-800/50 bg-amber-50/50 dark:bg-amber-950/20 p-4">
+        <div class="flex items-center gap-2 mb-2"><span class="text-[10px] uppercase font-bold tracking-widest text-amber-700 dark:text-amber-400 px-2 py-0.5 bg-amber-100 dark:bg-amber-900/40 rounded">Current</span><h4 class="font-bold text-sm">Browser localStorage</h4></div>
+        <p class="text-xs text-slate-600 dark:text-slate-400">All data lives in this browser. Lost if you clear browser data or switch devices. Free, instant, no setup. <strong>Used: <span class="num" x-text="storageUsedKB()"></span> KB / ~10,000 KB limit</strong></p>
+        <p class="text-xs text-amber-700 dark:text-amber-400 mt-2 font-bold">→ Export JSON weekly as backup (Settings tab)</p>
+      </div>
+
+      <div class="rounded-xl border border-accent-300 dark:border-accent-700 bg-accent-50/50 dark:bg-accent-950/30 p-4">
+        <div class="flex items-center gap-2 mb-2"><span class="text-[10px] uppercase font-bold tracking-widest text-accent-700 dark:text-accent-300 px-2 py-0.5 bg-accent-100 dark:bg-accent-900/40 rounded">Recommended</span><h4 class="font-bold text-sm">Supabase Cloud Sync</h4></div>
+        <p class="text-xs text-slate-600 dark:text-slate-400">Real PostgreSQL database. Multi-device live sync. Free tier: 500 MB + 50,000 monthly active users. Photos in cloud storage.</p>
+        <div class="mt-2 grid grid-cols-2 gap-2 text-[10px]">
+          <div class="text-slate-500 dark:text-slate-400">✓ Multi-device sync<br>✓ Real auth (email + password)<br>✓ Cloud photo storage</div>
+          <div class="text-slate-500 dark:text-slate-400">✓ Realtime committee voting<br>✓ Public transparency URL<br>✓ Free tier covers most families</div>
+        </div>
+        <p class="text-xs text-accent-700 dark:text-accent-300 mt-3 font-bold">Setup time: 30-60 min. Bolein "Stage 3 banao" — main full Supabase + Next.js version build kar dunga.</p>
+      </div>
+
+      <div class="rounded-xl border border-slate-200 dark:border-slate-700 p-4">
+        <div class="flex items-center gap-2 mb-2"><span class="text-[10px] uppercase font-bold tracking-widest text-slate-500 px-2 py-0.5 bg-slate-100 dark:bg-slate-800 rounded">Alternative</span><h4 class="font-bold text-sm">Google Sheets backend</h4></div>
+        <p class="text-xs text-slate-600 dark:text-slate-400">Use Google Sheets as your database via Apps Script. Free. Familiar UI. Family members can view sheet directly.</p>
+        <p class="text-xs text-slate-500 mt-2">Less polish than Supabase, but works.</p>
+      </div>
+    </div>
+    <button @click="showCloudSyncModal=false" class="mt-5 w-full py-2.5 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-sm font-semibold">Close</button>
+  </div>
+</div>
+
+<!-- ============== JS ============== -->
+<script>
+function app(){return{
+profiles:[],currentUser:null,members:[],contributions:[],cases:[],audit:[],
+settings:{brandName:'BalochSath',currency:'PKR',emergencyThreshold:50000,memberApprovalsRequired:2,contributionApprovalsRequired:2,requiredApprovals:2},
+activeTab:'dashboard',darkMode:false,mobileNavOpen:false,reportYear:new Date().getFullYear(),
+contribViewTab:'unverified',globalSearch:'',dashTimeFilter:'month',dashCustomFrom:'',dashCustomTo:'',dashCityFilter:'',dashCategoryFilter:'',memberCityFilter:'',caseFilter:{status:''},
+lang:'en',showSadaqaCard:true,
+translations:{
+en:{dashboard:'Dashboard',members:'Members',contributions:'Contributions',cases:'Cases',loans:'Loans',statement:'Statement',audit:'Audit Log',settings:'Settings',overview:'Overview',balance:'Balance',inflow:'Inflow',outflow:'Outflow',thisMonth:'This Month',thisYear:'This Year',allTime:'All Time',addMember:'Add Member',addContribution:'Record Contribution',newCase:'New Case',pendingDues:'Pending Dues',topContributors:'Top Contributors',toVerify:'To Verify',recentInflows:'Recent Inflows',recentOutflows:'Recent Outflows',name:'Name',city:'City',role:'Role',pledge:'Monthly Pledge',amount:'Amount',date:'Date',status:'Status',action:'Action',save:'Save',cancel:'Cancel',approve:'Approve',reject:'Reject',verify:'Verify',vote:'Vote',edit:'Edit',del:'Delete',signin:'Sign In',logout:'Logout',about:'About BalochSath',mission:'A community fund for our family in need: medical emergencies, education, widow/orphan care, and Qarz-e-Hasna.'},
+ur:{dashboard:'ڈیش بورڈ',members:'اراکین',contributions:'چندہ',cases:'درخواستیں',loans:'قرض حسنہ',statement:'حساب کتاب',audit:'ریکارڈ',settings:'ترتیبات',overview:'خلاصہ',balance:'بیلنس',inflow:'آمدن',outflow:'اخراجات',thisMonth:'اس مہینہ',thisYear:'اس سال',allTime:'مکمل',addMember:'نیا رکن',addContribution:'چندہ درج کریں',newCase:'نئی درخواست',pendingDues:'باقی چندہ',topContributors:'سب سے زیادہ تعاون',toVerify:'تصدیق کریں',recentInflows:'حالیہ آمدن',recentOutflows:'حالیہ اخراجات',name:'نام',city:'شہر',role:'کردار',pledge:'ماہانہ عہد',amount:'رقم',date:'تاریخ',status:'حیثیت',action:'عمل',save:'محفوظ کریں',cancel:'منسوخ',approve:'منظور',reject:'نا منظور',verify:'تصدیق',vote:'رائے',edit:'ترمیم',del:'حذف',signin:'داخل ہوں',logout:'لاگ آؤٹ',about:'بلوچ ساتھ کا تعارف',mission:'یہ کمیونٹی فنڈ ہمارے خاندان کے ضرورت مند افراد کی مدد کے لیے ہے — صدقہ، زکوٰۃ، اور قرضِ حسنہ کے ذریعے'}
+},
+t(k){return(this.translations[this.lang]||this.translations.en)[k]||k},
+categoryChips(){return this.lang==='ur'?['طبی امداد','تعلیم','بیوہ، یتیم','ہنگامی','قرضِ حسنہ']:['Medical','Education','Widow/Orphan','Emergency','Qarz-e-Hasna']},
+categories:['Medical / طبی','Education / تعلیم','Family Event','Emergency / ہنگامی','Religious','Financial Hardship','Sadaqah / صدقہ','Zakat / زکوٰۃ','Widow/Orphan','Other'],
+
+setupForm:{name:'',pin:'',pinConfirm:''},loginForm:{profileId:'',pin:'',error:''},
+memberForm:{},editingMember:null,showMemberModal:false,
+contribForm:{},showContribModal:false,currentContrib:null,
+contribVoteForm:{},showVerifyContribModal:false,
+caseForm:{docs:[],type:'gift'},showCaseModal:false,currentCase:null,
+voteForm:{},showVoteModal:false,disburseForm:{},showDisburseModal:false,
+repaymentForm:{},showRepaymentModal:false,
+profileForm:{},showProfileModal:false,
+showCaseDetailModal:false,imageViewSrc:'',
+showMemberDetail:false,currentMember:null,
+zakatForm:{cash:0,gold:0,silver:0,debts:0,totalZakat:0},showZakatModal:false,
+storageBannerDismissed:false,showCloudSyncModal:false,
+logoFailed:false,
+showDuaModal:false,currentDua:null,
+toasts:[],chartTrend:null,
+
+sadaqaIndex:0,
+sadaqaRewards:[
+{ar:'مَّثَلُ الَّذِينَ يُنفِقُونَ أَمْوَالَهُمْ كَمَثَلِ حَبَّةٍ أَنبَتَتْ سَبْعَ سَنَابِلَ فِي كُلِّ سُنبُلَةٍ مِّائَةُ حَبَّةٍ',en:'The example of those who spend their wealth in the way of Allah is like a seed which grows seven spikes; in each spike is a hundred grains',cite:'Quran · Al-Baqarah 2:261',reward:'700× multiplier'},
+{ar:'مَن ذَا الَّذِي يُقْرِضُ اللَّهَ قَرْضًا حَسَنًا فَيُضَاعِفَهُ لَهُ أَضْعَافًا كَثِيرَةً',en:'Who is it that will lend Allah a goodly loan, so He may multiply it for him many times over',cite:'Quran · Al-Baqarah 2:245',reward:'Multiplied many times'},
+{ar:'وَمَا أَنفَقْتُم مِّن شَيْءٍ فَهُوَ يُخْلِفُهُ ۖ وَهُوَ خَيْرُ الرَّازِقِينَ',en:'Whatever you spend, He will replace it; and He is the best of providers',cite:'Quran · Saba 34:39',reward:'Replaced by Allah'},
+{ar:'إِنَّ الْمُصَّدِّقِينَ وَالْمُصَّدِّقَاتِ وَأَقْرَضُوا اللَّهَ قَرْضًا حَسَنًا يُضَاعَفُ لَهُمْ',en:'Indeed, the men who give in charity and the women who give in charity, it will be multiplied for them',cite:'Quran · Al-Hadid 57:18',reward:'Multiplied for both men & women'},
+{ar:'مَا نَقَصَتْ صَدَقَةٌ مِنْ مَالٍ',en:'Charity does not decrease wealth',cite:'Hadith · Sahih Muslim 2588',reward:'Wealth never decreases'},
+{ar:'الصَّدَقَةُ تُطْفِئُ الْخَطِيئَةَ كَمَا يُطْفِئُ الْمَاءُ النَّارَ',en:'Charity extinguishes sins as water extinguishes fire',cite:'Hadith · Tirmidhi 614',reward:'Erases past sins'},
+{ar:'إِذَا مَاتَ الْإِنْسَانُ انْقَطَعَ عَنْهُ عَمَلُهُ إِلَّا مِنْ ثَلَاثٍ صَدَقَةٍ جَارِيَةٍ',en:'When a person dies, deeds end except three: ongoing charity (Sadaqah Jariya)',cite:'Hadith · Sahih Muslim 1631',reward:'Reward continues after death'},
+{ar:'مَن فَرَّجَ عَن مُؤْمِنٍ كُرْبَةً فَرَّجَ اللَّهُ عَنْهُ كُرْبَةً يَوْمَ الْقِيَامَةِ',en:'Whoever relieves a believer\'s distress, Allah will relieve his distress on the Day of Judgement',cite:'Hadith · Sahih Muslim 2699',reward:'Relief on Day of Judgement'},
+{ar:'السَّاعِي عَلَى الْأَرْمَلَةِ وَالْمِسْكِينِ كَالْمُجَاهِدِ فِي سَبِيلِ اللَّهِ',en:'One who strives for the widow and the poor is like a fighter in the way of Allah',cite:'Hadith · Sahih al-Bukhari 5353',reward:'Reward of a Mujahid'},
+{ar:'كُلُّ مَعْرُوفٍ صَدَقَةٌ',en:'Every good deed is charity',cite:'Hadith · Sahih al-Bukhari 6021',reward:'Every kindness counts'},
+{ar:'لَن تَنَالُوا الْبِرَّ حَتَّىٰ تُنفِقُوا مِمَّا تُحِبُّونَ',en:'You will never attain righteousness until you spend from what you love',cite:'Quran · Aal-e-Imran 3:92',reward:'Path to true righteousness'},
+{ar:'الَّذِينَ يُنفِقُونَ أَمْوَالَهُم بِاللَّيْلِ وَالنَّهَارِ سِرًّا وَعَلَانِيَةً فَلَهُمْ أَجْرُهُمْ عِندَ رَبِّهِمْ',en:'Those who spend their wealth night and day, secretly and openly, will have their reward with their Lord',cite:'Quran · Al-Baqarah 2:274',reward:'Reward with the Lord, no fear or grief'}
+],
+
+duas:[
+{ar:'بَارَكَ اللَّهُ لَكُمْ فِي مَا أَعْطَيْتُمْ',ur:'اللہ آپ کے دیے ہوئے میں برکت عطا فرمائے',en:'May Allah bless you in what you have given',cite:'Du\'a'},
+{ar:'مَّن ذَا الَّذِى يُقْرِضُ اللَّهَ قَرْضًا حَسَنًا فَيُضَـٰعِفَهُۥ لَهُۥ',ur:'کون ہے جو اللہ کو قرض حسنہ دے کہ وہ کئی گنا بڑھا دے',en:'Who is it that will lend to Allah a goodly loan, that He may multiply it for him',cite:'Al-Hadid 57:11'},
+{ar:'وَمَآ أَنفَقْتُم مِّن شَىْءٍ فَهُوَ يُخْلِفُهُۥ',ur:'اور تم جو کچھ بھی خرچ کرو، اللہ اس کا بدل دیتا ہے',en:'Whatever you spend, He will replace it',cite:'Saba 34:39'},
+{ar:'مَّثَلُ ٱلَّذِينَ يُنفِقُونَ أَمْوَٰلَهُمْ كَمَثَلِ حَبَّةٍ أَنۢبَتَتْ سَبْعَ سَنَابِلَ',ur:'مال خرچ کرنے والوں کی مثال اس بیج کی طرح ہے جو سات بالیں اُگائے',en:'Like a seed which grows seven spikes',cite:'Al-Baqarah 2:261'},
+{ar:'إِنَّ ٱلْمُصَّدِّقِينَ وَٱلْمُصَّدِّقَـٰتِ يُضَـٰعَفُ لَهُمْ',ur:'بے شک صدقہ دینے والے مرد اور عورتیں، ان کے لیے کئی گنا بڑھایا جائے گا',en:'Those who give in charity, men and women, it will be multiplied for them',cite:'Al-Hadid 57:18'},
+{ar:'لَن تَنَالُوا۟ ٱلْبِرَّ حَتَّىٰ تُنفِقُوا۟ مِمَّا تُحِبُّونَ',ur:'تم نیکی کو نہیں پہنچ سکتے جب تک اپنی محبوب چیز خرچ نہ کرو',en:'You shall not attain righteousness until you spend from what you love',cite:'Aal-e-Imran 3:92'},
+{ar:'ٱلصَّدَقَةُ تُطْفِئُ ٱلْخَطِيئَةَ كَمَا يُطْفِئُ ٱلْمَآءُ ٱلنَّارَ',ur:'صدقہ گناہوں کو ایسے بجھاتا ہے جیسے پانی آگ کو',en:'Charity extinguishes sin as water extinguishes fire',cite:'Tirmidhi 614'},
+{ar:'إِنَّمَا نُطْعِمُكُمْ لِوَجْهِ ٱللَّهِ',ur:'ہم تمہیں صرف اللہ کی رضا کے لیے کھلاتے ہیں',en:'We feed you only for the sake of Allah',cite:'Al-Insan 76:9'},
+{ar:'مَا نَقَصَتْ صَدَقَةٌ مِنْ مَالٍ',ur:'صدقہ کبھی مال میں کمی نہیں کرتا',en:'Charity does not decrease wealth',cite:'Sahih Muslim 2588'},
+{ar:'ٱلسَّاعِى عَلَى ٱلْأَرْمَلَةِ وَٱلْمِسْكِينِ كَٱلْمُجَاهِدِ فِى سَبِيلِ ٱللَّهِ',ur:'بیوہ اور مسکین کے لیے کوشش کرنے والا اللہ کی راہ میں جہاد کرنے والے کی طرح ہے',en:'One who strives for the widow and poor is like a fighter in the way of Allah',cite:'Sahih al-Bukhari 5353'},
+{ar:'كُلُّ مَعْرُوفٍ صَدَقَةٌ',ur:'ہر نیکی صدقہ ہے',en:'Every good deed is charity',cite:'Sahih al-Bukhari 6021'},
+{ar:'مَنْ فَرَّجَ عَنْ مُؤْمِنٍ كُرْبَةً فَرَّجَ ٱللَّهُ عَنْهُ كُرْبَةً يَوْمَ ٱلْقِيَامَةِ',ur:'جو کسی مومن کی پریشانی دور کرے، اللہ قیامت کے دن اس کی پریشانی دور کرے گا',en:'Whoever relieves a believer\'s distress, Allah will relieve his distress on the Day of Judgement',cite:'Sahih Muslim 2699'}
+],
+
+islamicQuotes:[
+{ar:'وَمَا أَنفَقْتُم مِّن شَيْءٍ فَهُوَ يُخْلِفُهُ',tr:'Whatever you spend, He replaces it',urdu:'تم جو خرچ کرتے ہو، اللہ اس کا بدل دیتا ہے',cite:'Saba 34:39'},
+{ar:'لَن تَنَالُوا الْبِرَّ حَتَّىٰ تُنفِقُوا مِمَّا تُحِبُّونَ',tr:'You will not attain righteousness until you spend from what you love',urdu:'نیکی کو نہیں پاسکتے جب تک پسندیدہ چیز خرچ نہ کرو',cite:'Aal-e-Imran 3:92'},
+{ar:'الصَّدَقَةُ تُطْفِئُ الْخَطِيئَةَ',tr:'Charity extinguishes sins as water extinguishes fire',urdu:'صدقہ گناہوں کو پانی کی طرح بجھاتا ہے',cite:'Tirmidhi 2616'},
+{ar:'مَنْ أَنْظَرَ مُعْسِرًا أَظَلَّهُ اللَّهُ',tr:'Whoever gives respite to one in difficulty, Allah will shade them',urdu:'جو تنگدست کو مہلت دے، اللہ اسے قیامت کے دن سایہ دے گا',cite:'Sahih Muslim 3006'},
+{ar:'مَّثَلُ الَّذِينَ يُنفِقُونَ أَمْوَالَهُمْ كَمَثَلِ حَبَّةٍ أَنبَتَتْ سَبْعَ سَنَابِلَ',tr:'Like a seed which grows seven spikes',urdu:'مثال اس بیج کی جو سات بالیں اگائے',cite:'Al-Baqarah 2:261'},
+{ar:'مَا نَقَصَتْ صَدَقَةٌ مِنْ مَالٍ',tr:'Charity never decreases wealth',urdu:'صدقہ مال میں کبھی کمی نہیں کرتا',cite:'Sahih Muslim 2588'},
+{ar:'كُلُّ مَعْرُوفٍ صَدَقَةٌ',tr:'Every good deed is charity',urdu:'ہر نیکی صدقہ ہے',cite:'Sahih al-Bukhari 6021'},
+{ar:'السَّاعِى عَلَى الْأَرْمَلَةِ وَالْمِسْكِينِ كَالْمُجَاهِدِ',tr:'One who strives for the widow and poor is like a fighter in the way of Allah',urdu:'بیوہ اور مسکین کے لیے کوشش کرنے والا مجاہد کی طرح ہے',cite:'Sahih al-Bukhari 5353'},
+{ar:'خَيْرُ النَّاسِ أَنْفَعُهُمْ لِلنَّاسِ',tr:'The best of people are those most beneficial to others',urdu:'لوگوں میں سب سے بہترین وہ ہے جو دوسروں کے لیے مفید ہو',cite:'Hadith · Tabarani'},
+{ar:'مَنْ كَانَ فِي حَاجَةِ أَخِيهِ كَانَ اللَّهُ فِي حَاجَتِهِ',tr:'Whoever attends to his brother\'s need, Allah attends to his need',urdu:'جو اپنے بھائی کی حاجت پوری کرے، اللہ اس کی حاجت پوری کرتا ہے',cite:'Sahih al-Bukhari 2442'},
+{ar:'الْمُؤْمِنُ لِلْمُؤْمِنِ كَالْبُنْيَانِ يَشُدُّ بَعْضُهُ بَعْضًا',tr:'A believer to another believer is like a building, parts strengthening each other',urdu:'مومن دوسرے مومن کے لیے عمارت کی طرح ہے، ایک حصہ دوسرے کو مضبوط کرتا ہے',cite:'Sahih al-Bukhari 481'},
+{ar:'مَنْ فَرَّجَ عَنْ مُؤْمِنٍ كُرْبَةً فَرَّجَ اللَّهُ عَنْهُ',tr:'Whoever relieves a believer\'s distress, Allah relieves his',urdu:'جو مومن کی تکلیف دور کرے، اللہ قیامت کے دن اس کی تکلیف دور کرے گا',cite:'Sahih Muslim 2699'}
+],
+
+tabIcons:{
+dashboard:'<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>',
+members:'<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>',
+contributions:'<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>',
+cases:'<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>',
+loans:'<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><circle cx="12" cy="12" r="9"/><path stroke-linecap="round" d="M12 6v6l4 2"/></svg>',
+statement:'<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" d="M9 17v-2a2 2 0 012-2h2a2 2 0 012 2v2m4-6V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-2"/></svg>',
+audit:'<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>',
+settings:'<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><circle cx="12" cy="12" r="3"/><path stroke-linecap="round" d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>'
+},
+
+init(){
+this.load();
+this.darkMode=localStorage.getItem('bs_dark')==='true';
+this.lang=localStorage.getItem('bs_lang')||'en';
+const d=new Date();this.sadaqaIndex=Math.floor((d-new Date(d.getFullYear(),0,0))/86400000)%12;
+['settings','members','contributions','cases','audit','profiles'].forEach(k=>this.$watch(k,()=>this.save(),{deep:true}));
+this.$watch('darkMode',v=>localStorage.setItem('bs_dark',v));
+this.$watch('lang',v=>localStorage.setItem('bs_lang',v));
+this.$watch('activeTab',()=>this.$nextTick(()=>this.renderCharts()));
+this.$watch('dashTimeFilter',()=>this.$nextTick(()=>this.renderCharts()));
+window.addEventListener('keydown',e=>{if(e.key==='/' && !['INPUT','TEXTAREA','SELECT'].includes(e.target.tagName) && this.currentUser){e.preventDefault();this.$refs.searchInput?.focus()}});
+this.$nextTick(()=>{if(this.currentUser) this.renderCharts()});
+},
+
+save(){try{localStorage.setItem('balochsath_db',JSON.stringify({profiles:this.profiles,settings:this.settings,members:this.members,contributions:this.contributions,cases:this.cases,audit:this.audit}))}catch{this.toast('Storage full','error')}},
+load(){try{const d=JSON.parse(localStorage.getItem('balochsath_db')||'{}');if(Array.isArray(d.profiles))this.profiles=d.profiles;if(d.settings)this.settings={...this.settings,...d.settings};if(Array.isArray(d.members))this.members=d.members;if(Array.isArray(d.contributions))this.contributions=d.contributions;if(Array.isArray(d.cases))this.cases=d.cases;if(Array.isArray(d.audit))this.audit=d.audit}catch(e){console.error(e)}},
+exportData(){const blob=new Blob([JSON.stringify({profiles:this.profiles,settings:this.settings,members:this.members,contributions:this.contributions,cases:this.cases,audit:this.audit,exportedAt:new Date().toISOString()},null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`balochsath-${this.todayISO()}.json`;a.click();this.toast('Backup downloaded','success')},
+importData(e){const f=e.target.files[0];if(!f||!confirm('Replace ALL data?')){e.target.value='';return}const r=new FileReader();r.onload=ev=>{try{const d=JSON.parse(ev.target.result);if(Array.isArray(d.profiles))this.profiles=d.profiles;if(d.settings)this.settings={...this.settings,...d.settings};if(Array.isArray(d.members))this.members=d.members;if(Array.isArray(d.contributions))this.contributions=d.contributions;if(Array.isArray(d.cases))this.cases=d.cases;if(Array.isArray(d.audit))this.audit=d.audit;this.save();this.currentUser=null;this.toast('Imported. Login again.','success')}catch{this.toast('Invalid file','error')}};r.readAsText(f);e.target.value=''},
+resetAll(){this.profiles=[];this.members=[];this.contributions=[];this.cases=[];this.audit=[];this.settings={brandName:'BalochSath',currency:'PKR',emergencyThreshold:50000,memberApprovalsRequired:2,contributionApprovalsRequired:2,requiredApprovals:3};this.currentUser=null;localStorage.removeItem('balochsath_db')},
+exportCSV(type){let rows=[];if(type==='members'){rows=[['Name','City','Role','Phone','Pledge','Total Verified','Status']];this.members.forEach(m=>rows.push([m.name,m.city,m.role,m.phone||'',m.monthlyPledge||0,this.memberTotalPaid(m.id),m.status]))}else if(type==='contributions'){rows=[['Date','Member','City','Method','For Month','Status','Amount','Note']];this.filteredContributions().forEach(c=>rows.push([c.date,this.memberName(c.memberId),this.memberCity(c.memberId),c.method,c.monthFor||c.date.slice(0,7),c.status,c.amount,c.note||'']))}const csv=rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');const blob=new Blob([csv],{type:'text/csv'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`${type}-${this.todayISO()}.csv`;a.click();this.toast('Exported','success')},
+
+async hashPin(pin){const d=new TextEncoder().encode(pin+'bs_v5');const h=await crypto.subtle.digest('SHA-256',d);return Array.from(new Uint8Array(h)).map(b=>b.toString(16).padStart(2,'0')).join('')},
+async createFirstAdmin(){if(this.setupForm.pin!==this.setupForm.pinConfirm){this.toast('PINs do not match','error');return}const p={id:this.uid(),name:this.setupForm.name,role:'admin',pinHash:await this.hashPin(this.setupForm.pin),status:'active',createdAt:new Date().toISOString()};this.profiles.push(p);this.currentUser=p;this.logAction('profile_created',`Admin created: ${p.name}`);this.setupForm={name:'',pin:'',pinConfirm:''};this.toast('Welcome','success');this.$nextTick(()=>this.renderCharts())},
+async tryLogin(){this.loginForm.error='';const p=this.profileById(this.loginForm.profileId);if(!p){this.loginForm.error='Profile not found';return}const h=await this.hashPin(this.loginForm.pin);if(h!==p.pinHash){this.loginForm.error='Incorrect PIN';this.loginForm.pin='';return}this.currentUser=p;this.logAction('login',`${p.name} logged in`);this.loginForm={profileId:'',pin:'',error:''};this.$nextTick(()=>this.renderCharts())},
+logout(){if(this.currentUser)this.logAction('logout',`${this.currentUser.name} logged out`);this.currentUser=null},
+profileById(id){return this.profiles.find(p=>p.id===id)},
+profileName(id){const p=this.profileById(id);return p?p.name:'Unknown'},
+activeProfiles(){return this.profiles.filter(p=>p.status!=='pending'&&p.status!=='rejected')},
+
+openAddProfile(){this.profileForm={name:'',role:'contributor',pin:''};this.showProfileModal=true},
+async addProfile(){const ph=await this.hashPin(this.profileForm.pin);const p={id:this.uid(),name:this.profileForm.name,role:this.profileForm.role,pinHash:ph,status:'active',createdAt:new Date().toISOString()};this.profiles.push(p);this.logAction('profile_created',`Profile: ${p.name} (${this.roleLabel(p.role)})`);this.toast('Profile created','success');this.showProfileModal=false},
+deleteProfile(id){if(!confirm('Delete profile?'))return;const p=this.profileById(id);this.profiles=this.profiles.filter(x=>x.id!==id);this.logAction('profile_deleted',`Profile deleted: ${p?.name}`)},
+
+can(action){if(!this.currentUser)return false;if(this.currentUser.role==='admin')return true;if(action==='vote_case')return true;const perms={collector:['add_contribution','create_case'],supervisor:['add_contribution','verify_contribution','disburse','create_case','approve_case'],committee:['create_case','verify_contribution'],emergency_committee:['create_case','verify_contribution'],contributor:['add_contribution']};if(action==='manage_members'||action==='manage_profiles')return false;return(perms[this.currentUser.role]||[]).includes(action)},
+roleLabel(r){return({admin:'Admin / ایڈمن',collector:'Collector / محصل',supervisor:'Supervisor / نگران',committee:'Committee / کمیٹی',emergency_committee:'Emergency / ہنگامی',contributor:'Contributor / رکن'})[r]||r},
+visibleTabs(){const all=[{id:'dashboard',icon:this.tabIcons.dashboard},{id:'members',icon:this.tabIcons.members},{id:'contributions',icon:this.tabIcons.contributions},{id:'cases',icon:this.tabIcons.cases},{id:'loans',icon:this.tabIcons.loans},{id:'statement',icon:this.tabIcons.statement},{id:'audit',icon:this.tabIcons.audit,adminOnly:true},{id:'settings',icon:this.tabIcons.settings,adminOnly:true}];return all.filter(t=>!t.adminOnly||this.currentUser?.role==='admin').map(t=>({...t,label:this.t(t.id)}))},
+tabLabel(id){return this.t(id)},
+tabUrdu(id){return ''},
+tabBadge(id){if(id==='cases')return this.cases.filter(c=>c.status==='pending').length;if(id==='contributions')return this.unverifiedContribs().length;if(id==='members'&&this.currentUser?.role==='admin')return this.pendingMembers().length;if(id==='loans')return this.overdueLoans().length;return 0},
+
+formatCurrency(a){const n=Number(a)||0;const sym={PKR:'Rs.',AED:'د.إ',SAR:'ر.س',USD:'$',GBP:'£'}[this.settings.currency]||this.settings.currency;return `${sym} ${n.toLocaleString('en-PK',{maximumFractionDigits:0})}`},
+formatDate(s){if(!s)return'';return new Date(s).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})},
+formatDateTime(iso){if(!iso)return'';const d=new Date(iso);return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short'})+' · '+d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})},
+monthLabel(m){if(!m)return'';const[y,mo]=m.split('-');return new Date(+y,+mo-1,1).toLocaleDateString('en-GB',{month:'long',year:'numeric'})},
+monthShort(m){const[y,mo]=m.split('-');return new Date(+y,+mo-1,1).toLocaleDateString('en-GB',{month:'short'})},
+todayGregorian(){return new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})},
+todayHijri(){try{return new Date().toLocaleDateString('en-u-ca-islamic-umalqura',{day:'numeric',month:'long',year:'numeric'})}catch{return''}},
+todayISO(){return new Date().toISOString().slice(0,10)},
+thisMonthISO(){return new Date().toISOString().slice(0,7)},
+thisMonthLabel(){return new Date().toLocaleDateString('en-GB',{month:'long',year:'numeric'})},
+isThisMonth(d){return d&&d.slice(0,7)===this.thisMonthISO()},
+
+memberName(id){const m=this.members.find(x=>x.id===id);return m?m.name:'Unknown'},
+memberCity(id){const m=this.members.find(x=>x.id===id);return m?m.city:''},
+activeMembers(){return this.members.filter(m=>m.status==='active')},
+pendingMembers(){return this.members.filter(m=>m.status==='pending')},
+
+verifiedContribs(){return this.contributions.filter(c=>c.status==='verified')},
+unverifiedContribs(){return this.contributions.filter(c=>c.status==='recorded'||!c.status)},
+totalIn(){return this.verifiedContribs().reduce((s,c)=>s+Number(c.amount||0),0)},
+totalOut(){return this.cases.filter(c=>c.status==='disbursed'||c.status==='closed').reduce((s,c)=>s+Number(c.amount||0),0)},
+totalRepaid(){return this.cases.reduce((s,c)=>s+(c.repayments||[]).reduce((r,x)=>r+Number(x.amount||0),0),0)},
+totalBalance(){return this.totalIn()-this.totalOut()+this.totalRepaid()},
+
+dashFilterLabel(){return{month:'this month',year:'this year',all:'all time',custom:'custom range'}[this.dashTimeFilter]},
+dashDateMatch(d){if(!d)return false;if(this.dashTimeFilter==='all')return true;if(this.dashTimeFilter==='month')return d.startsWith(this.thisMonthISO());if(this.dashTimeFilter==='year')return d.startsWith(String(new Date().getFullYear()));if(this.dashTimeFilter==='custom'){const date=d.slice(0,10);return(!this.dashCustomFrom||date>=this.dashCustomFrom)&&(!this.dashCustomTo||date<=this.dashCustomTo)}return true},
+dashFilteredIn(){let l=this.verifiedContribs().filter(c=>this.dashDateMatch(c.date));if(this.dashCityFilter)l=l.filter(c=>this.memberCity(c.memberId)===this.dashCityFilter);return l.reduce((s,c)=>s+Number(c.amount||0),0)},
+dashFilteredOut(){let l=this.cases.filter(c=>(c.status==='disbursed'||c.status==='closed')&&c.disbursedAt&&this.dashDateMatch(c.disbursedAt));if(this.dashCityFilter)l=l.filter(c=>c.city===this.dashCityFilter);if(this.dashCategoryFilter)l=l.filter(c=>c.category===this.dashCategoryFilter);return l.reduce((s,c)=>s+Number(c.amount||0),0)},
+recentInflows(){return this.verifiedContribs().sort((a,b)=>b.date.localeCompare(a.date)).slice(0,6)},
+recentOutflows(){return this.cases.filter(c=>(c.status==='disbursed'||c.status==='closed')&&c.disbursedAt).sort((a,b)=>(b.disbursedAt||'').localeCompare(a.disbursedAt||'')).slice(0,6)},
+
+memberTotalPaid(id){return this.verifiedContribs().filter(c=>c.memberId===id).reduce((s,c)=>s+Number(c.amount||0),0)},
+memberMonthAmount(id,mo){return this.verifiedContribs().filter(c=>c.memberId===id&&(c.monthFor||c.date.slice(0,7))===mo).reduce((s,c)=>s+Number(c.amount||0),0)},
+memberContributions(id){return this.contributions.filter(c=>c.memberId===id).sort((a,b)=>b.date.localeCompare(a.date))},
+pendingDuesList(){const m=this.thisMonthISO();return this.activeMembers().filter(x=>x.monthlyPledge>0).map(x=>({memberId:x.id,name:x.name,city:x.city,amount:Math.max(0,x.monthlyPledge-this.memberMonthAmount(x.id,m))})).filter(d=>d.amount>0)},
+pendingDuesCount(){return this.pendingDuesList().length},
+topContributors(){return this.activeMembers().map(m=>({memberId:m.id,name:m.name,city:m.city,total:this.memberTotalPaid(m.id)})).filter(x=>x.total>0).sort((a,b)=>b.total-a.total).slice(0,5)},
+
+loanOutstanding(cs){if(!cs||cs.type!=='loan')return 0;const r=(cs.repayments||[]).reduce((s,x)=>s+Number(x.amount||0),0);return Math.max(0,Number(cs.amount||0)-r)},
+activeLoans(){return this.cases.filter(c=>c.type==='loan'&&c.status==='disbursed'&&this.loanOutstanding(c)>0)},
+overdueLoans(){return this.activeLoans().filter(c=>c.loanDueDate&&c.loanDueDate<this.todayISO())},
+isLoanOverdue(cs){return cs.type==='loan'&&cs.status==='disbursed'&&cs.loanDueDate&&cs.loanDueDate<this.todayISO()&&this.loanOutstanding(cs)>0},
+totalOutstandingLoans(){return this.activeLoans().reduce((s,c)=>s+this.loanOutstanding(c),0)},
+
+uniqueCities(){return[...new Set(this.members.map(m=>m.city).filter(Boolean))].sort()},
+
+filteredActiveMembers(){let l=this.activeMembers().filter(m=>!this.memberCityFilter||m.city===this.memberCityFilter);if(this.globalSearch)l=l.filter(m=>m.name.toLowerCase().includes(this.globalSearch.toLowerCase())||(m.city||'').toLowerCase().includes(this.globalSearch.toLowerCase()));return l},
+filteredContributions(){let l=this.contributions;if(this.currentUser&&this.currentUser.role!=='admin'&&this.currentUser.role!=='supervisor'&&this.currentUser.role!=='collector'){const myMember=this.members.find(m=>m.profileId===this.currentUser.id||m.name===this.currentUser.name);if(myMember)l=l.filter(c=>c.memberId===myMember.id)}if(this.contribViewTab==='unverified')l=l.filter(c=>c.status==='recorded'||!c.status);else if(this.contribViewTab==='verified')l=l.filter(c=>c.status==='verified');if(this.globalSearch)l=l.filter(c=>this.memberName(c.memberId).toLowerCase().includes(this.globalSearch.toLowerCase()));return l.sort((a,b)=>b.date.localeCompare(a.date))},
+filteredCases(){let l=this.cases.filter(c=>!this.caseFilter.status||c.status===this.caseFilter.status);if(this.globalSearch)l=l.filter(c=>(c.beneficiary||'').toLowerCase().includes(this.globalSearch.toLowerCase()));return l.sort((a,b)=>b.createdAt.localeCompare(a.createdAt))},
+
+yearsAvailable(){const ys=new Set([new Date().getFullYear()]);this.contributions.forEach(c=>ys.add(+c.date.slice(0,4)));this.cases.forEach(c=>{if(c.disbursedAt)ys.add(+c.disbursedAt.slice(0,4))});return[...ys].sort((a,b)=>b-a)},
+monthsOfYear(y){return Array.from({length:12},(_,i)=>`${y}-${String(i+1).padStart(2,'0')}`)},
+monthIsPast(mo){return mo<=this.thisMonthISO()},
+memberYearTotal(id,y){return this.verifiedContribs().filter(c=>c.memberId===id&&(c.monthFor||c.date.slice(0,7)).startsWith(String(y))).reduce((s,c)=>s+Number(c.amount||0),0)},
+monthTotalIn(mo){return this.verifiedContribs().filter(c=>(c.monthFor||c.date.slice(0,7))===mo).reduce((s,c)=>s+Number(c.amount||0),0)},
+monthTotalOut(mo){return this.cases.filter(c=>(c.status==='disbursed'||c.status==='closed')&&c.disbursedAt?.slice(0,7)===mo).reduce((s,c)=>s+Number(c.amount||0),0)},
+yearTotalIn(y){return this.verifiedContribs().filter(c=>(c.monthFor||c.date.slice(0,7)).startsWith(String(y))).reduce((s,c)=>s+Number(c.amount||0),0)},
+yearTotalOut(y){return this.cases.filter(c=>(c.status==='disbursed'||c.status==='closed')&&c.disbursedAt?.startsWith(String(y))).reduce((s,c)=>s+Number(c.amount||0),0)},
+disbursedInYear(y){return this.cases.filter(c=>(c.status==='disbursed'||c.status==='closed')&&c.disbursedAt?.startsWith(String(y))).sort((a,b)=>(b.disbursedAt||'').localeCompare(a.disbursedAt||''))},
+approverNames(cs){return cs.approvals.filter(a=>a.decision==='approve').map(a=>this.profileName(a.by)).join(', ')},
+
+openMemberDetail(m){this.currentMember=m;this.showMemberDetail=true},
+openAddMember(){this.editingMember=null;this.memberForm={name:'',city:'',phone:'',monthlyPledge:0,role:'contributor',notes:'',profileId:'',household:'',isSarbrah:false};this.showMemberModal=true},
+openEditMember(m){this.editingMember=m;this.memberForm={...m};this.showMemberModal=true},
+saveMember(){const isAdmin=this.currentUser.role==='admin';if(this.editingMember){const i=this.members.findIndex(x=>x.id===this.editingMember.id);if(i!==-1)this.members[i]={...this.editingMember,...this.memberForm};this.logAction('member_updated',`Updated: ${this.memberForm.name}`);this.toast('Updated','success')}else{const status=(isAdmin&&this.settings.memberApprovalsRequired<=1)?'active':'pending';this.members.push({id:this.uid(),joinedDate:this.todayISO(),status,requestedBy:this.currentUser.id,adminApprovals:[],...this.memberForm});this.logAction('member_added',`Added: ${this.memberForm.name} (${status})`);this.toast(status==='pending'?'Submitted. Needs admin approval.':'Member added','success')}this.showMemberModal=false},
+hasApprovedMember(m){return(m.adminApprovals||[]).some(a=>a.adminId===this.currentUser?.id)},
+approveMember(id){const m=this.members.find(x=>x.id===id);if(!m||this.currentUser.role!=='admin')return;if(this.hasApprovedMember(m)){this.toast('Already voted','error');return}m.adminApprovals=m.adminApprovals||[];m.adminApprovals.push({adminId:this.currentUser.id,at:new Date().toISOString()});this.logAction('member_voted',`${this.currentUser.name} approved ${m.name}`);if(m.adminApprovals.length>=this.settings.memberApprovalsRequired){m.status='active';m.approvedAt=new Date().toISOString();this.logAction('member_approved',`${m.name} fully approved (${m.adminApprovals.length}/${this.settings.memberApprovalsRequired})`);this.toast(`${m.name} approved`,'success')}else{this.toast(`Vote recorded (${m.adminApprovals.length}/${this.settings.memberApprovalsRequired})`,'success')}},
+rejectMember(id){const m=this.members.find(x=>x.id===id);if(!m||!confirm(`Reject ${m.name}?`))return;this.members=this.members.filter(x=>x.id!==id);this.logAction('member_rejected',`Rejected: ${m.name}`)},
+deleteMember(id){const m=this.members.find(x=>x.id===id);if(!confirm(`Delete ${m?.name}?`))return;this.members=this.members.filter(x=>x.id!==id);this.logAction('member_deleted',`Deleted: ${m?.name}`)},
+
+openAddContrib(memberId){this.contribForm={memberId:memberId||'',amount:'',date:this.todayISO(),monthFor:'',method:'',note:'',slipPhoto:''};this.showContribModal=true},
+saveContrib(){if(this.contribForm.method&&this.contribForm.method!=='Cash'&&!this.contribForm.slipPhoto){this.toast('Slip photo required','error');return}this.contributions.push({id:this.uid(),recordedBy:this.currentUser.id,status:'recorded',approvals:[],...this.contribForm});this.logAction('contribution_recorded',`${this.formatCurrency(this.contribForm.amount)} from ${this.memberName(this.contribForm.memberId)}`);this.showContribModal=false;this.currentDua=this.duas[Math.floor(Math.random()*this.duas.length)];this.showDuaModal=true;this.$nextTick(()=>this.renderCharts())},
+hasVotedContrib(c){return(c.approvals||[]).some(a=>a.by===this.currentUser?.id)},
+openVerifyContrib(c){this.currentContrib=c;this.contribVoteForm={decision:'',note:''};this.showVerifyContribModal=true},
+submitContribVote(){const c=this.contributions.find(x=>x.id===this.currentContrib.id);if(!c)return;c.approvals=c.approvals||[];c.approvals.push({by:this.currentUser.id,at:new Date().toISOString(),decision:this.contribVoteForm.decision,note:this.contribVoteForm.note});this.logAction('contribution_voted',`${this.currentUser.name} voted ${this.contribVoteForm.decision} on ${this.memberName(c.memberId)}'s contribution`);const a=c.approvals.filter(x=>x.decision==='approve').length;const r=c.approvals.filter(x=>x.decision==='reject').length;if(a>=this.settings.contributionApprovalsRequired){c.status='verified';this.logAction('contribution_verified',`Verified: ${this.formatCurrency(c.amount)}`);this.toast('Verified','success')}else if(r>=this.settings.contributionApprovalsRequired){c.status='rejected';this.logAction('contribution_rejected',`Rejected: ${this.memberName(c.memberId)}`)}this.showVerifyContribModal=false;this.$nextTick(()=>this.renderCharts())},
+
+openAddCase(){this.caseForm={beneficiary:'',relation:'',city:'',category:'Medical / طبی',amount:'',description:'',isEmergency:false,docs:[],type:'gift',loanDueDate:''};this.showCaseModal=true},
+saveCase(){const cs={id:this.uid(),createdAt:new Date().toISOString(),createdBy:this.currentUser.id,status:'pending',approvals:[],repayments:[],...this.caseForm};this.cases.push(cs);this.logAction('case_created',`Created: ${cs.beneficiary} - ${this.formatCurrency(cs.amount)} (${cs.type})`);this.toast('Submitted for review','success');this.showCaseModal=false},
+openCaseDetail(cs){this.currentCase=cs;this.showCaseDetailModal=true},
+hasVoted(cs){return cs.approvals.some(a=>a.by===this.currentUser?.id)},
+openVote(cs){this.currentCase=cs;this.voteForm={decision:'',note:''};this.showVoteModal=true},
+submitVote(){const cs=this.cases.find(x=>x.id===this.currentCase.id);if(!cs)return;cs.approvals.push({by:this.currentUser.id,at:new Date().toISOString(),decision:this.voteForm.decision,note:this.voteForm.note});this.logAction('case_voted',`${this.currentUser.name} voted ${this.voteForm.decision} on ${cs.beneficiary}`);const a=cs.approvals.filter(x=>x.decision==='approve').length;const r=cs.approvals.filter(x=>x.decision==='reject').length;const required=this.requiredVotesForCase();if(a>=required){cs.status='approved';this.logAction('case_approved',`Approved: ${cs.beneficiary} (${a}/${required} votes)`);this.toast('Approved by member majority','success')}else if(r>=required){cs.status='rejected';this.logAction('case_rejected',`Rejected: ${cs.beneficiary}`)}this.showVoteModal=false},
+requiredVotesForCase(){const total=this.activeMembers().length;return Math.max(2,Math.ceil(total/2))},
+openDisburse(cs){this.currentCase=cs;this.disburseForm={date:this.todayISO(),note:'',receipt:''};this.showDisburseModal=true},
+submitDisburse(){const cs=this.cases.find(x=>x.id===this.currentCase.id);if(!cs)return;cs.status='disbursed';cs.disbursedAt=new Date(this.disburseForm.date).toISOString();cs.disbursedBy=this.currentUser.id;cs.disbursementNote=this.disburseForm.note;cs.receiptPhoto=this.disburseForm.receipt;this.logAction('case_disbursed',`Disbursed ${this.formatCurrency(cs.amount)} for ${cs.beneficiary}`);this.toast('Recorded','success');this.showDisburseModal=false;this.$nextTick(()=>this.renderCharts())},
+closeCase(id){const cs=this.cases.find(x=>x.id===id);if(!cs||!confirm('Close case?'))return;cs.status='closed';cs.closedAt=new Date().toISOString();this.logAction('case_closed',`Closed: ${cs.beneficiary}`)},
+openRepayment(cs){this.currentCase=cs;this.repaymentForm={amount:'',date:this.todayISO(),note:'',slipPhoto:''};this.showRepaymentModal=true},
+submitRepayment(){const cs=this.cases.find(x=>x.id===this.currentCase.id);if(!cs)return;cs.repayments=cs.repayments||[];cs.repayments.push({id:this.uid(),amount:Number(this.repaymentForm.amount),date:this.repaymentForm.date,note:this.repaymentForm.note,slipPhoto:this.repaymentForm.slipPhoto,by:this.currentUser.id});this.logAction('repayment_recorded',`Repayment ${this.formatCurrency(this.repaymentForm.amount)} from ${cs.beneficiary}`);this.toast('Recorded','success');this.showRepaymentModal=false},
+
+async compressImage(file,maxWidth=1024,quality=0.7){return new Promise(r=>{const fr=new FileReader();fr.onload=e=>{const img=new Image();img.onload=()=>{const c=document.createElement('canvas');const ratio=Math.min(maxWidth/img.width,maxWidth/img.height,1);c.width=img.width*ratio;c.height=img.height*ratio;c.getContext('2d').drawImage(img,0,0,c.width,c.height);r(c.toDataURL('image/jpeg',quality))};img.src=e.target.result};fr.readAsDataURL(file)})},
+async handleSlip(e){const f=e.target.files[0];if(f)this.contribForm.slipPhoto=await this.compressImage(f)},
+async handleCaseDocs(e){for(const f of e.target.files)this.caseForm.docs.push(await this.compressImage(f));e.target.value=''},
+async handleReceipt(e){const f=e.target.files[0];if(f)this.disburseForm.receipt=await this.compressImage(f)},
+async handleRepaymentSlip(e){const f=e.target.files[0];if(f)this.repaymentForm.slipPhoto=await this.compressImage(f)},
+openImageView(s){this.imageViewSrc=s},
+
+whatsappShareMember(m){if(!m)return;const due=this.pendingDuesList().find(d=>d.memberId===m.id);const text=`السلام علیکم ${m.name},\n\n${this.settings.brandName} (بلوچ ساتھ) update:\nMonthly pledge: ${this.formatCurrency(m.monthlyPledge||0)}\nTotal contributed: ${this.formatCurrency(this.memberTotalPaid(m.id))}\n${due?'Pending this month: '+this.formatCurrency(due.amount):'Up to date. JazakAllah Khair.'}\n\nFund balance: ${this.formatCurrency(this.totalBalance())}`;const phone=(m.phone||'').replace(/[^\d]/g,'');const url=phone?`https://wa.me/${phone}?text=${encodeURIComponent(text)}`:`https://wa.me/?text=${encodeURIComponent(text)}`;window.open(url,'_blank')},
+
+calculateZakat(){const w=(this.zakatForm.cash||0)+(this.zakatForm.gold||0)+(this.zakatForm.silver||0)-(this.zakatForm.debts||0);this.zakatForm.totalZakat=Math.max(0,w*0.025)},
+storageUsedKB(){try{const s=localStorage.getItem('balochsath_db')||'';return Math.round(new Blob([s]).size/1024)}catch{return 0}},
+dailySadaqaReward(){return this.sadaqaRewards[this.sadaqaIndex%this.sadaqaRewards.length]},
+rotateSadaqaCard(){this.sadaqaIndex=(this.sadaqaIndex+1)%this.sadaqaRewards.length},
+
+
+logAction(action,message){this.audit.push({id:this.uid(),timestamp:new Date().toISOString(),actor:this.currentUser?.id||'system',action,message});if(this.audit.length>1000)this.audit=this.audit.slice(-1000)},
+auditColor(a){if(a.includes('approved')||a.includes('verified')||a.includes('disbursed')||a.includes('repayment'))return'bg-accent-600';if(a.includes('rejected')||a.includes('deleted'))return'bg-rose-500';if(a.startsWith('case_')||a.startsWith('contribution_')||a.startsWith('member_'))return'bg-amber-500';return'bg-zinc-400'},
+toast(message,type='info'){const id=this.uid();this.toasts.push({id,message,type});setTimeout(()=>{this.toasts=this.toasts.filter(t=>t.id!==id)},3000)},
+
+renderCharts(){if(this.activeTab!=='dashboard'||!this.currentUser)return;this.$nextTick(()=>this.renderTrendChart())},
+last12Months(){const months=[];const d=new Date();d.setDate(1);for(let i=11;i>=0;i--){const dt=new Date(d.getFullYear(),d.getMonth()-i,1);months.push(`${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}`)}return months},
+renderTrendChart(){const ctx=document.getElementById('chartTrend');if(!ctx)return;if(this.chartTrend)this.chartTrend.destroy();const months=this.last12Months();const isDark=this.darkMode;this.chartTrend=new Chart(ctx,{type:'line',data:{labels:months.map(m=>this.monthShort(m)),datasets:[{label:'Inflow / آمدن',data:months.map(m=>this.monthTotalIn(m)),borderColor:'#1b7a3a',backgroundColor:'rgba(27,122,58,.1)',tension:.35,fill:true,borderWidth:2,pointRadius:3},{label:'Outflow / اخراجات',data:months.map(m=>this.monthTotalOut(m)),borderColor:'#d97706',backgroundColor:'rgba(217,119,6,.08)',tension:.35,fill:true,borderWidth:2,pointRadius:3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:isDark?'#a1a1aa':'#52525b',font:{size:11},boxWidth:8}}},scales:{x:{ticks:{color:isDark?'#71717a':'#71717a',font:{size:10}},grid:{display:false}},y:{ticks:{color:isDark?'#71717a':'#71717a',font:{size:10}},grid:{color:isDark?'#27272a':'#f4f4f5'}}}}})},
+
+uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,8)}
+}}
+</script>
+</body>
+</html>
