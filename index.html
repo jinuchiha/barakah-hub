@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ur">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -480,10 +480,23 @@ tbody td{padding:10px 14px;vertical-align:middle;color:var(--cream2)}
 .act-text{font-size:12px;color:rgba(255,255,255,0.6)}
 .act-time{font-size:10px;color:var(--gold4);font-family:var(--font-en)}
  
+/* Light theme */
+body.light{--ink:#faf8f4;--ink2:#f0ece4;--ink3:#e4e0d6;--gold:#7a5c1e;--gold2:#8b6914;--gold3:#c9a84c;--gold4:#5a4010;--gold5:rgba(122,92,30,0.08);--emerald:#1b6b45;--em2:#1a8050;--em3:#e8f5ee;--cream:#1a1a14;--cream2:#2a2a20;--cream3:#3a3a30;--border:rgba(0,0,0,0.1);--border2:rgba(0,0,0,0.2);--shadow-gold:0 4px 24px rgba(122,92,30,0.1);--shadow-deep:0 8px 48px rgba(0,0,0,0.06)}
+body.light .pattern-bg{opacity:0.3}
+body.light .login-box,body.light .card,body.light .sc,body.light .emr-card,body.light .loan-card,body.light .tn,body.light .modal{background:linear-gradient(145deg,#fff,#f8f6f0);color:#1a1a14}
+body.light .topbar,body.light .sidebar{background:#fff;border-color:rgba(0,0,0,0.08)}
+body.light .fi,body.light .finp,body.light .fsel,body.light .ftxt{background:rgba(0,0,0,0.03);color:#1a1a14;border-color:rgba(0,0,0,0.12)}
+body.light .fi::placeholder,body.light .finp::placeholder{color:rgba(0,0,0,0.3)}
+body.light tbody td,body.light .msg-text{color:#2a2a20}
+body.light .vbar{background:linear-gradient(90deg,#e8f5ee,#d4f0e4,#e8f5ee)}
+body.light #loginPage{background:radial-gradient(ellipse at top,#f5f0e4 0%,#faf8f4 60%)}
+/* i18n toggle */
+body.lang-en .i18n-ur{display:none!important}
+body.lang-ur .i18n-en{display:none!important}
 @media(max-width:640px){.sidebar{display:none}.frow{grid-template-columns:1fr}.stats{grid-template-columns:1fr 1fr}.my-months{grid-template-columns:repeat(3,1fr)}}
 </style>
 </head>
-<body>
+<body class="lang-en">
 <!-- GEOMETRIC BACKGROUND -->
 <div class="pattern-bg">
 <svg viewBox="0 0 1200 900" xmlns="http://www.w3.org/2000/svg">
@@ -516,8 +529,7 @@ tbody td{padding:10px 14px;vertical-align:middle;color:var(--cream2)}
   <div class="login-box">
     <div class="login-header">
       <span class="login-moon">🌙</span>
-      <div class="login-title-ar">بیت المال بلوچ ساتھ</div>
-      <div class="login-title-en">Bait ul Maal BalochSath</div>
+      <div class="login-title-ar"><span class="i18n-ur">بیت المال بلوچ ساتھ</span><span class="i18n-en">Bait ul Maal BalochSath</span></div>
       <div class="login-verse-box">
         <div class="lv-ar">وَأَنفِقُوا فِی سَبِیلِ اللَّهِ</div>
         <div class="lv-ur">اللہ کی راہ میں خرچ کرو</div>
@@ -526,18 +538,18 @@ tbody td{padding:10px 14px;vertical-align:middle;color:var(--cream2)}
     </div>
     <div class="login-body">
       <div class="fl">
-        <label>Username • صارف نام</label>
+        <label><span class="i18n-en">Username</span><span class="i18n-ur">صارف نام</span></label>
         <input class="fi" id="liUser" placeholder="enter username" autocomplete="username" style="direction:ltr">
       </div>
       <div class="fl">
-        <label>Password • پاس ورڈ</label>
+        <label><span class="i18n-en">Password</span><span class="i18n-ur">پاس ورڈ</span></label>
         <input class="fi" id="liPass" type="password" placeholder="••••••••" autocomplete="current-password" style="direction:ltr">
       </div>
-      <button class="login-btn" onclick="doLogin()">داخل ہوں - Enter</button>
-      <div class="login-err" id="liErr">غلط معلومات - Invalid credentials</div>
+      <button class="login-btn" onclick="doLogin()"><span class="i18n-en">Enter</span><span class="i18n-ur">داخل ہوں</span></button>
+      <div class="login-err" id="liErr"><span class="i18n-en">Invalid credentials</span><span class="i18n-ur">غلط معلومات</span></div>
       <div style="text-align:center;margin-top:14px">
-        <span style="font-size:12px;color:rgba(255,255,255,0.4)">نیا رکن؟</span>
-        <span style="font-size:12px;color:var(--gold);cursor:pointer;margin-right:4px" onclick="showRegister()">رجسٹر کریں - Register</span>
+        <span style="font-size:12px;color:rgba(255,255,255,0.4)"><span class="i18n-en">New member?</span><span class="i18n-ur">نیا رکن؟</span></span>
+        <span style="font-size:12px;color:var(--gold);cursor:pointer;margin-right:4px" onclick="showRegister()"><span class="i18n-en">Register</span><span class="i18n-ur">رجسٹر کریں</span></span>
       </div>
     </div>
   </div>
@@ -563,45 +575,45 @@ tbody td{padding:10px 14px;vertical-align:middle;color:var(--cream2)}
     </div>
     <div class="login-body">
       <div class="fl">
-        <label>اردو نام - Urdu Name</label>
+        <label><span class="i18n-en">Full Name (Urdu)</span><span class="i18n-ur">پورا نام (اردو)</span></label>
         <input class="fi" id="regUr" placeholder="مثلاً: احمد بلوچ">
       </div>
       <div class="fl">
-        <label>English Name</label>
+        <label><span class="i18n-en">Full Name (English)</span><span class="i18n-ur">پورا نام (انگریزی)</span></label>
         <input class="fi" id="regEn" placeholder="e.g. Ahmad Baloch" style="direction:ltr">
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
         <div class="fl">
-          <label>Username - صارف نام</label>
+          <label><span class="i18n-en">Username</span><span class="i18n-ur">صارف نام</span></label>
           <input class="fi" id="regUser" placeholder="username" style="direction:ltr">
         </div>
         <div class="fl">
-          <label>Password - پاس ورڈ</label>
+          <label><span class="i18n-en">Password</span><span class="i18n-ur">پاس ورڈ</span></label>
           <input class="fi" id="regPass" type="password" placeholder="password" style="direction:ltr">
         </div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
         <div class="fl">
-          <label>Phone - فون</label>
+          <label><span class="i18n-en">Phone</span><span class="i18n-ur">فون</span></label>
           <input class="fi" id="regPhone" placeholder="03xx-xxxxxxx" style="direction:ltr">
         </div>
         <div class="fl">
-          <label>City - شہر</label>
+          <label><span class="i18n-en">City</span><span class="i18n-ur">شہر</span></label>
           <input class="fi" id="regCity" placeholder="e.g. Quetta" style="direction:ltr">
         </div>
       </div>
       <div class="fl">
-        <label>رشتہ - Relation</label>
+        <label><span class="i18n-en">Relation</span><span class="i18n-ur">رشتہ</span></label>
         <select class="fi" id="regRel" style="direction:ltr">
           <option>بیٹا / Son</option><option>بھائی / Brother</option><option>چچا / Uncle</option><option>ماموں / Maternal Uncle</option><option>بھتیجا / Nephew</option><option>داماد / Son-in-law</option><option>کزن / Cousin</option><option>پوتا / Grandson</option>
         </select>
       </div>
-      <button class="login-btn" onclick="submitRegister()" style="background:linear-gradient(135deg,var(--em3),var(--em2),var(--em3))">درخواست بھیجیں - Submit Request</button>
+      <button class="login-btn" onclick="submitRegister()" style="background:linear-gradient(135deg,var(--em3),var(--em2),var(--em3))"><span class="i18n-en">Submit Request</span><span class="i18n-ur">درخواست بھیجیں</span></button>
       <div class="login-err" id="regErr"></div>
       <div class="login-err" id="regOk" style="background:rgba(27,107,69,0.15);border-color:rgba(27,107,69,0.4);color:#4ade80"></div>
       <div style="text-align:center;margin-top:14px">
-        <span style="font-size:12px;color:rgba(255,255,255,0.4)">پہلے سے رکن ہیں؟</span>
-        <span style="font-size:12px;color:var(--gold);cursor:pointer;margin-right:4px" onclick="showLoginForm()">لاگ ان - Login</span>
+        <span style="font-size:12px;color:rgba(255,255,255,0.4)"><span class="i18n-en">Already a member?</span><span class="i18n-ur">پہلے سے رکن ہیں؟</span></span>
+        <span style="font-size:12px;color:var(--gold);cursor:pointer;margin-right:4px" onclick="showLoginForm()"><span class="i18n-en">Login</span><span class="i18n-ur">لاگ ان</span></span>
       </div>
     </div>
   </div>
@@ -615,12 +627,12 @@ tbody td{padding:10px 14px;vertical-align:middle;color:var(--cream2)}
   <div class="tb-brand">
     <div class="tb-icon">🌙</div>
     <div>
-      <div class="tb-name-ar">بیت المال بلوچ ساتھ</div>
-      <div class="tb-name-en">Bait ul Maal BalochSath</div>
+      <div class="tb-name-ar"><span class="i18n-ur">بیت المال بلوچ ساتھ</span><span class="i18n-en">Bait ul Maal BalochSath</span></div>
     </div>
   </div>
   <div class="tb-right">
-    <button class="tb-icon-btn" onclick="toggleLang()" title="Language" style="font-size:11px;font-weight:700;font-family:var(--font-display)" id="langBtn">EN</button>
+    <button class="tb-icon-btn" onclick="toggleTheme()" title="Theme" id="themeBtn">☀</button>
+    <button class="tb-icon-btn" onclick="toggleLang()" title="Language" style="font-size:11px;font-weight:700;font-family:var(--font-display)" id="langBtn">UR</button>
     <div class="tb-icon-btn" onclick="showTab('notifications')" title="Notifications">
       🔔<span class="nb" id="nBadge">0</span>
     </div>
@@ -648,40 +660,40 @@ tbody td{padding:10px 14px;vertical-align:middle;color:var(--cream2)}
 <!-- SIDEBAR -->
 <div class="sidebar">
   <div>
-    <div class="nav-section">Main • مینو</div>
+    <div class="nav-section"><span class="i18n-en">Main</span><span class="i18n-ur">مینو</span></div>
     <div class="nav-item active" id="n-dashboard" onclick="showTab('dashboard')">
-      <span class="nav-icon">📊</span><div class="nav-text"><div class="nav-ur">ڈیشبورڈ</div><div class="nav-en">Dashboard</div></div>
+      <span class="nav-icon">📊</span><div class="nav-text"><div><span class="i18n-ur"></span><span class="i18n-en"></span></div></div>
     </div>
     <div class="nav-item" id="n-myaccount" onclick="showTab('myaccount')">
-      <span class="nav-icon">👤</span><div class="nav-text"><div class="nav-ur">میرا کھاتہ</div><div class="nav-en">My Account</div></div>
+      <span class="nav-icon">👤</span><div class="nav-text"><div><span class="i18n-ur"></span><span class="i18n-en"></span></div></div>
     </div>
     <div class="nav-item" id="n-tree" onclick="showTab('tree')">
-      <span class="nav-icon">🌳</span><div class="nav-text"><div class="nav-ur">خاندانی درخت</div><div class="nav-en">Family Tree</div></div>
+      <span class="nav-icon">🌳</span><div class="nav-text"><div><span class="i18n-ur"></span><span class="i18n-en"></span></div></div>
     </div>
     <div class="nav-item" id="n-emergency" onclick="showTab('emergency')">
-      <span class="nav-icon">🆘</span><div class="nav-text"><div class="nav-ur">ایمرجنسی ووٹ</div><div class="nav-en">Emergency Vote</div></div>
+      <span class="nav-icon">🆘</span><div class="nav-text"><div><span class="i18n-ur"></span><span class="i18n-en"></span></div></div>
       <span class="nav-badge" id="eBadge">0</span>
     </div>
     <div class="nav-item" id="n-notifications" onclick="showTab('notifications')">
-      <span class="nav-icon">🔔</span><div class="nav-text"><div class="nav-ur">اطلاعات</div><div class="nav-en">Notifications</div></div>
+      <span class="nav-icon">🔔</span><div class="nav-text"><div><span class="i18n-ur"></span><span class="i18n-en"></span></div></div>
       <span class="nav-badge" id="notBadge">0</span>
     </div>
     <div class="nav-item" id="n-messages" onclick="showTab('messages')">
-      <span class="nav-icon">✉️</span><div class="nav-text"><div class="nav-ur">پیغامات</div><div class="nav-en">Messages</div></div>
+      <span class="nav-icon">✉️</span><div class="nav-text"><div><span class="i18n-ur"></span><span class="i18n-en"></span></div></div>
       <span class="nav-badge" id="msgBadge">0</span>
     </div>
-    <div class="nav-section admin-only">Admin • ایڈمن</div>
+    <div class="nav-section admin-only"><span class="i18n-en">Admin</span><span class="i18n-ur">ایڈمن</span></div>
     <div class="nav-item admin-only" id="n-members" onclick="showTab('members')">
-      <span class="nav-icon">👥</span><div class="nav-text"><div class="nav-ur">اراکین</div><div class="nav-en">Members</div></div>
+      <span class="nav-icon">👥</span><div class="nav-text"><div><span class="i18n-ur"></span><span class="i18n-en"></span></div></div>
     </div>
     <div class="nav-item admin-only" id="n-fund" onclick="showTab('fund')">
-      <span class="nav-icon">💰</span><div class="nav-text"><div class="nav-ur">فنڈ رجسٹر</div><div class="nav-en">Fund Register</div></div>
+      <span class="nav-icon">💰</span><div class="nav-text"><div><span class="i18n-ur"></span><span class="i18n-en"></span></div></div>
     </div>
     <div class="nav-item admin-only" id="n-loans" onclick="showTab('loans')">
-      <span class="nav-icon">📋</span><div class="nav-text"><div class="nav-ur">قرض حسنہ</div><div class="nav-en">Qarz-e-Hasana</div></div>
+      <span class="nav-icon">📋</span><div class="nav-text"><div><span class="i18n-ur"></span><span class="i18n-en"></span></div></div>
     </div>
     <div class="nav-item admin-only" id="n-broadcast" onclick="showTab('broadcast')">
-      <span class="nav-icon">📢</span><div class="nav-text"><div class="nav-ur">اعلان</div><div class="nav-en">Broadcast</div></div>
+      <span class="nav-icon">📢</span><div class="nav-text"><div><span class="i18n-ur"></span><span class="i18n-en"></span></div></div>
     </div>
   </div>
   <div class="sidebar-footer">
@@ -701,29 +713,29 @@ tbody td{padding:10px 14px;vertical-align:middle;color:var(--cream2)}
   <div class="stats" id="dStats"></div>
   <div style="display:grid;grid-template-columns:1.3fr 1fr;gap:16px;margin-bottom:16px">
     <div class="card">
-      <div class="card-hdr"><div><div class="card-title-ur">ماہانہ جمع • Monthly Collection</div><div class="card-title-en" id="chartSubtitle">Monthly Overview</div></div></div>
+      <div class="card-hdr"><div><div class="card-title-ur"><span class="i18n-en">Monthly Collection</span><span class="i18n-ur">ماہانہ جمع</span></div><div class="card-title-en" id="chartSubtitle">Monthly Overview</div></div></div>
       <div class="card-body" id="dChart"></div>
     </div>
     <div class="card">
-      <div class="card-hdr"><div><div class="card-title-ur">حالیہ سرگرمی</div><div class="card-title-en">Recent Activity</div></div></div>
+      <div class="card-hdr"><div><div class="card-title-ur"><span class="i18n-ur"></span><span class="i18n-en"></span></div></div></div>
       <div id="dActivity" style="max-height:220px;overflow-y:auto;padding:8px 16px"></div>
     </div>
   </div>
   <div class="card">
-    <div class="card-hdr"><div><div class="card-title-ur">ایمرجنسی ووٹنگ - فوری توجہ</div><div class="card-title-en">Active Emergency Votes</div></div><span onclick="showTab('emergency')" style="font-size:11px;color:var(--gold);cursor:pointer;font-family:var(--font-en)">View All →</span></div>
+    <div class="card-hdr"><div><div class="card-title-ur"><span class="i18n-ur"></span><span class="i18n-en"></span></div></div><span onclick="showTab('emergency')" style="font-size:11px;color:var(--gold);cursor:pointer;font-family:var(--font-en)">View All →</span></div>
     <div class="card-body" id="dEmr"></div>
   </div>
 </div>
  
 <!-- MY ACCOUNT -->
 <div id="tab-myaccount" class="hidden">
-  <div class="pg-hdr"><div class="pg-title-ar">میرا کھاتہ</div><div class="pg-title-en">My Account</div></div>
+  <div class="pg-hdr"><div class="pg-title-ar"><span class="i18n-ur"></span><span class="i18n-en"></span></div></div>
   <div id="myContent"></div>
 </div>
  
 <!-- FAMILY TREE -->
 <div id="tab-tree" class="hidden">
-  <div class="pg-hdr"><div class="pg-title-ar">خاندانِ بلوچ - شجرہ نسب</div><div class="pg-title-en">Baloch Family Tree - Lineage & Contribution</div></div>
+  <div class="pg-hdr"><div class="pg-title-ar"><span class="i18n-ur"></span><span class="i18n-en"></span></div></div>
   <div class="card">
     <div class="card-body">
       <div class="tree-wrap" id="treeWrap"></div>
@@ -738,7 +750,7 @@ tbody td{padding:10px 14px;vertical-align:middle;color:var(--cream2)}
 <!-- EMERGENCY -->
 <div id="tab-emergency" class="hidden">
   <div class="pg-hdr" style="display:flex;align-items:flex-start;justify-content:space-between">
-    <div><div class="pg-title-ar">ایمرجنسی درخواستیں</div><div class="pg-title-en">Emergency Requests & Voting</div></div>
+    <div><div class="pg-title-ar"><span class="i18n-ur"></span><span class="i18n-en"></span></div></div>
     <button class="btn btn-red" onclick="openModal('emrM')">+ درخواست / New Request</button>
   </div>
   <div id="emrList"></div>
@@ -746,24 +758,24 @@ tbody td{padding:10px 14px;vertical-align:middle;color:var(--cream2)}
  
 <!-- NOTIFICATIONS -->
 <div id="tab-notifications" class="hidden">
-  <div class="pg-hdr"><div class="pg-title-ar">اطلاعات</div><div class="pg-title-en">Notifications</div></div>
+  <div class="pg-hdr"><div class="pg-title-ar"><span class="i18n-ur"></span><span class="i18n-en"></span></div></div>
   <div class="card"><div id="notifList"></div></div>
 </div>
  
 <!-- MESSAGES -->
 <div id="tab-messages" class="hidden">
-  <div class="pg-hdr"><div class="pg-title-ar">پیغامات</div><div class="pg-title-en">Messages</div></div>
+  <div class="pg-hdr"><div class="pg-title-ar"><span class="i18n-ur"></span><span class="i18n-en"></span></div></div>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
     <div class="card">
-      <div class="card-hdr"><div class="card-title-ur">ایڈمن کو پیغام</div><div class="card-title-en">Message to Admin</div></div>
+      <div class="card-hdr"><div class="card-title-ur"><span class="i18n-ur"></span><span class="i18n-en"></span></div></div>
       <div class="card-body">
-        <div class="fgrp"><label class="flbl">Subject <span>• عنوان</span></label><input class="finp" id="mSubj" placeholder="e.g. Monthly payment delay"></div>
-        <div class="fgrp"><label class="flbl">Message <span>• پیغام</span></label><textarea class="ftxt" id="mBody" placeholder="Write your message..."></textarea></div>
+        <div class="fgrp"><label class="flbl"><span class="i18n-en">Subject </span><span class="i18n-ur">عنوان</span></label><input class="finp" id="mSubj" placeholder="e.g. Monthly payment delay"></div>
+        <div class="fgrp"><label class="flbl"><span class="i18n-en">Message </span><span class="i18n-ur">پیغام</span></label><textarea class="ftxt" id="mBody" placeholder="Write your message..."></textarea></div>
         <button class="btn btn-gold" onclick="sendMsg()">Send ✉️ بھیجیں</button>
       </div>
     </div>
     <div class="card">
-      <div class="card-hdr"><div class="card-title-ur">موصول پیغامات</div><div class="card-title-en">Inbox</div></div>
+      <div class="card-hdr"><div class="card-title-ur"><span class="i18n-ur"></span><span class="i18n-en"></span></div></div>
       <div id="inboxList" style="max-height:320px;overflow-y:auto"></div>
     </div>
   </div>
@@ -772,7 +784,7 @@ tbody td{padding:10px 14px;vertical-align:middle;color:var(--cream2)}
 <!-- ADMIN: MEMBERS -->
 <div id="tab-members" class="hidden admin-only">
   <div class="pg-hdr" style="display:flex;align-items:flex-start;justify-content:space-between">
-    <div><div class="pg-title-ar">اراکین خاندان</div><div class="pg-title-en">Family Members</div></div>
+    <div><div class="pg-title-ar"><span class="i18n-ur"></span><span class="i18n-en"></span></div></div>
     <button class="btn btn-gold btn-sm" onclick="openModal('addM')">+ Add Member</button>
   </div>
   <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
@@ -783,13 +795,13 @@ tbody td{padding:10px 14px;vertical-align:middle;color:var(--cream2)}
   </div>
   <div class="card">
     <div class="tbl-wrap"><table>
-      <thead><tr><th>#</th><th>Member • رکن</th><th>Monthly • ماہانہ</th><th>Total Paid • کل</th><th>Months • مہینے</th><th>Status</th><th>Action</th></tr></thead>
+      <thead><tr><th>#</th><th><span class="i18n-en">Member</span><span class="i18n-ur">رکن</span></th><th>City</th><th><span class="i18n-en">Total Paid</span><span class="i18n-ur">کل ادائیگی</span></th><th><span class="i18n-en">Months</span><span class="i18n-ur">مہینے</span></th><th>Status</th><th>Action</th></tr></thead>
       <tbody id="mbrBody"></tbody>
     </table></div>
   </div>
   <div class="card" id="pendingRegsCard" style="display:none">
     <div class="card-hdr" style="background:rgba(201,168,76,0.08)">
-      <div><div class="card-title-ur">زیر التوا رجسٹریشن</div><div class="card-title-en">Pending Registrations</div></div>
+      <div><div class="card-title-ur"><span class="i18n-ur"></span><span class="i18n-en"></span></div></div>
       <span class="tag t-pending" id="regCount">0</span>
     </div>
     <div id="pendingRegsList"></div>
@@ -798,24 +810,24 @@ tbody td{padding:10px 14px;vertical-align:middle;color:var(--cream2)}
 
 <!-- ADMIN: FUND -->
 <div id="tab-fund" class="hidden admin-only">
-  <div class="pg-hdr"><div class="pg-title-ar">فنڈ رجسٹر</div><div class="pg-title-en">Fund Register</div></div>
+  <div class="pg-hdr"><div class="pg-title-ar"><span class="i18n-ur"></span><span class="i18n-en"></span></div></div>
   <div class="stats" id="fStats"></div>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
     <div class="card">
-      <div class="card-hdr"><div class="card-title-ur">ادائیگی درج کریں</div><div class="card-title-en">Record Payment</div></div>
+      <div class="card-hdr"><div class="card-title-ur"><span class="i18n-ur"></span><span class="i18n-en"></span></div></div>
       <div class="card-body">
-        <div class="fgrp"><label class="flbl">Member <span>• رکن</span></label><select class="fsel" id="pMember"></select></div>
+        <div class="fgrp"><label class="flbl"><span class="i18n-en">Member </span><span class="i18n-ur">رکن</span></label><select class="fsel" id="pMember"></select></div>
         <div class="frow">
-          <div class="fgrp"><label class="flbl">Amount Rs. <span>• رقم</span></label><input class="finp" id="pAmt" type="number" placeholder="0" style="direction:ltr"></div>
-          <div class="fgrp"><label class="flbl">Month <span>• مہینہ</span></label><select class="fsel" id="pMonth"></select></div>
+          <div class="fgrp"><label class="flbl"><span class="i18n-en">Amount Rs. </span><span class="i18n-ur">رقم</span></label><input class="finp" id="pAmt" type="number" placeholder="0" style="direction:ltr"></div>
+          <div class="fgrp"><label class="flbl"><span class="i18n-en">Month </span><span class="i18n-ur">مہینہ</span></label><select class="fsel" id="pMonth"></select></div>
         </div>
-        <div class="fgrp"><label class="flbl">Note (optional) <span>• نوٹ</span></label><input class="finp" id="pNote" placeholder="optional note"></div>
+        <div class="fgrp"><label class="flbl"><span class="i18n-en">Note (optional) </span><span class="i18n-ur">نوٹ</span></label><input class="finp" id="pNote" placeholder="optional note"></div>
         <div class="ajer"><div class="ajer-ar" id="ajerAr">وَمَا أَنفَقْتُم مِّن شَيْءٍ فَهُوَ يُخْلِفُهُ</div><div class="ajer-ur">جو خرچ کرو اللہ اسے پورا فرمائے گا - سبأ ٣٩</div></div>
         <button class="btn btn-gold" onclick="recPay()">Record Payment ✓ درج کریں</button>
       </div>
     </div>
     <div class="card">
-      <div class="card-hdr"><div class="card-title-ur">ادائیگی تاریخ</div><div class="card-title-en">Payment History</div></div>
+      <div class="card-hdr"><div class="card-title-ur"><span class="i18n-ur"></span><span class="i18n-en"></span></div></div>
       <div id="payHist" style="max-height:380px;overflow-y:auto"></div>
     </div>
   </div>
@@ -824,32 +836,32 @@ tbody td{padding:10px 14px;vertical-align:middle;color:var(--cream2)}
 <!-- ADMIN: QARZ-E-HASANA + EMERGENCY LOANS -->
 <div id="tab-loans" class="hidden admin-only">
   <div class="pg-hdr" style="display:flex;align-items:flex-start;justify-content:space-between">
-    <div><div class="pg-title-ar">قرض حسنہ و ایمرجنسی فنڈ</div><div class="pg-title-en">Qarz-e-Hasana & Emergency Fund</div></div>
+    <div><div class="pg-title-ar"><span class="i18n-ur"></span><span class="i18n-en"></span></div></div>
     <button class="btn btn-gold btn-sm" onclick="openModal('loanM')">+ قرض حسنہ / New Qarz</button>
   </div>
   <div class="card" style="margin-bottom:16px">
-    <div class="card-hdr"><div><div class="card-title-ur">قرض حسنہ (بلا سود)</div><div class="card-title-en">Qarz-e-Hasana (Interest-free Loans)</div></div></div>
+    <div class="card-hdr"><div><div class="card-title-ur"><span class="i18n-ur"></span><span class="i18n-en"></span></div></div></div>
     <div class="card-body" id="hasanaList"></div>
   </div>
   <div class="card">
-    <div class="card-hdr"><div><div class="card-title-ur">ایمرجنسی فنڈ (ووٹنگ سے منظور)</div><div class="card-title-en">Emergency Fund (Vote-approved Disbursements)</div></div></div>
+    <div class="card-hdr"><div><div class="card-title-ur"><span class="i18n-ur"></span><span class="i18n-en"></span></div></div></div>
     <div class="card-body" id="emrLoanList"></div>
   </div>
 </div>
  
 <!-- ADMIN: BROADCAST -->
 <div id="tab-broadcast" class="hidden admin-only">
-  <div class="pg-hdr"><div class="pg-title-ar">اعلان بھیجیں</div><div class="pg-title-en">Broadcast to All Members</div></div>
+  <div class="pg-hdr"><div class="pg-title-ar"><span class="i18n-ur"></span><span class="i18n-en"></span></div></div>
   <div class="card" style="max-width:520px">
     <div class="card-body">
-      <div class="fgrp"><label class="flbl">Type <span>• قسم</span></label>
-        <select class="fsel" id="bcType"><option value="info">Information • اطلاع</option><option value="urgent">Urgent • فوری</option><option value="payment">Payment Reminder • یاددہانی</option></select>
+      <div class="fgrp"><label class="flbl"><span class="i18n-en">Type </span><span class="i18n-ur">قسم</span></label>
+        <select class="fsel" id="bcType"><option value="info">Information</option><option value="urgent">Urgent</option><option value="payment">Payment Reminder</option></select>
       </div>
       <div class="frow">
-        <div class="fgrp"><label class="flbl">Title (Urdu) <span>• اردو عنوان</span></label><input class="finp" id="bcTur" placeholder="اعلان..."></div>
+        <div class="fgrp"><label class="flbl"><span class="i18n-en">Title (Urdu) </span><span class="i18n-ur">اردو عنوان</span></label><input class="finp" id="bcTur" placeholder="اعلان..."></div>
         <div class="fgrp"><label class="flbl">Title (English)</label><input class="finp" id="bcTen" placeholder="Announcement..." style="direction:ltr"></div>
       </div>
-      <div class="fgrp"><label class="flbl">Message <span>• پیغام</span></label><textarea class="ftxt" id="bcMsg" placeholder="All members will receive this..."></textarea></div>
+      <div class="fgrp"><label class="flbl"><span class="i18n-en">Message </span><span class="i18n-ur">پیغام</span></label><textarea class="ftxt" id="bcMsg" placeholder="All members will receive this..."></textarea></div>
       <button class="btn btn-gold" onclick="sendBC()">📢 Broadcast to All - سب کو بھیجیں</button>
     </div>
   </div>
@@ -862,14 +874,14 @@ tbody td{padding:10px 14px;vertical-align:middle;color:var(--cream2)}
 <!-- MODALS -->
 <div class="modal-bg" id="emrM">
 <div class="modal">
-  <div class="modal-hdr"><div class="modal-title-ur">ایمرجنسی درخواست</div><div class="modal-title-en">Emergency Fund Request</div></div>
+  <div class="modal-hdr"><div class="modal-title-ur"><span class="i18n-ur"></span><span class="i18n-en"></span></div></div>
   <div class="modal-body">
     <div class="ajer"><div class="ajer-ar">وَفِی أَمْوَالِهِمْ حَقٌّ لِّلسَّائِلِ وَالْمَحْرُومِ</div><div class="ajer-ur">ان کے مالوں میں مانگنے والے اور محروم کا حق ہے - الذاریات ١٩</div></div>
     <div class="frow">
-      <div class="fgrp"><label class="flbl">Applicant <span>• درخواست دہندہ</span></label><select class="fsel" id="eApp"></select></div>
-      <div class="fgrp"><label class="flbl">Amount Rs. <span>• رقم</span></label><input class="finp" id="eAmt" type="number" placeholder="0" style="direction:ltr"></div>
+      <div class="fgrp"><label class="flbl"><span class="i18n-en">Applicant </span><span class="i18n-ur">درخواست دہندہ</span></label><select class="fsel" id="eApp"></select></div>
+      <div class="fgrp"><label class="flbl"><span class="i18n-en">Amount Rs. </span><span class="i18n-ur">رقم</span></label><input class="finp" id="eAmt" type="number" placeholder="0" style="direction:ltr"></div>
     </div>
-    <div class="fgrp"><label class="flbl">Reason (Urdu) <span>• اردو وجہ</span></label><input class="finp" id="eRur" placeholder="مثلاً: والدہ کا آپریشن"></div>
+    <div class="fgrp"><label class="flbl"><span class="i18n-en">Reason (Urdu) </span><span class="i18n-ur">اردو وجہ</span></label><input class="finp" id="eRur" placeholder="مثلاً: والدہ کا آپریشن"></div>
     <div class="fgrp"><label class="flbl">Reason (English)</label><input class="finp" id="eRen" placeholder="e.g. Mother's surgery" style="direction:ltr"></div>
   </div>
   <div class="modal-ft">
@@ -881,15 +893,15 @@ tbody td{padding:10px 14px;vertical-align:middle;color:var(--cream2)}
  
 <div class="modal-bg" id="loanM">
 <div class="modal">
-  <div class="modal-hdr"><div class="modal-title-ur">قرض حسنہ جاری کریں</div><div class="modal-title-en">Issue Qarz-e-Hasana</div></div>
+  <div class="modal-hdr"><div class="modal-title-ur"><span class="i18n-ur"></span><span class="i18n-en"></span></div></div>
   <div class="modal-body">
     <div class="ajer"><div class="ajer-ar">إِن تُقْرِضُوا اللَّهَ قَرْضًا حَسَنًا يُضَاعِفْهُ لَكُمْ</div><div class="ajer-ur">اللہ کو قرض حسن دو وہ کئی گنا بڑھائے گا - التغابن ١٧</div></div>
     <div class="frow">
-      <div class="fgrp"><label class="flbl">Member <span>• رکن</span></label><select class="fsel" id="lMember"></select></div>
+      <div class="fgrp"><label class="flbl"><span class="i18n-en">Member </span><span class="i18n-ur">رکن</span></label><select class="fsel" id="lMember"></select></div>
       <div class="fgrp"><label class="flbl">Amount Rs.</label><input class="finp" id="lAmt" type="number" placeholder="0" style="direction:ltr"></div>
     </div>
-    <div class="fgrp"><label class="flbl">Purpose <span>• مقصد</span></label><input class="finp" id="lPurp" placeholder="e.g. education, business, marriage"></div>
-    <div class="fgrp"><label class="flbl">Expected Return <span>• واپسی</span></label><input class="finp" id="lRet" type="month" style="direction:ltr"></div>
+    <div class="fgrp"><label class="flbl"><span class="i18n-en">Purpose </span><span class="i18n-ur">مقصد</span></label><input class="finp" id="lPurp" placeholder="e.g. education, business, marriage"></div>
+    <div class="fgrp"><label class="flbl"><span class="i18n-en">Expected Return </span><span class="i18n-ur">واپسی</span></label><input class="finp" id="lRet" type="month" style="direction:ltr"></div>
   </div>
   <div class="modal-ft">
     <button class="btn btn-gold" onclick="submitLoan()">Issue قرض حسنہ جاری</button>
@@ -900,27 +912,26 @@ tbody td{padding:10px 14px;vertical-align:middle;color:var(--cream2)}
  
 <div class="modal-bg" id="addM">
 <div class="modal">
-  <div class="modal-hdr"><div class="modal-title-ur">نیا رکن شامل کریں</div><div class="modal-title-en">Add New Member</div></div>
+  <div class="modal-hdr"><div class="modal-title-ur"><span class="i18n-ur"></span><span class="i18n-en"></span></div></div>
   <div class="modal-body">
     <div class="frow">
-      <div class="fgrp"><label class="flbl">Urdu Name <span>• اردو نام</span></label><input class="finp" id="nmUr" placeholder="احمد بلوچ"></div>
+      <div class="fgrp"><label class="flbl"><span class="i18n-en">Urdu Name </span><span class="i18n-ur">اردو نام</span></label><input class="finp" id="nmUr" placeholder="احمد بلوچ"></div>
       <div class="fgrp"><label class="flbl">English Name</label><input class="finp" id="nmEn" placeholder="Ahmad Baloch" style="direction:ltr"></div>
     </div>
     <div class="frow">
-      <div class="fgrp"><label class="flbl">Relation <span>• رشتہ</span></label>
+      <div class="fgrp"><label class="flbl"><span class="i18n-en">Relation </span><span class="i18n-ur">رشتہ</span></label>
         <select class="fsel" id="nmRel"><option>بیٹا / Son</option><option>بھائی / Brother</option><option>چچا / Uncle</option><option>ماموں / Maternal Uncle</option><option>بھتیجا / Nephew</option><option>داماد / Son-in-law</option><option>کزن / Cousin</option><option>پوتا / Grandson</option></select>
       </div>
-      <div class="fgrp"><label class="flbl">Monthly Rs.</label><input class="finp" id="nmMon" type="number" placeholder="1000" style="direction:ltr"></div>
-    </div>
+          </div>
     <div class="frow">
       <div class="fgrp"><label class="flbl">Username</label><input class="finp" id="nmUser" placeholder="username" style="direction:ltr"></div>
       <div class="fgrp"><label class="flbl">Password</label><input class="finp" id="nmPass" placeholder="password" style="direction:ltr"></div>
     </div>
     <div class="frow">
-      <div class="fgrp"><label class="flbl">Parent (Tree) <span>• والد</span></label><select class="fsel" id="nmParent"></select></div>
-      <div class="fgrp"><label class="flbl">Phone <span>• فون</span></label><input class="finp" id="nmPhone" placeholder="03xx-xxxxxxx" style="direction:ltr"></div>
+      <div class="fgrp"><label class="flbl"><span class="i18n-en">Parent (Tree) </span><span class="i18n-ur">والد</span></label><select class="fsel" id="nmParent"></select></div>
+      <div class="fgrp"><label class="flbl"><span class="i18n-en">Phone </span><span class="i18n-ur">فون</span></label><input class="finp" id="nmPhone" placeholder="03xx-xxxxxxx" style="direction:ltr"></div>
     </div>
-    <div class="fgrp"><label class="flbl">City <span>• شہر</span></label><input class="finp" id="nmCity" placeholder="e.g. Quetta, Karachi" style="direction:ltr"></div>
+    <div class="fgrp"><label class="flbl"><span class="i18n-en">City </span><span class="i18n-ur">شہر</span></label><input class="finp" id="nmCity" placeholder="e.g. Quetta, Karachi" style="direction:ltr"></div>
   </div>
   <div class="modal-ft">
     <button class="btn btn-gold" onclick="submitAddMbr()">Add Member شامل کریں</button>
@@ -936,21 +947,10 @@ tbody td{padding:10px 14px;vertical-align:middle;color:var(--cream2)}
    DATA
 ══════════════════════════════════════════ */
 const USERS = {
-  abubakar: {id:'abubakar',ur:'ابوبکر بلوچ',en:'Abu Baker Baloch',role:'admin',rel:'سربراہ / Head',monthly:3000,color:'#c9a84c',pass:'admin123',parent:null,phone:'',city:''},
-  faisal:{id:'faisal',ur:'فیصل بلوچ',en:'Faisal Baloch',role:'member',rel:'بیٹا / Son',monthly:2000,color:'#1b6b45',pass:'faisal123',parent:'abubakar',phone:'',city:''},
-  saleem:{id:'saleem',ur:'سلیم بلوچ',en:'Saleem Baloch',role:'member',rel:'بھائی / Brother',monthly:1500,color:'#1d4ed8',pass:'saleem123',parent:'abubakar',phone:'',city:''},
-  anwar: {id:'anwar',ur:'انور بلوچ',en:'Anwar Baloch',role:'member',rel:'چچا / Uncle',monthly:2500,color:'#7c3aed',pass:'anwar123',parent:'abubakar',phone:'',city:''},
-  tariq: {id:'tariq',ur:'طارق بلوچ',en:'Tariq Baloch',role:'member',rel:'کزن / Cousin',monthly:1000,color:'#c0392b',pass:'tariq123',parent:'faisal',phone:'',city:''},
-  riaz:  {id:'riaz',ur:'ریاض بلوچ',en:'Riaz Baloch',role:'member',rel:'بھتیجا / Nephew',monthly:1200,color:'#d97706',pass:'riaz123',parent:'faisal',phone:'',city:''},
-  akram: {id:'akram',ur:'اکرم بلوچ',en:'Akram Baloch',role:'member',rel:'بیٹا / Son',monthly:1800,color:'#0891b2',pass:'akram123',parent:'saleem',phone:'',city:''},
-  javed: {id:'javed',ur:'جاوید بلوچ',en:'Javed Baloch',role:'member',rel:'پوتا / Grandson',monthly:900,color:'#059669',pass:'javed123',parent:'anwar',phone:'',city:''},
-  kamran:{id:'kamran',ur:'کامران بلوچ',en:'Kamran Baloch',role:'member',rel:'داماد / Son-in-law',monthly:1100,color:'#be185d',pass:'kamran123',parent:'anwar',phone:'',city:''},
-  imran: {id:'imran',ur:'عمران بلوچ',en:'Imran Baloch',role:'member',rel:'کزن / Cousin',monthly:1300,color:'#7a5c1e',pass:'imran123',parent:'saleem',phone:'',city:''},
-  bilal: {id:'bilal',ur:'بلال بلوچ',en:'Bilal Baloch',role:'member',rel:'بھتیجا / Nephew',monthly:1500,color:'#2563eb',pass:'bilal123',parent:'saleem',phone:'',city:''},
+  abubakar: {id:'abubakar',en:'Abu Baker',role:'admin',rel:'Head',color:'#c9a84c',pass:'admin123',parent:null,phone:'',city:''},
 };
  
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-const MONTHS_UR = ['جنوری','فروری','مارچ','اپریل','مئی','جون','جولائی','اگست','ستمبر','اکتوبر','نومبر','دسمبر'];
  
 const VERSES = [
   {ar:'مَثَلُ الَّذِینَ یُنفِقُونَ أَمْوَالَهُم فِی سَبِیلِ اللَّهِ كَمَثَلِ حَبَّةٍ',ur:'جو اپنا مال اللہ کی راہ میں خرچ کرتے ہیں',ref:'Al-Baqarah 2:261'},
@@ -963,13 +963,14 @@ const VERSES = [
  
 let S = {
   user: null,
-  lang: 'ur',
+  lang: 'en',
+  theme: 'dark',
   payments: [],
   emergencies: [],
   loans: [],
   pendingRegs:[],
-  notifs:{abubakar:[],faisal:[],saleem:[],anwar:[],tariq:[],riaz:[],akram:[],javed:[],kamran:[],imran:[],bilal:[]},
-  messages:{abubakar:[],faisal:[],saleem:[],anwar:[],tariq:[],riaz:[],akram:[],javed:[],kamran:[],imran:[],bilal:[]},
+  notifs:{abubakar:[]},
+  messages:{abubakar:[]},
   nid:1,mid:1,
 };
  
@@ -1005,8 +1006,25 @@ function gregDate(){
 function toggleLang(){
   S.lang=S.lang==='ur'?'en':'ur';
   document.getElementById('langBtn').textContent=S.lang==='ur'?'EN':'UR';
+  document.body.classList.toggle('lang-ur',S.lang==='ur');
+  document.body.classList.toggle('lang-en',S.lang==='en');
   const cur=document.querySelector('.nav-item.active');
   if(cur){const tab=cur.id.replace('n-','');showTab(tab)}
+}
+function toggleTheme(){
+  S.theme=S.theme==='dark'?'light':'dark';
+  document.body.classList.toggle('light',S.theme==='light');
+  document.getElementById('themeBtn').textContent=S.theme==='dark'?'☀':'🌙';
+}
+function deleteMember(uid){
+  if(uid==='abubakar')return;
+  const u=USERS[uid];
+  if(!u||!confirm(t('کیا آپ واقعی حذف کرنا چاہتے ہیں؟','Delete '+u.en+'? This cannot be undone.')))return;
+  Object.values(USERS).filter(c=>c.parent===uid).forEach(c=>c.parent='abubakar');
+  delete USERS[uid];
+  delete S.notifs[uid];delete S.messages[uid];
+  populateSels();rMbr();rTree();
+  showToast('Deleted: '+u.en,'gold');
 }
  
 function addNotif(uid,ur,en,type){
@@ -1054,7 +1072,7 @@ function loginAs(usr){
   document.getElementById('tbAv').textContent=ini(usr.en);
   document.getElementById('tbAv').style.background=usr.color;
   document.getElementById('tbName').textContent=usr.ur;
-  document.getElementById('tbRole').textContent=usr.role==='admin'?'Admin • ایڈمن':'Member • رکن';
+  document.getElementById('tbRole').textContent=usr.role==='admin'?t('ایڈمن','Admin'):t('رکن','Member');
   document.getElementById('greetName').textContent=usr.ur;
   document.querySelectorAll('.admin-only').forEach(el=>el.style.display=usr.role==='admin'?'':'none');
   populateSels();
@@ -1115,7 +1133,7 @@ function submitRegister(){
 function approveReg(id){
   const r=S.pendingRegs.find(x=>x.id===id);
   if(!r)return;
-  USERS[r.user]={id:r.user,ur:r.ur,en:r.en,role:'member',rel:r.rel,monthly:1000,color:'#'+Math.floor(Math.random()*0x777777+0x444444).toString(16),pass:r.pass,parent:'abubakar',phone:r.phone,city:r.city};
+  USERS[r.user]={id:r.user,ur:r.ur,en:r.en,role:'member',rel:r.rel,color:'#'+Math.floor(Math.random()*0x777777+0x444444).toString(16),pass:r.pass,parent:'abubakar',phone:r.phone,city:r.city};
   S.notifs[r.user]=[];S.messages[r.user]=[];
   S.pendingRegs=S.pendingRegs.filter(x=>x.id!==id);
   populateSels();
@@ -1176,7 +1194,7 @@ function rDash(){
     const u=USERS[uid],mt=paidBy(uid);
     document.getElementById('dStats').innerHTML=`
       <div class="sc g"><div class="sc-lbl-ur">${t('میری کل ادائیگی','My Total Paid')}</div><div class="sc-lbl-en"></div><div class="sc-val">${fmt(mt)}</div></div>
-      <div class="sc gl"><div class="sc-lbl-ur">${t('ماہانہ حصہ','Monthly Share')}</div><div class="sc-lbl-en"></div><div class="sc-val">${fmt(u.monthly)}</div></div>
+      <div class="sc gl"><div class="sc-lbl-ur">${t('کل حصہ','Total Paid')}</div><div class="sc-lbl-en"></div><div class="sc-val">${fmt(paidBy(uid))}</div></div>
       <div class="sc ${paidCurMonth(uid)?'g':'r'}"><div class="sc-lbl-ur">${t(cmn+' کا حال',cmn+' Status')}</div><div class="sc-lbl-en"></div><div class="sc-val">${paidCurMonth(uid)?'✓ Paid':'✗ Due'}</div></div>
       <div class="sc b"><div class="sc-lbl-ur">${t('خاندانی فنڈ','Family Fund')}</div><div class="sc-lbl-en"></div><div class="sc-val">${fmt(tf)}</div></div>`;
   }
@@ -1223,15 +1241,15 @@ function rMy(){
           <div style="font-size:11px;color:rgba(255,255,255,0.3);margin-top:4px;font-family:var(--font-en)">📍 ${u.city||'-'} | 📞 ${u.phone}</div>
         </div>
       </div>
-      <div style="font-size:11px;color:var(--gold4);font-family:var(--font-en);margin-bottom:4px">Total Contribution • کل ادائیگی</div>
+      <div style="font-size:11px;color:var(--gold4);font-family:var(--font-en);margin-bottom:4px">${t("کل ادائیگی","Total Contribution")}</div>
       <div class="my-big">${fmt(paidBy(u.id))}</div>
-      <div style="font-size:11px;color:rgba(255,255,255,0.35);margin-top:4px;font-family:var(--font-en)">Monthly share: ${fmt(u.monthly)} • ${mPaidBy(u.id)} months paid</div>
+      <div style="font-size:11px;color:rgba(255,255,255,0.35);margin-top:4px;font-family:var(--font-en)">${mPaidBy(u.id)} months paid</div>
       <div class="my-months">
         ${MONTHS.map(m=>{const p=myP.find(x=>x.month.startsWith(m));return`<div class="my-mc ${p?'paid':''}"><div class="my-mc-name">${m.slice(0,3)}</div><div class="my-mc-amt" style="color:${p?'var(--em2)':'rgba(255,255,255,0.2)'}">${p?fmt(p.amt):'-'}</div></div>`;}).join('')}
       </div>
     </div>
     <div class="card">
-      <div class="card-hdr"><div class="card-title-ur">ادائیگی تاریخ</div><div class="card-title-en">Payment History</div></div>
+      <div class="card-hdr"><div class="card-title-ur"><span class="i18n-ur"></span><span class="i18n-en"></span></div></div>
       <div class="tbl-wrap"><table>
         <thead><tr><th>Month</th><th>Amount</th><th>Date</th><th>Note</th></tr></thead>
         <tbody>${myP.length?myP.map(p=>`<tr><td>${p.month}</td><td style="color:var(--gold);font-weight:700">${fmt(p.amt)}</td><td style="direction:ltr;font-family:var(--font-en)">${p.date}</td><td style="color:rgba(255,255,255,0.35)">${p.note||'-'}</td></tr>`).join(''):'<tr><td colspan="4" style="text-align:center;color:rgba(255,255,255,0.3);padding:20px;font-family:var(--font-en);font-style:italic">No payments yet</td></tr>'}</tbody>
@@ -1313,7 +1331,7 @@ function selectNode(uid){
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:16px">
       <div style="text-align:center"><div style="font-size:10px;color:var(--gold4)">${t('کل ادائیگی','Total Paid')}</div><div style="font-size:22px;font-weight:700;color:var(--gold);font-family:'Cinzel',serif">${fmt(paidBy(uid))}</div></div>
-      <div style="text-align:center"><div style="font-size:10px;color:var(--gold4)">${t('ماہانہ حصہ','Monthly')}</div><div style="font-size:22px;font-weight:700;color:var(--em2);font-family:'Cinzel',serif">${fmt(u.monthly)}</div></div>
+      
       <div style="text-align:center"><div style="font-size:10px;color:var(--gold4)">${t('مہینے','Months Paid')}</div><div style="font-size:22px;font-weight:700;color:var(--cream);font-family:'Cinzel',serif">${mPaidBy(uid)}/${MONTHS.length}</div></div>
     </div>
     <div style="display:flex;gap:4px;margin-bottom:4px;flex-wrap:wrap">
@@ -1418,11 +1436,11 @@ function renderMbrTbl(list){
     return`<tr>
       <td style="color:var(--gold4);font-family:var(--font-en)">${i+1}</td>
       <td><div class="mc"><div class="av" style="background:${u.color}">${ini(u.en)}</div><div class="mi"><div class="mn">${u.ur}</div><div class="mr">${u.en} | ${u.rel}</div><div style="font-size:9px;color:rgba(255,255,255,0.3)">📍 ${u.city||'-'} | 📞 ${u.phone}</div></div></div></td>
-      <td style="font-weight:600;color:var(--gold)">${fmt(u.monthly)}</td>
+      <td style="color:var(--gold4)">${u.city||"-"}</td>
       <td style="color:var(--em2)">${fmt(paidBy(u.id))}</td>
       <td><div class="mdots">${dots}</div><div style="font-size:9px;color:var(--gold4);margin-top:3px;font-family:var(--font-en)">${mPaidBy(u.id)}/${MONTHS.length} months</div></td>
       <td><span class="tag ${u.id==='abubakar'?'t-head':paidCurMonth(u.id)?'t-active':'t-pending'}">${u.id==='abubakar'?'Head':paidCurMonth(u.id)?'Active':'Pending'}</span></td>
-      <td><button class="btn btn-em btn-sm" onclick="goPayFor('${u.id}')">+ Pay</button></td>
+      <td><button class="btn btn-red btn-sm" onclick="deleteMember(''+u.id+'')" style="margin-right:4px">✕</button><button class="btn btn-em btn-sm" onclick="goPayFor('${u.id}')">+ Pay</button></td>
     </tr>`;
   }).join('');
 }
@@ -1433,14 +1451,13 @@ function submitAddMbr(){
   const en=document.getElementById('nmEn').value.trim();
   const user=document.getElementById('nmUser').value.trim().toLowerCase();
   const pass=document.getElementById('nmPass').value.trim();
-  const mon=parseInt(document.getElementById('nmMon').value)||1000;
-  const rel=document.getElementById('nmRel').value;
+    const rel=document.getElementById('nmRel').value;
   const parent=document.getElementById('nmParent').value;
   const phone=document.getElementById('nmPhone').value.trim();
   const city=document.getElementById('nmCity')?.value.trim()||'';
   if(!ur||!user||!pass){showToast(t('ضروری خانے بھریں','Fill required fields'),'err');return;}
   if(USERS[user]){showToast(t('یہ نام پہلے سے موجود ہے','Username already exists'),'err');return;}
-  USERS[user]={id:user,ur,en:en||ur,role:'member',rel,monthly:mon,color:'#'+Math.floor(Math.random()*0x777777+0x444444).toString(16),pass,parent:parent==='none'?null:parent,phone,city};
+  USERS[user]={id:user,ur,en:en||ur,role:'member',rel,color:'#'+Math.floor(Math.random()*0x777777+0x444444).toString(16),pass,parent:parent==='none'?null:parent,phone,city};
   S.notifs[user]=[];S.messages[user]=[];
   closeModal('addM');populateSels();
   showToast(`✓ ${ur} added - ${user}`,'gold');
@@ -1472,7 +1489,7 @@ function recPay(){
   S.payments.push({id:S.payments.length+100,uid,month,amt,date:new Date().toISOString().slice(0,10),note});
   addNotif(uid,`آپ کی ${month} ادائیگی درج ہوئی - ${fmt(amt)}`,`Payment recorded: ${month} - ${fmt(amt)}`,'pay');
   document.getElementById('pAmt').value='';document.getElementById('pNote').value='';
-  showToast(`✓ ${USERS[uid]?.en} - ${fmt(amt)} recorded • جزاکم اللہ خیراً`,'gold');
+  showToast(`✓ ${USERS[uid]?.en} - ${fmt(amt)} recorded`,'gold');
   updateBadges();rFund();
 }
  
