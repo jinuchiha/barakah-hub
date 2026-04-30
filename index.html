@@ -644,7 +644,7 @@ body.lang-ur .i18n-en{display:none!important}
       </div>
     </div>
     <div style="text-align:center;font-size:10px;color:var(--gold4);font-family:var(--font-en);line-height:1.3" id="tbDates"></div>
-    <button class="logout-btn" onclick="doLogout()">Logout ↩</button>
+    <button class="logout-btn" onclick="doLogout()"><span class="i18n-en">Logout</span><span class="i18n-ur">خارج</span></button>
   </div>
 </div>
 <!-- VERSE BAR -->
@@ -751,7 +751,7 @@ body.lang-ur .i18n-en{display:none!important}
 <div id="tab-emergency" class="hidden">
   <div class="pg-hdr" style="display:flex;align-items:flex-start;justify-content:space-between">
     <div><div class="pg-title-ar"><span class="i18n-ur"></span><span class="i18n-en"></span></div></div>
-    <button class="btn btn-red" onclick="openModal('emrM')">+ درخواست / New Request</button>
+    <button class="btn btn-red" onclick="openModal('emrM')"><span class="i18n-en">+ New Request</span><span class="i18n-ur">+ درخواست</span></button>
   </div>
   <div id="emrList"></div>
 </div>
@@ -771,7 +771,7 @@ body.lang-ur .i18n-en{display:none!important}
       <div class="card-body">
         <div class="fgrp"><label class="flbl"><span class="i18n-en">Subject </span><span class="i18n-ur">عنوان</span></label><input class="finp" id="mSubj" placeholder="e.g. Monthly payment delay"></div>
         <div class="fgrp"><label class="flbl"><span class="i18n-en">Message </span><span class="i18n-ur">پیغام</span></label><textarea class="ftxt" id="mBody" placeholder="Write your message..."></textarea></div>
-        <button class="btn btn-gold" onclick="sendMsg()">Send ✉️ بھیجیں</button>
+        <button class="btn btn-gold" onclick="sendMsg()"><span class="i18n-en">Send</span><span class="i18n-ur">بھیجیں</span></button>
       </div>
     </div>
     <div class="card">
@@ -823,7 +823,7 @@ body.lang-ur .i18n-en{display:none!important}
         </div>
         <div class="fgrp"><label class="flbl"><span class="i18n-en">Note (optional) </span><span class="i18n-ur">نوٹ</span></label><input class="finp" id="pNote" placeholder="optional note"></div>
         <div class="ajer"><div class="ajer-ar" id="ajerAr">وَمَا أَنفَقْتُم مِّن شَيْءٍ فَهُوَ يُخْلِفُهُ</div><div class="ajer-ur">جو خرچ کرو اللہ اسے پورا فرمائے گا - سبأ ٣٩</div></div>
-        <button class="btn btn-gold" onclick="recPay()">Record Payment ✓ درج کریں</button>
+        <button class="btn btn-gold" onclick="recPay()"><span class="i18n-en">Record Payment</span><span class="i18n-ur">ادائیگی درج کریں</span></button>
       </div>
     </div>
     <div class="card">
@@ -837,7 +837,7 @@ body.lang-ur .i18n-en{display:none!important}
 <div id="tab-loans" class="hidden admin-only">
   <div class="pg-hdr" style="display:flex;align-items:flex-start;justify-content:space-between">
     <div><div class="pg-title-ar"><span class="i18n-ur"></span><span class="i18n-en"></span></div></div>
-    <button class="btn btn-gold btn-sm" onclick="openModal('loanM')">+ قرض حسنہ / New Qarz</button>
+    <button class="btn btn-gold btn-sm" onclick="openModal('loanM')"><span class="i18n-en">+ New Qarz</span><span class="i18n-ur">+ قرض حسنہ</span></button>
   </div>
   <div class="card" style="margin-bottom:16px">
     <div class="card-hdr"><div><div class="card-title-ur"><span class="i18n-ur"></span><span class="i18n-en"></span></div></div></div>
@@ -862,7 +862,7 @@ body.lang-ur .i18n-en{display:none!important}
         <div class="fgrp"><label class="flbl">Title (English)</label><input class="finp" id="bcTen" placeholder="Announcement..." style="direction:ltr"></div>
       </div>
       <div class="fgrp"><label class="flbl"><span class="i18n-en">Message </span><span class="i18n-ur">پیغام</span></label><textarea class="ftxt" id="bcMsg" placeholder="All members will receive this..."></textarea></div>
-      <button class="btn btn-gold" onclick="sendBC()">📢 Broadcast to All - سب کو بھیجیں</button>
+      <button class="btn btn-gold" onclick="sendBC()"><span class="i18n-en">Broadcast to All</span><span class="i18n-ur">سب کو بھیجیں</span></button>
     </div>
   </div>
 </div>
@@ -885,8 +885,8 @@ body.lang-ur .i18n-en{display:none!important}
     <div class="fgrp"><label class="flbl">Reason (English)</label><input class="finp" id="eRen" placeholder="e.g. Mother's surgery" style="direction:ltr"></div>
   </div>
   <div class="modal-ft">
-    <button class="btn btn-red" onclick="submitEmr()">Submit Request درخواست دیں</button>
-    <button class="btn btn-ghost" onclick="closeModal('emrM')">Cancel منسوخ</button>
+    <button class="btn btn-red" onclick="submitEmr()"><span class="i18n-en">Submit Request</span><span class="i18n-ur">درخواست دیں</span></button>
+    <button class="btn btn-ghost" onclick="closeModal('emrM')"><span class="i18n-en">Cancel</span><span class="i18n-ur">منسوخ</span></button>
   </div>
 </div>
 </div>
@@ -904,7 +904,7 @@ body.lang-ur .i18n-en{display:none!important}
     <div class="fgrp"><label class="flbl"><span class="i18n-en">Expected Return </span><span class="i18n-ur">واپسی</span></label><input class="finp" id="lRet" type="month" style="direction:ltr"></div>
   </div>
   <div class="modal-ft">
-    <button class="btn btn-gold" onclick="submitLoan()">Issue قرض حسنہ جاری</button>
+    <button class="btn btn-gold" onclick="submitLoan()"><span class="i18n-en">Issue Loan</span><span class="i18n-ur">قرض حسنہ جاری</span></button>
     <button class="btn btn-ghost" onclick="closeModal('loanM')">Cancel</button>
   </div>
 </div>
@@ -934,7 +934,7 @@ body.lang-ur .i18n-en{display:none!important}
     <div class="fgrp"><label class="flbl"><span class="i18n-en">City </span><span class="i18n-ur">شہر</span></label><input class="finp" id="nmCity" placeholder="e.g. Quetta, Karachi" style="direction:ltr"></div>
   </div>
   <div class="modal-ft">
-    <button class="btn btn-gold" onclick="submitAddMbr()">Add Member شامل کریں</button>
+    <button class="btn btn-gold" onclick="submitAddMbr()"><span class="i18n-en">Add Member</span><span class="i18n-ur">شامل کریں</span></button>
     <button class="btn btn-ghost" onclick="closeModal('addM')">Cancel</button>
   </div>
 </div>
@@ -947,7 +947,7 @@ body.lang-ur .i18n-en{display:none!important}
    DATA
 ══════════════════════════════════════════ */
 const USERS = {
-  abubakar: {id:'abubakar',en:'Abu Baker',role:'admin',rel:'Head',color:'#c9a84c',pass:'admin123',parent:null,phone:'',city:''},
+  abubakar: {id:'abubakar',ur:'ابوبکر',en:'Abu Baker',role:'admin',rel:'Head',color:'#c9a84c',pass:'admin123',parent:null,phone:'',city:''},
 };
  
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -1042,7 +1042,7 @@ function updateBadges(){
   document.getElementById('eBadge').textContent=ue;
 }
 function populateSels(){
-  const opts=Object.values(USERS).map(u=>`<option value="${u.id}">${u.en} | ${u.ur}</option>`).join('');
+  const opts=Object.values(USERS).map(u=>`<option value="${u.id}">${u.en}${u.ur?' | '+u.ur:''}</option>`).join('');
   ['pMember','eApp','lMember'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=opts});
   const pOpts=['<option value="none">-- No Parent (Root) --</option>',...Object.values(USERS).map(u=>`<option value="${u.id}">${u.en}</option>`)].join('');
   const np=document.getElementById('nmParent');if(np)np.innerHTML=pOpts;
@@ -1235,7 +1235,7 @@ function rMy(){
       <div class="my-hero-top">
         <div class="my-av" style="background:${u.color}">${ini(u.en)}</div>
         <div>
-          <div class="my-name-ur">${u.ur}</div>
+          <div class="my-name-ur"><span class="i18n-ur">${u.ur||u.en}</span><span class="i18n-en">${u.en}</span></div>
           <div class="my-name-en">${u.en}</div>
           <div class="my-role">${u.rel} | ${u.role==='admin'?'Admin':'Member'}</div>
           <div style="font-size:11px;color:rgba(255,255,255,0.3);margin-top:4px;font-family:var(--font-en)">📍 ${u.city||'-'} | 📞 ${u.phone}</div>
@@ -1284,7 +1284,7 @@ function treeNodeHtml(u,uid){
   return`<div class="tree-node-wrap">
     <div class="tn ${u.id==='abubakar'?'head':''} ${isMe?'selected':''}" onclick="selectNode('${u.id}')">
       <div class="tn-av" style="background:${u.color};border-color:${paid?'var(--em2)':'rgba(201,168,76,0.3)'}">${ini(u.en)}</div>
-      <div class="tn-name-ur">${u.ur}</div>
+      <div class="tn-name-ur"><span class="i18n-ur">${u.ur||u.en}</span><span class="i18n-en">${u.en}</span></div>
       <div class="tn-name-en">${u.en}</div>
       <div class="tn-role">${u.rel}</div>
       <div style="font-size:9px;color:rgba(255,255,255,0.35);margin-top:2px">📍 ${u.city||'-'}</div>
@@ -1423,7 +1423,7 @@ function submitEmr(){
 ══════════════════════════════════════════ */
 function rMbr(){filterMbr('');renderPendingRegs()}
 function filterMbr(q){
-  const list=Object.values(USERS).filter(u=>u.ur.includes(q)||u.en.toLowerCase().includes(q.toLowerCase()));
+  const list=Object.values(USERS).filter(u=>(u.ur||'').includes(q)||u.en.toLowerCase().includes(q.toLowerCase()));
   renderMbrTbl(list);
 }
 function filterMbrSt(s){
@@ -1435,7 +1435,7 @@ function renderMbrTbl(list){
     const dots=MONTHS.map(m=>{const p=S.payments.find(x=>x.uid===u.id&&x.month.startsWith(m));return`<div class="md ${p?'md-p':'md-u'}" title="${m}: ${p?fmt(p.amt):'Not paid'}">${m.slice(0,3)}</div>`;}).join('');
     return`<tr>
       <td style="color:var(--gold4);font-family:var(--font-en)">${i+1}</td>
-      <td><div class="mc"><div class="av" style="background:${u.color}">${ini(u.en)}</div><div class="mi"><div class="mn">${u.ur}</div><div class="mr">${u.en} | ${u.rel}</div><div style="font-size:9px;color:rgba(255,255,255,0.3)">📍 ${u.city||'-'} | 📞 ${u.phone}</div></div></div></td>
+      <td><div class="mc"><div class="av" style="background:${u.color}">${ini(u.en)}</div><div class="mi"><div class="mn"><span class="i18n-ur">${u.ur||u.en}</span><span class="i18n-en">${u.en}</span></div><div class="mr">${u.en} | ${u.rel}</div><div style="font-size:9px;color:rgba(255,255,255,0.3)">📍 ${u.city||'-'} | 📞 ${u.phone}</div></div></div></td>
       <td style="color:var(--gold4)">${u.city||"-"}</td>
       <td style="color:var(--em2)">${fmt(paidBy(u.id))}</td>
       <td><div class="mdots">${dots}</div><div style="font-size:9px;color:var(--gold4);margin-top:3px;font-family:var(--font-en)">${mPaidBy(u.id)}/${MONTHS.length} months</div></td>
