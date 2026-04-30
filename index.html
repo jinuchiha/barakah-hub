@@ -535,6 +535,74 @@ tbody td{padding:10px 14px;vertical-align:middle;color:var(--cream2)}
       </div>
       <button class="login-btn" onclick="doLogin()">داخل ہوں - Enter</button>
       <div class="login-err" id="liErr">غلط معلومات - Invalid credentials</div>
+      <div style="text-align:center;margin-top:14px">
+        <span style="font-size:12px;color:rgba(255,255,255,0.4)">نیا رکن؟</span>
+        <span style="font-size:12px;color:var(--gold);cursor:pointer;margin-right:4px" onclick="showRegister()">رجسٹر کریں - Register</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- REGISTER -->
+<div class="login-wrap" id="regWrap" style="display:none">
+  <div class="login-ornament">
+    <svg viewBox="0 0 300 60" xmlns="http://www.w3.org/2000/svg">
+      <line x1="10" y1="30" x2="100" y2="30" stroke="#c9a84c" stroke-width="0.8"/>
+      <polygon points="120,10 130,30 120,50 110,30" fill="none" stroke="#c9a84c" stroke-width="0.8"/>
+      <circle cx="150" cy="30" r="18" fill="none" stroke="#c9a84c" stroke-width="0.8"/>
+      <circle cx="150" cy="30" r="8" fill="none" stroke="#c9a84c" stroke-width="0.5"/>
+      <polygon points="180,10 190,30 180,50 170,30" fill="none" stroke="#c9a84c" stroke-width="0.8"/>
+      <line x1="200" y1="30" x2="290" y2="30" stroke="#c9a84c" stroke-width="0.8"/>
+    </svg>
+  </div>
+  <div class="login-box">
+    <div class="login-header">
+      <span class="login-moon">📝</span>
+      <div class="login-title-ar">رجسٹریشن</div>
+      <div class="login-title-en">New Member Registration</div>
+    </div>
+    <div class="login-body">
+      <div class="fl">
+        <label>اردو نام - Urdu Name</label>
+        <input class="fi" id="regUr" placeholder="مثلاً: احمد بلوچ">
+      </div>
+      <div class="fl">
+        <label>English Name</label>
+        <input class="fi" id="regEn" placeholder="e.g. Ahmad Baloch" style="direction:ltr">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="fl">
+          <label>Username - صارف نام</label>
+          <input class="fi" id="regUser" placeholder="username" style="direction:ltr">
+        </div>
+        <div class="fl">
+          <label>Password - پاس ورڈ</label>
+          <input class="fi" id="regPass" type="password" placeholder="password" style="direction:ltr">
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="fl">
+          <label>Phone - فون</label>
+          <input class="fi" id="regPhone" placeholder="03xx-xxxxxxx" style="direction:ltr">
+        </div>
+        <div class="fl">
+          <label>City - شہر</label>
+          <input class="fi" id="regCity" placeholder="e.g. Quetta" style="direction:ltr">
+        </div>
+      </div>
+      <div class="fl">
+        <label>رشتہ - Relation</label>
+        <select class="fi" id="regRel" style="direction:ltr">
+          <option>بیٹا / Son</option><option>بھائی / Brother</option><option>چچا / Uncle</option><option>ماموں / Maternal Uncle</option><option>بھتیجا / Nephew</option><option>داماد / Son-in-law</option><option>کزن / Cousin</option><option>پوتا / Grandson</option>
+        </select>
+      </div>
+      <button class="login-btn" onclick="submitRegister()" style="background:linear-gradient(135deg,var(--em3),var(--em2),var(--em3))">درخواست بھیجیں - Submit Request</button>
+      <div class="login-err" id="regErr"></div>
+      <div class="login-err" id="regOk" style="background:rgba(27,107,69,0.15);border-color:rgba(27,107,69,0.4);color:#4ade80"></div>
+      <div style="text-align:center;margin-top:14px">
+        <span style="font-size:12px;color:rgba(255,255,255,0.4)">پہلے سے رکن ہیں؟</span>
+        <span style="font-size:12px;color:var(--gold);cursor:pointer;margin-right:4px" onclick="showLoginForm()">لاگ ان - Login</span>
+      </div>
     </div>
   </div>
 </div>
@@ -719,8 +787,15 @@ tbody td{padding:10px 14px;vertical-align:middle;color:var(--cream2)}
       <tbody id="mbrBody"></tbody>
     </table></div>
   </div>
+  <div class="card" id="pendingRegsCard" style="display:none">
+    <div class="card-hdr" style="background:rgba(201,168,76,0.08)">
+      <div><div class="card-title-ur">زیر التوا رجسٹریشن</div><div class="card-title-en">Pending Registrations</div></div>
+      <span class="tag t-pending" id="regCount">0</span>
+    </div>
+    <div id="pendingRegsList"></div>
+  </div>
 </div>
- 
+
 <!-- ADMIN: FUND -->
 <div id="tab-fund" class="hidden admin-only">
   <div class="pg-hdr"><div class="pg-title-ar">فنڈ رجسٹر</div><div class="pg-title-en">Fund Register</div></div>
@@ -892,6 +967,7 @@ let S = {
   payments: [],
   emergencies: [],
   loans: [],
+  pendingRegs:[],
   notifs:{nazir:[],faisal:[],saleem:[],anwar:[],tariq:[],riaz:[],akram:[],javed:[],kamran:[],imran:[],bilal:[]},
   messages:{nazir:[],faisal:[],saleem:[],anwar:[],tariq:[],riaz:[],akram:[],javed:[],kamran:[],imran:[],bilal:[]},
   nid:1,mid:1,
@@ -994,8 +1070,84 @@ function doLogout(){
   document.getElementById('app').classList.remove('show');
   document.getElementById('liUser').value='';
   document.getElementById('liPass').value='';
+  showLoginForm();
 }
- 
+
+function showRegister(){
+  document.querySelector('.login-wrap:not(#regWrap)').style.display='none';
+  document.getElementById('regWrap').style.display='block';
+}
+function showLoginForm(){
+  document.querySelector('.login-wrap:not(#regWrap)').style.display='block';
+  document.getElementById('regWrap').style.display='none';
+}
+function submitRegister(){
+  const ur=document.getElementById('regUr').value.trim();
+  const en=document.getElementById('regEn').value.trim();
+  const user=document.getElementById('regUser').value.trim().toLowerCase();
+  const pass=document.getElementById('regPass').value.trim();
+  const phone=document.getElementById('regPhone').value.trim();
+  const city=document.getElementById('regCity').value.trim();
+  const rel=document.getElementById('regRel').value;
+  const errEl=document.getElementById('regErr');
+  const okEl=document.getElementById('regOk');
+  errEl.style.display='none';okEl.style.display='none';
+  if(!ur||!user||!pass){
+    errEl.textContent=t('نام، صارف نام اور پاس ورڈ ضروری ہیں','Name, username & password required');
+    errEl.style.display='block';return;
+  }
+  if(USERS[user]||S.pendingRegs.find(r=>r.user===user)){
+    errEl.textContent=t('یہ صارف نام پہلے سے موجود ہے','Username already taken');
+    errEl.style.display='block';return;
+  }
+  S.pendingRegs.push({id:Date.now(),ur,en:en||ur,user,pass,phone,city,rel,date:new Date().toLocaleDateString('en-GB')});
+  addNotif('nazir',`نئی رجسٹریشن: ${ur} (${user})`,`New registration: ${en||ur} (${user})`,'reg');
+  okEl.textContent=t('درخواست بھیج دی گئی! ایڈمن کی منظوری کا انتظار کریں','Request sent! Waiting for admin approval');
+  okEl.style.display='block';
+  document.getElementById('regUr').value='';
+  document.getElementById('regEn').value='';
+  document.getElementById('regUser').value='';
+  document.getElementById('regPass').value='';
+  document.getElementById('regPhone').value='';
+  document.getElementById('regCity').value='';
+}
+
+function approveReg(id){
+  const r=S.pendingRegs.find(x=>x.id===id);
+  if(!r)return;
+  USERS[r.user]={id:r.user,ur:r.ur,en:r.en,role:'member',rel:r.rel,monthly:1000,color:'#'+Math.floor(Math.random()*0x777777+0x444444).toString(16),pass:r.pass,parent:'nazir',phone:r.phone,city:r.city};
+  S.notifs[r.user]=[];S.messages[r.user]=[];
+  S.pendingRegs=S.pendingRegs.filter(x=>x.id!==id);
+  populateSels();
+  showToast(`✓ ${r.ur} (${r.user}) ${t('منظور','approved')}`,'gold');
+  rMbr();updateBadges();
+}
+function rejectReg(id){
+  S.pendingRegs=S.pendingRegs.filter(x=>x.id!==id);
+  showToast(t('درخواست مسترد','Registration rejected'));
+  rMbr();
+}
+function renderPendingRegs(){
+  const card=document.getElementById('pendingRegsCard');
+  const list=document.getElementById('pendingRegsList');
+  const cnt=document.getElementById('regCount');
+  if(!card||!list)return;
+  const regs=S.pendingRegs;
+  card.style.display=regs.length?'block':'none';
+  cnt.textContent=regs.length;
+  list.innerHTML=regs.map(r=>`
+    <div style="padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px">
+      <div class="av" style="background:#c9a84c">${ini(r.en||r.ur)}</div>
+      <div style="flex:1">
+        <div style="font-weight:600;color:var(--cream);font-size:13px">${r.ur} <span style="color:var(--gold4);font-size:11px">(${r.user})</span></div>
+        <div style="font-size:11px;color:rgba(255,255,255,0.35)">${r.en} | ${r.rel} | 📍 ${r.city||'-'} | 📞 ${r.phone||'-'}</div>
+        <div style="font-size:10px;color:var(--gold4);margin-top:2px">${r.date}</div>
+      </div>
+      <button class="btn btn-em btn-sm" onclick="approveReg(${r.id})">✓ ${t('منظور','Approve')}</button>
+      <button class="btn btn-red btn-sm" onclick="rejectReg(${r.id})">✗ ${t('مسترد','Reject')}</button>
+    </div>`).join('');
+}
+
 /* ══════════════════════════════════════════
    TABS
 ══════════════════════════════════════════ */
@@ -1251,7 +1403,7 @@ function submitEmr(){
 /* ══════════════════════════════════════════
    MEMBERS
 ══════════════════════════════════════════ */
-function rMbr(){filterMbr('')}
+function rMbr(){filterMbr('');renderPendingRegs()}
 function filterMbr(q){
   const list=Object.values(USERS).filter(u=>u.ur.includes(q)||u.en.toLowerCase().includes(q.toLowerCase()));
   renderMbrTbl(list);
