@@ -756,7 +756,7 @@ body.lang-ur .i18n-en{display:none!important}
 <div id="tab-emergency" class="hidden">
   <div class="pg-hdr" style="display:flex;align-items:flex-start;justify-content:space-between">
     <div><div class="pg-title-ar"><span class="i18n-en">Emergency Requests</span><span class="i18n-ur">ایمرجنسی درخواستیں</span></div></div>
-    <button class="btn btn-red" onclick="openModal('emrM')"><span class="i18n-en">+ New Request</span><span class="i18n-ur">+ درخواست</span></button>
+    <button class="btn btn-red" onclick="openEmrM()"><span class="i18n-en">+ New Request</span><span class="i18n-ur">+ درخواست</span></button>
   </div>
   <div id="emrList"></div>
 </div>
@@ -826,6 +826,13 @@ body.lang-ur .i18n-en{display:none!important}
           <div class="fgrp"><label class="flbl"><span class="i18n-en">Amount Rs. </span><span class="i18n-ur">رقم</span></label><input class="finp" id="pAmt" type="number" placeholder="0" style="direction:ltr"></div>
           <div class="fgrp"><label class="flbl"><span class="i18n-en">Month </span><span class="i18n-ur">مہینہ</span></label><select class="fsel" id="pMonth"></select></div>
         </div>
+        <div class="fgrp"><label class="flbl"><span class="i18n-en">Fund Type </span><span class="i18n-ur">قسمِ فنڈ</span></label>
+          <select class="fsel" id="pType">
+            <option value="sadaqah">💚 Sadaqah / صدقہ — General khairat</option>
+            <option value="zakat">🌙 Zakat / زکوٰۃ — 8 masraf only (Q.9:60)</option>
+            <option value="qarz">🤝 Qarz Pool / قرض پول — Qarz-e-Hasana reserve</option>
+          </select>
+        </div>
         <div class="fgrp"><label class="flbl"><span class="i18n-en">Note (optional) </span><span class="i18n-ur">نوٹ</span></label><input class="finp" id="pNote" placeholder="optional note"></div>
         <div class="ajer"><div class="ajer-ar" id="ajerAr">وَمَا أَنفَقْتُم مِّن شَيْءٍ فَهُوَ يُخْلِفُهُ</div><div class="ajer-ur">جو خرچ کرو اللہ اسے پورا فرمائے گا - سبأ ٣٩</div></div>
         <button class="btn btn-gold" onclick="recPay()"><span class="i18n-en">Record Payment</span><span class="i18n-ur">ادائیگی درج کریں</span></button>
@@ -881,13 +888,18 @@ body.lang-ur .i18n-en{display:none!important}
 <div class="modal">
   <div class="modal-hdr"><div class="modal-title-ur"><span class="i18n-en">Emergency Fund Request</span><span class="i18n-ur">ایمرجنسی درخواست</span></div></div>
   <div class="modal-body">
-    <div class="ajer"><div class="ajer-ar">وَفِی أَمْوَالِهِمْ حَقٌّ لِّلسَّائِلِ وَالْمَحْرُومِ</div><div class="ajer-ur">ان کے مالوں میں مانگنے والے اور محروم کا حق ہے - الذاریات ١٩</div></div>
+    <div class="fgrp"><label class="flbl"><span class="i18n-en">Category </span><span class="i18n-ur">قسم</span></label>
+      <select class="fsel" id="eCat" onchange="updateEmrCatUI()"></select>
+    </div>
+    <div class="ajer" id="eVerse"><div class="ajer-ar">وَفِی أَمْوَالِهِمْ حَقٌّ لِّلسَّائِلِ وَالْمَحْرُومِ</div><div class="ajer-ur">ان کے مالوں میں مانگنے والے اور محروم کا حق ہے - الذاریات ١٩</div></div>
+    <div id="eRules" style="font-size:11px;color:var(--gold4);margin-bottom:10px;padding:8px 10px;background:rgba(201,168,76,0.04);border:1px dashed var(--border);border-radius:6px;font-family:var(--font-en);font-style:italic"></div>
     <div class="frow">
       <div class="fgrp"><label class="flbl"><span class="i18n-en">Applicant </span><span class="i18n-ur">درخواست دہندہ</span></label><select class="fsel" id="eApp"></select></div>
       <div class="fgrp"><label class="flbl"><span class="i18n-en">Amount Rs. </span><span class="i18n-ur">رقم</span></label><input class="finp" id="eAmt" type="number" placeholder="0" style="direction:ltr"></div>
     </div>
     <div class="fgrp"><label class="flbl"><span class="i18n-en">Reason (Urdu) </span><span class="i18n-ur">اردو وجہ</span></label><input class="finp" id="eRur" placeholder="مثلاً: والدہ کا آپریشن"></div>
     <div class="fgrp"><label class="flbl">Reason (English)</label><input class="finp" id="eRen" placeholder="e.g. Mother's surgery" style="direction:ltr"></div>
+    <div class="fgrp" id="eDocWrap" style="display:none"><label class="flbl"><span class="i18n-en">Document / Proof </span><span class="i18n-ur">دستاویز / ثبوت</span> <span style="color:#f87171">*</span></label><input class="finp" id="eDoc" placeholder="Hospital name, bill ref, report URL..."></div>
   </div>
   <div class="modal-ft">
     <button class="btn btn-red" onclick="submitEmr()"><span class="i18n-en">Submit Request</span><span class="i18n-ur">درخواست دیں</span></button>
@@ -956,6 +968,67 @@ const USERS = {
 };
  
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+const POOLS = {
+  zakat:   {ur:'زکوٰۃ',  en:'Zakat',     icon:'🌙', color:'#c9a84c', tagClass:'t-head',
+            note:'Quran 9:60 — sirf 8 masraf ke liye'},
+  sadaqah: {ur:'صدقہ',    en:'Sadaqah',   icon:'💚', color:'#1a8050', tagClass:'t-active',
+            note:'General khairat — koi bhi zaroorat mand'},
+  qarz:    {ur:'قرض پول', en:'Qarz Pool', icon:'🤝', color:'#3b82f6', tagClass:'t-vote',
+            note:'Qarz-e-Hasana ke liye reserved'},
+};
+
+const EMR_CATEGORIES = {
+  janaza: {
+    ur:'وفات / جنازہ', en:'Death / Funeral', icon:'🤲',
+    instant:true, requiresDoc:false, defaultAmt:50000, pool:'sadaqah',
+    verseAr:'إِنَّا لِلَّهِ وَإِنَّا إِلَيْهِ رَاجِعُونَ',
+    verseUr:'بے شک ہم اللہ کے لیے ہیں اور اسی کی طرف لوٹنا ہے',
+    verseRef:'Al-Baqarah 2:156',
+  },
+  medical: {
+    ur:'علاج / صحت', en:'Medical', icon:'🏥',
+    instant:false, requiresDoc:true, votePath:'branch+all', pool:'sadaqah',
+    verseAr:'وَإِذَا مَرِضْتُ فَهُوَ يَشْفِينِ',
+    verseUr:'اور جب میں بیمار ہوتا ہوں تو وہی مجھے شفا دیتا ہے',
+    verseRef:'Ash-Shu\'ara 26:80',
+  },
+  education: {
+    ur:'تعلیم', en:'Education', icon:'📚',
+    instant:false, requiresDoc:false, votePath:'branch+all', pool:'sadaqah',
+    verseAr:'رَّبِّ زِدْنِي عِلْمًا',
+    verseUr:'اے میرے رب، میرے علم میں اضافہ فرما',
+    verseRef:'Ta-Ha 20:114',
+  },
+  marriage: {
+    ur:'نکاح / شادی', en:'Marriage', icon:'💍',
+    instant:false, requiresDoc:false, votePath:'branch+all', pool:'sadaqah',
+    verseAr:'وَأَنكِحُوا الْأَيَامَىٰ مِنكُمْ',
+    verseUr:'اور تم میں سے بے نکاحوں کے نکاح کرو',
+    verseRef:'An-Nur 24:32',
+  },
+  yatim: {
+    ur:'یتیم / بیوہ', en:'Orphan / Widow', icon:'🤍',
+    instant:false, requiresDoc:false, votePath:'all-only', pool:'zakat',
+    verseAr:'فَأَمَّا الْيَتِيمَ فَلَا تَقْهَرْ',
+    verseUr:'پس یتیم پر سختی نہ کرو',
+    verseRef:'Ad-Duha 93:9',
+  },
+  business: {
+    ur:'کاروبار', en:'Business setback', icon:'🏢',
+    instant:false, requiresDoc:false, votePath:'branch+all', pool:'qarz',
+    verseAr:'وَأَحَلَّ اللَّهُ الْبَيْعَ وَحَرَّمَ الرِّبَا',
+    verseUr:'اللہ نے تجارت کو حلال اور سود کو حرام کیا',
+    verseRef:'Al-Baqarah 2:275',
+  },
+  general: {
+    ur:'دیگر / عمومی', en:'Other / General', icon:'💛',
+    instant:false, requiresDoc:false, votePath:'branch+all', pool:'sadaqah',
+    verseAr:'وَفِي أَمْوَالِهِمْ حَقٌّ لِّلسَّائِلِ وَالْمَحْرُومِ',
+    verseUr:'اور ان کے مالوں میں سائل اور محروم کا حق ہے',
+    verseRef:'Adh-Dhariyat 51:19',
+  },
+};
  
 const VERSES = [
   {ar:'مَثَلُ الَّذِینَ یُنفِقُونَ أَمْوَالَهُم فِی سَبِیلِ اللَّهِ كَمَثَلِ حَبَّةٍ',ur:'جو اپنا مال اللہ کی راہ میں خرچ کرتے ہیں',ref:'Al-Baqarah 2:261'},
@@ -992,6 +1065,11 @@ function ini(n){const p=n.split(' ');return(p[0]?.[0]||'')+(p[1]?.[0]||'')}
 function fmt(n){return 'Rs. '+n.toLocaleString()}
 function t(ur,en){return S.lang==='ur'?ur:en}
 function totalFund(){return S.payments.reduce((a,p)=>a+p.amt,0)}
+function poolType(p){return p.type||'sadaqah'}
+function poolInflow(t){return S.payments.filter(p=>poolType(p)===t).reduce((a,p)=>a+p.amt,0)}
+function poolOutflow(t){return S.loans.filter(l=>(l.pool||'sadaqah')===t).reduce((a,l)=>a+(l.amt-l.paid),0)}
+function poolBalance(t){return poolInflow(t)-poolOutflow(t)}
+function emrCat(e){return EMR_CATEGORIES[e.category||'general']||EMR_CATEGORIES.general}
 function paidBy(uid){return S.payments.filter(p=>p.uid===uid).reduce((a,p)=>a+p.amt,0)}
 function mPaidBy(uid){return[...new Set(S.payments.filter(p=>p.uid===uid).map(p=>p.month))].length}
 function curMonthKey(){
@@ -1055,6 +1133,25 @@ function populateSels(){
   const curM=new Date().getMonth();
   const pm=document.getElementById('pMonth');
   if(pm)pm.innerHTML=MONTHS.map((m,i)=>`<option ${i===curM?'selected':''}>${m} ${yr}</option>`).join('');
+  const ec=document.getElementById('eCat');
+  if(ec){
+    ec.innerHTML=Object.entries(EMR_CATEGORIES).map(([k,c])=>`<option value="${k}">${c.icon} ${c.en} / ${c.ur}</option>`).join('');
+    ec.value='general';
+  }
+}
+function updateEmrCatUI(){
+  const k=document.getElementById('eCat').value;
+  const c=EMR_CATEGORIES[k];if(!c)return;
+  document.getElementById('eVerse').innerHTML=`<div class="ajer-ar">${c.verseAr}</div><div class="ajer-ur">${c.verseUr} — ${c.verseRef}</div>`;
+  const rules=[];
+  if(c.instant)rules.push(`⚡ ${t('فوری منظوری — کوئی ووٹ نہیں','Instant approval — no vote needed (death/funeral)')}`);
+  else if(c.votePath==='all-only')rules.push(`👥 ${t('براہِ راست تمام خاندان کا ووٹ','Direct family-wide vote (no branch round)')}`);
+  else rules.push(`🗳 ${t('دو دور: پہلے خاندان، پھر سب','2 rounds: branch first, then all family')}`);
+  if(c.requiresDoc)rules.push(`📎 ${t('دستاویز / ثبوت ضروری','Document/proof required')}`);
+  rules.push(`💰 ${t('پول','Pool')}: ${POOLS[c.pool].icon} ${POOLS[c.pool].en}`);
+  document.getElementById('eRules').innerHTML=rules.join(' &nbsp;•&nbsp; ');
+  document.getElementById('eDocWrap').style.display=c.requiresDoc?'block':'none';
+  if(c.defaultAmt)document.getElementById('eAmt').value=c.defaultAmt;
 }
  
 /* ══════════════════════════════════════════
@@ -1418,6 +1515,8 @@ function emrEligibleVoters(e){
 function emrHtml(e){
   const uid=S.user?.id;
   const isVoted=voted(e,uid);
+  const cat=emrCat(e);
+  const pool=POOLS[e.pool||cat.pool||'sadaqah'];
   const eligible=emrEligibleVoters(e);
   const total=eligible.length||1;
   const pct=Math.round(e.votes.yes.length/total*100);
@@ -1425,8 +1524,14 @@ function emrHtml(e){
   const branchName=e.branch?USERS[e.branch]?.en:null;
   const canVote=eligible.includes(uid);
   const voterAvs=e.votes.yes.map(vid=>`<div class="voter-av" style="background:${USERS[vid]?.color||'#555'}" title="${USERS[vid]?.en}">${ini(USERS[vid]?.en||'?')}</div>`).join('');
-  const roundLbl=e.status==='approved'?'Approved ✓':round===1?`${t('پہلا دور: خاندان','Round 1: Branch')} (${branchName||'-'})`:t('دوسرا دور: تمام','Round 2: All Family');
-  return`<div class="emr-card ${e.status}">
+  const statusLbl=e.status==='approved'?(cat.instant?`⚡ ${t('فوری منظور','Instant Approved')}`:'Approved ✓'):e.status==='rejected'?t('مسترد','Rejected'):round===1?`${t('پہلا دور: خاندان','Round 1: Branch')} (${branchName||'-'})`:t('دوسرا دور: تمام خاندان','Round 2: All Family');
+  return`<div class="emr-card ${e.status}" style="border-right:3px solid ${cat.instant?'#dc2626':'var(--gold)'}">
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;flex-wrap:wrap">
+      <span class="tag" style="background:rgba(201,168,76,0.15);color:var(--gold);border:1px solid var(--border)">${cat.icon} ${cat.en} / ${cat.ur}</span>
+      <span class="tag" style="background:${pool.color}22;color:${pool.color};border:1px solid ${pool.color}55">${pool.icon} ${pool.en} pool</span>
+      ${cat.instant?`<span class="tag" style="background:rgba(220,38,38,0.15);color:#f87171;border:1px solid rgba(220,38,38,0.4)">⚡ ${t('فوری','INSTANT')}</span>`:''}
+    </div>
+    <div style="font-size:11px;font-family:var(--font-arabic);color:var(--gold2);margin-bottom:8px;padding:6px 10px;background:rgba(201,168,76,0.04);border-radius:6px;text-align:center">${cat.verseAr} <span style="font-size:10px;color:var(--gold4);font-family:var(--font-en)"> — ${cat.verseRef}</span></div>
     <div class="emr-top">
       <div>
         <div class="emr-person">
@@ -1435,24 +1540,25 @@ function emrHtml(e){
         </div>
         <div class="emr-reason-ur">${e.rUr}</div>
         <div class="emr-reason-en">${e.rEn}</div>
+        ${e.doc?`<div style="font-size:11px;color:var(--em2);margin-top:4px;font-family:var(--font-en)">📎 ${e.doc}</div>`:''}
         <div class="emr-date">${e.date}</div>
       </div>
       <div class="emr-amt">
         <div class="val">${fmt(e.amt)}</div>
         <div class="lbl">Requested Amount</div>
-        <div style="margin-top:6px"><span class="tag ${e.status==='approved'?'t-approved':'t-vote'}">${roundLbl}</span></div>
+        <div style="margin-top:6px"><span class="tag ${e.status==='approved'?'t-approved':e.status==='rejected'?'t-loan':'t-vote'}">${statusLbl}</span></div>
       </div>
     </div>
-    <div class="vote-row">
+    ${e.status==='voting'?`<div class="vote-row">
       <div class="vote-stat">${e.votes.yes.length}/${total} votes</div>
       <div class="vote-track"><div class="vote-fill" style="width:${pct}%"></div></div>
       <div class="vote-stat">${pct}%</div>
-    </div>
+    </div>`:''}
     ${voterAvs?`<div class="voter-row">${voterAvs}</div>`:''}
     ${e.status==='voting'?`<div class="vbtns">
       <button class="vbtn vbtn-yes" onclick="castVote(${e.id},true)" ${isVoted||!canVote?'disabled':''}>✓ Yes - حق</button>
       <button class="vbtn vbtn-no" onclick="castVote(${e.id},false)" ${isVoted||!canVote?'disabled':''}>✗ No - مخالف</button>
-      ${isVoted?`<span class="voted-tag">${t('آپ نے ووٹ دیا','You voted')} ✓</span>`:uid===e.uid?`<span class="voted-tag">${t('اپنی درخواست','Own request')}</span>`:!canVote?`<span class="voted-tag">${round===1?t('پہلا دور — خاندان کے ارکان','Round 1 — branch only'):t('اہل نہیں','Not eligible')}</span>`:''}
+      ${isVoted?`<span class="voted-tag">${t('آپ نے ووٹ دیا','You voted')} ✓</span>`:uid===e.uid?`<span class="voted-tag">${t('اپنی درخواست','Own request')}</span>`:!canVote?`<span class="voted-tag">${round===1?t('پہلا دور — صرف خاندانی ارکان','Round 1 — branch only'):t('اہل نہیں','Not eligible')}</span>`:''}
     </div>`:''}
   </div>`;
 }
@@ -1464,21 +1570,22 @@ function rEmr(){
 function castVote(id,yes){
   const e=S.emergencies.find(x=>x.id===id);
   const uid=S.user?.id;
-  if(!e||!uid||voted(e,uid)||uid===e.uid)return;
+  if(!e||!uid||voted(e,uid)||uid===e.uid||e.status!=='voting')return;
   const eligible=emrEligibleVoters(e);
   if(!eligible.includes(uid))return;
   if(yes)e.votes.yes.push(uid);else e.votes.no.push(uid);
   const tot=eligible.length;
   const round=e.round||1;
+  const cat=emrCat(e);
   if(e.votes.yes.length>tot/2){
-    if(round===1&&e.branch){
+    if(round===1&&e.branch&&cat.votePath!=='all-only'){
       e.round=2;e.votes={yes:[],no:[]};
       addNotif(e.uid,`پہلا دور پاس! اب پورے خاندان کا ووٹ`,`Round 1 passed! Family-wide vote opened`,'vote-yes');
-      Object.keys(USERS).filter(id=>id!==e.uid&&getBranchHead(id)!==e.branch&&id!==e.branch).forEach(id=>addNotif(id,`ووٹ کے لیے: ${USERS[e.uid]?.ur} - ${fmt(e.amt)}`,`Vote: ${USERS[e.uid]?.en} needs ${fmt(e.amt)}`,'emr'));
+      Object.keys(USERS).filter(id=>id!==e.uid&&getBranchHead(id)!==e.branch&&id!==e.branch).forEach(id=>addNotif(id,`${cat.icon} ووٹ کے لیے: ${USERS[e.uid]?.ur} - ${fmt(e.amt)}`,`${cat.icon} Vote: ${USERS[e.uid]?.en} needs ${fmt(e.amt)}`,'emr'));
     }else{
       e.status='approved';
-      S.loans.unshift({id:Date.now(),uid:e.uid,amt:e.amt,paid:0,purpose:e.rUr+' | '+e.rEn,type:'emergency',issued:new Date().toLocaleDateString('en',{month:'long',year:'numeric'}),ret:'TBD',active:true});
-      addNotif(e.uid,`✓ منظور! ${fmt(e.amt)}`,`✓ Approved! ${fmt(e.amt)}`,'vote-yes');
+      S.loans.unshift({id:Date.now(),uid:e.uid,amt:e.amt,paid:0,purpose:`[${cat.en}] ${e.rUr} | ${e.rEn}`,type:'emergency',pool:e.pool||cat.pool,issued:new Date().toLocaleDateString('en',{month:'long',year:'numeric'}),ret:'TBD',active:true});
+      addNotif(e.uid,`✓ منظور! ${fmt(e.amt)} (${cat.ur})`,`✓ Approved! ${fmt(e.amt)} (${cat.en})`,'vote-yes');
     }
   }else if(e.votes.no.length>=tot/2){
     e.status='rejected';
@@ -1493,21 +1600,44 @@ function castVote(id,yes){
 function openEmrM(){
   if(S.user)document.getElementById('eApp').value=S.user.id;
   openModal('emrM');
+  updateEmrCatUI();
 }
 function submitEmr(){
   const uid=document.getElementById('eApp').value;
   const amt=parseInt(document.getElementById('eAmt').value)||0;
   const rUr=document.getElementById('eRur').value.trim();
   const rEn=document.getElementById('eRen').value.trim();
-  if(!amt||!rUr){showToast('Please fill all fields','err');return;}
+  const category=document.getElementById('eCat').value;
+  const cat=EMR_CATEGORIES[category];
+  const doc=document.getElementById('eDoc').value.trim();
+  if(!amt||!rUr){showToast(t('تمام ضروری خانے بھریں','Fill all required fields'),'err');return;}
+  if(cat.requiresDoc&&!doc){showToast(t('دستاویز / ثبوت لازمی ہے','Document/proof is required'),'err');return;}
   const branch=getBranchHead(uid);
-  const e={id:S.emergencies.length+100+Math.random()|0,uid,rUr,rEn,amt,votes:{yes:[],no:[]},status:'voting',round:branch?1:2,branch,date:new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})};
+  const allOnly=cat.votePath==='all-only';
+  const e={
+    id:S.emergencies.length+100+Math.random()|0,
+    uid,rUr,rEn,amt,category,doc,
+    pool:cat.pool,
+    votes:{yes:[],no:[]},
+    status:cat.instant?'approved':'voting',
+    round:cat.instant?0:(branch&&!allOnly?1:2),
+    branch:allOnly?null:branch,
+    date:new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}),
+  };
   S.emergencies.unshift(e);
-  const eligible=emrEligibleVoters(e);
-  eligible.forEach(id=>addNotif(id,`نئی ایمرجنسی (${branch?'خاندانی دور':'تمام'}): ${USERS[uid]?.ur} - ${fmt(amt)}`,`Emergency (${branch?'branch round':'all'}): ${USERS[uid]?.en} needs ${fmt(amt)}`,'emr'));
-  if(!eligible.includes('abubakar'))addNotif('abubakar',`نئی ایمرجنسی: ${USERS[uid]?.ur}`,`New emergency from ${USERS[uid]?.en}`,'emr');
+  if(cat.instant){
+    S.loans.unshift({id:Date.now(),uid:e.uid,amt:e.amt,paid:0,purpose:`[${cat.en}] ${e.rUr} | ${e.rEn}`,type:'emergency',pool:cat.pool,issued:new Date().toLocaleDateString('en',{month:'long',year:'numeric'}),ret:'TBD',active:true});
+    Object.keys(USERS).forEach(id=>addNotif(id,`${cat.icon} فوری منظوری: ${USERS[uid]?.ur} - ${fmt(amt)} (${cat.ur})`,`${cat.icon} Instant approval: ${USERS[uid]?.en} - ${fmt(amt)} (${cat.en})`,'emr-instant'));
+    showToast(`${cat.icon} ${t('فوری منظوری','Instant approval')} - ${fmt(amt)}`,'gold');
+  }else{
+    const eligible=emrEligibleVoters(e);
+    eligible.forEach(id=>addNotif(id,`${cat.icon} نئی ${cat.ur} ایمرجنسی: ${USERS[uid]?.ur} - ${fmt(amt)}`,`${cat.icon} New ${cat.en} emergency: ${USERS[uid]?.en} - ${fmt(amt)}`,'emr'));
+    if(!eligible.includes('abubakar'))addNotif('abubakar',`${cat.icon} نئی ایمرجنسی: ${USERS[uid]?.ur}`,`${cat.icon} New emergency from ${USERS[uid]?.en}`,'emr');
+    showToast(`${cat.icon} ${t('درخواست بھیج دی گئی','Request submitted')}`,'gold');
+  }
   closeModal('emrM');
-  showToast('Emergency request submitted - تمام اراکین کو اطلاع بھیجی گئی','gold');
+  document.getElementById('eAmt').value='';document.getElementById('eRur').value='';
+  document.getElementById('eRen').value='';document.getElementById('eDoc').value='';
   updateBadges();rEmr();rDash();
 }
  
@@ -1562,28 +1692,39 @@ function submitAddMbr(){
 ══════════════════════════════════════════ */
 function rFund(){
   const tf=totalFund(),al=S.loans.filter(l=>l.active).reduce((a,l)=>a+l.amt-l.paid,0);
+  const pools=Object.entries(POOLS).map(([k,p])=>({k,p,bal:poolBalance(k),inflow:poolInflow(k),outflow:poolOutflow(k)}));
   document.getElementById('fStats').innerHTML=`
     <div class="sc g"><div class="sc-lbl-ur">کل جمع</div><div class="sc-lbl-en">Total Collected</div><div class="sc-val">${fmt(tf)}</div></div>
     <div class="sc r"><div class="sc-lbl-ur">قرض واجب</div><div class="sc-lbl-en">Outstanding</div><div class="sc-val">${fmt(al)}</div></div>
-    <div class="sc gl"><div class="sc-lbl-ur">خالص دستیاب</div><div class="sc-lbl-en">Net Available</div><div class="sc-val">${fmt(tf-al)}</div></div>`;
+    <div class="sc gl"><div class="sc-lbl-ur">خالص دستیاب</div><div class="sc-lbl-en">Net Available</div><div class="sc-val">${fmt(tf-al)}</div></div>
+    ${pools.map(({k,p,bal,inflow,outflow})=>`
+      <div class="sc" style="border-right:3px solid ${p.color}">
+        <div class="sc-icon">${p.icon}</div>
+        <div class="sc-lbl-ur">${p.ur}</div><div class="sc-lbl-en">${p.en} balance</div>
+        <div class="sc-val" style="color:${p.color}">${fmt(bal)}</div>
+        <div class="sc-hint" style="font-family:var(--font-en);font-size:9px">+${fmt(inflow)} / -${fmt(outflow)}</div>
+      </div>`).join('')}`;
   const ph=[...S.payments].reverse().slice(0,25);
-  document.getElementById('payHist').innerHTML=ph.length?ph.map(p=>`
-    <div class="msg-item">
+  document.getElementById('payHist').innerHTML=ph.length?ph.map(p=>{
+    const pool=POOLS[poolType(p)];
+    return`<div class="msg-item">
       <div class="act-av" style="background:${USERS[p.uid]?.color||'#555'};width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:var(--ink);flex-shrink:0">${ini(USERS[p.uid]?.en||'?')}</div>
-      <div><div class="msg-text">${USERS[p.uid]?.en} <span style="color:var(--gold);font-weight:700">${fmt(p.amt)}</span></div><div class="msg-time">${p.month} | ${p.date} ${p.note?'| '+p.note:''}</div></div>
-    </div>`).join(''):`<div style="text-align:center;color:rgba(255,255,255,0.25);padding:30px;font-family:var(--font-en);font-style:italic">${t('ابھی کوئی ادائیگی نہیں','No payments yet')}</div>`;
+      <div style="flex:1"><div class="msg-text">${USERS[p.uid]?.en} <span style="color:var(--gold);font-weight:700">${fmt(p.amt)}</span> <span class="tag" style="background:${pool.color}22;color:${pool.color};border:1px solid ${pool.color}55;margin-right:6px">${pool.icon} ${pool.en}</span></div><div class="msg-time">${p.month} | ${p.date} ${p.note?'| '+p.note:''}</div></div>
+    </div>`;}).join(''):`<div style="text-align:center;color:rgba(255,255,255,0.25);padding:30px;font-family:var(--font-en);font-style:italic">${t('ابھی کوئی ادائیگی نہیں','No payments yet')}</div>`;
 }
 function recPay(){
   const uid=document.getElementById('pMember').value;
   const amt=parseInt(document.getElementById('pAmt').value)||0;
   const month=document.getElementById('pMonth').value;
   const note=document.getElementById('pNote').value;
+  const type=document.getElementById('pType')?.value||'sadaqah';
   if(!amt){showToast('Enter amount','err');return;}
-  S.payments.push({id:S.payments.length+100,uid,month,amt,date:new Date().toISOString().slice(0,10),note});
-  addNotif(uid,`آپ کی ${month} ادائیگی درج ہوئی - ${fmt(amt)}`,`Payment recorded: ${month} - ${fmt(amt)}`,'pay');
+  S.payments.push({id:S.payments.length+100,uid,month,amt,type,date:new Date().toISOString().slice(0,10),note});
+  const pn=POOLS[type];
+  addNotif(uid,`${pn.icon} ${pn.ur} ادائیگی: ${month} - ${fmt(amt)}`,`${pn.icon} ${pn.en} payment: ${month} - ${fmt(amt)}`,'pay');
   document.getElementById('pAmt').value='';document.getElementById('pNote').value='';
-  showToast(`✓ ${USERS[uid]?.en} - ${fmt(amt)} recorded`,'gold');
-  updateBadges();rFund();
+  showToast(`✓ ${USERS[uid]?.en} - ${pn.icon} ${fmt(amt)} (${pn.en})`,'gold');
+  updateBadges();rFund();rDash();
 }
  
 /* ══════════════════════════════════════════
@@ -1617,7 +1758,7 @@ function submitLoan(){
   const purp=document.getElementById('lPurp').value.trim();
   const ret=document.getElementById('lRet').value;
   if(!amt||!purp){showToast(t('تمام خانے بھریں','Fill all fields'),'err');return;}
-  const loan={id:Date.now(),uid,amt,paid:0,purpose:purp,type:'hasana',issued:new Date().toLocaleDateString('en',{month:'long',year:'numeric'}),ret:ret||'TBD',active:true};
+  const loan={id:Date.now(),uid,amt,paid:0,purpose:purp,type:'hasana',pool:'qarz',issued:new Date().toLocaleDateString('en',{month:'long',year:'numeric'}),ret:ret||'TBD',active:true};
   S.loans.unshift(loan);
   addNotif(uid,`قرض حسنہ منظور: ${fmt(amt)}`,`Qarz-e-Hasana approved: ${fmt(amt)}`,'loan');
   closeModal('loanM');
