@@ -603,7 +603,11 @@ body.lang-ur .i18n-en{display:none!important}
         </div>
       </div>
       <div class="fl">
-        <label><span class="i18n-en">Relation</span><span class="i18n-ur">رشتہ</span></label>
+        <label><span class="i18n-en">Related to (existing member)</span><span class="i18n-ur">کس رکن سے رشتہ</span></label>
+        <select class="fi" id="regRelTo" style="direction:ltr"></select>
+      </div>
+      <div class="fl">
+        <label><span class="i18n-en">Relation type (you are their...)</span><span class="i18n-ur">رشتے کی قسم</span></label>
         <select class="fi" id="regRel" style="direction:ltr">
           <option>بیٹا / Son</option><option>بھائی / Brother</option><option>چچا / Uncle</option><option>ماموں / Maternal Uncle</option><option>بھتیجا / Nephew</option><option>داماد / Son-in-law</option><option>کزن / Cousin</option><option>پوتا / Grandson</option>
         </select>
@@ -643,7 +647,7 @@ body.lang-ur .i18n-en{display:none!important}
         <div class="tb-urole" id="tbRole">-</div>
       </div>
     </div>
-    <div style="text-align:center;font-size:10px;color:var(--gold4);font-family:var(--font-en);line-height:1.3" id="tbDates"></div>
+    <div style="text-align:center;font-size:11px;line-height:1.4;padding:0 4px" id="tbDates"></div>
     <button class="logout-btn" onclick="doLogout()"><span class="i18n-en">Logout</span><span class="i18n-ur">خارج</span></button>
   </div>
 </div>
@@ -698,7 +702,7 @@ body.lang-ur .i18n-en{display:none!important}
   </div>
   <div class="sidebar-footer">
     <div class="sidebar-ver">v2.0 • Bait ul Maal BalochSath</div>
-    <div style="font-size:9px;color:var(--gold4);text-align:center;margin-top:3px;font-family:var(--font-arabic);opacity:0.5" id="sideHijri"></div>
+    <div style="font-size:11px;color:var(--gold2);text-align:center;margin-top:4px;font-family:var(--font-arabic);opacity:0.95;direction:rtl" id="sideHijri"></div>
   </div>
 </div>
 <!-- MAIN CONTENT -->
@@ -711,6 +715,7 @@ body.lang-ur .i18n-en{display:none!important}
     <div class="pg-title-en">Welcome to the Family Fund</div>
   </div>
   <div class="stats" id="dStats"></div>
+  <div id="dBranchStats"></div>
   <div style="display:grid;grid-template-columns:1.3fr 1fr;gap:16px;margin-bottom:16px">
     <div class="card">
       <div class="card-hdr"><div><div class="card-title-ur"><span class="i18n-en">Monthly Collection</span><span class="i18n-ur">ماہانہ جمع</span></div><div class="card-title-en" id="chartSubtitle">Monthly Overview</div></div></div>
@@ -928,7 +933,7 @@ body.lang-ur .i18n-en{display:none!important}
       <div class="fgrp"><label class="flbl">Password</label><input class="finp" id="nmPass" placeholder="password" style="direction:ltr"></div>
     </div>
     <div class="frow">
-      <div class="fgrp"><label class="flbl"><span class="i18n-en">Parent (Tree) </span><span class="i18n-ur">والد</span></label><select class="fsel" id="nmParent"></select></div>
+      <div class="fgrp"><label class="flbl"><span class="i18n-en">Related to (Parent in tree) </span><span class="i18n-ur">کس رکن سے رشتہ</span></label><select class="fsel" id="nmParent"></select></div>
       <div class="fgrp"><label class="flbl"><span class="i18n-en">Phone </span><span class="i18n-ur">فون</span></label><input class="finp" id="nmPhone" placeholder="03xx-xxxxxxx" style="direction:ltr"></div>
     </div>
     <div class="fgrp"><label class="flbl"><span class="i18n-en">City </span><span class="i18n-ur">شہر</span></label><input class="finp" id="nmCity" placeholder="e.g. Quetta, Karachi" style="direction:ltr"></div>
@@ -1035,7 +1040,7 @@ function updateBadges(){
   const uid=S.user?.id;if(!uid)return;
   const un=(S.notifs[uid]||[]).filter(n=>!n.read).length;
   const um=(S.messages[uid]||[]).filter(m=>!m.read).length;
-  const ue=S.emergencies.filter(e=>e.status==='voting'&&!voted(e,uid)&&e.uid!==uid).length;
+  const ue=S.emergencies.filter(e=>e.status==='voting'&&!voted(e,uid)&&e.uid!==uid&&emrEligibleVoters(e).includes(uid)).length;
   document.getElementById('nBadge').textContent=un;
   document.getElementById('notBadge').textContent=un;
   document.getElementById('msgBadge').textContent=um;
@@ -1077,7 +1082,7 @@ function loginAs(usr){
   document.querySelectorAll('.admin-only').forEach(el=>el.style.display=usr.role==='admin'?'':'none');
   populateSels();
   const hd=hijriDate();
-  document.getElementById('tbDates').innerHTML=gregDate()+(hd?'<br>'+hd:'');
+  document.getElementById('tbDates').innerHTML=`<span style="color:var(--cream2);font-family:var(--font-en);letter-spacing:0.5px">${gregDate()}</span>${hd?`<br><span style="font-family:var(--font-arabic);color:var(--gold);font-size:13px;direction:rtl">${hd}</span>`:''}`;
   const sh=document.getElementById('sideHijri');if(sh)sh.textContent=hd;
   showTab('dashboard');
   updateBadges();
@@ -1094,6 +1099,8 @@ function doLogout(){
 function showRegister(){
   document.querySelector('.login-wrap:not(#regWrap)').style.display='none';
   document.getElementById('regWrap').style.display='block';
+  const rt=document.getElementById('regRelTo');
+  if(rt)rt.innerHTML=Object.values(USERS).map(u=>`<option value="${u.id}">${u.en} | ${u.ur}${u.id==='abubakar'?' (Head)':''}</option>`).join('');
 }
 function showLoginForm(){
   document.querySelector('.login-wrap:not(#regWrap)').style.display='block';
@@ -1107,6 +1114,7 @@ function submitRegister(){
   const phone=document.getElementById('regPhone').value.trim();
   const city=document.getElementById('regCity').value.trim();
   const rel=document.getElementById('regRel').value;
+  const relatedTo=document.getElementById('regRelTo').value;
   const errEl=document.getElementById('regErr');
   const okEl=document.getElementById('regOk');
   errEl.style.display='none';okEl.style.display='none';
@@ -1118,8 +1126,10 @@ function submitRegister(){
     errEl.textContent=t('یہ صارف نام پہلے سے موجود ہے','Username already taken');
     errEl.style.display='block';return;
   }
-  S.pendingRegs.push({id:Date.now(),ur,en:en||ur,user,pass,phone,city,rel,date:new Date().toLocaleDateString('en-GB')});
-  addNotif('abubakar',`نئی رجسٹریشن: ${ur} (${user})`,`New registration: ${en||ur} (${user})`,'reg');
+  S.pendingRegs.push({id:Date.now(),ur,en:en||ur,user,pass,phone,city,rel,relatedTo,votes:{yes:[],no:[]},date:new Date().toLocaleDateString('en-GB')});
+  const relName=USERS[relatedTo]?.ur||relatedTo;
+  addNotif('abubakar',`نئی رجسٹریشن: ${ur} (${relName} کا ${rel.split(' /')[0]})`,`New registration: ${en||ur} — ${rel.split(' / ')[1]||rel} of ${USERS[relatedTo]?.en||relatedTo}`,'reg');
+  Object.keys(USERS).filter(id=>id!=='abubakar').forEach(id=>addNotif(id,`نئی رجسٹریشن کے لیے ووٹ: ${ur}`,`Vote needed: New registration ${en||ur}`,'reg'));
   okEl.textContent=t('درخواست بھیج دی گئی! ایڈمن کی منظوری کا انتظار کریں','Request sent! Waiting for admin approval');
   okEl.style.display='block';
   document.getElementById('regUr').value='';
@@ -1133,7 +1143,8 @@ function submitRegister(){
 function approveReg(id){
   const r=S.pendingRegs.find(x=>x.id===id);
   if(!r)return;
-  USERS[r.user]={id:r.user,ur:r.ur,en:r.en,role:'member',rel:r.rel,color:'#'+Math.floor(Math.random()*0x777777+0x444444).toString(16),pass:r.pass,parent:'abubakar',phone:r.phone,city:r.city};
+  const parent=r.relatedTo&&USERS[r.relatedTo]?r.relatedTo:'abubakar';
+  USERS[r.user]={id:r.user,ur:r.ur,en:r.en,role:'member',rel:r.rel,color:'#'+Math.floor(Math.random()*0x777777+0x444444).toString(16),pass:r.pass,parent,phone:r.phone,city:r.city};
   S.notifs[r.user]=[];S.messages[r.user]=[];
   S.pendingRegs=S.pendingRegs.filter(x=>x.id!==id);
   populateSels();
@@ -1190,13 +1201,43 @@ function rDash(){
       <div class="sc gl"><div class="sc-icon">👥</div><div class="sc-lbl-ur">${t('کل اراکین','Total Members')}</div><div class="sc-lbl-en"></div><div class="sc-val">${Object.keys(USERS).length}</div><div class="sc-hint">${Object.keys(USERS).filter(u=>paidCurMonth(u)).length} ${t('ادائیگی اس ماہ','paid this month')}</div></div>
       <div class="sc r"><div class="sc-icon">🔄</div><div class="sc-lbl-ur">${t('قرض واجب','Outstanding Loans')}</div><div class="sc-lbl-en"></div><div class="sc-val">${fmt(al)}</div><div class="sc-hint">${S.loans.filter(l=>l.active).length} ${t('فعال قرضے','active loans')}</div></div>
       <div class="sc b"><div class="sc-icon">🆘</div><div class="sc-lbl-ur">${t('ایمرجنسی ووٹنگ','Pending Votes')}</div><div class="sc-lbl-en"></div><div class="sc-val">${S.emergencies.filter(e=>e.status==='voting').length}</div><div class="sc-hint">${t('توجہ درکار','Needs attention')}</div></div>`;
+    // Branch-wise admin analytics
+    const branches=getChildren('abubakar');
+    const branchData=branches.map(b=>{
+      const desc=[b.id,...getAllDescendants(b.id)];
+      const total=desc.reduce((s,id)=>s+paidBy(id),0);
+      const paidThisM=desc.filter(id=>paidCurMonth(id)).length;
+      return{b,total,members:desc.length,paidThisM};
+    }).sort((a,b)=>b.total-a.total);
+    const maxBranch=Math.max(...branchData.map(x=>x.total),1);
+    const topPayer=Object.values(USERS).map(u=>({u,total:paidBy(u.id)})).sort((a,b)=>b.total-a.total)[0];
+    document.getElementById('dBranchStats').innerHTML=branchData.length?`
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-hdr"><div><div class="card-title-ur">${t('خاندانی شاخوں کا تجزیہ','Branch Analytics')}</div><div class="card-title-en">Per-branch contributions • ${branchData.length} branches</div></div>${topPayer&&topPayer.total?`<span style="font-size:11px;color:var(--gold);font-family:var(--font-en)">🏆 ${topPayer.u.en} ${fmt(topPayer.total)}</span>`:''}</div>
+        <div class="card-body">
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px">
+            ${branchData.map(d=>`
+              <div style="padding:10px 12px;background:rgba(201,168,76,0.04);border:1px solid var(--border);border-radius:var(--r-sm)">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+                  <div style="display:flex;align-items:center;gap:8px">
+                    <div class="av" style="width:26px;height:26px;font-size:10px;background:${d.b.color}">${ini(d.b.en)}</div>
+                    <div><div style="font-size:12px;color:var(--cream);font-weight:600">${d.b.en}</div><div style="font-size:10px;color:var(--gold4);font-family:var(--font-en)">${d.members} ${t('اراکین','members')} • ${d.paidThisM} ${t('ماہ ادائیگی','paid this month')}</div></div>
+                  </div>
+                  <div style="font-size:14px;color:var(--gold);font-weight:700;font-family:'Cinzel',serif">${fmt(d.total)}</div>
+                </div>
+                <div class="pb"><div class="pb-fill" style="width:${Math.round(d.total/maxBranch*100)}%"></div></div>
+              </div>`).join('')}
+          </div>
+        </div>
+      </div>`:'';
   } else {
+    document.getElementById('dBranchStats').innerHTML='';
     const u=USERS[uid],mt=paidBy(uid);
     document.getElementById('dStats').innerHTML=`
       <div class="sc g"><div class="sc-lbl-ur">${t('میری کل ادائیگی','My Total Paid')}</div><div class="sc-lbl-en"></div><div class="sc-val">${fmt(mt)}</div></div>
-      <div class="sc gl"><div class="sc-lbl-ur">${t('کل حصہ','Total Paid')}</div><div class="sc-lbl-en"></div><div class="sc-val">${fmt(paidBy(uid))}</div></div>
+      <div class="sc gl"><div class="sc-lbl-ur">${t('میرے ادا کیے مہینے','My Months Paid')}</div><div class="sc-lbl-en"></div><div class="sc-val">${mPaidBy(uid)}/${MONTHS.length}</div></div>
       <div class="sc ${paidCurMonth(uid)?'g':'r'}"><div class="sc-lbl-ur">${t(cmn+' کا حال',cmn+' Status')}</div><div class="sc-lbl-en"></div><div class="sc-val">${paidCurMonth(uid)?'✓ Paid':'✗ Due'}</div></div>
-      <div class="sc b"><div class="sc-lbl-ur">${t('خاندانی فنڈ','Family Fund')}</div><div class="sc-lbl-en"></div><div class="sc-val">${fmt(tf)}</div></div>`;
+      <div class="sc b"><div class="sc-lbl-ur">${t('کل خاندانی فنڈ','Total Family Fund')}</div><div class="sc-lbl-en"></div><div class="sc-val">${fmt(tf)}</div></div>`;
   }
   // Chart
   const curMi=new Date().getMonth();
@@ -1213,13 +1254,15 @@ function rDash(){
     <div style="display:flex;gap:4px;margin-top:6px">
       ${MONTHS.map((m,i)=>`<div style="flex:1;text-align:center;font-size:8px;color:${i===curMi?'var(--gold)':'rgba(255,255,255,0.3)'};font-family:var(--font-en)">${m.slice(0,3)}</div>`).join('')}
     </div>`:`<div style="text-align:center;color:rgba(255,255,255,0.25);padding:40px;font-family:var(--font-en);font-style:italic">${t('ابھی کوئی ڈیٹا نہیں','No data yet')}</div>`;
-  // Activity
+  // Activity — admin sees amounts; member sees own amount only, others hidden
   const acts=[...S.payments].reverse().slice(0,10);
-  document.getElementById('dActivity').innerHTML=acts.length?acts.map(p=>`
-    <div class="act-item">
+  document.getElementById('dActivity').innerHTML=acts.length?acts.map(p=>{
+    const isMine=p.uid===uid;
+    const showAmt=isA||isMine;
+    return`<div class="act-item">
       <div class="act-av" style="background:${USERS[p.uid]?.color||'#555'}">${ini(USERS[p.uid]?.en||'?')}</div>
-      <div style="flex:1"><div class="act-text">${USERS[p.uid]?.en||p.uid} - <b style="color:var(--gold)">${fmt(p.amt)}</b></div><div class="act-time">${p.month} | ${p.date}</div></div>
-    </div>`).join(''):`<div style="text-align:center;color:rgba(255,255,255,0.25);padding:30px;font-family:var(--font-en);font-style:italic">${t('ابھی کوئی سرگرمی نہیں','No activity yet')}</div>`;
+      <div style="flex:1"><div class="act-text">${USERS[p.uid]?.en||p.uid} ${showAmt?`- <b style="color:var(--gold)">${fmt(p.amt)}</b>`:`<span style="color:var(--em2);font-size:11px">${t('نے حصہ ڈالا','contributed')}</span>`}</div><div class="act-time">${p.month}${showAmt?' | '+p.date:''}</div></div>
+    </div>`;}).join(''):`<div style="text-align:center;color:rgba(255,255,255,0.25);padding:30px;font-family:var(--font-en);font-style:italic">${t('ابھی کوئی سرگرمی نہیں','No activity yet')}</div>`;
   // Emergency
   const ae=S.emergencies.filter(e=>e.status==='voting');
   document.getElementById('dEmr').innerHTML=ae.length?ae.map(e=>emrHtml(e)).join(''):`<div style="text-align:center;color:rgba(255,255,255,0.3);padding:24px;font-family:var(--font-en);font-style:italic">No active emergency votes</div>`;
@@ -1293,14 +1336,32 @@ function treeNodeHtml(u,uid){
     </div>
   </div>`;
 }
-function buildSubTree(parentId,uid,isAdmin){
-  const kids=getChildren(parentId).filter(k=>isAdmin||isInBranch(k.id,uid));
+function getBranchHead(uid){
+  if(!uid||uid==='abubakar')return null;
+  let cur=USERS[uid];
+  if(!cur)return null;
+  while(cur.parent&&cur.parent!=='abubakar'){
+    cur=USERS[cur.parent];
+    if(!cur)return null;
+  }
+  return cur.id;
+}
+function buildSubTree(parentId,uid,isAdmin,inMyBranch){
+  const kids=getChildren(parentId);
   if(!kids.length)return'';
+  const myBranch=isAdmin?null:getBranchHead(uid);
   return`<div class="tree-connector-v"></div>
   <div style="display:flex;gap:14px;justify-content:center;position:relative">
-    ${kids.map(k=>`<div style="display:flex;flex-direction:column;align-items:center">
-      ${treeNodeHtml(k,uid)}${buildSubTree(k.id,uid,isAdmin)}
-    </div>`).join('')}
+    ${kids.map(k=>{
+      const isMyB=!isAdmin&&k.id===myBranch;
+      const expand=isAdmin||inMyBranch||isMyB;
+      const childCount=getAllDescendants(k.id).length;
+      const collapsed=!expand&&childCount>0;
+      return`<div style="display:flex;flex-direction:column;align-items:center">
+        ${treeNodeHtml(k,uid)}
+        ${collapsed?`<div style="font-size:10px;color:var(--gold4);margin-top:8px;font-family:var(--font-en);font-style:italic;padding:4px 10px;border:1px dashed var(--border);border-radius:12px;opacity:0.7">+${childCount} ${t('اراکین','members')}</div>`:buildSubTree(k.id,uid,isAdmin,inMyBranch||isMyB)}
+      </div>`;
+    }).join('')}
   </div>`;
 }
 function rTree(){
@@ -1308,9 +1369,12 @@ function rTree(){
   const isAdmin=S.user?.role==='admin';
   const wrap=document.getElementById('treeWrap');
   const root=USERS['abubakar'];
-  wrap.innerHTML=`<div style="min-width:700px;padding:10px 20px">
+  const myBranch=isAdmin?null:getBranchHead(uid);
+  const banner=isAdmin?'':myBranch?`<div style="text-align:center;margin-bottom:14px;padding:8px 14px;background:rgba(201,168,76,0.06);border:1px solid var(--border);border-radius:var(--r-sm);display:inline-block;font-size:11px;color:var(--gold2);font-family:var(--font-en)">${t('آپ کا خاندان','Your branch')}: <b>${USERS[myBranch]?.en}</b> ${t('کا گروپ','—')}</div>`:'';
+  wrap.innerHTML=`<div style="min-width:700px;padding:10px 20px;text-align:center">
+    ${banner}
     <div style="display:flex;flex-direction:column;align-items:center">
-      ${treeNodeHtml(root,uid)}${buildSubTree('abubakar',uid,isAdmin)}
+      ${treeNodeHtml(root,uid)}${buildSubTree('abubakar',uid,isAdmin,false)}
     </div>
   </div>`;
 }
@@ -1343,12 +1407,25 @@ function selectNode(uid){
 /* ══════════════════════════════════════════
    EMERGENCY
 ══════════════════════════════════════════ */
+function emrEligibleVoters(e){
+  // Round 1: only branch members (excluding requester). Round 2: everyone except requester.
+  const all=Object.keys(USERS).filter(id=>id!==e.uid);
+  if((e.round||1)===1&&e.branch){
+    return all.filter(id=>getBranchHead(id)===e.branch||id===e.branch);
+  }
+  return all;
+}
 function emrHtml(e){
   const uid=S.user?.id;
   const isVoted=voted(e,uid);
-  const pct=votePct(e);
-  const total=Object.keys(USERS).length;
+  const eligible=emrEligibleVoters(e);
+  const total=eligible.length||1;
+  const pct=Math.round(e.votes.yes.length/total*100);
+  const round=e.round||1;
+  const branchName=e.branch?USERS[e.branch]?.en:null;
+  const canVote=eligible.includes(uid);
   const voterAvs=e.votes.yes.map(vid=>`<div class="voter-av" style="background:${USERS[vid]?.color||'#555'}" title="${USERS[vid]?.en}">${ini(USERS[vid]?.en||'?')}</div>`).join('');
+  const roundLbl=e.status==='approved'?'Approved ✓':round===1?`${t('پہلا دور: خاندان','Round 1: Branch')} (${branchName||'-'})`:t('دوسرا دور: تمام','Round 2: All Family');
   return`<div class="emr-card ${e.status}">
     <div class="emr-top">
       <div>
@@ -1363,7 +1440,7 @@ function emrHtml(e){
       <div class="emr-amt">
         <div class="val">${fmt(e.amt)}</div>
         <div class="lbl">Requested Amount</div>
-        <div style="margin-top:6px"><span class="tag ${e.status==='approved'?'t-approved':'t-vote'}">${e.status==='approved'?'Approved ✓':'Voting...'}</span></div>
+        <div style="margin-top:6px"><span class="tag ${e.status==='approved'?'t-approved':'t-vote'}">${roundLbl}</span></div>
       </div>
     </div>
     <div class="vote-row">
@@ -1373,9 +1450,9 @@ function emrHtml(e){
     </div>
     ${voterAvs?`<div class="voter-row">${voterAvs}</div>`:''}
     ${e.status==='voting'?`<div class="vbtns">
-      <button class="vbtn vbtn-yes" onclick="castVote(${e.id},true)" ${isVoted||uid===e.uid?'disabled':''}>✓ Yes - حق</button>
-      <button class="vbtn vbtn-no" onclick="castVote(${e.id},false)" ${isVoted||uid===e.uid?'disabled':''}>✗ No - مخالف</button>
-      ${isVoted?'<span class="voted-tag">You voted ✓</span>':uid===e.uid?'<span class="voted-tag">Own request</span>':''}
+      <button class="vbtn vbtn-yes" onclick="castVote(${e.id},true)" ${isVoted||!canVote?'disabled':''}>✓ Yes - حق</button>
+      <button class="vbtn vbtn-no" onclick="castVote(${e.id},false)" ${isVoted||!canVote?'disabled':''}>✗ No - مخالف</button>
+      ${isVoted?`<span class="voted-tag">${t('آپ نے ووٹ دیا','You voted')} ✓</span>`:uid===e.uid?`<span class="voted-tag">${t('اپنی درخواست','Own request')}</span>`:!canVote?`<span class="voted-tag">${round===1?t('پہلا دور — خاندان کے ارکان','Round 1 — branch only'):t('اہل نہیں','Not eligible')}</span>`:''}
     </div>`:''}
   </div>`;
 }
@@ -1388,14 +1465,27 @@ function castVote(id,yes){
   const e=S.emergencies.find(x=>x.id===id);
   const uid=S.user?.id;
   if(!e||!uid||voted(e,uid)||uid===e.uid)return;
+  const eligible=emrEligibleVoters(e);
+  if(!eligible.includes(uid))return;
   if(yes)e.votes.yes.push(uid);else e.votes.no.push(uid);
-  const tot=Object.keys(USERS).length;
+  const tot=eligible.length;
+  const round=e.round||1;
   if(e.votes.yes.length>tot/2){
-    e.status='approved';
-    S.loans.unshift({id:Date.now(),uid:e.uid,amt:e.amt,paid:0,purpose:e.rUr+' | '+e.rEn,type:'emergency',issued:new Date().toLocaleDateString('en',{month:'long',year:'numeric'}),ret:'TBD',active:true});
+    if(round===1&&e.branch){
+      e.round=2;e.votes={yes:[],no:[]};
+      addNotif(e.uid,`پہلا دور پاس! اب پورے خاندان کا ووٹ`,`Round 1 passed! Family-wide vote opened`,'vote-yes');
+      Object.keys(USERS).filter(id=>id!==e.uid&&getBranchHead(id)!==e.branch&&id!==e.branch).forEach(id=>addNotif(id,`ووٹ کے لیے: ${USERS[e.uid]?.ur} - ${fmt(e.amt)}`,`Vote: ${USERS[e.uid]?.en} needs ${fmt(e.amt)}`,'emr'));
+    }else{
+      e.status='approved';
+      S.loans.unshift({id:Date.now(),uid:e.uid,amt:e.amt,paid:0,purpose:e.rUr+' | '+e.rEn,type:'emergency',issued:new Date().toLocaleDateString('en',{month:'long',year:'numeric'}),ret:'TBD',active:true});
+      addNotif(e.uid,`✓ منظور! ${fmt(e.amt)}`,`✓ Approved! ${fmt(e.amt)}`,'vote-yes');
+    }
+  }else if(e.votes.no.length>=tot/2){
+    e.status='rejected';
+    addNotif(e.uid,`درخواست مسترد ہوئی`,`Request rejected`,'vote-no');
   }
   addNotif(e.uid,`${USERS[uid]?.ur} نے ${yes?'حق':'مخالف'} ووٹ دیا`,`${USERS[uid]?.en} voted ${yes?'Yes':'No'}`,yes?'vote-yes':'vote-no');
-  addNotif('abubakar',`Vote cast by ${USERS[uid]?.en} on ${USERS[e.uid]?.en}'s request`,`${USERS[uid]?.ur} نے ووٹ دیا`,'vote');
+  addNotif('abubakar',`Vote on ${USERS[e.uid]?.en}'s request by ${USERS[uid]?.en}`,`${USERS[uid]?.ur} نے ووٹ دیا`,'vote');
   showToast(yes?'✓ Vote Yes recorded - جزاکم اللہ':'Vote No recorded');
   updateBadges();rEmr();rDash();
 }
@@ -1410,9 +1500,12 @@ function submitEmr(){
   const rUr=document.getElementById('eRur').value.trim();
   const rEn=document.getElementById('eRen').value.trim();
   if(!amt||!rUr){showToast('Please fill all fields','err');return;}
-  const e={id:S.emergencies.length+100+Math.random()|0,uid,rUr,rEn,amt,votes:{yes:[],no:[]},status:'voting',date:new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})};
+  const branch=getBranchHead(uid);
+  const e={id:S.emergencies.length+100+Math.random()|0,uid,rUr,rEn,amt,votes:{yes:[],no:[]},status:'voting',round:branch?1:2,branch,date:new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})};
   S.emergencies.unshift(e);
-  Object.keys(USERS).forEach(id=>{if(id!==uid)addNotif(id,`نئی ایمرجنسی: ${USERS[uid]?.ur} - ${fmt(amt)}`,`Emergency: ${USERS[uid]?.en} needs ${fmt(amt)}`,'emr');});
+  const eligible=emrEligibleVoters(e);
+  eligible.forEach(id=>addNotif(id,`نئی ایمرجنسی (${branch?'خاندانی دور':'تمام'}): ${USERS[uid]?.ur} - ${fmt(amt)}`,`Emergency (${branch?'branch round':'all'}): ${USERS[uid]?.en} needs ${fmt(amt)}`,'emr'));
+  if(!eligible.includes('abubakar'))addNotif('abubakar',`نئی ایمرجنسی: ${USERS[uid]?.ur}`,`New emergency from ${USERS[uid]?.en}`,'emr');
   closeModal('emrM');
   showToast('Emergency request submitted - تمام اراکین کو اطلاع بھیجی گئی','gold');
   updateBadges();rEmr();rDash();
