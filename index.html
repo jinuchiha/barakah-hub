@@ -1186,6 +1186,7 @@ function loginAs(usr){
 }
 function doLogout(){
   S.user=null;
+  S.treeExpanded=null;
   document.getElementById('loginPage').style.display='flex';
   document.getElementById('app').classList.remove('show');
   document.getElementById('liUser').value='';
@@ -1401,37 +1402,10 @@ function rMy(){
    FAMILY TREE
 ══════════════════════════════════════════ */
 function getChildren(pid){return Object.values(USERS).filter(u=>u.parent===pid)}
-function getAncestors(uid){
-  const anc=[];let cur=USERS[uid];
-  while(cur&&cur.parent){anc.push(cur.parent);cur=USERS[cur.parent]}
-  return anc;
-}
 function getAllDescendants(uid){
   const desc=[];const q=getChildren(uid);
   while(q.length){const c=q.shift();desc.push(c.id);q.push(...getChildren(c.id))}
   return desc;
-}
-function isInBranch(nodeId,viewerId){
-  if(nodeId===viewerId)return true;
-  const anc=getAncestors(viewerId);
-  if(anc.includes(nodeId))return true;
-  return getAllDescendants(viewerId).includes(nodeId);
-}
-function treeNodeHtml(u,uid){
-  const paid=paidCurMonth(u.id);
-  const total=paidBy(u.id);
-  const isMe=u.id===uid;
-  return`<div class="tree-node-wrap">
-    <div class="tn ${u.id==='abubakar'?'head':''} ${isMe?'selected':''}" onclick="selectNode('${u.id}')">
-      <div class="tn-av" style="background:${u.color};border-color:${paid?'var(--em2)':'rgba(201,168,76,0.3)'}">${ini(u.en)}</div>
-      <div class="tn-name-ur"><span class="i18n-ur">${u.ur||u.en}</span><span class="i18n-en">${u.en}</span></div>
-      <div class="tn-name-en">${u.en}</div>
-      <div class="tn-role">${u.rel}</div>
-      <div style="font-size:9px;color:rgba(255,255,255,0.35);margin-top:2px">📍 ${u.city||'-'}</div>
-      <div class="tn-paid">${fmt(total)}</div>
-      <div class="tn-status"><span class="tag ${u.id==='abubakar'?'t-head':paid?'t-active':'t-pending'}">${u.id==='abubakar'?t('سربراہ','Head'):paid?t('فعال','Active'):t('زیر التوا','Pending')}</span></div>
-    </div>
-  </div>`;
 }
 function getBranchHead(uid){
   if(!uid||uid==='abubakar')return null;
@@ -1443,43 +1417,102 @@ function getBranchHead(uid){
   }
   return cur.id;
 }
-function buildSubTree(parentId,uid,isAdmin,inMyBranch){
-  const kids=getChildren(parentId);
-  if(!kids.length)return'';
-  const myBranch=isAdmin?null:getBranchHead(uid);
-  return`<div class="tree-connector-v"></div>
-  <div style="display:flex;gap:14px;justify-content:center;position:relative">
-    ${kids.map(k=>{
-      const isMyB=!isAdmin&&k.id===myBranch;
-      const expand=isAdmin||inMyBranch||isMyB;
-      const childCount=getAllDescendants(k.id).length;
-      const collapsed=!expand&&childCount>0;
-      return`<div style="display:flex;flex-direction:column;align-items:center">
-        ${treeNodeHtml(k,uid)}
-        ${collapsed?`<div style="font-size:10px;color:var(--gold4);margin-top:8px;font-family:var(--font-en);font-style:italic;padding:4px 10px;border:1px dashed var(--border);border-radius:12px;opacity:0.7">+${childCount} ${t('اراکین','members')}</div>`:buildSubTree(k.id,uid,isAdmin,inMyBranch||isMyB)}
-      </div>`;
-    }).join('')}
+function ensureTreeExpanded(){
+  if(S.treeExpanded)return;
+  S.treeExpanded=new Set();
+  const uid=S.user?.id;
+  const isAdmin=S.user?.role==='admin';
+  if(isAdmin){
+    S.treeExpanded.add('abubakar');
+  }else{
+    const bh=getBranchHead(uid);
+    if(bh)S.treeExpanded.add(bh);
+    let cur=USERS[uid];
+    while(cur&&cur.parent&&cur.parent!=='abubakar'){
+      S.treeExpanded.add(cur.parent);
+      cur=USERS[cur.parent];
+    }
+  }
+}
+function toggleTreeNode(uid){
+  ensureTreeExpanded();
+  if(S.treeExpanded.has(uid))S.treeExpanded.delete(uid);
+  else S.treeExpanded.add(uid);
+  rTree();
+}
+function expandAllTree(){
+  ensureTreeExpanded();
+  Object.keys(USERS).forEach(id=>S.treeExpanded.add(id));
+  rTree();
+}
+function collapseAllTree(){
+  S.treeExpanded=new Set();
+  ensureTreeExpanded();
+  rTree();
+}
+function treeNodeHtml(u,uid){
+  const paid=paidCurMonth(u.id);
+  const total=paidBy(u.id);
+  const isMe=u.id===uid;
+  const kids=getChildren(u.id);
+  const hasKids=kids.length>0;
+  const isExp=S.treeExpanded?.has(u.id);
+  const desc=hasKids?getAllDescendants(u.id).length:0;
+  const isAdmin=S.user?.role==='admin';
+  const myBranch=isAdmin?null:getBranchHead(S.user?.id);
+  const isHead=u.id==='abubakar'||(!isAdmin&&u.id===myBranch&&u.id!==S.user?.id)||(!isAdmin&&u.id===S.user?.id&&!myBranch);
+  return`<div class="tree-node-wrap">
+    <div class="tn ${isHead?'head':''}" data-uid="${u.id}" onclick="selectNode('${u.id}')" style="position:relative">
+      ${hasKids?`<div onclick="event.stopPropagation();toggleTreeNode('${u.id}')" style="position:absolute;top:8px;right:8px;background:${isExp?'linear-gradient(135deg,var(--gold4),var(--gold))':'rgba(201,168,76,0.12)'};border:1px solid ${isExp?'var(--gold)':'var(--border2)'};width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;color:${isExp?'var(--ink)':'var(--gold)'};font-weight:700;cursor:pointer;z-index:5;line-height:1" title="${isExp?'Collapse':'Expand'} (${desc})">${isExp?'−':'+'}</div>`:''}
+      <div class="tn-av" style="background:${u.color};border-color:${paid?'var(--em2)':'rgba(201,168,76,0.3)'}">${ini(u.en)}</div>
+      <div class="tn-name-ur"><span class="i18n-ur">${u.ur||u.en}</span><span class="i18n-en">${u.en}</span></div>
+      <div class="tn-name-en">${u.en}</div>
+      <div class="tn-role">${u.rel}</div>
+      <div style="font-size:9px;color:rgba(255,255,255,0.35);margin-top:2px">📍 ${u.city||'-'}</div>
+      <div class="tn-paid">${fmt(total)}</div>
+      <div class="tn-status"><span class="tag ${isHead?'t-head':paid?'t-active':'t-pending'}">${isHead?t('سربراہ','Head'):paid?t('فعال','Active'):t('زیر التوا','Pending')}</span></div>
+      ${hasKids&&!isExp?`<div style="font-size:9px;color:var(--gold4);margin-top:5px;font-family:var(--font-en);font-style:italic">+${desc} ${t('اراکین','members')}</div>`:''}
+    </div>
   </div>`;
+}
+function renderNode(u,viewerUid){
+  const kids=getChildren(u.id);
+  const isExp=S.treeExpanded.has(u.id);
+  const node=treeNodeHtml(u,viewerUid);
+  if(!kids.length||!isExp)return node;
+  return`${node}
+    <div class="tree-connector-v"></div>
+    <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap;position:relative">
+      ${kids.map(k=>`<div style="display:flex;flex-direction:column;align-items:center">${renderNode(k,viewerUid)}</div>`).join('')}
+    </div>`;
 }
 function rTree(){
   const uid=S.user?.id;
   const isAdmin=S.user?.role==='admin';
+  ensureTreeExpanded();
   const wrap=document.getElementById('treeWrap');
-  const root=USERS['abubakar'];
-  const myBranch=isAdmin?null:getBranchHead(uid);
-  const banner=isAdmin?'':myBranch?`<div style="text-align:center;margin-bottom:14px;padding:8px 14px;background:rgba(201,168,76,0.06);border:1px solid var(--border);border-radius:var(--r-sm);display:inline-block;font-size:11px;color:var(--gold2);font-family:var(--font-en)">${t('آپ کا خاندان','Your branch')}: <b>${USERS[myBranch]?.en}</b> ${t('کا گروپ','—')}</div>`:'';
-  wrap.innerHTML=`<div style="min-width:700px;padding:10px 20px;text-align:center">
+  let rootId=isAdmin?'abubakar':(getBranchHead(uid)||uid);
+  const root=USERS[rootId];
+  if(!root){wrap.innerHTML=`<div style="text-align:center;padding:40px;color:rgba(255,255,255,0.4)">${t('کوئی درخت نہیں','No tree available')}</div>`;return;}
+  const banner=isAdmin
+    ?`<div style="margin-bottom:14px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
+        <button class="btn btn-ghost btn-sm" onclick="expandAllTree()">⊞ ${t('سب کھولیں','Expand all')}</button>
+        <button class="btn btn-ghost btn-sm" onclick="collapseAllTree()">⊟ ${t('سب بند کریں','Collapse all')}</button>
+      </div>`
+    :`<div style="text-align:center;margin-bottom:14px;padding:8px 14px;background:rgba(201,168,76,0.06);border:1px solid var(--border);border-radius:var(--r-sm);display:inline-block;font-size:11px;color:var(--gold2);font-family:var(--font-en)">${t('آپ کا خاندان','Your Family')}: <b>${root.en}</b> ${t('— سربراہ','— Head')}</div>`;
+  wrap.innerHTML=`<div style="min-width:600px;padding:10px 20px;text-align:center">
     ${banner}
     <div style="display:flex;flex-direction:column;align-items:center">
-      ${treeNodeHtml(root,uid)}${buildSubTree('abubakar',uid,isAdmin,false)}
+      ${renderNode(root,uid)}
     </div>
+    <div style="margin-top:18px;font-size:10px;color:var(--gold4);font-family:var(--font-en);font-style:italic;opacity:0.7">${t('کسی بھی نوڈ پر + دبائیں اراکین دیکھنے کے لیے','Click + on any node to expand its members')}</div>
   </div>`;
 }
- 
 function selectNode(uid){
   const u=USERS[uid];
+  if(!u)return;
   document.querySelectorAll('.tn').forEach(n=>n.classList.remove('selected'));
-  event.currentTarget.classList.add('selected');
+  document.querySelector(`.tn[data-uid="${uid}"]`)?.classList.add('selected');
   const detail=document.getElementById('treeDetail');
   detail.style.display='block';
   document.getElementById('tdName').textContent=u.ur;
