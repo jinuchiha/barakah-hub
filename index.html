@@ -979,12 +979,12 @@ body.lang-ur .i18n-en{display:none!important}
    DATA
 ══════════════════════════════════════════ */
 const USERS = {
-  abubakar:   {id:'abubakar',  ur:'ابوبکر',     en:'Abu Baker',  role:'admin',  rel:'سربراہ / Head',          color:'#c9a84c', pass:'admin123',     parent:null,       phone:'', city:''},
-  umar:       {id:'umar',      ur:'عمر',         en:'Umar',       role:'member', rel:'بھائی / Brother',        color:'#1f8a5a', pass:'umar123',      parent:'abubakar', phone:'', city:''},
-  bilal:      {id:'bilal',     ur:'بلال',        en:'Bilal',      role:'member', rel:'بیٹا / Son',             color:'#3b82f6', pass:'bilal123',     parent:'umar',     phone:'', city:''},
-  jamal:      {id:'jamal',     ur:'جمال',        en:'Jamal',      role:'member', rel:'بیٹا / Son',             color:'#8b5cf6', pass:'jamal123',     parent:'umar',     phone:'', city:''},
-  quratulain: {id:'quratulain',ur:'قرۃ العین',  en:'Quratulain', role:'member', rel:'بیٹی / Daughter',        color:'#ec4899', pass:'qura123',      parent:'umar',     phone:'', city:''},
-  sikandar:   {id:'sikandar',  ur:'سکندر',       en:'Sikandar',   role:'member', rel:'کزن / Cousin',           color:'#f59e0b', pass:'sikandar123',  parent:'abubakar', phone:'', city:''},
+  abubakar:   {id:'abubakar',  ur:'ابوبکر',     en:'Abu Baker',  role:'admin',  rel:'سربراہ / Head',                   color:'#c9a84c', pass:'admin123',    parent:null,       phone:'', city:''},
+  umar:       {id:'umar',      ur:'عمر',         en:'Umar',       role:'member', rel:'بھائی / Brother',                 color:'#1f8a5a', pass:'umar123',     parent:'abubakar', phone:'', city:''},
+  bilal:      {id:'bilal',     ur:'بلال',        en:'Bilal',      role:'member', rel:'کزن / Cousin (sibling of Jamal & Quratulain)',  color:'#3b82f6', pass:'bilal123',    parent:'abubakar', phone:'', city:''},
+  jamal:      {id:'jamal',     ur:'جمال',        en:'Jamal',      role:'member', rel:'کزن / Cousin (sibling of Bilal & Quratulain)',  color:'#8b5cf6', pass:'jamal123',    parent:'abubakar', phone:'', city:''},
+  quratulain: {id:'quratulain',ur:'قرۃ العین',  en:'Quratulain', role:'member', rel:'کزن / Cousin (sibling of Bilal & Jamal)',       color:'#ec4899', pass:'qura123',     parent:'abubakar', phone:'', city:''},
+  sikandar:   {id:'sikandar',  ur:'سکندر',       en:'Sikandar',   role:'member', rel:'کزن / Cousin (separate family)',  color:'#f59e0b', pass:'sikandar123', parent:'abubakar', phone:'', city:''},
 };
  
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
