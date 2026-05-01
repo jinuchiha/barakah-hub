@@ -492,15 +492,78 @@ tbody td{padding:10px 14px;vertical-align:middle;color:var(--cream2)}
 .act-time{font-size:10px;color:var(--gold4);font-family:var(--font-en)}
  
 /* Light theme */
-body.light{--ink:#faf8f4;--ink2:#f0ece4;--ink3:#e4e0d6;--gold:#7a5c1e;--gold2:#8b6914;--gold3:#c9a84c;--gold4:#5a4010;--gold5:rgba(122,92,30,0.08);--emerald:#1b6b45;--em2:#1a8050;--em3:#e8f5ee;--cream:#1a1a14;--cream2:#2a2a20;--cream3:#3a3a30;--border:rgba(0,0,0,0.1);--border2:rgba(0,0,0,0.2);--shadow-gold:0 4px 24px rgba(122,92,30,0.1);--shadow-deep:0 8px 48px rgba(0,0,0,0.06)}
-body.light .pattern-bg{opacity:0.3}
-body.light .login-box,body.light .card,body.light .sc,body.light .emr-card,body.light .loan-card,body.light .tn,body.light .modal{background:linear-gradient(145deg,#fff,#f8f6f0);color:#1a1a14}
-body.light .topbar,body.light .sidebar{background:#fff;border-color:rgba(0,0,0,0.08)}
-body.light .fi,body.light .finp,body.light .fsel,body.light .ftxt{background:rgba(0,0,0,0.03);color:#1a1a14;border-color:rgba(0,0,0,0.12)}
-body.light .fi::placeholder,body.light .finp::placeholder{color:rgba(0,0,0,0.3)}
-body.light tbody td,body.light .msg-text{color:#2a2a20}
-body.light .vbar{background:linear-gradient(90deg,#e8f5ee,#d4f0e4,#e8f5ee)}
-body.light #loginPage{background:radial-gradient(ellipse at top,#f5f0e4 0%,#faf8f4 60%)}
+body.light{--ink:#faf8f4;--ink2:#f0ece4;--ink3:#e4e0d6;--gold:#6d4f17;--gold2:#7a5c1e;--gold3:#a8862c;--gold4:#3a2810;--gold5:rgba(122,92,30,0.08);--emerald:#1b6b45;--em2:#147a47;--em3:#0d4a2f;--cream:#1a1a14;--cream2:#2a2a20;--cream3:#3a3a30;--border:rgba(0,0,0,0.12);--border2:rgba(0,0,0,0.25);--shadow-gold:0 4px 24px rgba(122,92,30,0.12);--shadow-deep:0 8px 48px rgba(0,0,0,0.08)}
+body.light .pattern-bg{opacity:0.25}
+body.light .login-box,body.light .card,body.light .sc,body.light .emr-card,body.light .loan-card,body.light .tn,body.light .modal{background:linear-gradient(145deg,#fff,#faf6ec);color:#1a1a14}
+body.light .topbar,body.light .sidebar{background:#fff;border-color:rgba(0,0,0,0.1)}
+body.light .fi,body.light .finp,body.light .fsel,body.light .ftxt{background:rgba(0,0,0,0.03);color:#1a1a14;border-color:rgba(0,0,0,0.15)}
+body.light .fi::placeholder,body.light .finp::placeholder{color:rgba(0,0,0,0.35)}
+body.light tbody td,body.light .msg-text{color:#1a1a14}
+body.light tbody tr:hover{background:rgba(122,92,30,0.05)}
+body.light thead tr{background:rgba(122,92,30,0.08)}
+body.light thead th{color:#5a4010}
+body.light .vbar{background:linear-gradient(90deg,#d4ebde,#a8d9bf,#d4ebde);border-bottom-color:rgba(20,122,71,0.3)}
+body.light .vb-ur{color:#1a3a2a!important}
+body.light .vb-ref{color:#0d4a2f!important}
+body.light #loginPage{background:radial-gradient(ellipse at top,#f5e8c8 0%,#faf8f4 60%)}
+body.light .nav-item{color:rgba(0,0,0,0.55)}
+body.light .nav-item:hover{color:#1a1a14;background:rgba(122,92,30,0.08)}
+body.light .nav-item.active{color:#5a4010;background:rgba(122,92,30,0.12)}
+body.light .nav-section{color:#5a4010}
+body.light .sc-lbl-ur,body.light .sc-lbl-en,body.light .sc-hint{color:rgba(0,0,0,0.55)!important}
+body.light .sc-val{color:#1a1a14}
+body.light .pg-title-ar{color:#5a4010;text-shadow:none}
+body.light .pg-title-en{color:#7a5c1e}
+body.light .card-title-ur{color:#5a4010}
+body.light .card-title-en{color:#7a5c1e}
+body.light .tb-name-ar{color:#5a4010}
+body.light .tb-uname{color:#1a1a14}
+body.light .tb-urole{color:#7a5c1e}
+body.light .tb-icon-btn{background:rgba(122,92,30,0.08);border-color:rgba(0,0,0,0.15);color:#5a4010}
+body.light .tb-icon-btn:hover{background:rgba(122,92,30,0.18)}
+body.light .tb-user{background:rgba(122,92,30,0.06);border-color:rgba(0,0,0,0.1)}
+body.light .login-title-ar,body.light .login-title-en{color:#5a4010}
+body.light .lv-ar{color:#6d4f17}
+body.light .lv-ur,body.light .ajer-ur,body.light .vb-ur{color:rgba(0,0,0,0.7)}
+body.light .lv-ref{color:#5a4010}
+body.light .ajer-ar{color:#6d4f17}
+body.light .ajer{background:linear-gradient(135deg,rgba(122,92,30,0.06),rgba(20,122,71,0.06))}
+body.light .login-verse-box{background:rgba(122,92,30,0.06)}
+body.light .login-err{background:rgba(220,38,38,0.08);color:#9b1c1c;border-color:rgba(220,38,38,0.25)}
+body.light .fl label{color:#5a4010}
+body.light .flbl{color:#5a4010}
+body.light .act-text,body.light .act-time{color:#1a1a14}
+body.light .act-time{color:rgba(0,0,0,0.5)}
+body.light .msg-time,body.light .msg-sub{color:rgba(0,0,0,0.5)}
+body.light .emr-person .en{color:#1a1a14}
+body.light .emr-person .eur{color:rgba(0,0,0,0.55)}
+body.light .emr-reason-ur{color:rgba(0,0,0,0.7)}
+body.light .emr-reason-en{color:rgba(0,0,0,0.55)}
+body.light .emr-amt .val{color:#5a4010}
+body.light .emr-amt .lbl,body.light .emr-date{color:#7a5c1e}
+body.light .my-name-ur{color:#5a4010}
+body.light .my-name-en,body.light .my-role{color:#7a5c1e}
+body.light .my-big{color:#5a4010}
+body.light .my-mc{background:rgba(0,0,0,0.03);border-color:rgba(0,0,0,0.08)}
+body.light .my-mc.paid{background:rgba(20,122,71,0.12);border-color:rgba(20,122,71,0.3)}
+body.light .my-mc-name{color:rgba(0,0,0,0.55)}
+body.light .tn-name-ur{color:#1a1a14}
+body.light .tn-name-en,body.light .tn-role{color:#7a5c1e}
+body.light .mi .mn{color:#1a1a14}
+body.light .mi .mr{color:#7a5c1e}
+body.light .loan-name{color:#1a1a14}
+body.light .loan-detail{color:rgba(0,0,0,0.55)}
+body.light .pb{background:rgba(0,0,0,0.08)}
+body.light .vote-stat{color:#5a4010}
+body.light .vote-track{background:rgba(0,0,0,0.08)}
+body.light .modal-title-ur,body.light .modal-title-en{color:#5a4010}
+body.light .sidebar-ver{color:rgba(0,0,0,0.4)}
+body.light #sideHijri{color:#5a4010!important}
+body.light #tbDates span{color:#1a1a14!important}
+body.light .nav-badge,body.light .nb{border-color:#fff}
+body.light ::-webkit-scrollbar-track{background:#f0ece4}
+body.light ::-webkit-scrollbar-thumb{background:#c9a84c}
+body.light .topbar::after{background:linear-gradient(90deg,transparent,#7a5c1e,transparent);opacity:0.3}
 /* i18n toggle */
 body.lang-en .i18n-ur{display:none!important}
 body.lang-ur .i18n-en{display:none!important}
@@ -590,6 +653,11 @@ body.lang-ur .i18n-en{display:none!important}
         <label><span class="i18n-en">Full Name</span><span class="i18n-ur">پورا نام</span> <span style="color:#f87171">*</span></label>
         <input class="fi" id="regEn" placeholder="e.g. Ahmad Baloch" style="direction:ltr" oninput="document.getElementById('regUrPrev').textContent=transliterateName(this.value)">
         <div style="font-size:11px;color:var(--gold4);margin-top:4px;font-family:var(--font-arabic);direction:rtl;min-height:14px" id="regUrPrev"></div>
+      </div>
+      <div class="fl">
+        <label><span class="i18n-en">Father's Name</span><span class="i18n-ur">والد کا نام</span> <span style="font-size:9px;color:var(--gold4);font-family:var(--font-en);font-style:italic">(auto-link if in family)</span></label>
+        <input class="fi" id="regFather" placeholder="e.g. Abu Baker" style="direction:ltr" oninput="checkFatherMatch('regFather','regFatherMatch','regRelTo')">
+        <div id="regFatherMatch" style="font-size:11px;margin-top:4px;min-height:14px"></div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
         <div class="fl">
@@ -741,7 +809,10 @@ body.lang-ur .i18n-en{display:none!important}
  
 <!-- MY ACCOUNT -->
 <div id="tab-myaccount" class="hidden">
-  <div class="pg-hdr"><div class="pg-title-ar"><span class="i18n-en">My Account</span><span class="i18n-ur">میرا کھاتہ</span></div></div>
+  <div class="pg-hdr" style="display:flex;align-items:flex-start;justify-content:space-between">
+    <div><div class="pg-title-ar"><span class="i18n-en">My Account</span><span class="i18n-ur">میرا کھاتہ</span></div><div class="pg-title-en">Account & Family</div></div>
+    <button class="btn btn-gold btn-sm" onclick="openAddMember('self')"><span class="i18n-en">+ Add Family Member</span><span class="i18n-ur">+ خاندان میں شامل</span></button>
+  </div>
   <div id="myContent"></div>
 </div>
  
@@ -797,7 +868,7 @@ body.lang-ur .i18n-en{display:none!important}
 <div id="tab-members" class="hidden admin-only">
   <div class="pg-hdr" style="display:flex;align-items:flex-start;justify-content:space-between">
     <div><div class="pg-title-ar"><span class="i18n-en">Family Members</span><span class="i18n-ur">اراکین خاندان</span></div></div>
-    <button class="btn btn-gold btn-sm" onclick="openModal('addM')">+ Add Member</button>
+    <button class="btn btn-gold btn-sm" onclick="openAddMember('admin')">+ Add Member</button>
   </div>
   <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
     <input class="finp" style="flex:1;min-width:160px" placeholder="Search member..." oninput="filterMbr(this.value)">
@@ -944,30 +1015,38 @@ body.lang-ur .i18n-en{display:none!important}
  
 <div class="modal-bg" id="addM">
 <div class="modal">
-  <div class="modal-hdr"><div class="modal-title-ur"><span class="i18n-en">Add New Member</span><span class="i18n-ur">نیا رکن شامل کریں</span></div></div>
+  <div class="modal-hdr"><div class="modal-title-ur"><span class="i18n-en" id="addMTitleEn">Add Family Member</span><span class="i18n-ur" id="addMTitleUr">رکن شامل کریں</span></div></div>
   <div class="modal-body">
     <div class="fgrp"><label class="flbl"><span class="i18n-en">Full Name </span><span class="i18n-ur">پورا نام</span> <span style="color:#f87171">*</span></label>
       <input class="finp" id="nmEn" placeholder="Ahmad Baloch" style="direction:ltr" oninput="document.getElementById('nmUrPrev').textContent=transliterateName(this.value)">
       <div style="font-size:11px;color:var(--gold4);margin-top:4px;font-family:var(--font-arabic);direction:rtl;min-height:14px" id="nmUrPrev"></div>
     </div>
     <div class="frow">
-      <div class="fgrp"><label class="flbl"><span class="i18n-en">Relation </span><span class="i18n-ur">رشتہ</span> <span style="font-size:9px;color:var(--gold4);font-family:var(--font-en);font-style:italic">(optional)</span></label>
+      <div class="fgrp"><label class="flbl"><span class="i18n-en">Father's Name </span><span class="i18n-ur">والد کا نام</span> <span style="font-size:9px;color:var(--gold4);font-style:italic">(auto-link)</span></label>
+        <input class="finp" id="nmFather" placeholder="e.g. Abu Baker" style="direction:ltr" oninput="checkFatherMatch('nmFather','nmFatherMatch','nmParent')">
+        <div id="nmFatherMatch" style="font-size:11px;margin-top:4px;min-height:14px"></div>
+      </div>
+      <div class="fgrp"><label class="flbl"><span class="i18n-en">Relation </span><span class="i18n-ur">رشتہ</span> <span style="font-size:9px;color:var(--gold4);font-style:italic">(optional)</span></label>
         <select class="fsel" id="nmRel"></select>
       </div>
-      <div class="fgrp"><label class="flbl"><span class="i18n-en">Related to (Parent) </span><span class="i18n-ur">کس رکن سے رشتہ</span></label><select class="fsel" id="nmParent"></select></div>
     </div>
-    <div class="frow">
-      <div class="fgrp"><label class="flbl">Username <span style="color:#f87171">*</span></label><input class="finp" id="nmUser" placeholder="username" style="direction:ltr"></div>
-      <div class="fgrp"><label class="flbl">Password <span style="color:#f87171">*</span></label><input class="finp" id="nmPass" placeholder="password" style="direction:ltr"></div>
-    </div>
+    <div class="fgrp" id="nmParentWrap"><label class="flbl"><span class="i18n-en">Family head / parent in tree</span><span class="i18n-ur">خاندان کا سربراہ / والد</span></label><select class="fsel" id="nmParent"></select></div>
     <div class="frow">
       <div class="fgrp"><label class="flbl"><span class="i18n-en">Phone </span><span class="i18n-ur">فون</span> <span style="font-size:9px;color:var(--gold4);font-style:italic">(optional)</span></label><input class="finp" id="nmPhone" placeholder="03xx-xxxxxxx" style="direction:ltr"></div>
       <div class="fgrp"><label class="flbl"><span class="i18n-en">City </span><span class="i18n-ur">شہر</span> <span style="font-size:9px;color:var(--gold4);font-style:italic">(optional)</span></label><input class="finp" id="nmCity" placeholder="e.g. Quetta" style="direction:ltr"></div>
     </div>
+    <div class="frow">
+      <div class="fgrp"><label class="flbl"><span class="i18n-en">Username</span><span class="i18n-ur">صارف نام</span> <span style="font-size:9px;color:var(--gold4);font-style:italic">(optional — for login)</span></label><input class="finp" id="nmUser" placeholder="leave empty for record-only" style="direction:ltr"></div>
+      <div class="fgrp"><label class="flbl"><span class="i18n-en">Password</span><span class="i18n-ur">پاس ورڈ</span></label><input class="finp" id="nmPass" placeholder="password" style="direction:ltr"></div>
+    </div>
+    <label style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--cream2);cursor:pointer;padding:10px 12px;background:rgba(0,0,0,0.04);border:1px solid var(--border);border-radius:var(--r-sm);margin-top:4px">
+      <input type="checkbox" id="nmDeceased" style="cursor:pointer;width:16px;height:16px">
+      <span><span class="i18n-en">Deceased (will show maghfirat dua)</span><span class="i18n-ur">مرحوم (وفات پا چکے ہیں — دعائے مغفرت ساتھ)</span></span>
+    </label>
   </div>
   <div class="modal-ft">
-    <button class="btn btn-gold" onclick="submitAddMbr()"><span class="i18n-en">Add Member</span><span class="i18n-ur">شامل کریں</span></button>
-    <button class="btn btn-ghost" onclick="closeModal('addM')">Cancel</button>
+    <button class="btn btn-gold" onclick="submitAddMbr()"><span class="i18n-en">Add</span><span class="i18n-ur">شامل کریں</span></button>
+    <button class="btn btn-ghost" onclick="closeModal('addM')"><span class="i18n-en">Cancel</span><span class="i18n-ur">منسوخ</span></button>
   </div>
 </div>
 </div>
@@ -979,12 +1058,12 @@ body.lang-ur .i18n-en{display:none!important}
    DATA
 ══════════════════════════════════════════ */
 const USERS = {
-  abubakar:   {id:'abubakar',  ur:'ابوبکر',     en:'Abu Baker',  role:'admin',  rel:'سربراہ / Head',                   color:'#c9a84c', pass:'admin123',    parent:null,       phone:'', city:''},
-  umar:       {id:'umar',      ur:'عمر',         en:'Umar',       role:'member', rel:'بھائی / Brother',                 color:'#1f8a5a', pass:'umar123',     parent:'abubakar', phone:'', city:''},
-  bilal:      {id:'bilal',     ur:'بلال',        en:'Bilal',      role:'member', rel:'کزن / Cousin (sibling of Jamal & Quratulain)',  color:'#3b82f6', pass:'bilal123',    parent:'abubakar', phone:'', city:''},
-  jamal:      {id:'jamal',     ur:'جمال',        en:'Jamal',      role:'member', rel:'کزن / Cousin (sibling of Bilal & Quratulain)',  color:'#8b5cf6', pass:'jamal123',    parent:'abubakar', phone:'', city:''},
-  quratulain: {id:'quratulain',ur:'قرۃ العین',  en:'Quratulain', role:'member', rel:'کزن / Cousin (sibling of Bilal & Jamal)',       color:'#ec4899', pass:'qura123',     parent:'abubakar', phone:'', city:''},
-  sikandar:   {id:'sikandar',  ur:'سکندر',       en:'Sikandar',   role:'member', rel:'کزن / Cousin (separate family)',  color:'#f59e0b', pass:'sikandar123', parent:'abubakar', phone:'', city:''},
+  abubakar:   {id:'abubakar',  ur:'ابوبکر',     en:'Abu Baker',  role:'admin',  rel:'سربراہ / Head',                   color:'#c9a84c', pass:'admin123',    parent:null,       phone:'', city:'', father:'', deceased:false},
+  umar:       {id:'umar',      ur:'عمر',         en:'Umar',       role:'member', rel:'بھائی / Brother',                 color:'#1f8a5a', pass:'umar123',     parent:'abubakar', phone:'', city:'', father:'', deceased:false},
+  bilal:      {id:'bilal',     ur:'بلال',        en:'Bilal',      role:'member', rel:'کزن / Cousin (sibling of Jamal & Quratulain)',  color:'#3b82f6', pass:'bilal123',    parent:'abubakar', phone:'', city:'', father:'', deceased:false},
+  jamal:      {id:'jamal',     ur:'جمال',        en:'Jamal',      role:'member', rel:'کزن / Cousin (sibling of Bilal & Quratulain)',  color:'#8b5cf6', pass:'jamal123',    parent:'abubakar', phone:'', city:'', father:'', deceased:false},
+  quratulain: {id:'quratulain',ur:'قرۃ العین',  en:'Quratulain', role:'member', rel:'کزن / Cousin (sibling of Bilal & Jamal)',       color:'#ec4899', pass:'qura123',     parent:'abubakar', phone:'', city:'', father:'', deceased:false},
+  sikandar:   {id:'sikandar',  ur:'سکندر',       en:'Sikandar',   role:'member', rel:'کزن / Cousin (separate family)',  color:'#f59e0b', pass:'sikandar123', parent:'abubakar', phone:'', city:'', father:'', deceased:false},
 };
  
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -1147,6 +1226,13 @@ const EMR_CATEGORIES = {
   },
 };
  
+const MAGHFIRAT_DUA = {
+  ar:'اللَّهُمَّ اغْفِرْ لَهُ وَارْحَمْهُ وَعَافِهِ وَاعْفُ عَنْهُ',
+  ur:'اے اللہ! ان کی مغفرت فرما، ان پر رحم فرما، انہیں عافیت دے اور ان سے درگزر فرما',
+  en:'O Allah, forgive him, have mercy on him, give him strength and pardon him',
+  ref:'Sahih Muslim 963',
+};
+
 const VERSES = [
   {ar:'مَثَلُ الَّذِینَ یُنفِقُونَ أَمْوَالَهُم فِی سَبِیلِ اللَّهِ كَمَثَلِ حَبَّةٍ',
    ur:'جو اپنا مال اللہ کی راہ میں خرچ کرتے ہیں ان کی مثال ایک دانے کی سی ہے',
@@ -1322,7 +1408,7 @@ function doLogin(){
   const u=document.getElementById('liUser').value.trim().toLowerCase();
   const p=document.getElementById('liPass').value;
   const usr=USERS[u];
-  if(!usr||usr.pass!==p){
+  if(!usr||!usr.pass||usr.deceased||usr.pass!==p){
     const e=document.getElementById('liErr');e.style.display='block';
     setTimeout(()=>e.style.display='none',3000);return;
   }
@@ -1376,6 +1462,7 @@ function submitRegister(){
   const pass=document.getElementById('regPass').value.trim();
   const phone=document.getElementById('regPhone').value.trim();
   const city=document.getElementById('regCity').value.trim();
+  const father=document.getElementById('regFather').value.trim();
   const rel=document.getElementById('regRel').value||'رشتہ دار / Other relative';
   const relatedTo=document.getElementById('regRelTo').value;
   const errEl=document.getElementById('regErr');
@@ -1389,7 +1476,7 @@ function submitRegister(){
     errEl.textContent=t('یہ صارف نام پہلے سے موجود ہے','Username already taken');
     errEl.style.display='block';return;
   }
-  S.pendingRegs.push({id:Date.now(),ur:ur||en,en,user,pass,phone,city,rel,relatedTo,votes:{yes:[],no:[]},date:new Date().toLocaleDateString('en-GB')});
+  S.pendingRegs.push({id:Date.now(),ur:ur||en,en,user,pass,phone,city,father,rel,relatedTo,votes:{yes:[],no:[]},date:new Date().toLocaleDateString('en-GB')});
   const relName=USERS[relatedTo]?.ur||relatedTo;
   addNotif('abubakar',`نئی رجسٹریشن: ${ur} (${relName} کا ${rel.split(' /')[0]})`,`New registration: ${en||ur} — ${rel.split(' / ')[1]||rel} of ${USERS[relatedTo]?.en||relatedTo}`,'reg');
   Object.keys(USERS).filter(id=>id!=='abubakar').forEach(id=>addNotif(id,`نئی رجسٹریشن کے لیے ووٹ: ${ur}`,`Vote needed: New registration ${en||ur}`,'reg'));
@@ -1400,14 +1487,16 @@ function submitRegister(){
   document.getElementById('regPass').value='';
   document.getElementById('regPhone').value='';
   document.getElementById('regCity').value='';
+  document.getElementById('regFather').value='';
   document.getElementById('regUrPrev').textContent='';
+  document.getElementById('regFatherMatch').textContent='';
 }
 
 function approveReg(id){
   const r=S.pendingRegs.find(x=>x.id===id);
   if(!r)return;
   const parent=r.relatedTo&&USERS[r.relatedTo]?r.relatedTo:'abubakar';
-  USERS[r.user]={id:r.user,ur:r.ur,en:r.en,role:'member',rel:r.rel,color:'#'+Math.floor(Math.random()*0x777777+0x444444).toString(16),pass:r.pass,parent,phone:r.phone,city:r.city};
+  USERS[r.user]={id:r.user,ur:r.ur,en:r.en,role:'member',rel:r.rel,color:'#'+Math.floor(Math.random()*0x777777+0x444444).toString(16),pass:r.pass,parent,phone:r.phone,city:r.city,father:r.father||'',deceased:false};
   S.notifs[r.user]=[];S.messages[r.user]=[];
   S.pendingRegs=S.pendingRegs.filter(x=>x.id!==id);
   populateSels();
@@ -1627,16 +1716,18 @@ function treeNodeHtml(u,uid){
   const isAdmin=S.user?.role==='admin';
   const myBranch=isAdmin?null:getBranchHead(S.user?.id);
   const isHead=u.id==='abubakar'||(!isAdmin&&u.id===myBranch&&u.id!==S.user?.id)||(!isAdmin&&u.id===S.user?.id&&!myBranch);
+  const dec=u.deceased;
   return`<div class="tree-node-wrap">
-    <div class="tn ${isHead?'head':''}" data-uid="${u.id}" onclick="selectNode('${u.id}')" style="position:relative">
+    <div class="tn ${isHead?'head':''} ${dec?'deceased':''}" data-uid="${u.id}" onclick="selectNode('${u.id}')" style="position:relative${dec?';opacity:0.78':''}">
       ${hasKids?`<div onclick="event.stopPropagation();toggleTreeNode('${u.id}')" style="position:absolute;top:8px;right:8px;background:${isExp?'linear-gradient(135deg,var(--gold4),var(--gold))':'rgba(201,168,76,0.12)'};border:1px solid ${isExp?'var(--gold)':'var(--border2)'};width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;color:${isExp?'var(--ink)':'var(--gold)'};font-weight:700;cursor:pointer;z-index:5;line-height:1" title="${isExp?'Collapse':'Expand'} (${desc})">${isExp?'−':'+'}</div>`:''}
-      <div class="tn-av" style="background:${u.color};border-color:${paid?'var(--em2)':'rgba(201,168,76,0.3)'}">${ini(u.en)}</div>
+      <div class="tn-av" style="background:${u.color};border-color:${dec?'#888':paid?'var(--em2)':'rgba(201,168,76,0.3)'};${dec?'filter:grayscale(0.6)':''}">${ini(u.en)}</div>
       <div class="tn-name-ur"><span class="i18n-ur">${u.ur||u.en}</span><span class="i18n-en">${u.en}</span></div>
       <div class="tn-name-en">${u.en}</div>
       <div class="tn-role">${u.rel}</div>
+      ${dec?`<div style="font-size:10px;color:#888;margin-top:3px;font-family:var(--font-arabic)">مرحوم <span style="font-family:var(--font-en);font-style:italic;font-size:9px">(deceased)</span></div>`:''}
       ${u.city?`<div style="font-size:9px;color:rgba(255,255,255,0.4);margin-top:2px;font-family:var(--font-en);letter-spacing:0.5px">${u.city}</div>`:''}
-      <div class="tn-paid">${fmt(total)}</div>
-      <div class="tn-status"><span class="tag ${isHead?'t-head':paid?'t-active':'t-pending'}">${isHead?t('سربراہ','Head'):paid?t('ادا کیا','Paid'):t('باقی','Unpaid')}</span></div>
+      <div class="tn-paid">${dec?'—':fmt(total)}</div>
+      <div class="tn-status"><span class="tag ${dec?'t-loan':isHead?'t-head':paid?'t-active':'t-pending'}">${dec?t('مرحوم','Deceased'):isHead?t('سربراہ','Head'):paid?t('ادا کیا','Paid'):t('باقی','Unpaid')}</span></div>
       ${hasKids&&!isExp?`<div style="font-size:9px;color:var(--gold4);margin-top:5px;font-family:var(--font-en);font-style:italic">+${desc} ${t('اراکین','members')}</div>`:''}
     </div>
   </div>`;
@@ -1681,22 +1772,30 @@ function selectNode(uid){
   document.querySelector(`.tn[data-uid="${uid}"]`)?.classList.add('selected');
   const detail=document.getElementById('treeDetail');
   detail.style.display='block';
-  document.getElementById('tdName').textContent=u.ur;
-  document.getElementById('tdNameEn').textContent=u.en+' | '+u.rel;
+  document.getElementById('tdName').textContent=u.ur+(u.deceased?' (مرحوم)':'');
+  document.getElementById('tdNameEn').textContent=u.en+' | '+u.rel+(u.deceased?' — Deceased':'');
   const myP=S.payments.filter(p=>p.uid===uid);
   const loanInfo=S.loans.filter(l=>l.uid===uid);
+  const duaBlock=u.deceased?`
+    <div style="background:linear-gradient(135deg,rgba(201,168,76,0.08),rgba(27,107,69,0.08));border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:16px;text-align:center">
+      <div style="font-size:10px;color:var(--gold4);letter-spacing:2px;font-family:var(--font-display);margin-bottom:10px">${t('دعائے مغفرت','Prayer for Forgiveness')}</div>
+      <div style="font-family:var(--font-arabic);font-size:19px;color:var(--gold);line-height:1.9">${MAGHFIRAT_DUA.ar}</div>
+      <div class="i18n-ur" style="font-size:12px;color:var(--cream2);margin-top:8px;font-family:var(--font-body);direction:rtl">${MAGHFIRAT_DUA.ur}</div>
+      <div class="i18n-en" style="font-size:12px;color:var(--cream2);margin-top:8px;font-family:var(--font-en);font-style:italic">${MAGHFIRAT_DUA.en}</div>
+      <div style="font-size:10px;color:var(--gold4);font-family:var(--font-en);margin-top:6px;letter-spacing:1px">${MAGHFIRAT_DUA.ref}</div>
+    </div>`:'';
   document.getElementById('tdBody').innerHTML=`
+    ${duaBlock}
     <div style="display:flex;gap:12px;margin-bottom:14px;font-size:11px;color:rgba(255,255,255,0.4)">
-      <span>${u.city||'—'}</span><span>${u.phone||''}</span>
+      <span>${u.city||'—'}</span><span>${u.phone||''}</span>${u.father?`<span>${t('والد','Father')}: ${u.father}</span>`:''}
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:16px">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px">
       <div style="text-align:center"><div style="font-size:10px;color:var(--gold4)">${t('کل ادائیگی','Total Paid')}</div><div style="font-size:22px;font-weight:700;color:var(--gold);font-family:'Cinzel',serif">${fmt(paidBy(uid))}</div></div>
-      
       <div style="text-align:center"><div style="font-size:10px;color:var(--gold4)">${t('مہینے','Months Paid')}</div><div style="font-size:22px;font-weight:700;color:var(--cream);font-family:'Cinzel',serif">${mPaidBy(uid)}/${MONTHS.length}</div></div>
     </div>
-    <div style="display:flex;gap:4px;margin-bottom:4px;flex-wrap:wrap">
+    ${u.deceased?'':`<div style="display:flex;gap:4px;margin-bottom:4px;flex-wrap:wrap">
       ${MONTHS.map(m=>{const p=myP.find(x=>x.month.startsWith(m));return`<div class="md ${p?'md-p':'md-u'}" style="flex:1;min-width:24px;height:24px;font-size:7px" title="${m}: ${p?fmt(p.amt):t('ادائیگی نہیں','Not paid')}">${m.slice(0,3)}</div>`;}).join('')}
-    </div>
+    </div>`}
     ${loanInfo.length?`<div style="margin-top:12px;font-size:11px;color:var(--gold4)">${t('فعال قرضے','Active Loans')}:</div>${loanInfo.map(l=>`<div style="font-size:12px;color:rgba(255,255,255,0.5);margin-top:4px">${l.purpose} - ${fmt(l.amt)} (${t('واپسی','paid')}: ${fmt(l.paid)})</div>`).join('')}`:''}`;
 }
  
@@ -1866,32 +1965,71 @@ function renderMbrTbl(list){
       <td style="color:var(--gold4)">${u.city||"-"}</td>
       <td style="color:var(--em2)">${fmt(paidBy(u.id))}</td>
       <td><div class="mdots">${dots}</div><div style="font-size:9px;color:var(--gold4);margin-top:3px;font-family:var(--font-en)">${mPaidBy(u.id)}/${MONTHS.length} months</div></td>
-      <td><span class="tag ${u.id==='abubakar'?'t-head':paidCurMonth(u.id)?'t-active':'t-pending'}">${u.id==='abubakar'?t('سربراہ','Head'):paidCurMonth(u.id)?t('ادا کیا','Paid'):t('باقی','Unpaid')}</span></td>
+      <td><span class="tag ${u.deceased?'t-loan':u.id==='abubakar'?'t-head':paidCurMonth(u.id)?'t-active':'t-pending'}">${u.deceased?t('مرحوم','Deceased'):u.id==='abubakar'?t('سربراہ','Head'):paidCurMonth(u.id)?t('ادا کیا','Paid'):t('باقی','Unpaid')}</span></td>
       <td><button class="btn btn-red btn-sm" onclick="deleteMember(''+u.id+'')" style="margin-right:4px">✕</button><button class="btn btn-em btn-sm" onclick="goPayFor('${u.id}')">+ Pay</button></td>
     </tr>`;
   }).join('');
 }
 function goPayFor(uid){document.getElementById('pMember').value=uid;showTab('fund')}
  
+function checkFatherMatch(srcId,outId,parentId){
+  const v=document.getElementById(srcId).value.trim().toLowerCase();
+  const div=document.getElementById(outId);
+  if(!v){div.textContent='';return;}
+  const match=Object.values(USERS).find(u=>u.en.toLowerCase()===v||u.ur===v.trim()||u.ur===document.getElementById(srcId).value.trim());
+  if(match){
+    div.innerHTML=`<span style="color:var(--em2)">✓ ${match.en} (${match.ur}) — ${t('خاندان میں ملا، خود بخود جوڑ دیا','matched, auto-linked')}</span>`;
+    if(parentId){const p=document.getElementById(parentId);if(p&&!p.disabled)p.value=match.id;}
+  }else{
+    div.innerHTML=`<span style="color:var(--gold4)">${t('خاندان میں نہیں ملا — والد کا نام محفوظ کر لیا گیا','Not in family yet — father name will be saved as text')}</span>`;
+  }
+}
+
+function openAddMember(mode='admin'){
+  S.addMode=mode;
+  populateSels();
+  document.getElementById('nmEn').value='';document.getElementById('nmUser').value='';
+  document.getElementById('nmPass').value='';document.getElementById('nmPhone').value='';
+  document.getElementById('nmCity').value='';document.getElementById('nmFather').value='';
+  document.getElementById('nmUrPrev').textContent='';
+  document.getElementById('nmFatherMatch').textContent='';
+  document.getElementById('nmDeceased').checked=false;
+  if(mode==='self'&&S.user){
+    document.getElementById('nmParent').value=S.user.id;
+    document.getElementById('nmParentWrap').style.display='none';
+    document.getElementById('nmFather').value=S.user.en;
+    document.getElementById('addMTitleEn').textContent='Add to My Family';
+    document.getElementById('addMTitleUr').textContent='میرے خاندان میں شامل کریں';
+  }else{
+    document.getElementById('nmParentWrap').style.display='block';
+    document.getElementById('addMTitleEn').textContent='Add Member';
+    document.getElementById('addMTitleUr').textContent='رکن شامل کریں';
+  }
+  openModal('addM');
+}
+
 function submitAddMbr(){
   const en=document.getElementById('nmEn').value.trim();
   const ur=transliterateName(en);
-  const user=document.getElementById('nmUser').value.trim().toLowerCase();
+  let user=document.getElementById('nmUser').value.trim().toLowerCase();
   const pass=document.getElementById('nmPass').value.trim();
   const rel=document.getElementById('nmRel').value||'رشتہ دار / Other relative';
   const parent=document.getElementById('nmParent').value;
   const phone=document.getElementById('nmPhone').value.trim();
   const city=document.getElementById('nmCity')?.value.trim()||'';
-  if(!en||!user||!pass){showToast(t('نام، صارف نام اور پاس ورڈ ضروری ہیں','Name, username & password required'),'err');return;}
-  if(USERS[user]){showToast(t('یہ نام پہلے سے موجود ہے','Username already exists'),'err');return;}
-  USERS[user]={id:user,ur:ur||en,en,role:'member',rel,color:'#'+Math.floor(Math.random()*0x777777+0x444444).toString(16),pass,parent:parent==='none'?null:parent,phone,city};
+  const father=document.getElementById('nmFather').value.trim();
+  const deceased=document.getElementById('nmDeceased').checked;
+  if(!en){showToast(t('نام ضروری ہے','Name is required'),'err');return;}
+  if(user&&!pass&&!deceased){showToast(t('پاس ورڈ بھی دیں یا username خالی چھوڑیں','Provide password too, or leave username empty'),'err');return;}
+  if(!user){
+    user='m_'+Date.now().toString(36)+Math.random().toString(36).slice(2,5);
+  }
+  if(USERS[user]){showToast(t('یہ صارف نام پہلے سے موجود ہے','Username already exists'),'err');return;}
+  USERS[user]={id:user,ur:ur||en,en,role:'member',rel,color:'#'+Math.floor(Math.random()*0x777777+0x444444).toString(16),pass:pass||null,parent:parent==='none'?null:parent,phone,city,father,deceased};
   S.notifs[user]=[];S.messages[user]=[];
   closeModal('addM');populateSels();
-  document.getElementById('nmEn').value='';document.getElementById('nmUser').value='';
-  document.getElementById('nmPass').value='';document.getElementById('nmPhone').value='';
-  document.getElementById('nmCity').value='';document.getElementById('nmUrPrev').textContent='';
-  showToast(`✓ ${en} (${user}) ${t('شامل','added')}`,'gold');
-  rMbr();
+  showToast(`✓ ${en} ${deceased?t('(مرحوم) شامل','(deceased) added'):t('شامل','added')}`,'gold');
+  rMbr();rTree();
 }
  
 /* ══════════════════════════════════════════
