@@ -24,8 +24,11 @@
   --font-en:'Cormorant Garamond',serif;
   --border:rgba(201,168,76,0.25);--border2:rgba(201,168,76,0.5);
 }
-html,body{height:100%;background:var(--ink);font-family:var(--font-body);color:var(--cream);font-size:15px}
+html,body{height:100%;background:var(--ink);font-family:var(--font-body);color:var(--cream);font-size:15px;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
 .hidden{display:none!important}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@keyframes shimmer{0%,100%{opacity:0.6}50%{opacity:1}}
+.fade-in{animation:fadeIn 0.4s ease-out}
  
 /* ─── GEOMETRIC PATTERN ─── */
 .pattern-bg{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
@@ -120,11 +123,14 @@ html,body{height:100%;background:var(--ink);font-family:var(--font-body);color:v
 .topbar::after{content:'';position:absolute;bottom:0;left:10%;right:10%;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);opacity:0.4}
 .tb-brand{display:flex;align-items:center;gap:12px}
 .tb-icon{
-  width:38px;height:38px;border-radius:50%;
+  width:40px;height:40px;border-radius:50%;
   background:linear-gradient(135deg,var(--gold4),var(--gold));
-  display:flex;align-items:center;justify-content:center;font-size:18px;
-  box-shadow:0 0 12px rgba(201,168,76,0.3);
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 0 16px rgba(201,168,76,0.35),inset 0 0 0 1px rgba(255,255,255,0.1);
+  color:var(--ink);
 }
+.tb-icon svg{width:20px;height:20px}
+.login-moon svg{width:100%;height:100%}
 .tb-name-ar{font-family:var(--font-arabic);font-size:17px;color:var(--gold2);line-height:1.2}
 .tb-name-en{font-family:var(--font-display);font-size:9px;color:var(--gold4);letter-spacing:3px;text-transform:uppercase}
 .tb-right{display:flex;align-items:center;gap:10px}
@@ -207,8 +213,8 @@ html,body{height:100%;background:var(--ink);font-family:var(--font-body);color:v
 /* ─── PAGE HEADER ─── */
 .pg-hdr{margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid var(--border);position:relative}
 .pg-hdr::after{content:'';position:absolute;bottom:-1px;left:0;width:60px;height:1px;background:var(--gold)}
-.pg-title-ar{font-family:var(--font-arabic);font-size:26px;color:var(--gold2)}
-.pg-title-en{font-family:var(--font-en);font-size:13px;color:var(--gold4);letter-spacing:2px;font-style:italic;margin-top:3px}
+.pg-title-ar{font-family:var(--font-arabic);font-size:28px;color:var(--gold2);letter-spacing:0.5px;text-shadow:0 0 24px rgba(201,168,76,0.18)}
+.pg-title-en{font-family:var(--font-en);font-size:13px;color:var(--gold4);letter-spacing:2.5px;font-style:italic;margin-top:4px}
 .pg-actions{position:absolute;top:0;left:0}
  
 /* ─── STAT CARDS ─── */
@@ -227,7 +233,7 @@ html,body{height:100%;background:var(--ink);font-family:var(--font-body);color:v
 .sc.b::before{background:linear-gradient(180deg,#3b82f6,transparent)}
 .sc-lbl-ur{font-size:12px;color:rgba(255,255,255,0.45);direction:rtl}
 .sc-lbl-en{font-size:9px;color:var(--gold4);font-family:var(--font-en);letter-spacing:1px;font-style:italic;margin-top:1px}
-.sc-val{font-size:24px;font-weight:700;color:var(--cream);margin:6px 0 4px;letter-spacing:-0.5px;font-family:'Cinzel',serif}
+.sc-val{font-size:26px;font-weight:600;color:var(--cream);margin:6px 0 4px;letter-spacing:-0.3px;font-family:'Cinzel',serif}
 .sc-hint{font-size:10px;color:var(--em2)}
 .sc-icon{position:absolute;top:14px;left:16px;font-size:22px;opacity:0.15}
  
@@ -537,7 +543,8 @@ body.lang-ur .i18n-en{display:none!important}
       <div class="login-title-ar"><span class="i18n-ur">بیت المال بلوچ ساتھ</span><span class="i18n-en">Bait ul Maal BalochSath</span></div>
       <div class="login-verse-box">
         <div class="lv-ar">وَأَنفِقُوا فِی سَبِیلِ اللَّهِ</div>
-        <div class="lv-ur">اللہ کی راہ میں خرچ کرو</div>
+        <div class="lv-ur i18n-ur">اللہ کی راہ میں خرچ کرو</div>
+        <div class="lv-ur i18n-en" style="direction:ltr;font-family:var(--font-en);font-style:italic">Spend in the cause of Allah</div>
         <div class="lv-ref">Al-Baqarah 2:195</div>
       </div>
     </div>
@@ -834,7 +841,11 @@ body.lang-ur .i18n-en{display:none!important}
           </select>
         </div>
         <div class="fgrp"><label class="flbl"><span class="i18n-en">Note (optional) </span><span class="i18n-ur">نوٹ</span></label><input class="finp" id="pNote" placeholder="optional note"></div>
-        <div class="ajer"><div class="ajer-ar" id="ajerAr">وَمَا أَنفَقْتُم مِّن شَيْءٍ فَهُوَ يُخْلِفُهُ</div><div class="ajer-ur">جو خرچ کرو اللہ اسے پورا فرمائے گا - سبأ ٣٩</div></div>
+        <div class="ajer">
+          <div class="ajer-ar" id="ajerAr">وَمَا أَنفَقْتُم مِّن شَيْءٍ فَهُوَ يُخْلِفُهُ</div>
+          <div class="ajer-ur i18n-ur">جو کچھ تم خرچ کرو، اللہ اس کا بدلہ دے گا — سبأ ٣٩</div>
+          <div class="ajer-ur i18n-en" style="direction:ltr;font-family:var(--font-en);font-style:italic">And whatever you spend, He will replace it — Saba 34:39</div>
+        </div>
         <button class="btn btn-gold" onclick="recPay()"><span class="i18n-en">Record Payment</span><span class="i18n-ur">ادائیگی درج کریں</span></button>
       </div>
     </div>
@@ -912,7 +923,11 @@ body.lang-ur .i18n-en{display:none!important}
 <div class="modal">
   <div class="modal-hdr"><div class="modal-title-ur"><span class="i18n-en">Issue Qarz-e-Hasana</span><span class="i18n-ur">قرض حسنہ جاری کریں</span></div></div>
   <div class="modal-body">
-    <div class="ajer"><div class="ajer-ar">إِن تُقْرِضُوا اللَّهَ قَرْضًا حَسَنًا يُضَاعِفْهُ لَكُمْ</div><div class="ajer-ur">اللہ کو قرض حسن دو وہ کئی گنا بڑھائے گا - التغابن ١٧</div></div>
+    <div class="ajer">
+      <div class="ajer-ar">إِن تُقْرِضُوا اللَّهَ قَرْضًا حَسَنًا يُضَاعِفْهُ لَكُمْ</div>
+      <div class="ajer-ur i18n-ur">اگر تم اللہ کو قرض حسنہ دو تو وہ اسے کئی گنا بڑھا دے گا — التغابن ١٧</div>
+      <div class="ajer-ur i18n-en" style="direction:ltr;font-family:var(--font-en);font-style:italic">If you lend Allah a goodly loan, He will multiply it for you — At-Taghabun 64:17</div>
+    </div>
     <div class="frow">
       <div class="fgrp"><label class="flbl"><span class="i18n-en">Member </span><span class="i18n-ur">رکن</span></label><select class="fsel" id="lMember"></select></div>
       <div class="fgrp"><label class="flbl">Amount Rs.</label><input class="finp" id="lAmt" type="number" placeholder="0" style="direction:ltr"></div>
@@ -964,7 +979,12 @@ body.lang-ur .i18n-en{display:none!important}
    DATA
 ══════════════════════════════════════════ */
 const USERS = {
-  abubakar: {id:'abubakar',ur:'ابوبکر',en:'Abu Baker',role:'admin',rel:'Head',color:'#c9a84c',pass:'admin123',parent:null,phone:'',city:''},
+  abubakar:   {id:'abubakar',  ur:'ابوبکر',     en:'Abu Baker',  role:'admin',  rel:'سربراہ / Head',          color:'#c9a84c', pass:'admin123',     parent:null,       phone:'', city:''},
+  umar:       {id:'umar',      ur:'عمر',         en:'Umar',       role:'member', rel:'بھائی / Brother',        color:'#1f8a5a', pass:'umar123',      parent:'abubakar', phone:'', city:''},
+  bilal:      {id:'bilal',     ur:'بلال',        en:'Bilal',      role:'member', rel:'بیٹا / Son',             color:'#3b82f6', pass:'bilal123',     parent:'umar',     phone:'', city:''},
+  jamal:      {id:'jamal',     ur:'جمال',        en:'Jamal',      role:'member', rel:'بیٹا / Son',             color:'#8b5cf6', pass:'jamal123',     parent:'umar',     phone:'', city:''},
+  quratulain: {id:'quratulain',ur:'قرۃ العین',  en:'Quratulain', role:'member', rel:'بیٹی / Daughter',        color:'#ec4899', pass:'qura123',      parent:'umar',     phone:'', city:''},
+  sikandar:   {id:'sikandar',  ur:'سکندر',       en:'Sikandar',   role:'member', rel:'کزن / Cousin',           color:'#f59e0b', pass:'sikandar123',  parent:'abubakar', phone:'', city:''},
 };
  
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -1054,7 +1074,7 @@ const ICON={
   book:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4v16a2 2 0 0 0 2 2h13V4H6a2 2 0 0 0-2 2z"/><path d="M8 7h7M8 11h7"/></svg>',
   ring:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4l3-2 3 2-3 4z"/><circle cx="12" cy="15" r="6"/></svg>',
   building:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="1"/><path d="M8 7h2M14 7h2M8 11h2M14 11h2M8 15h2M14 15h2M10 21v-3h4v3"/></svg>',
-  crescent:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 16a8 8 0 0 1-7-15 9 9 0 1 0 8.5 15c-.5 0-1 0-1.5 0z"/></svg>',
+  crescent:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>',
   globe:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a13 13 0 0 1 0 18M12 3a13 13 0 0 0 0 18"/></svg>',
 };
 const ic=(name,size=18)=>`<span class="ic" style="display:inline-flex;width:${size}px;height:${size}px;color:currentColor">${ICON[name]||''}</span>`;
@@ -1074,6 +1094,7 @@ const EMR_CATEGORIES = {
     instant:true, requiresDoc:false, defaultAmt:50000, pool:'sadaqah',
     verseAr:'إِنَّا لِلَّهِ وَإِنَّا إِلَيْهِ رَاجِعُونَ',
     verseUr:'بے شک ہم اللہ کے لیے ہیں اور اسی کی طرف لوٹنا ہے',
+    verseEn:'Indeed, to Allah we belong and to Him we shall return',
     verseRef:'Al-Baqarah 2:156',
   },
   medical: {
@@ -1081,6 +1102,7 @@ const EMR_CATEGORIES = {
     instant:false, requiresDoc:true, votePath:'branch+all', pool:'sadaqah',
     verseAr:'وَإِذَا مَرِضْتُ فَهُوَ يَشْفِينِ',
     verseUr:'اور جب میں بیمار ہوتا ہوں تو وہی مجھے شفا دیتا ہے',
+    verseEn:'And when I am ill, it is He who cures me',
     verseRef:'Ash-Shu\'ara 26:80',
   },
   education: {
@@ -1088,6 +1110,7 @@ const EMR_CATEGORIES = {
     instant:false, requiresDoc:false, votePath:'branch+all', pool:'sadaqah',
     verseAr:'رَّبِّ زِدْنِي عِلْمًا',
     verseUr:'اے میرے رب، میرے علم میں اضافہ فرما',
+    verseEn:'My Lord, increase me in knowledge',
     verseRef:'Ta-Ha 20:114',
   },
   marriage: {
@@ -1095,6 +1118,7 @@ const EMR_CATEGORIES = {
     instant:false, requiresDoc:false, votePath:'branch+all', pool:'sadaqah',
     verseAr:'وَأَنكِحُوا الْأَيَامَىٰ مِنكُمْ',
     verseUr:'اور تم میں سے بے نکاحوں کے نکاح کرو',
+    verseEn:'And marry the unmarried among you',
     verseRef:'An-Nur 24:32',
   },
   yatim: {
@@ -1102,6 +1126,7 @@ const EMR_CATEGORIES = {
     instant:false, requiresDoc:false, votePath:'all-only', pool:'zakat',
     verseAr:'فَأَمَّا الْيَتِيمَ فَلَا تَقْهَرْ',
     verseUr:'پس یتیم پر سختی نہ کرو',
+    verseEn:'So as for the orphan, do not oppress him',
     verseRef:'Ad-Duha 93:9',
   },
   business: {
@@ -1109,6 +1134,7 @@ const EMR_CATEGORIES = {
     instant:false, requiresDoc:false, votePath:'branch+all', pool:'qarz',
     verseAr:'وَأَحَلَّ اللَّهُ الْبَيْعَ وَحَرَّمَ الرِّبَا',
     verseUr:'اللہ نے تجارت کو حلال اور سود کو حرام کیا',
+    verseEn:'Allah has permitted trade and forbidden interest',
     verseRef:'Al-Baqarah 2:275',
   },
   general: {
@@ -1116,17 +1142,36 @@ const EMR_CATEGORIES = {
     instant:false, requiresDoc:false, votePath:'branch+all', pool:'sadaqah',
     verseAr:'وَفِي أَمْوَالِهِمْ حَقٌّ لِّلسَّائِلِ وَالْمَحْرُومِ',
     verseUr:'اور ان کے مالوں میں سائل اور محروم کا حق ہے',
+    verseEn:'And in their wealth is a right for the beggar and the deprived',
     verseRef:'Adh-Dhariyat 51:19',
   },
 };
  
 const VERSES = [
-  {ar:'مَثَلُ الَّذِینَ یُنفِقُونَ أَمْوَالَهُم فِی سَبِیلِ اللَّهِ كَمَثَلِ حَبَّةٍ',ur:'جو اپنا مال اللہ کی راہ میں خرچ کرتے ہیں',ref:'Al-Baqarah 2:261'},
-  {ar:'وَأَنفِقُوا فِی سَبِیلِ اللَّهِ وَلَا تُلْقُوا بِأَیْدِیكُمْ إِلَى التَّهْلُكَةِ',ur:'اللہ کی راہ میں خرچ کرو، ہلاکت میں مت ڈالو',ref:'Al-Baqarah 2:195'},
-  {ar:'وَفِی أَمْوَالِهِمْ حَقٌّ لِّلسَّائِلِ وَالْمَحْرُومِ',ur:'ان کے اموال میں مانگنے والے کا حق ہے',ref:'Adh-Dhariyat 51:19'},
-  {ar:'الَّذِینَ یُنفِقُونَ فِی السَّرَّاءِ وَالضَّرَّاءِ',ur:'جو آسانی اور تنگی دونوں میں خرچ کرتے ہیں',ref:'Aal Imran 3:134'},
-  {ar:'وَمَا أَنفَقْتُم مِّن شَيْءٍ فَهُوَ يُخْلِفُهُ',ur:'جو کچھ خرچ کرو اللہ اسے پورا کرے گا',ref:'Saba 34:39'},
-  {ar:'إِن تُقْرِضُوا اللَّهَ قَرْضًا حَسَنًا یُضَاعِفْهُ لَكُمْ',ur:'اللہ کو قرض حسن دو وہ کئی گنا بڑھائے گا',ref:'At-Taghabun 64:17'},
+  {ar:'مَثَلُ الَّذِینَ یُنفِقُونَ أَمْوَالَهُم فِی سَبِیلِ اللَّهِ كَمَثَلِ حَبَّةٍ',
+   ur:'جو اپنا مال اللہ کی راہ میں خرچ کرتے ہیں ان کی مثال ایک دانے کی سی ہے',
+   en:'Those who spend in the cause of Allah are like a seed that yields seven ears',
+   ref:'Al-Baqarah 2:261'},
+  {ar:'وَأَنفِقُوا فِی سَبِیلِ اللَّهِ وَلَا تُلْقُوا بِأَیْدِیكُمْ إِلَى التَّهْلُكَةِ',
+   ur:'اللہ کی راہ میں خرچ کرو، اپنے ہاتھوں ہلاکت میں مت ڈالو',
+   en:'Spend in the cause of Allah, and do not throw yourselves into destruction',
+   ref:'Al-Baqarah 2:195'},
+  {ar:'وَفِی أَمْوَالِهِمْ حَقٌّ لِّلسَّائِلِ وَالْمَحْرُومِ',
+   ur:'ان کے مالوں میں سائل اور محروم کا حق ہے',
+   en:'And in their wealth is a right for the beggar and the deprived',
+   ref:'Adh-Dhariyat 51:19'},
+  {ar:'الَّذِینَ یُنفِقُونَ فِی السَّرَّاءِ وَالضَّرَّاءِ',
+   ur:'جو آسانی اور تنگی دونوں میں خرچ کرتے ہیں',
+   en:'Those who spend in ease and in hardship',
+   ref:'Aal Imran 3:134'},
+  {ar:'وَمَا أَنفَقْتُم مِّن شَيْءٍ فَهُوَ يُخْلِفُهُ',
+   ur:'اور جو کچھ تم خرچ کرو، اللہ اس کا بدلہ دے گا',
+   en:'And whatever you spend, He will replace it',
+   ref:'Saba 34:39'},
+  {ar:'إِن تُقْرِضُوا اللَّهَ قَرْضًا حَسَنًا یُضَاعِفْهُ لَكُمْ',
+   ur:'اگر تم اللہ کو قرض حسنہ دو تو وہ اسے کئی گنا بڑھا دے گا',
+   en:'If you lend Allah a goodly loan, He will multiply it for you',
+   ref:'At-Taghabun 64:17'},
 ];
  
 let S = {
@@ -1146,7 +1191,17 @@ let S = {
    VERSE TICKER
 ══════════════════════════════════════════ */
 let vi=0;
-setInterval(()=>{vi=(vi+1)%VERSES.length;const v=VERSES[vi];document.getElementById('vAr').textContent=v.ar;document.getElementById('vUr').textContent=v.ur;document.getElementById('vRef').textContent=v.ref;},9000);
+function paintVerseBar(){
+  const v=VERSES[vi];
+  document.getElementById('vAr').textContent=v.ar;
+  const tr=document.getElementById('vUr');
+  tr.textContent=S.lang==='ur'?v.ur:v.en;
+  tr.style.direction=S.lang==='ur'?'rtl':'ltr';
+  tr.style.fontFamily=S.lang==='ur'?'var(--font-body)':'var(--font-en)';
+  tr.style.fontStyle=S.lang==='ur'?'normal':'italic';
+  document.getElementById('vRef').textContent=v.ref;
+}
+setInterval(()=>{vi=(vi+1)%VERSES.length;paintVerseBar();},9000);
  
 /* ══════════════════════════════════════════
    HELPERS
@@ -1188,6 +1243,7 @@ function toggleLang(){
   document.getElementById('langBtn').textContent=S.lang==='ur'?'EN':'UR';
   document.body.classList.toggle('lang-ur',S.lang==='ur');
   document.body.classList.toggle('lang-en',S.lang==='en');
+  paintVerseBar();
   const cur=document.querySelector('.nav-item.active');
   if(cur){const tab=cur.id.replace('n-','');showTab(tab)}
 }
@@ -1244,7 +1300,10 @@ function populateSels(){
 function updateEmrCatUI(){
   const k=document.getElementById('eCat').value;
   const c=EMR_CATEGORIES[k];if(!c)return;
-  document.getElementById('eVerse').innerHTML=`<div class="ajer-ar">${c.verseAr}</div><div class="ajer-ur">${c.verseUr} — ${c.verseRef}</div>`;
+  document.getElementById('eVerse').innerHTML=`
+    <div class="ajer-ar">${c.verseAr}</div>
+    <div class="ajer-ur i18n-ur">${c.verseUr} — ${c.verseRef}</div>
+    <div class="ajer-ur i18n-en" style="direction:ltr;font-family:var(--font-en);font-style:italic">${c.verseEn} — ${c.verseRef}</div>`;
   const rules=[];
   if(c.instant)rules.push(`<b style="color:#f87171">${t('فوری منظوری','Instant approval')}</b> — ${t('کوئی ووٹ نہیں','no vote needed')}`);
   else if(c.votePath==='all-only')rules.push(`<b style="color:var(--gold2)">${t('براہِ راست تمام خاندان کا ووٹ','Direct family-wide vote')}</b>`);
@@ -1671,7 +1730,12 @@ function emrHtml(e){
       <span class="tag" style="background:${pool.color}22;color:${pool.color};border:1px solid ${pool.color}55;display:inline-flex;align-items:center;gap:5px">${ic(pool.icon,12)} ${pool.en} pool</span>
       ${cat.instant?`<span class="tag" style="background:rgba(220,38,38,0.15);color:#f87171;border:1px solid rgba(220,38,38,0.4);letter-spacing:1.5px">${t('فوری','INSTANT')}</span>`:''}
     </div>
-    <div style="font-size:11px;font-family:var(--font-arabic);color:var(--gold2);margin-bottom:8px;padding:6px 10px;background:rgba(201,168,76,0.04);border-radius:6px;text-align:center">${cat.verseAr} <span style="font-size:10px;color:var(--gold4);font-family:var(--font-en)"> — ${cat.verseRef}</span></div>
+    <div style="margin-bottom:10px;padding:8px 12px;background:rgba(201,168,76,0.04);border-radius:6px;text-align:center">
+      <div style="font-size:13px;font-family:var(--font-arabic);color:var(--gold2);line-height:1.7">${cat.verseAr}</div>
+      <div class="i18n-ur" style="font-size:11px;color:rgba(255,255,255,0.6);margin-top:3px;font-family:var(--font-body)">${cat.verseUr}</div>
+      <div class="i18n-en" style="font-size:11px;color:rgba(255,255,255,0.55);margin-top:3px;font-family:var(--font-en);font-style:italic">${cat.verseEn}</div>
+      <div style="font-size:9px;color:var(--gold4);font-family:var(--font-en);margin-top:3px;letter-spacing:1px">${cat.verseRef}</div>
+    </div>
     <div class="emr-top">
       <div>
         <div class="emr-person">
@@ -1990,6 +2054,9 @@ function showToast(msg,type=''){
   t.classList.add('show');clearTimeout(toastT);
   toastT=setTimeout(()=>t.classList.remove('show'),4000);
 }
+
+paintIcons();
+paintVerseBar();
 </script>
 </body>
 </html>
