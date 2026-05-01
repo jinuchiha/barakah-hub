@@ -1341,6 +1341,14 @@ function toggleTheme(){
   tb.innerHTML='';
   paintIcons(tb.parentElement);
 }
+function toggleDeceased(uid){
+  const u=USERS[uid];if(!u||uid==='abubakar')return;
+  if(S.user?.role!=='admin'){showToast(t('صرف ایڈمن','Admin only'),'err');return;}
+  if(!u.deceased&&!confirm(t(`کیا واقعی ${u.ur||u.en} کو مرحوم نشان زد کرنا چاہتے ہیں؟`,`Mark ${u.en} as deceased?`)))return;
+  u.deceased=!u.deceased;
+  showToast(u.deceased?`${u.en} ${t('مرحوم نشان زد ہو گئے — اللہ مغفرت فرمائے','marked deceased — may Allah have mercy')}`:`${u.en} ${t('زندہ نشان زد','marked alive')}`,'gold');
+  rMbr();rTree();
+}
 function deleteMember(uid){
   if(uid==='abubakar')return;
   const u=USERS[uid];
@@ -1630,12 +1638,13 @@ function rMy(){
     <div class="my-hero">
       <div class="my-hero-top">
         <div class="my-av" style="background:${u.color}">${ini(u.en)}</div>
-        <div>
+        <div style="flex:1">
           <div class="my-name-ur"><span class="i18n-ur">${u.ur||u.en}</span><span class="i18n-en">${u.en}</span></div>
           <div class="my-name-en">${u.en}</div>
-          <div class="my-role">${u.rel} | ${u.role==='admin'?'Admin':'Member'}</div>
+          <div class="my-role">${u.rel} · ${u.role==='admin'?'Admin':'Member'}${u.father?' · '+t('والد','Father')+': '+u.father:''}</div>
           <div style="font-size:11px;color:rgba(255,255,255,0.4);margin-top:4px;font-family:var(--font-en)">${[u.city,u.phone].filter(Boolean).join(' · ')||'—'}</div>
         </div>
+        <button class="btn btn-ghost btn-sm" onclick="openAddMember('edit','${u.id}')" style="align-self:flex-start"><span class="i18n-en">✎ Edit Profile</span><span class="i18n-ur">✎ پروفائل</span></button>
       </div>
       <div style="font-size:11px;color:var(--gold4);font-family:var(--font-en);margin-bottom:4px">${t("کل ادائیگی","Total Contribution")}</div>
       <div class="my-big">${fmt(paidBy(u.id))}</div>
@@ -1966,7 +1975,12 @@ function renderMbrTbl(list){
       <td style="color:var(--em2)">${fmt(paidBy(u.id))}</td>
       <td><div class="mdots">${dots}</div><div style="font-size:9px;color:var(--gold4);margin-top:3px;font-family:var(--font-en)">${mPaidBy(u.id)}/${MONTHS.length} months</div></td>
       <td><span class="tag ${u.deceased?'t-loan':u.id==='abubakar'?'t-head':paidCurMonth(u.id)?'t-active':'t-pending'}">${u.deceased?t('مرحوم','Deceased'):u.id==='abubakar'?t('سربراہ','Head'):paidCurMonth(u.id)?t('ادا کیا','Paid'):t('باقی','Unpaid')}</span></td>
-      <td><button class="btn btn-red btn-sm" onclick="deleteMember(''+u.id+'')" style="margin-right:4px">✕</button><button class="btn btn-em btn-sm" onclick="goPayFor('${u.id}')">+ Pay</button></td>
+      <td><div style="display:flex;gap:4px;flex-wrap:wrap">
+        <button class="btn btn-ghost btn-sm" onclick="openAddMember('edit','${u.id}')" title="${t('ترمیم','Edit')}">✎</button>
+        ${u.id==='abubakar'?'':`<button class="btn btn-ghost btn-sm" onclick="toggleDeceased('${u.id}')" title="${u.deceased?t('زندہ کریں','Mark Alive'):t('مرحوم کریں','Mark Deceased')}" style="color:${u.deceased?'var(--em2)':'#888'}">${u.deceased?'☥':'†'}</button>`}
+        ${u.id==='abubakar'?'':`<button class="btn btn-red btn-sm" onclick="deleteMember('${u.id}')" title="${t('حذف','Delete')}">✕</button>`}
+        <button class="btn btn-em btn-sm" onclick="goPayFor('${u.id}')">+ Pay</button>
+      </div></td>
     </tr>`;
   }).join('');
 }
@@ -1985,30 +1999,96 @@ function checkFatherMatch(srcId,outId,parentId){
   }
 }
 
-function openAddMember(mode='admin'){
+function openAddMember(mode='admin',editId=null){
   S.addMode=mode;
+  S.editingId=mode==='edit'?editId:null;
   populateSels();
-  document.getElementById('nmEn').value='';document.getElementById('nmUser').value='';
-  document.getElementById('nmPass').value='';document.getElementById('nmPhone').value='';
-  document.getElementById('nmCity').value='';document.getElementById('nmFather').value='';
+  ['nmEn','nmUser','nmPass','nmPhone','nmCity','nmFather'].forEach(id=>{const e=document.getElementById(id);if(e){e.value='';e.disabled=false}});
   document.getElementById('nmUrPrev').textContent='';
   document.getElementById('nmFatherMatch').textContent='';
   document.getElementById('nmDeceased').checked=false;
-  if(mode==='self'&&S.user){
+  document.getElementById('nmDeceased').disabled=false;
+  document.getElementById('nmRel').disabled=false;
+  document.getElementById('nmParent').disabled=false;
+  document.getElementById('nmParentWrap').style.display='block';
+  document.getElementById('nmPass').placeholder='password';
+  const isAdmin=S.user?.role==='admin';
+  if(mode==='edit'&&editId){
+    const u=USERS[editId];if(!u){showToast(t('رکن نہیں ملا','Member not found'),'err');return;}
+    const isSelf=editId===S.user?.id;
+    document.getElementById('nmEn').value=u.en;
+    document.getElementById('nmFather').value=u.father||'';
+    document.getElementById('nmRel').value=u.rel||'';
+    document.getElementById('nmParent').value=u.parent||'none';
+    document.getElementById('nmPhone').value=u.phone||'';
+    document.getElementById('nmCity').value=u.city||'';
+    document.getElementById('nmUser').value=u.id;
+    document.getElementById('nmUser').disabled=true;
+    document.getElementById('nmPass').placeholder=t('خالی چھوڑیں اگر تبدیل نہیں کرنا','Leave empty to keep current');
+    document.getElementById('nmDeceased').checked=!!u.deceased;
+    document.getElementById('nmUrPrev').textContent=u.ur||'';
+    if(!isAdmin&&isSelf){
+      document.getElementById('nmEn').disabled=true;
+      document.getElementById('nmRel').disabled=true;
+      document.getElementById('nmParent').disabled=true;
+      document.getElementById('nmDeceased').disabled=true;
+      document.getElementById('nmParentWrap').style.display='none';
+    }
+    document.getElementById('addMTitleEn').textContent=`Edit — ${u.en}`;
+    document.getElementById('addMTitleUr').textContent=`${u.ur||u.en} — ترمیم`;
+  }else if(mode==='self'&&S.user){
     document.getElementById('nmParent').value=S.user.id;
     document.getElementById('nmParentWrap').style.display='none';
     document.getElementById('nmFather').value=S.user.en;
     document.getElementById('addMTitleEn').textContent='Add to My Family';
     document.getElementById('addMTitleUr').textContent='میرے خاندان میں شامل کریں';
   }else{
-    document.getElementById('nmParentWrap').style.display='block';
     document.getElementById('addMTitleEn').textContent='Add Member';
     document.getElementById('addMTitleUr').textContent='رکن شامل کریں';
   }
   openModal('addM');
 }
 
+function saveEditMember(){
+  const id=S.editingId;const u=USERS[id];
+  if(!u){showToast(t('رکن نہیں ملا','Member not found'),'err');return;}
+  const isAdmin=S.user?.role==='admin';
+  const isSelf=id===S.user?.id;
+  if(!isAdmin&&!isSelf){showToast(t('اجازت نہیں','Not allowed'),'err');return;}
+  const en=document.getElementById('nmEn').value.trim();
+  const father=document.getElementById('nmFather').value.trim();
+  const phone=document.getElementById('nmPhone').value.trim();
+  const city=document.getElementById('nmCity').value.trim();
+  const newPass=document.getElementById('nmPass').value.trim();
+  if(!en){showToast(t('نام ضروری ہے','Name required'),'err');return;}
+  u.father=father;u.phone=phone;u.city=city;
+  if(newPass)u.pass=newPass;
+  if(isAdmin){
+    u.en=en;u.ur=transliterateName(en)||u.ur;
+    u.rel=document.getElementById('nmRel').value||u.rel;
+    const np=document.getElementById('nmParent').value;
+    if(id!=='abubakar')u.parent=np==='none'?null:np;
+    if(id!=='abubakar')u.deceased=document.getElementById('nmDeceased').checked;
+  }else if(isSelf){
+    // self can update name (but admin retains restriction)
+    u.en=en;u.ur=transliterateName(en)||u.ur;
+  }
+  S.editingId=null;
+  document.getElementById('nmUser').disabled=false;
+  closeModal('addM');populateSels();
+  showToast(`✓ ${u.en} ${t('تبدیلی محفوظ','updated')}`,'gold');
+  rMbr();rTree();
+  if(isSelf){
+    document.getElementById('tbName').textContent=u.ur||u.en;
+    document.getElementById('tbAv').textContent=ini(u.en);
+    document.getElementById('tbAv').style.background=u.color;
+    document.getElementById('greetName').textContent=u.ur||u.en;
+    rMy();
+  }
+}
+
 function submitAddMbr(){
+  if(S.editingId){saveEditMember();return;}
   const en=document.getElementById('nmEn').value.trim();
   const ur=transliterateName(en);
   let user=document.getElementById('nmUser').value.trim().toLowerCase();
