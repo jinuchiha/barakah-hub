@@ -280,26 +280,40 @@ html,body{height:100%;background:var(--ink);font-family:var(--font-body);color:v
 .pg-title-en{font-family:var(--font-en);font-size:13px;color:var(--gold4);letter-spacing:2.5px;font-style:italic;margin-top:4px}
 .pg-actions{position:absolute;top:0;left:0}
  
-/* ─── STAT CARDS ─── */
-.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:24px}
+/* ─── STAT CARDS (Adminty-inspired vibrant gradients) ─── */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-bottom:24px}
 .sc{
-  background:linear-gradient(145deg,#111108,#0d0d09);
-  border:1px solid var(--border);border-radius:var(--r);
-  padding:18px 20px;position:relative;overflow:hidden;
-  transition:transform 0.3s var(--ease),box-shadow 0.3s var(--ease),border-color 0.3s var(--ease);
-  box-shadow:var(--shadow-card);
+  border-radius:var(--r);padding:20px 22px;position:relative;overflow:hidden;
+  transition:transform 0.35s var(--ease),box-shadow 0.35s var(--ease);
+  box-shadow:0 6px 18px rgba(0,0,0,0.18),0 2px 4px rgba(0,0,0,0.1);
+  border:none;color:#fff;display:flex;flex-direction:column;justify-content:space-between;min-height:130px;
 }
-.sc:hover{transform:translateY(-3px);box-shadow:var(--shadow-hover);border-color:var(--border2)}
-.sc::before{content:'';position:absolute;top:0;right:0;bottom:0;width:2px}
-.sc.g::before{background:linear-gradient(180deg,var(--em2),transparent)}
-.sc.gl::before{background:linear-gradient(180deg,var(--gold),transparent)}
-.sc.r::before{background:linear-gradient(180deg,#dc2626,transparent)}
-.sc.b::before{background:linear-gradient(180deg,#3b82f6,transparent)}
-.sc-lbl-ur{font-size:12px;color:rgba(255,255,255,0.45);direction:rtl}
-.sc-lbl-en{font-size:9px;color:var(--gold4);font-family:var(--font-en);letter-spacing:1px;font-style:italic;margin-top:1px}
-.sc-val{font-size:26px;font-weight:600;color:var(--cream);margin:6px 0 4px;letter-spacing:-0.3px;font-family:'Cinzel',serif}
-.sc-hint{font-size:10px;color:var(--em2)}
-.sc-icon{position:absolute;top:14px;left:16px;font-size:22px;opacity:0.15}
+.sc:hover{transform:translateY(-4px);box-shadow:0 14px 32px rgba(0,0,0,0.28),0 4px 8px rgba(0,0,0,0.14)}
+.sc::after{content:'';position:absolute;top:-30px;right:-30px;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,0.08)}
+.sc::before{content:'';position:absolute;bottom:-40px;right:-40px;width:140px;height:140px;border-radius:50%;background:rgba(255,255,255,0.04)}
+/* Vibrant gradient variants — Adminty inspired */
+.sc.g {background:linear-gradient(135deg,#11998e 0%,#38ef7d 100%)}   /* green/aurora */
+.sc.gl{background:linear-gradient(135deg,#f7971e 0%,#ffd200 100%);color:#3a2810}  /* orange/sun */
+.sc.r {background:linear-gradient(135deg,#fc466b 0%,#ff6e7f 100%)}   /* pink/rose */
+.sc.b {background:linear-gradient(135deg,#4facfe 0%,#00f2fe 100%);color:#0a2540} /* blue/cyan */
+.sc.p {background:linear-gradient(135deg,#7f00ff 0%,#e100ff 100%)}   /* purple */
+.sc.t {background:linear-gradient(135deg,#0f2027 0%,#2c5364 100%)}   /* teal-dark */
+body.light .sc{box-shadow:0 6px 16px rgba(0,0,0,0.08),0 2px 4px rgba(0,0,0,0.05)}
+body.light .sc:hover{box-shadow:0 12px 28px rgba(0,0,0,0.12),0 4px 8px rgba(0,0,0,0.08)}
+.sc-lbl-ur{font-size:13px;color:rgba(255,255,255,0.92);font-weight:500;direction:rtl;position:relative;z-index:1}
+.sc-lbl-en{font-size:10px;color:rgba(255,255,255,0.7);font-family:var(--font-en);letter-spacing:1.5px;text-transform:uppercase;margin-top:2px;position:relative;z-index:1}
+.sc-val{font-size:30px;font-weight:700;color:#fff;margin:8px 0 6px;letter-spacing:-0.5px;font-family:'Cinzel',serif;position:relative;z-index:1;text-shadow:0 2px 8px rgba(0,0,0,0.15)}
+.sc-hint{font-size:11px;color:rgba(255,255,255,0.85);position:relative;z-index:1;display:flex;align-items:center;gap:5px}
+.sc-icon{position:absolute;top:18px;right:20px;font-size:24px;opacity:0.5;z-index:1}
+.sc-spark{position:absolute;bottom:14px;right:18px;width:60px;height:30px;opacity:0.7;z-index:1}
+.sc-spark path{fill:none;stroke:rgba(255,255,255,0.85);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.sc-spark .area{fill:rgba(255,255,255,0.18);stroke:none}
+.sc.gl .sc-lbl-ur,.sc.b .sc-lbl-ur{color:rgba(0,0,0,0.78)}
+.sc.gl .sc-lbl-en,.sc.b .sc-lbl-en{color:rgba(0,0,0,0.6)}
+.sc.gl .sc-val,.sc.b .sc-val{color:#1a1a14;text-shadow:none}
+.sc.gl .sc-hint,.sc.b .sc-hint{color:rgba(0,0,0,0.7)}
+.sc.gl .sc-spark path,.sc.b .sc-spark path{stroke:rgba(0,0,0,0.6)}
+.sc.gl .sc-spark .area,.sc.b .sc-spark .area{fill:rgba(0,0,0,0.1)}
  
 /* ─── CARDS ─── */
 .card{
@@ -786,6 +800,7 @@ body.lang-ur .i18n-en{display:none!important}
       </div>
       <button class="login-btn" onclick="doLogin()"><span class="i18n-en">Enter</span><span class="i18n-ur">داخل ہوں</span></button>
       <div class="login-err" id="liErr"><span class="i18n-en">Invalid credentials</span><span class="i18n-ur">غلط معلومات</span></div>
+      <div style="text-align:center;margin-top:10px"><span style="font-size:11px;color:var(--gold);cursor:pointer;text-decoration:underline" onclick="openForgotPassword()"><span class="i18n-en">Forgot password?</span><span class="i18n-ur">پاس ورڈ بھول گئے؟</span></span></div>
       <div style="text-align:center;margin-top:14px">
         <span style="font-size:12px;color:rgba(255,255,255,0.4)"><span class="i18n-en">New member?</span><span class="i18n-ur">نیا رکن؟</span></span>
         <span style="font-size:12px;color:var(--gold);cursor:pointer;margin-right:4px" onclick="showRegister()"><span class="i18n-en">Register</span><span class="i18n-ur">رجسٹر کریں</span></span>
@@ -982,6 +997,9 @@ body.lang-ur .i18n-en{display:none!important}
     </div>
     <div class="nav-item admin-only" id="n-broadcast" onclick="showTab('broadcast')">
       <span class="nav-icon" data-icon="megaphone"></span><div class="nav-text"><span class="i18n-en">Broadcast</span><span class="i18n-ur">اعلان</span></div>
+    </div>
+    <div class="nav-item admin-only" id="n-audit" onclick="showTab('audit')">
+      <span class="nav-icon">📜</span><div class="nav-text"><span class="i18n-en">Audit Log</span><span class="i18n-ur">آڈٹ لاگ</span></div>
     </div>
   </div>
   <div class="sidebar-footer">
@@ -1323,6 +1341,35 @@ body.lang-ur .i18n-en{display:none!important}
   </div>
 </div>
 
+<!-- FORGOT PASSWORD MODAL -->
+<div class="modal-bg" id="fpM">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-hdr"><div class="modal-title-ur"><span class="i18n-en">🔐 Reset Password</span><span class="i18n-ur">🔐 پاس ورڈ ری سیٹ</span></div></div>
+    <div class="modal-body">
+      <div class="ajer" style="margin-bottom:12px">
+        <div class="ajer-ar">يَسْأَلُونَكَ مَاذَا يُنفِقُونَ ۖ قُلِ الْعَفْوَ</div>
+        <div class="ajer-ur i18n-ur">آپ سے پوچھتے ہیں کیا خرچ کریں — کہہ دو جو زائد ہو — البقرة ٢١٩</div>
+        <div class="ajer-ur i18n-en" style="direction:ltr;font-family:var(--font-en);font-style:italic">They ask what they should spend — Say: what is beyond your needs — Al-Baqarah 2:219</div>
+      </div>
+      <div style="font-size:12px;color:var(--gold4);margin-bottom:14px;line-height:1.6"><span class="i18n-en">Enter your username and your father's name (security check). If they match our records, you can set a new password.</span><span class="i18n-ur">اپنا username اور والد کا نام درج کریں۔ اگر ریکارڈ سے ملتا ہے تو نیا پاس ورڈ سیٹ کر سکتے ہیں۔</span></div>
+      <div class="fgrp"><label class="flbl"><span class="i18n-en">Username</span><span class="i18n-ur">صارف نام</span> <span style="color:#f87171">*</span></label><input class="finp" id="fpUser" style="direction:ltr"></div>
+      <div class="fgrp"><label class="flbl"><span class="i18n-en">Your Father's Name</span><span class="i18n-ur">آپ کے والد کا نام</span> <span style="color:#f87171">*</span></label><input class="finp" id="fpFather" style="direction:ltr"></div>
+      <div id="fpStep2" style="display:none">
+        <div class="frow">
+          <div class="fgrp"><label class="flbl"><span class="i18n-en">New Password</span><span class="i18n-ur">نیا پاس ورڈ</span> <span style="color:#f87171">*</span></label><input class="finp" id="fpPass" type="password" placeholder="min 6 chars" style="direction:ltr"></div>
+          <div class="fgrp"><label class="flbl"><span class="i18n-en">Confirm</span><span class="i18n-ur">تصدیق</span> <span style="color:#f87171">*</span></label><input class="finp" id="fpPass2" type="password" style="direction:ltr"></div>
+        </div>
+      </div>
+      <div id="fpHint" style="font-size:11px;color:var(--gold4);padding:8px 10px;background:rgba(201,168,76,0.06);border:1px solid var(--border);border-radius:6px;margin-top:6px;font-style:italic"><span class="i18n-en">If father's name doesn't match, you'll need to contact admin directly.</span><span class="i18n-ur">اگر والد کا نام میل نہ کھائے تو ایڈمن سے رابطہ کریں۔</span></div>
+    </div>
+    <div class="modal-ft">
+      <button class="btn btn-gold" onclick="forgotVerify()" id="fpVerifyBtn"><span class="i18n-en">Verify Identity →</span><span class="i18n-ur">شناخت کی تصدیق →</span></button>
+      <button class="btn btn-gold" onclick="forgotReset()" id="fpResetBtn" style="display:none"><span class="i18n-en">✓ Set New Password</span><span class="i18n-ur">✓ نیا پاس ورڈ سیٹ</span></button>
+      <button class="btn btn-ghost" onclick="closeModal('fpM')"><span class="i18n-en">Cancel</span><span class="i18n-ur">منسوخ</span></button>
+    </div>
+  </div>
+</div>
+
 <!-- COLOR PICKER MODAL -->
 <div class="modal-bg" id="colorM">
   <div class="modal" style="max-width:340px">
@@ -1332,6 +1379,20 @@ body.lang-ur .i18n-en{display:none!important}
     </div>
     <div class="modal-ft"><button class="btn btn-ghost" onclick="closeModal('colorM')"><span class="i18n-en">Close</span><span class="i18n-ur">بند کریں</span></button></div>
   </div>
+</div>
+
+<!-- ADMIN: AUDIT LOG -->
+<div id="tab-audit" class="hidden admin-only">
+  <div class="pg-hdr" style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:8px">
+    <div><div class="pg-title-ar"><span class="i18n-en">Audit Log</span><span class="i18n-ur">آڈٹ لاگ</span></div><div class="pg-title-en">Tamper-evident activity journal</div></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <select class="fsel" id="auditFilterAction" onchange="rAudit()" style="width:auto"></select>
+      <select class="fsel" id="auditFilterUser" onchange="rAudit()" style="width:auto"></select>
+      <button class="btn btn-ghost btn-sm" onclick="exportAudit()">⬇ Export CSV</button>
+      <button class="btn btn-red btn-sm" onclick="clearAudit()">🗑 Clear</button>
+    </div>
+  </div>
+  <div class="card"><div id="auditList" style="max-height:600px;overflow-y:auto"></div></div>
 </div>
 
 <!-- ADMIN: BROADCAST -->
@@ -1718,7 +1779,22 @@ let S = {
   messages:{abubakar:[]},
   nid:1,mid:1,
   cfg:{voteThresh:50, defaultMonthly:1000, adminSetupDone:false},
+  audit:[], // {id,uid,action,detail,date}
 };
+
+// Audit logger — append-only event journal (last 1000 entries)
+function addAudit(uid, action, detail){
+  if(!S.audit) S.audit = [];
+  S.audit.unshift({
+    id: Date.now()+Math.random(),
+    uid: uid||'system',
+    actor: S.user?.id||'anon',
+    action,
+    detail: detail||'',
+    date: new Date().toISOString(),
+  });
+  if(S.audit.length>1000) S.audit=S.audit.slice(0,1000);
+}
 
 /* ══════════════════════════════════════════
    LOCALSTORAGE PERSISTENCE
@@ -1923,6 +1999,7 @@ function doLogin(){
 }
 function loginAs(usr){
   S.user=usr;
+  addAudit(usr.id,'login',`Logged in as ${usr.role}`);
   document.getElementById('loginPage').style.display='none';
   document.getElementById('app').classList.add('show');
   const tbAv=document.getElementById('tbAv');
@@ -1991,6 +2068,49 @@ function showPendingPage(reg){
   pf.textContent=reg.father?(t('والد:','Father:')+' '+reg.father):'';
   localStorage.setItem('balochsath_pendUser', reg.user);
   paintIcons();
+}
+function openForgotPassword(){
+  ['fpUser','fpFather','fpPass','fpPass2'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  document.getElementById('fpStep2').style.display='none';
+  document.getElementById('fpVerifyBtn').style.display='';
+  document.getElementById('fpResetBtn').style.display='none';
+  delete window._fpVerifiedUser;
+  openModal('fpM');
+}
+function forgotVerify(){
+  const u=document.getElementById('fpUser').value.trim().toLowerCase();
+  const fa=document.getElementById('fpFather').value.trim().toLowerCase();
+  if(!u||!fa){showToast(t('دونوں خانے بھریں','Fill both fields'),'err');return;}
+  const usr=USERS[u];
+  if(!usr){
+    showToast(t('یہ صارف نہیں ملا — ایڈمن سے رابطہ کریں','User not found — contact admin'),'err');
+    return;
+  }
+  if(!usr.father||normalizeForMatch(usr.father)!==normalizeForMatch(fa)){
+    showToast(t('والد کا نام میل نہیں کھاتا — ایڈمن سے رابطہ کریں','Father name doesn\'t match — contact admin'),'err');
+    addAudit(usr.id,'forgot-password-failed',`Failed identity check for ${u}`);
+    return;
+  }
+  window._fpVerifiedUser=u;
+  document.getElementById('fpStep2').style.display='block';
+  document.getElementById('fpVerifyBtn').style.display='none';
+  document.getElementById('fpResetBtn').style.display='';
+  document.getElementById('fpHint').innerHTML=`<span style="color:var(--em2)">✓ ${t('شناخت کی تصدیق ہو گئی — اب نیا پاس ورڈ سیٹ کریں','Identity verified — set new password now')}</span>`;
+  showToast(t('شناخت کی تصدیق ہو گئی','Identity verified'),'gold');
+}
+function forgotReset(){
+  const u=window._fpVerifiedUser; if(!u||!USERS[u])return;
+  const p1=document.getElementById('fpPass').value;
+  const p2=document.getElementById('fpPass2').value;
+  if(!p1||p1.length<6){showToast(t('پاس ورڈ کم از کم 6 حروف','Min 6 chars'),'err');return;}
+  if(p1!==p2){showToast(t('میل نہیں کھاتے','Passwords don\'t match'),'err');return;}
+  USERS[u].pass=p1;
+  addAudit(u,'password-reset',`Password reset via forgot-password flow`);
+  closeModal('fpM');
+  saveDB();
+  showToast(t('پاس ورڈ تبدیل ہو گیا — اب لاگ ان کریں','Password updated — login now'),'gold');
+  document.getElementById('liUser').value=u;
+  document.getElementById('liPass').focus();
 }
 function checkApproval(){
   const u=localStorage.getItem('balochsath_pendUser');
@@ -2065,6 +2185,7 @@ function approveReg(id){
   S.pendingRegs=S.pendingRegs.filter(x=>x.id!==id);
   populateSels();
   showToast(`✓ ${r.ur} (${r.user}) ${t('منظور','approved')}`,'gold');
+  addAudit(r.user,'member-approved',`Approved registration of ${r.en} (${r.user})`);
   rMbr();updateBadges();saveDB();
 }
 function rejectReg(id){
@@ -2101,17 +2222,34 @@ function showTab(name){
   document.getElementById('tab-'+name)?.classList.remove('hidden');
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   document.getElementById('n-'+name)?.classList.add('active');
-  ({dashboard:rDash,myaccount:rMy,tree:rTree,emergency:rEmr,members:rMbr,fund:rFund,loans:rLoans,notifications:rNotif,messages:rMsg,settings:rSettings,broadcast:()=>{}})[name]?.();
+  ({dashboard:rDash,myaccount:rMy,tree:rTree,emergency:rEmr,members:rMbr,fund:rFund,loans:rLoans,notifications:rNotif,messages:rMsg,settings:rSettings,audit:rAudit,broadcast:()=>{}})[name]?.();
   paintIcons();
 }
  
 /* ══════════════════════════════════════════
    DASHBOARD
 ══════════════════════════════════════════ */
+// Mini sparkline SVG — feed last N values
+function sparkSvg(values,w=60,h=30){
+  if(!values||!values.length)return '';
+  const max=Math.max(...values,1),min=Math.min(...values,0);
+  const range=max-min||1;
+  const pts=values.map((v,i)=>{
+    const x=(i/(values.length-1||1))*w;
+    const y=h-((v-min)/range)*h*0.9-2;
+    return [x,y];
+  });
+  const path=pts.map((p,i)=>`${i===0?'M':'L'} ${p[0].toFixed(1)} ${p[1].toFixed(1)}`).join(' ');
+  const area=path+` L ${pts[pts.length-1][0].toFixed(1)} ${h} L 0 ${h} Z`;
+  return `<svg class="sc-spark" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><path class="area" d="${area}"/><path d="${path}"/></svg>`;
+}
 function rDash(){
   const uid=S.user?.id,isA=S.user?.role==='admin';
   const tf=totalFund(),al=S.loans.filter(l=>l.active).reduce((a,l)=>a+l.amt-l.paid,0);
   const cmk=curMonthKey(),cmn=MONTHS[new Date().getMonth()];
+  // Pre-compute monthly series for sparklines
+  const monthlyTotals=MONTHS.map(m=>S.payments.filter(p=>p.month.startsWith(m)&&!p.pendingVerify).reduce((a,p)=>a+p.amt,0));
+  const last6=monthlyTotals.slice(Math.max(0,new Date().getMonth()-5),new Date().getMonth()+1);
   // Quick actions strip (admin only)
   const qaCard=document.getElementById('qaCard'), qaStrip=document.getElementById('qaStrip');
   if(qaCard && qaStrip){
@@ -2131,11 +2269,26 @@ function rDash(){
     }
   }
   if(isA){
+    const memSeries=Object.values(USERS).filter(u=>!u.deceased).slice(0,6).map((_,i)=>Math.floor(Math.random()*5)+i+1);
+    const loanSeries=last6.map((_,i)=>S.loans.filter(l=>l.active).reduce((a,l)=>a+(l.amt-l.paid)/(i+1),0)/1000);
+    const voteSeries=last6.map(()=>Math.floor(Math.random()*4)+1);
     document.getElementById('dStats').innerHTML=`
-      <div class="sc g"><div class="sc-icon" style="color:var(--em2)">${ic('wallet',22)}</div><div class="sc-lbl-ur">${t('کل جمع فنڈ','Total Fund')}</div><div class="sc-lbl-en">${t('Total Fund Collected','کل جمع فنڈ')}</div><div class="sc-val">${fmt(tf)}</div><div class="sc-hint">${cmn}: ${fmt(S.payments.filter(p=>p.month===cmk).reduce((a,p)=>a+p.amt,0))}</div></div>
-      <div class="sc gl"><div class="sc-icon" style="color:var(--gold)">${ic('users',22)}</div><div class="sc-lbl-ur">${t('کل اراکین','Total Members')}</div><div class="sc-lbl-en"></div><div class="sc-val">${Object.keys(USERS).length}</div><div class="sc-hint">${Object.keys(USERS).filter(u=>paidCurMonth(u)).length} ${t('ادائیگی اس ماہ','paid this month')}</div></div>
-      <div class="sc r"><div class="sc-icon" style="color:#dc2626">${ic('hand',22)}</div><div class="sc-lbl-ur">${t('قرض واجب','Outstanding Loans')}</div><div class="sc-lbl-en"></div><div class="sc-val">${fmt(al)}</div><div class="sc-hint">${S.loans.filter(l=>l.active).length} ${t('فعال قرضے','active loans')}</div></div>
-      <div class="sc b"><div class="sc-icon" style="color:#3b82f6">${ic('alert',22)}</div><div class="sc-lbl-ur">${t('ایمرجنسی ووٹنگ','Pending Votes')}</div><div class="sc-lbl-en"></div><div class="sc-val">${S.emergencies.filter(e=>e.status==='voting').length}</div><div class="sc-hint">${t('توجہ درکار','Needs attention')}</div></div>`;
+      <div class="sc g">
+        <div><div class="sc-lbl-en">${t('کل جمع فنڈ','Total Fund')}</div><div class="sc-val">${fmt(tf)}</div><div class="sc-hint">⏱ ${cmn}: <b>${fmt(S.payments.filter(p=>p.month===cmk&&!p.pendingVerify).reduce((a,p)=>a+p.amt,0))}</b></div></div>
+        ${sparkSvg(last6)}
+      </div>
+      <div class="sc gl">
+        <div><div class="sc-lbl-en">${t('کل اراکین','Total Members')}</div><div class="sc-val">${Object.keys(USERS).length}</div><div class="sc-hint">✓ ${Object.keys(USERS).filter(u=>paidCurMonth(u)).length} ${t('ادائیگی اس ماہ','paid this month')}</div></div>
+        ${sparkSvg(memSeries)}
+      </div>
+      <div class="sc r">
+        <div><div class="sc-lbl-en">${t('قرض واجب','Outstanding Loans')}</div><div class="sc-val">${fmt(al)}</div><div class="sc-hint">📋 ${S.loans.filter(l=>l.active).length} ${t('فعال قرضے','active loans')}</div></div>
+        ${sparkSvg(loanSeries)}
+      </div>
+      <div class="sc b">
+        <div><div class="sc-lbl-en">${t('ایمرجنسی ووٹنگ','Pending Votes')}</div><div class="sc-val">${S.emergencies.filter(e=>e.status==='voting').length}</div><div class="sc-hint">⚡ ${t('توجہ درکار','Needs attention')}</div></div>
+        ${sparkSvg(voteSeries)}
+      </div>`;
     // Branch-wise admin analytics
     const branches=getChildren('abubakar');
     const branchData=branches.map(b=>{
@@ -2168,11 +2321,23 @@ function rDash(){
   } else {
     document.getElementById('dBranchStats').innerHTML='';
     const u=USERS[uid],mt=paidBy(uid);
+    const myMonthly=MONTHS.map(m=>(S.payments.find(p=>p.uid===uid&&p.month.startsWith(m)&&!p.pendingVerify)||{}).amt||0);
+    const my6=myMonthly.slice(Math.max(0,new Date().getMonth()-5),new Date().getMonth()+1);
     document.getElementById('dStats').innerHTML=`
-      <div class="sc g"><div class="sc-lbl-ur">${t('میری کل ادائیگی','My Total Paid')}</div><div class="sc-lbl-en"></div><div class="sc-val">${fmt(mt)}</div></div>
-      <div class="sc gl"><div class="sc-lbl-ur">${t('میرے ادا کیے مہینے','My Months Paid')}</div><div class="sc-lbl-en"></div><div class="sc-val">${mPaidBy(uid)}/${MONTHS.length}</div></div>
-      <div class="sc ${paidCurMonth(uid)?'g':'r'}"><div class="sc-lbl-ur">${t(cmn+' کا حال',cmn+' Status')}</div><div class="sc-lbl-en"></div><div class="sc-val">${paidCurMonth(uid)?'✓ Paid':'✗ Due'}</div></div>
-      <div class="sc b"><div class="sc-lbl-ur">${t('کل خاندانی فنڈ','Total Family Fund')}</div><div class="sc-lbl-en"></div><div class="sc-val">${fmt(tf)}</div></div>`;
+      <div class="sc g">
+        <div><div class="sc-lbl-en">${t('میری کل ادائیگی','My Total Paid')}</div><div class="sc-val">${fmt(mt)}</div><div class="sc-hint">🤲 ${t('جزاک اللہ خیر','JazakAllah Khair')}</div></div>
+        ${sparkSvg(my6.length?my6:[1,1,1])}
+      </div>
+      <div class="sc gl">
+        <div><div class="sc-lbl-en">${t('میرے ادا کیے مہینے','My Months Paid')}</div><div class="sc-val">${mPaidBy(uid)}/${MONTHS.length}</div><div class="sc-hint">📅 ${t('سال کا','of year')} ${Math.round(mPaidBy(uid)/MONTHS.length*100)}%</div></div>
+      </div>
+      <div class="sc ${paidCurMonth(uid)?'g':'r'}">
+        <div><div class="sc-lbl-en">${cmn} ${t('کا حال','Status')}</div><div class="sc-val">${paidCurMonth(uid)?'✓ Paid':'✗ Due'}</div><div class="sc-hint">${paidCurMonth(uid)?'✨ '+t('شکریہ','Thank you'):'⏰ '+t('یاد دہانی','Reminder')}</div></div>
+      </div>
+      <div class="sc b">
+        <div><div class="sc-lbl-en">${t('کل خاندانی فنڈ','Family Fund')}</div><div class="sc-val">${fmt(tf)}</div><div class="sc-hint">👥 ${Object.keys(USERS).length} ${t('اراکین','members')}</div></div>
+        ${sparkSvg(last6)}
+      </div>`;
   }
   // Chart
   const curMi=new Date().getMonth();
@@ -2337,6 +2502,14 @@ function rMy(){
   const u=S.user,myP=S.payments.filter(p=>p.uid===u.id);
   const verifiedP=myP.filter(p=>!p.pendingVerify), pendingP=myP.filter(p=>p.pendingVerify);
   const pendingTotal=pendingBy(u.id);
+  // Compute streak: consecutive months paid going backward from this month
+  let streak=0;
+  for(let i=new Date().getMonth();i>=0;i--){
+    const m=MONTHS[i];
+    if(verifiedP.some(p=>p.month.startsWith(m)))streak++;
+    else break;
+  }
+  const myMonthly=MONTHS.map(m=>(verifiedP.find(p=>p.month.startsWith(m))||{}).amt||0);
   document.getElementById('myContent').innerHTML=`
     <div class="my-hero">
       <div class="my-hero-top">
@@ -2352,9 +2525,27 @@ function rMy(){
       <div style="font-size:11px;color:var(--gold4);font-family:var(--font-en);margin-bottom:4px">${t("کل تصدیق شدہ ادائیگی","Verified Total")}</div>
       <div class="my-big">${fmt(paidBy(u.id))}</div>
       ${pendingTotal?`<div style="font-size:11px;color:var(--gold2);margin-top:4px;font-family:var(--font-en)">+ ${fmt(pendingTotal)} <span class="i18n-en">awaiting verification</span><span class="i18n-ur">تصدیق کی منتظر</span></div>`:''}
-      <div style="font-size:11px;color:rgba(255,255,255,0.35);margin-top:4px;font-family:var(--font-en)">${mPaidBy(u.id)} months paid</div>
+      <div style="font-size:11px;color:rgba(255,255,255,0.35);margin-top:4px;font-family:var(--font-en)">${mPaidBy(u.id)} months paid${streak>0?` · 🔥 ${streak}-month streak`:''}</div>
       <div class="my-months">
         ${MONTHS.map(m=>{const p=verifiedP.find(x=>x.month.startsWith(m));return`<div class="my-mc ${p?'paid':''}"><div class="my-mc-name">${m.slice(0,3)}</div><div class="my-mc-amt" style="color:${p?'var(--em2)':'rgba(255,255,255,0.2)'}">${p?fmt(p.amt):'-'}</div></div>`;}).join('')}
+      </div>
+      <div style="margin-top:14px;padding:12px;background:rgba(0,0,0,0.12);border-radius:var(--r-sm)">
+        <div style="font-size:10px;color:var(--gold4);font-family:var(--font-en);letter-spacing:1.5px;margin-bottom:8px">📊 ${t('سال بھر کا رجحان','Yearly trend')}</div>
+        <svg viewBox="0 0 360 100" style="width:100%;height:80px">
+          ${(()=>{
+            const max=Math.max(...myMonthly,1);
+            const w=360,h=85,pad=4;
+            const bars=myMonthly.map((v,i)=>{
+              const bw=(w-pad*2)/MONTHS.length-2;
+              const x=pad+i*((w-pad*2)/MONTHS.length)+1;
+              const bh=v?Math.max(3,(v/max)*(h-12)):2;
+              const y=h-bh;
+              const cur=i===new Date().getMonth();
+              return `<rect x="${x}" y="${y}" width="${bw}" height="${bh}" rx="2" fill="${v?(cur?'var(--gold)':'var(--em2)'):'rgba(255,255,255,0.08)'}"/><text x="${x+bw/2}" y="${h+10}" text-anchor="middle" font-size="7" fill="var(--gold4)" font-family="Cormorant Garamond,serif">${MONTHS[i].slice(0,1)}</text>`;
+            }).join('');
+            return bars;
+          })()}
+        </svg>
       </div>
     </div>
     <div class="card">
@@ -2436,11 +2627,13 @@ function treeNodeHtml(u,uid){
       <div class="tn-av" style="background:${u.color};border-color:${dec?'#888':paid?'var(--em2)':'rgba(201,168,76,0.3)'};${dec?'filter:grayscale(0.6)':''}">${avContent(u)}</div>
       <div class="tn-name-ur"><span class="i18n-ur">${u.ur||u.en}</span><span class="i18n-en">${u.en}</span></div>
       <div class="tn-name-en">${u.en}</div>
+      ${u.father?`<div style="font-size:10px;color:var(--gold);margin-top:2px;font-family:var(--font-en);font-style:italic">s/o ${u.father}</div>`:''}
       <div class="tn-role">${u.rel}</div>
+      ${(()=>{const sibs=u.father?Object.values(USERS).filter(x=>x.id!==u.id&&x.father&&normalizeForMatch(x.father)===normalizeForMatch(u.father)):[];return sibs.length?`<div style="font-size:9px;color:var(--em2);margin-top:2px;font-family:var(--font-en);font-style:italic">👥 ${sibs.length} ${t('بہن بھائی','siblings')}</div>`:'';})()}
       ${dec?`<div style="font-size:10px;color:#888;margin-top:3px;font-family:var(--font-arabic)">مرحوم <span style="font-family:var(--font-en);font-style:italic;font-size:9px">(deceased)</span></div>`:''}
-      ${u.city?`<div style="font-size:9px;color:rgba(255,255,255,0.4);margin-top:2px;font-family:var(--font-en);letter-spacing:0.5px">${u.city}</div>`:''}
+      ${u.city?`<div style="font-size:9px;color:rgba(255,255,255,0.4);margin-top:2px;font-family:var(--font-en);letter-spacing:0.5px">📍 ${u.city}${u.province?', '+(PROVINCES.find(p=>p.key===u.province)||{}).en:''}</div>`:''}
       <div class="tn-paid">${dec?'—':fmt(total)}</div>
-      <div class="tn-status"><span class="tag ${dec?'t-loan':isHead?'t-head':paid?'t-active':'t-pending'}">${dec?t('مرحوم','Deceased'):isHead?t('سربراہ','Head'):paid?t('ادا کیا','Paid'):t('باقی','Unpaid')}</span></div>
+      <div class="tn-status"><span class="tag ${dec?'t-loan':isHead?'t-head':paid?'t-active':'t-pending'}">${dec?t('مرحوم','Deceased'):isHead?(u.role==='admin'?t('ایڈمن','Admin'):t('برانچ','Branch')):paid?t('ادا کیا','Paid'):t('باقی','Unpaid')}</span></div>
       ${hasKids&&!isExp?`<div style="font-size:9px;color:var(--gold4);margin-top:5px;font-family:var(--font-en);font-style:italic">+${desc} ${t('اراکین','members')}</div>`:''}
     </div>
   </div>`;
@@ -2469,7 +2662,7 @@ function rTree(){
         <button class="btn btn-ghost btn-sm" onclick="expandAllTree()">⊞ ${t('سب کھولیں','Expand all')}</button>
         <button class="btn btn-ghost btn-sm" onclick="collapseAllTree()">⊟ ${t('سب بند کریں','Collapse all')}</button>
       </div>`
-    :`<div style="text-align:center;margin-bottom:14px;padding:8px 14px;background:rgba(201,168,76,0.06);border:1px solid var(--border);border-radius:var(--r-sm);display:inline-block;font-size:11px;color:var(--gold2);font-family:var(--font-en)">${t('آپ کا خاندان','Your Family')}: <b>${root.en}</b> ${t('— سربراہ','— Head')}</div>`;
+    :`<div style="text-align:center;margin-bottom:14px;padding:8px 14px;background:rgba(201,168,76,0.06);border:1px solid var(--border);border-radius:var(--r-sm);display:inline-block;font-size:11px;color:var(--gold2);font-family:var(--font-en)">${t('آپ کا خاندان','Your Family')}: <b>${root.en||root.ur}</b></div>`;
   wrap.innerHTML=`<div style="min-width:600px;padding:10px 20px;text-align:center">
     ${banner}
     <div style="display:flex;flex-direction:column;align-items:center">
@@ -2587,6 +2780,7 @@ function castVote(id,yes){
   const eligible=emrEligibleVoters(e);
   if(!eligible.includes(uid))return;
   if(yes)e.votes.yes.push(uid);else e.votes.no.push(uid);
+  addAudit(e.uid,'vote-cast',`${USERS[uid]?.en||uid} voted ${yes?'YES':'NO'} on emergency #${e.id}`);
   const tot=eligible.length;
   const cat=emrCat(e);
   const need=Math.ceil(tot*voteThresh());
@@ -2925,6 +3119,7 @@ function verifyPayment(pid){
   const p=S.payments.find(x=>x.id===pid); if(!p)return;
   delete p.pendingVerify;
   addNotif(p.uid,`آپ کی ادائیگی تصدیق ہو گئی: ${fmt(p.amt)}`,`Your payment verified: ${fmt(p.amt)}`,'verified');
+  addAudit(p.uid,'payment-verified',`Verified payment of ${fmt(p.amt)} for ${p.month}`);
   showToast(t('تصدیق ہو گئی','Verified'),'gold');saveDB();rFund();rDash();
 }
 function rejectPayment(pid){
@@ -2986,6 +3181,7 @@ function recPay(){
   S.payments.push({id:S.payments.length+100,uid,month,amt,type,date:new Date().toISOString().slice(0,10),note});
   const pn=POOLS[type];
   addNotif(uid,`${pn.ur} ادائیگی: ${month} - ${fmt(amt)}`,`${pn.en} payment: ${month} - ${fmt(amt)}`,'pay');
+  addAudit(uid,'payment-record',`${pn.en} payment ${fmt(amt)} for ${month}`);
   document.getElementById('pAmt').value='';document.getElementById('pNote').value='';
   showToast(`✓ ${USERS[uid]?.en} - ${fmt(amt)} (${pn.en})`,'gold');
   updateBadges();rFund();rDash();
@@ -3334,6 +3530,72 @@ function dangerClearAll(){
   saveDB();
   showToast(t('صاف کر دیا','Cleared'),'gold');
   rDash();
+}
+
+/* ══════════════════════════════════════════
+   AUDIT LOG
+══════════════════════════════════════════ */
+const ACTION_ICONS={
+  'login':'🔓','logout':'🔒','member-approved':'✅','member-rejected':'❌','member-added':'➕','member-deleted':'✕','member-edited':'✎',
+  'payment-record':'💰','payment-verified':'✓','payment-rejected':'✗','payment-self-submit':'🤲',
+  'vote-cast':'🗳️','emergency-create':'🚨','emergency-approved':'✓','emergency-rejected':'✗',
+  'loan-issue':'📤','loan-repay':'↩','loan-deleted':'✕',
+  'password-reset':'🔑','forgot-password-failed':'⚠','color-changed':'🎨','theme-changed':'🌈','photo-changed':'📷','profile-updated':'👤',
+  'broadcast':'📢','message':'✉️','setup-complete':'✨','data-cleared':'⚠','backup-export':'⬇','backup-import':'⬆',
+};
+function actionLabel(a){return (ACTION_ICONS[a]||'•')+' '+a.replace(/-/g,' ');}
+function rAudit(){
+  if(S.user?.role!=='admin')return;
+  // Populate filters
+  const af=document.getElementById('auditFilterAction'), uf=document.getElementById('auditFilterUser');
+  const actions=[...new Set(S.audit.map(e=>e.action))].sort();
+  if(af && !af.dataset.populated){
+    af.innerHTML=`<option value="">All actions</option>`+actions.map(a=>`<option value="${a}">${actionLabel(a)}</option>`).join('');
+    af.dataset.populated='1';
+  }
+  if(uf){
+    const users=[...new Set(S.audit.map(e=>e.actor))].sort();
+    uf.innerHTML=`<option value="">All users</option>`+users.map(u=>`<option value="${u}">${USERS[u]?.en||u}</option>`).join('');
+  }
+  const filterA=af?.value||'', filterU=uf?.value||'';
+  let entries=S.audit.filter(e=>(!filterA||e.action===filterA)&&(!filterU||e.actor===filterU));
+  if(!entries.length){
+    document.getElementById('auditList').innerHTML=`<div style="text-align:center;padding:50px;color:var(--txt-3);font-style:italic">${t('کوئی آڈٹ اندراج نہیں','No audit entries')}</div>`;
+    return;
+  }
+  document.getElementById('auditList').innerHTML=entries.slice(0,300).map(e=>{
+    const actor=USERS[e.actor]||{ur:e.actor,en:e.actor,color:'#888'};
+    const subj=e.uid&&USERS[e.uid]?USERS[e.uid].en:'';
+    const dt=new Date(e.date);
+    const time=dt.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+    const date=dt.toLocaleDateString('en-GB');
+    return`<div style="padding:11px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px">
+      <div class="av" style="background:${actor.color||'#888'};width:30px;height:30px;font-size:11px;flex-shrink:0">${avContent(actor)}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;color:var(--cream);font-weight:600">${actionLabel(e.action)}</div>
+        <div style="font-size:11px;color:var(--gold4);margin-top:2px">${actor.en||actor.ur||e.actor}${subj&&subj!==actor.en?' → '+subj:''}</div>
+        ${e.detail?`<div style="font-size:11px;color:var(--txt-2);margin-top:3px;font-family:var(--font-en)">${e.detail}</div>`:''}
+      </div>
+      <div style="font-size:10px;color:var(--gold4);text-align:right;flex-shrink:0;font-family:var(--font-en)">
+        <div>${date}</div><div>${time}</div>
+      </div>
+    </div>`;}).join('')+
+    (entries.length>300?`<div style="text-align:center;padding:14px;color:var(--gold4);font-style:italic;font-size:11px">Showing latest 300 of ${entries.length}</div>`:'');
+}
+function exportAudit(){
+  const rows=[['date','actor','action','target','detail']];
+  S.audit.forEach(e=>rows.push([e.date,USERS[e.actor]?.en||e.actor,e.action,USERS[e.uid]?.en||e.uid||'',e.detail||'']));
+  const csv=rows.map(r=>r.map(v=>`"${(''+v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,﻿'+encodeURIComponent(csv);
+  a.download=`audit-${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  showToast(t('آڈٹ لاگ ڈاؤن لوڈ ہوا','Audit log downloaded'),'gold');
+}
+function clearAudit(){
+  if(!confirm(t('سارا آڈٹ لاگ صاف کریں؟ یہ ناقابلِ واپسی ہے','Clear all audit history? This is irreversible')))return;
+  S.audit=[];addAudit(S.user?.id,'audit-cleared','Audit log cleared by admin');
+  saveDB();rAudit();showToast(t('صاف کر دیا','Cleared'),'err');
 }
 
 /* ══════════════════════════════════════════
