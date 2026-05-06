@@ -13,6 +13,15 @@
   --gold:#c9a84c;--gold2:#e8c96a;--gold3:#f5e6b8;--gold4:#7a5c1e;--gold5:rgba(201,168,76,0.12);
   --emerald:#1b6b45;--em2:#24925e;--em3:#0d4a2f;--em4:#d4f0e4;--em5:rgba(27,107,69,0.15);
   --cream:#f8f4ec;--cream2:#ede8da;--cream3:#e0d8c4;
+  /* SEMANTIC text + surface tokens — these are the ONLY ones that should be used in inline styles. They auto-swap on body.light */
+  --txt-1:#f8f4ec;          /* primary text */
+  --txt-2:rgba(255,255,255,0.7); /* secondary */
+  --txt-3:rgba(255,255,255,0.45);/* muted */
+  --txt-4:rgba(255,255,255,0.25);/* faint/placeholder */
+  --surf-1:#141410;         /* main card bg */
+  --surf-2:#0e0e0a;         /* deeper panel */
+  --surf-3:rgba(255,255,255,0.04); /* input/sub bg */
+  --surf-soft:rgba(0,0,0,0.04);
   --parchment:linear-gradient(145deg,#f5f0e4,#ede8d5);
   --shadow-gold:0 4px 24px rgba(201,168,76,0.18);
   --shadow-deep:0 24px 60px rgba(0,0,0,0.45),0 4px 12px rgba(0,0,0,0.25);
@@ -109,6 +118,57 @@ html,body{height:100%;background:var(--ink);font-family:var(--font-body);color:v
   color:#f87171;padding:9px 14px;border-radius:var(--r-sm);font-size:12px;
   text-align:center;margin-top:12px;display:none;font-family:var(--font-body);
 }
+
+/* ─── QUICK ACTIONS STRIP ─── */
+.qa-strip{display:flex;gap:8px;flex-wrap:wrap;padding:14px 18px;background:linear-gradient(90deg,rgba(27,107,69,0.08),rgba(201,168,76,0.08));border-radius:var(--r);position:relative;overflow:hidden}
+.qa-strip::before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(201,168,76,0.06),transparent);animation:shimmer 8s ease-in-out infinite;pointer-events:none}
+.qa-strip .btn{margin:0;transition:transform 0.2s var(--ease),box-shadow 0.25s var(--ease)}
+.qa-strip .btn:hover{transform:translateY(-2px)}
+
+/* ─── SUBTLE PAGE TRANSITIONS ─── */
+[id^="tab-"]:not(.hidden){animation:fadeIn 0.32s var(--ease)}
+
+/* ─── BETTER MODAL ENTRANCE ─── */
+.modal-bg.open .modal{animation:modalIn 0.28s var(--ease)}
+@keyframes modalIn{from{opacity:0;transform:translateY(12px) scale(0.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+
+/* ─── PENDING-VERIFY HIGHLIGHT ─── */
+.t-pending{animation:pulseGold 2.5s ease-in-out infinite}
+@keyframes pulseGold{0%,100%{box-shadow:0 0 0 rgba(201,168,76,0.4)}50%{box-shadow:0 0 12px rgba(201,168,76,0.4)}}
+
+/* ─── COLOR PICKER ─── */
+.clr-swatch{width:38px;height:38px;border-radius:50%;cursor:pointer;transition:transform 0.15s,box-shadow 0.2s;border:2px solid transparent;display:inline-block}
+.clr-swatch:hover{transform:scale(1.15);box-shadow:0 4px 14px rgba(0,0,0,0.4)}
+.clr-swatch.selected{border-color:#fff;box-shadow:0 0 0 3px rgba(255,255,255,0.25)}
+
+/* ─── THEME SWATCH (palette chooser) ─── */
+.theme-swatch{width:64px;cursor:pointer;border:2px solid transparent;border-radius:10px;padding:8px;transition:transform .15s,border-color .15s,box-shadow .2s;text-align:center;background:rgba(255,255,255,0.02)}
+.theme-swatch:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,0.3)}
+.theme-swatch.selected{border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,168,76,0.25)}
+.theme-swatch .ts-circles{display:flex;justify-content:center;gap:3px;margin-bottom:6px}
+.theme-swatch .tsc{width:14px;height:14px;border-radius:50%}
+.theme-swatch .ts-name{font-size:9px;color:var(--cream2);font-family:var(--font-display);letter-spacing:1px;text-transform:uppercase}
+
+/* ─── PENDING VERIFICATION PANEL ─── */
+.pend-icon{font-size:46px;display:block;text-align:center;margin-bottom:12px;animation:floaty 3s ease-in-out infinite}
+@keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+.pend-name-badge{display:flex;align-items:center;gap:10px;background:rgba(201,168,76,0.07);border:1px solid var(--border2);border-radius:24px;padding:6px 14px;margin:0 auto 14px;width:max-content;max-width:100%}
+.pend-name-badge .av{width:30px;height:30px;font-size:11px}
+.pend-name-badge .pn{font-family:var(--font-arabic);font-size:14px;color:var(--gold2)}
+.pend-name-badge .pf{font-size:10px;color:var(--gold4);font-family:var(--font-en)}
+.pend-steps{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
+.pend-step{display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:var(--r-sm);border:1px solid var(--border)}
+.pend-step.done{background:rgba(27,107,69,0.1);border-color:rgba(27,107,69,0.3)}
+.pend-step.wait{background:rgba(201,168,76,0.07);border-color:rgba(201,168,76,0.25)}
+.pend-step.lock{background:rgba(255,255,255,0.02)}
+.pend-num{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;font-family:var(--font-display);flex-shrink:0}
+.pend-step.done .pend-num{background:var(--em2);color:#fff}
+.pend-step.wait .pend-num{background:var(--gold);color:var(--ink)}
+.pend-step.lock .pend-num{background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.3)}
+.pend-step .s1{font-size:12px;font-weight:600;color:var(--cream)}
+.pend-step .s2{font-size:10px;color:rgba(255,255,255,0.4);margin-top:1px}
+.pend-info{background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:var(--r-sm);padding:10px 12px;font-size:11px;color:rgba(255,255,255,0.55);line-height:1.6;margin-bottom:14px}
+.pend-actions{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
  
 /* ══════════════════════════════════════
    APP SHELL
@@ -500,7 +560,26 @@ tbody td{padding:10px 14px;vertical-align:middle;color:var(--cream2)}
 .act-time{font-size:10px;color:var(--gold4);font-family:var(--font-en)}
  
 /* Light theme */
-body.light{--ink:#faf8f4;--ink2:#f0ece4;--ink3:#e4e0d6;--gold:#6d4f17;--gold2:#7a5c1e;--gold3:#a8862c;--gold4:#3a2810;--gold5:rgba(122,92,30,0.08);--emerald:#1b6b45;--em2:#147a47;--em3:#0d4a2f;--cream:#1a1a14;--cream2:#2a2a20;--cream3:#3a3a30;--border:rgba(0,0,0,0.12);--border2:rgba(0,0,0,0.25);--shadow-gold:0 4px 24px rgba(122,92,30,0.12);--shadow-deep:0 8px 48px rgba(0,0,0,0.08)}
+body.light{
+  --ink:#faf8f4;--ink2:#f0ece4;--ink3:#e4e0d6;
+  --gold:#6d4f17;--gold2:#7a5c1e;--gold3:#a8862c;--gold4:#3a2810;--gold5:rgba(122,92,30,0.08);
+  --emerald:#1b6b45;--em2:#147a47;--em3:#0d4a2f;
+  --cream:#1a1a14;--cream2:#2a2a20;--cream3:#3a3a30;
+  /* SEMANTIC light overrides */
+  --txt-1:#1a1a14;
+  --txt-2:rgba(0,0,0,0.72);
+  --txt-3:rgba(0,0,0,0.55);
+  --txt-4:rgba(0,0,0,0.35);
+  --surf-1:#ffffff;
+  --surf-2:#faf6ec;
+  --surf-3:rgba(0,0,0,0.04);
+  --surf-soft:rgba(255,255,255,0.6);
+  --border:rgba(0,0,0,0.12);--border2:rgba(0,0,0,0.25);
+  --shadow-gold:0 4px 24px rgba(122,92,30,0.12);
+  --shadow-deep:0 8px 48px rgba(0,0,0,0.08);
+  --shadow-card:0 1px 3px rgba(0,0,0,0.06),0 4px 16px rgba(0,0,0,0.04);
+  --shadow-hover:0 8px 28px rgba(122,92,30,0.18),0 2px 6px rgba(0,0,0,0.08);
+}
 body.light .pattern-bg{opacity:0.25}
 body.light .login-box,body.light .card,body.light .sc,body.light .emr-card,body.light .loan-card,body.light .tn,body.light .modal{background:linear-gradient(145deg,#fff,#faf6ec);color:#1a1a14}
 body.light .topbar,body.light .sidebar{background:#fff;border-color:rgba(0,0,0,0.1)}
@@ -572,6 +651,79 @@ body.light .nav-badge,body.light .nb{border-color:#fff}
 body.light ::-webkit-scrollbar-track{background:#f0ece4}
 body.light ::-webkit-scrollbar-thumb{background:#c9a84c}
 body.light .topbar::after{background:linear-gradient(90deg,transparent,#7a5c1e,transparent);opacity:0.3}
+
+/* ─────── COMPREHENSIVE LIGHT-MODE OVERRIDES (covers new components + inline rgba(255,255,255) fallbacks) ─────── */
+body.light{background:var(--ink);color:var(--cream)}
+/* Settings tab */
+body.light #tab-settings .card-body{color:#1a1a14}
+body.light #tab-settings input[type="range"]{accent-color:#7a5c1e}
+body.light #tab-settings .card[style*="border-color:rgba(220,50,50"]{border-color:rgba(220,50,50,0.3)}
+/* Theme picker */
+body.light .theme-swatch{background:rgba(0,0,0,0.03);color:#1a1a14}
+body.light .theme-swatch .ts-name{color:#1a1a14}
+/* Quick actions strip */
+body.light .qa-strip{background:linear-gradient(90deg,rgba(20,122,71,0.08),rgba(122,92,30,0.08))}
+/* Pending verification page */
+body.light .pend-step{border-color:rgba(0,0,0,0.1)}
+body.light .pend-step.done{background:rgba(20,122,71,0.08)}
+body.light .pend-step.wait{background:rgba(122,92,30,0.08)}
+body.light .pend-step.lock{background:rgba(0,0,0,0.03)}
+body.light .pend-step .s1{color:#1a1a14}
+body.light .pend-step .s2{color:rgba(0,0,0,0.55)}
+body.light .pend-info{background:rgba(0,0,0,0.03);color:rgba(0,0,0,0.7);border-color:rgba(0,0,0,0.1)}
+body.light .pend-name-badge{background:rgba(122,92,30,0.06);border-color:rgba(122,92,30,0.3)}
+/* Donate modal + record-my-donation card */
+body.light .modal{color:#1a1a14}
+body.light .modal-body{color:#1a1a14}
+body.light .modal-ft{border-top:1px solid rgba(0,0,0,0.1)}
+/* Color picker swatches */
+body.light .clr-swatch.selected{border-color:#1a1a14;box-shadow:0 0 0 3px rgba(0,0,0,0.15)}
+/* Pending verifications card on Fund tab */
+body.light #pendVerifyCard{background:#fff;border-color:rgba(122,92,30,0.4)}
+body.light #pendVerifyList > div{border-bottom-color:rgba(0,0,0,0.08)!important;color:#1a1a14}
+body.light #pendVerifyList > div > div[style*="color:rgba(255,255,255,0.4)"]{color:rgba(0,0,0,0.55)!important}
+/* Tag tweaks */
+body.light .t-active{background:rgba(20,122,71,0.12);color:#0d4a2f;border-color:rgba(20,122,71,0.4)}
+body.light .t-pending{background:rgba(122,92,30,0.12);color:#5a4010;border-color:rgba(122,92,30,0.35)}
+body.light .t-loan{background:rgba(220,38,38,0.12);color:#9b1c1c;border-color:rgba(220,38,38,0.35)}
+body.light .t-vote{background:rgba(59,130,246,0.12);color:#1e40af;border-color:rgba(59,130,246,0.35)}
+body.light .t-approved{background:rgba(20,122,71,0.12);color:#0d4a2f;border-color:rgba(20,122,71,0.4)}
+body.light .t-head{background:rgba(122,92,30,0.15);color:#5a4010;border-color:#7a5c1e}
+/* Catch-all faint white text inline overrides — broad hammer for hardcoded rgba(255,255,255,*) */
+body.light [style*="color:rgba(255,255,255,0.25)"],
+body.light [style*="color:rgba(255,255,255,0.3)"]{color:rgba(0,0,0,0.4)!important}
+body.light [style*="color:rgba(255,255,255,0.4)"],
+body.light [style*="color:rgba(255,255,255,0.45)"],
+body.light [style*="color:rgba(255,255,255,0.5)"]{color:rgba(0,0,0,0.55)!important}
+body.light [style*="color:rgba(255,255,255,0.55)"],
+body.light [style*="color:rgba(255,255,255,0.6)"]{color:rgba(0,0,0,0.65)!important}
+body.light [style*="color:rgba(255,255,255,0.65)"],
+body.light [style*="color:rgba(255,255,255,0.7)"],
+body.light [style*="color:rgba(255,255,255,0.8)"]{color:rgba(0,0,0,0.78)!important}
+body.light [style*="color:var(--cream)"]{color:#1a1a14!important}
+body.light [style*="color:var(--cream2)"]{color:#2a2a20!important}
+body.light [style*="background:rgba(0,0,0,0.04)"]{background:rgba(0,0,0,0.04)}
+body.light [style*="background:rgba(255,255,255,0.02)"],
+body.light [style*="background:rgba(255,255,255,0.04)"],
+body.light [style*="background:rgba(255,255,255,0.05)"]{background:rgba(0,0,0,0.04)!important}
+/* Wizard / setup */
+body.light #wizM .modal{background:#fff}
+body.light #wizM .ajer{background:linear-gradient(135deg,rgba(122,92,30,0.06),rgba(20,122,71,0.06))}
+body.light #wizM input,body.light #wizM select{color:#1a1a14;background:rgba(0,0,0,0.03);border-color:rgba(0,0,0,0.15)}
+/* Hijri header */
+body.light #hijriDate,body.light #sideHijri{color:#5a4010}
+/* Activity rows */
+body.light .ai{color:#1a1a14;border-bottom-color:rgba(0,0,0,0.06)}
+/* Geometric pattern */
+body.light .pattern-bg svg path,body.light .pattern-bg svg polygon{stroke:rgba(122,92,30,0.4)}
+/* Login page in light mode (full theming) */
+body.light #loginPage{background:radial-gradient(ellipse at top,#f5e8c8 0%,#faf8f4 60%)}
+body.light .login-box{background:linear-gradient(145deg,#fff,#faf6ec);box-shadow:0 16px 48px rgba(0,0,0,0.08),0 0 0 1px rgba(122,92,30,0.1)}
+body.light .login-header{background:linear-gradient(180deg,rgba(122,92,30,0.04),transparent)}
+body.light .login-moon{filter:drop-shadow(0 0 8px rgba(122,92,30,0.3))}
+body.light .login-btn{color:#fff}
+body.light .lreg,body.light .lql{border-top-color:rgba(0,0,0,0.08)}
+
 /* i18n toggle */
 body.lang-en .i18n-ur{display:none!important}
 body.lang-ur .i18n-en{display:none!important}
@@ -597,6 +749,10 @@ body.lang-ur .i18n-en{display:none!important}
  
 <!-- ══════════ LOGIN ══════════ -->
 <div id="loginPage">
+<div style="position:absolute;top:18px;right:18px;display:flex;gap:6px;z-index:10">
+  <button onclick="setMode('dark')" id="loginModeDark" title="Dark mode" style="width:34px;height:34px;border-radius:50%;border:1px solid var(--border);background:var(--gold5);cursor:pointer;font-size:14px;color:var(--gold)">🌙</button>
+  <button onclick="setMode('light')" id="loginModeLight" title="Light mode" style="width:34px;height:34px;border-radius:50%;border:1px solid var(--border);background:var(--gold5);cursor:pointer;font-size:14px;color:var(--gold)">☀️</button>
+</div>
 <div class="login-wrap">
   <div class="login-ornament">
     <svg viewBox="0 0 300 60" xmlns="http://www.w3.org/2000/svg">
@@ -679,13 +835,17 @@ body.lang-ur .i18n-en{display:none!important}
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
         <div class="fl">
-          <label><span class="i18n-en">Phone</span><span class="i18n-ur">فون</span> <span style="font-size:9px;color:var(--gold4);font-family:var(--font-en);font-style:italic">(optional)</span></label>
+          <label><span class="i18n-en">Phone</span><span class="i18n-ur">فون</span></label>
           <input class="fi" id="regPhone" placeholder="03xx-xxxxxxx" style="direction:ltr">
         </div>
         <div class="fl">
-          <label><span class="i18n-en">City</span><span class="i18n-ur">شہر</span> <span style="font-size:9px;color:var(--gold4);font-family:var(--font-en);font-style:italic">(optional)</span></label>
+          <label><span class="i18n-en">City</span><span class="i18n-ur">شہر</span></label>
           <input class="fi" id="regCity" placeholder="e.g. Quetta" style="direction:ltr">
         </div>
+      </div>
+      <div class="fl">
+        <label><span class="i18n-en">Province</span><span class="i18n-ur">صوبہ</span></label>
+        <select class="fi" id="regProvince" style="direction:ltr"></select>
       </div>
       <div class="fl">
         <label><span class="i18n-en">Related to (existing member)</span><span class="i18n-ur">کس رکن سے رشتہ</span> <span style="color:#f87171">*</span></label>
@@ -705,8 +865,46 @@ body.lang-ur .i18n-en{display:none!important}
     </div>
   </div>
 </div>
+
+<!-- PENDING VERIFICATION PANEL -->
+<div class="login-wrap" id="pendWrap" style="display:none">
+  <div class="login-box">
+    <div class="login-header">
+      <span class="pend-icon">⏳</span>
+      <div class="login-title-ar"><span class="i18n-ur">منتظرِ منظوری</span><span class="i18n-en">Awaiting Approval</span></div>
+      <div class="login-title-en">Admin Review Pending</div>
+      <div class="login-verse-box" style="margin-top:14px">
+        <div class="lv-ar">الَّذِينَ يُنفِقُونَ فِي السَّرَّاءِ وَالضَّرَّاءِ</div>
+        <div class="lv-ur"><span class="i18n-ur">جو آسانی اور تنگی دونوں میں خرچ کرتے ہیں</span><span class="i18n-en">Those who spend in ease and hardship</span></div>
+        <div class="lv-ref">Aal Imran 3:134</div>
+      </div>
+    </div>
+    <div class="login-body">
+      <div class="pend-name-badge">
+        <div class="av" id="pendAv">?</div>
+        <div>
+          <div class="pn" id="pendName">—</div>
+          <div class="pf" id="pendFather"></div>
+        </div>
+      </div>
+      <div class="pend-steps">
+        <div class="pend-step done"><div class="pend-num">✓</div><div><div class="s1"><span class="i18n-en">Registration submitted</span><span class="i18n-ur">رجسٹریشن جمع</span></div><div class="s2"><span class="i18n-en">Your details are with the admin</span><span class="i18n-ur">آپ کی تفصیلات ایڈمن کو بھیج دی گئیں</span></div></div></div>
+        <div class="pend-step wait"><div class="pend-num">⏳</div><div><div class="s1"><span class="i18n-en">Admin review</span><span class="i18n-ur">ایڈمن کی منظوری</span></div><div class="s2"><span class="i18n-en">Family head will approve or reject</span><span class="i18n-ur">سربراہ خاندان منظور یا مسترد کریں گے</span></div></div></div>
+        <div class="pend-step lock"><div class="pend-num">🔒</div><div><div class="s1"><span class="i18n-en">Dashboard access</span><span class="i18n-ur">ڈیش بورڈ تک رسائی</span></div><div class="s2"><span class="i18n-en">After approval, full access opens</span><span class="i18n-ur">منظوری کے بعد مکمل رسائی</span></div></div></div>
+      </div>
+      <div class="pend-info">
+        <span class="i18n-ur">آپ کا اکاؤنٹ منظور ہوتے ہی آپ ڈیش بورڈ استعمال کر سکیں گے۔ اگر کوئی مسئلہ ہو تو ایڈمن سے رابطہ کریں۔</span>
+        <span class="i18n-en">Your account opens automatically once the admin approves it. Reach out to admin directly if there are issues.</span>
+      </div>
+      <div class="pend-actions">
+        <button class="btn btn-ghost btn-sm" onclick="showLoginForm()">← <span class="i18n-en">Back to login</span><span class="i18n-ur">واپس لاگ ان</span></button>
+        <button class="btn btn-gold btn-sm" onclick="checkApproval()">🔄 <span class="i18n-en">Check approval</span><span class="i18n-ur">منظوری چیک کریں</span></button>
+      </div>
+    </div>
+  </div>
 </div>
- 
+</div>
+
 <!-- ══════════ APP ══════════ -->
 <div id="app">
 <!-- TOPBAR -->
@@ -769,6 +967,9 @@ body.lang-ur .i18n-en{display:none!important}
       <span class="nav-icon" data-icon="mail"></span><div class="nav-text"><span class="i18n-en">Messages</span><span class="i18n-ur">پیغامات</span></div>
       <span class="nav-badge" id="msgBadge">0</span>
     </div>
+    <div class="nav-item" id="n-settings" onclick="showTab('settings')">
+      <span class="nav-icon">⚙️</span><div class="nav-text"><span class="i18n-en">Settings</span><span class="i18n-ur">ترتیبات</span></div>
+    </div>
     <div class="nav-section admin-only"><span class="i18n-en">Admin</span><span class="i18n-ur">ایڈمن</span></div>
     <div class="nav-item admin-only" id="n-members" onclick="showTab('members')">
       <span class="nav-icon" data-icon="users"></span><div class="nav-text"><span class="i18n-en">Members</span><span class="i18n-ur">اراکین</span></div>
@@ -797,7 +998,13 @@ body.lang-ur .i18n-en{display:none!important}
     <div class="pg-title-ar">خوش آمدید - <span id="greetName">-</span></div>
     <div class="pg-title-en">Welcome to the Family Fund</div>
   </div>
+  <div class="card admin-only" id="qaCard" style="margin-bottom:14px;display:none">
+    <div class="qa-strip" id="qaStrip"></div>
+  </div>
   <div class="stats" id="dStats"></div>
+  <div id="dAdvanced" style="display:grid;grid-template-columns:1.3fr 1fr;gap:16px;margin-bottom:16px"></div>
+  <div id="dLeaderboard" style="margin-bottom:16px"></div>
+  <div id="dProvinceMap" style="margin-bottom:16px"></div>
   <div id="dBranchStats"></div>
   <div style="display:grid;grid-template-columns:1.3fr 1fr;gap:16px;margin-bottom:16px">
     <div class="card">
@@ -817,11 +1024,45 @@ body.lang-ur .i18n-en{display:none!important}
  
 <!-- MY ACCOUNT -->
 <div id="tab-myaccount" class="hidden">
-  <div class="pg-hdr" style="display:flex;align-items:flex-start;justify-content:space-between">
+  <div class="pg-hdr" style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:8px">
     <div><div class="pg-title-ar"><span class="i18n-en">My Account</span><span class="i18n-ur">میرا کھاتہ</span></div><div class="pg-title-en">Account & Family</div></div>
-    <button class="btn btn-gold btn-sm" onclick="openAddMember('self')"><span class="i18n-en">+ Add Family Member</span><span class="i18n-ur">+ خاندان میں شامل</span></button>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-em btn-sm" onclick="openMyDonateM()">🤲 <span class="i18n-en">Record My Donation</span><span class="i18n-ur">میری ادائیگی درج کریں</span></button>
+      <button class="btn btn-gold btn-sm" onclick="openAddMember('self')"><span class="i18n-en">+ Add Family Member</span><span class="i18n-ur">+ خاندان میں شامل</span></button>
+    </div>
   </div>
   <div id="myContent"></div>
+</div>
+
+<!-- MY DONATION MODAL -->
+<div class="modal-bg" id="myDonM">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-hdr"><div class="modal-title-ur"><span class="i18n-en">Record My Donation</span><span class="i18n-ur">میری ادائیگی درج کریں</span></div></div>
+    <div class="modal-body">
+      <div class="ajer">
+        <div class="ajer-ar">مَن ذَا الَّذِي يُقْرِضُ اللَّهَ قَرْضًا حَسَنًا</div>
+        <div class="ajer-ur i18n-ur">کون ہے جو اللہ کو قرض حسنہ دے — البقرة ٢٤٥</div>
+        <div class="ajer-ur i18n-en" style="direction:ltr;font-family:var(--font-en);font-style:italic">Who will lend Allah a goodly loan — Al-Baqarah 2:245</div>
+      </div>
+      <div style="font-size:11px;color:var(--gold4);padding:8px 10px;background:rgba(201,168,76,0.06);border:1px solid var(--border);border-radius:var(--r-sm);margin-bottom:12px;font-style:italic"><span class="i18n-en">Your submission goes to admin for verification before it counts toward the fund.</span><span class="i18n-ur">آپ کی درخواست ایڈمن کی تصدیق کے بعد فنڈ میں شامل ہو گی۔</span></div>
+      <div class="frow">
+        <div class="fgrp"><label class="flbl"><span class="i18n-en">Amount Rs.</span><span class="i18n-ur">رقم</span> <span style="color:#f87171">*</span></label><input class="finp" id="mdAmt" type="number" placeholder="0" style="direction:ltr"></div>
+        <div class="fgrp"><label class="flbl"><span class="i18n-en">Month</span><span class="i18n-ur">مہینہ</span></label><select class="fsel" id="mdMonth"></select></div>
+      </div>
+      <div class="fgrp"><label class="flbl"><span class="i18n-en">Fund Type</span><span class="i18n-ur">فنڈ کی قسم</span></label>
+        <select class="fsel" id="mdType">
+          <option value="sadaqah">Sadaqah / صدقہ</option>
+          <option value="zakat">Zakat / زکوٰۃ</option>
+          <option value="qarz">Qarz pool / قرض پول</option>
+        </select>
+      </div>
+      <div class="fgrp"><label class="flbl"><span class="i18n-en">Note (optional)</span><span class="i18n-ur">نوٹ</span></label><input class="finp" id="mdNote" placeholder="e.g. transferred via JazzCash"></div>
+    </div>
+    <div class="modal-ft">
+      <button class="btn btn-gold" onclick="submitMyDonation()"><span class="i18n-en">Submit for Verification</span><span class="i18n-ur">تصدیق کے لیے بھیجیں</span></button>
+      <button class="btn btn-ghost" onclick="closeModal('myDonM')"><span class="i18n-en">Cancel</span><span class="i18n-ur">منسوخ</span></button>
+    </div>
+  </div>
 </div>
  
 <!-- FAMILY TREE -->
@@ -878,11 +1119,14 @@ body.lang-ur .i18n-en{display:none!important}
     <div><div class="pg-title-ar"><span class="i18n-en">Family Members</span><span class="i18n-ur">اراکین خاندان</span></div></div>
     <button class="btn btn-gold btn-sm" onclick="openAddMember('admin')">+ Add Member</button>
   </div>
-  <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
-    <input class="finp" style="flex:1;min-width:160px" placeholder="Search member..." oninput="filterMbr(this.value)">
-    <select class="fsel" style="width:auto" onchange="filterMbrSt(this.value)">
-      <option value="">All</option><option value="head">Head / سربراہ</option><option value="active">Paid / ادا</option><option value="pending">Unpaid / باقی</option>
+  <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center">
+    <input class="finp" style="flex:1;min-width:160px" id="filterSearch" placeholder="Search by name, father, city..." oninput="applyMemberFilters()">
+    <select class="fsel" style="width:auto" id="filterStatus" onchange="applyMemberFilters()">
+      <option value="">All Status</option><option value="admin">Admin / ایڈمن</option><option value="active">Paid / ادا</option><option value="pending">Unpaid / باقی</option>
     </select>
+    <select class="fsel" style="width:auto" id="filterProvince" onchange="applyMemberFilters()"></select>
+    <select class="fsel" style="width:auto" id="filterCity" onchange="applyMemberFilters()"><option value="">All Cities</option></select>
+    <button class="btn btn-ghost btn-sm" onclick="resetMemberFilters()">↺ Reset</button>
   </div>
   <div class="card">
     <div class="tbl-wrap"><table>
@@ -903,6 +1147,10 @@ body.lang-ur .i18n-en{display:none!important}
 <div id="tab-fund" class="hidden admin-only">
   <div class="pg-hdr"><div class="pg-title-ar"><span class="i18n-en">Fund Register</span><span class="i18n-ur">فنڈ رجسٹر</span></div></div>
   <div class="stats" id="fStats"></div>
+  <div class="card" id="pendVerifyCard" style="display:none;border-color:rgba(201,168,76,0.4);margin-bottom:16px">
+    <div class="card-hdr" style="background:rgba(201,168,76,0.08)"><div><div class="card-title-ur"><span class="i18n-en">⏳ Pending Verifications</span><span class="i18n-ur">⏳ تصدیق کی منتظر</span></div><div class="card-title-en">Member-submitted donations awaiting your approval</div></div><span class="tag t-pending" id="pendVerifyCount">0</span></div>
+    <div id="pendVerifyList"></div>
+  </div>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
     <div class="card">
       <div class="card-hdr"><div class="card-title-ur"><span class="i18n-en">Record Payment</span><span class="i18n-ur">ادائیگی درج کریں</span></div></div>
@@ -951,6 +1199,141 @@ body.lang-ur .i18n-en{display:none!important}
   </div>
 </div>
  
+<!-- SETTINGS -->
+<div id="tab-settings" class="hidden">
+  <div class="pg-hdr"><div class="pg-title-ar"><span class="i18n-en">Settings</span><span class="i18n-ur">ترتیبات</span></div><div class="pg-title-en">Profile & Configuration</div></div>
+  <div class="card" style="max-width:640px">
+    <div class="card-hdr"><div class="card-title-ur"><span class="i18n-en">My Profile</span><span class="i18n-ur">میری پروفائل</span></div></div>
+    <div class="card-body">
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:18px;padding:14px;background:rgba(201,168,76,0.05);border:1px solid var(--border);border-radius:var(--r-sm)">
+        <div style="position:relative">
+          <div class="av" id="stAv" style="width:64px;height:64px;font-size:22px;cursor:pointer" onclick="document.getElementById('stPicInput').click()" title="Click to upload photo"></div>
+          <input type="file" id="stPicInput" accept="image/*" style="display:none" onchange="setMyPic(this)">
+          <div style="position:absolute;bottom:-3px;right:-3px;background:var(--gold);color:var(--ink);border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:10px;cursor:pointer;border:2px solid var(--ink);box-shadow:0 2px 8px rgba(0,0,0,0.3)" onclick="document.getElementById('stPicInput').click()" title="Upload photo">📷</div>
+        </div>
+        <div style="flex:1">
+          <div id="stName" style="font-family:var(--font-arabic);font-size:18px;color:var(--gold2)">—</div>
+          <div id="stRole" style="font-size:11px;color:var(--gold4);font-family:var(--font-en);margin-top:2px">—</div>
+          <div style="display:flex;gap:6px;margin-top:8px">
+            <button class="btn btn-ghost btn-sm" style="padding:4px 10px;font-size:10px" onclick="openColorPicker()">🎨 <span class="i18n-en">Color</span><span class="i18n-ur">رنگ</span></button>
+            <button class="btn btn-ghost btn-sm" style="padding:4px 10px;font-size:10px" onclick="document.getElementById('stPicInput').click()">📷 <span class="i18n-en">Photo</span><span class="i18n-ur">تصویر</span></button>
+            <button class="btn btn-ghost btn-sm" style="padding:4px 10px;font-size:10px" onclick="removeMyPic()" id="stRmPic" style="display:none">✕ <span class="i18n-en">Remove</span><span class="i18n-ur">ہٹائیں</span></button>
+          </div>
+        </div>
+      </div>
+      <div class="frow">
+        <div class="fgrp"><label class="flbl"><span class="i18n-en">Urdu Name</span><span class="i18n-ur">اردو نام</span></label><input class="finp" id="stNur"></div>
+        <div class="fgrp"><label class="flbl"><span class="i18n-en">English Name</span><span class="i18n-ur">انگلش نام</span></label><input class="finp" id="stNen" style="direction:ltr"></div>
+      </div>
+      <div class="frow">
+        <div class="fgrp"><label class="flbl"><span class="i18n-en">Phone</span><span class="i18n-ur">فون</span></label><input class="finp" id="stPhone" style="direction:ltr"></div>
+        <div class="fgrp"><label class="flbl"><span class="i18n-en">City</span><span class="i18n-ur">شہر</span></label><input class="finp" id="stCity" style="direction:ltr"></div>
+      </div>
+      <div class="fgrp"><label class="flbl"><span class="i18n-en">Province</span><span class="i18n-ur">صوبہ</span></label><select class="fsel" id="stProvince" style="direction:ltr"></select></div>
+      <div class="frow">
+        <div class="fgrp"><label class="flbl"><span class="i18n-en">New Password</span><span class="i18n-ur">نیا پاس ورڈ</span></label><input class="finp" id="stPass" type="password" placeholder="leave blank to keep current" style="direction:ltr"></div>
+        <div class="fgrp"><label class="flbl"><span class="i18n-en">Confirm Password</span><span class="i18n-ur">پاس ورڈ تصدیق</span></label><input class="finp" id="stPass2" type="password" style="direction:ltr"></div>
+      </div>
+      <button class="btn btn-gold" onclick="saveProfile()"><span class="i18n-en">Save Changes</span><span class="i18n-ur">محفوظ کریں</span></button>
+    </div>
+  </div>
+
+  <div class="card" style="max-width:640px">
+    <div class="card-hdr"><div class="card-title-ur"><span class="i18n-en">Theme & Appearance</span><span class="i18n-ur">رنگ و ظاہر</span></div></div>
+    <div class="card-body">
+      <div style="font-size:11px;color:var(--gold4);margin-bottom:10px;font-family:var(--font-en);font-style:italic"><span class="i18n-en">Pick your accent palette — applied across the whole app.</span><span class="i18n-ur">اپنا پسندیدہ رنگ منتخب کریں — پورے ایپ پر لاگو ہو گا۔</span></div>
+      <div id="themePicker" style="display:flex;flex-wrap:wrap;gap:14px;margin-bottom:14px"></div>
+      <div style="display:flex;align-items:center;gap:14px;padding:10px 12px;background:rgba(0,0,0,0.04);border:1px solid var(--border);border-radius:var(--r-sm)">
+        <span style="font-size:12px;color:var(--cream2);flex:1"><span class="i18n-en">Background mode</span><span class="i18n-ur">پس منظر</span></span>
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-ghost btn-sm" id="modeDark" onclick="setMode('dark')">🌙 Dark</button>
+          <button class="btn btn-ghost btn-sm" id="modeLight" onclick="setMode('light')">☀️ Light</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card admin-only" style="max-width:640px">
+    <div class="card-hdr"><div class="card-title-ur"><span class="i18n-en">Admin Configuration</span><span class="i18n-ur">ایڈمن ترتیبات</span></div></div>
+    <div class="card-body">
+      <div class="fgrp"><label class="flbl"><span class="i18n-en">Vote Threshold for Approval</span><span class="i18n-ur">منظوری کے لیے ووٹ شرح</span>: <span id="stThreshVal" style="color:var(--gold2)">50%</span></label>
+        <input type="range" id="stThresh" min="30" max="75" value="50" style="width:100%;accent-color:var(--gold2)" oninput="document.getElementById('stThreshVal').textContent=this.value+'%'">
+        <div style="font-size:10px;color:var(--gold4);font-family:var(--font-en);margin-top:4px;font-style:italic">Higher = more consensus needed. 50% = simple majority.</div>
+      </div>
+      <div class="fgrp"><label class="flbl"><span class="i18n-en">Default Monthly Pledge (Rs.)</span><span class="i18n-ur">طے شدہ ماہانہ (روپے)</span></label>
+        <input class="finp" id="stMonthly" type="number" style="direction:ltr">
+      </div>
+      <button class="btn btn-gold btn-sm" onclick="saveAdminCfg()"><span class="i18n-en">Save Configuration</span><span class="i18n-ur">ترتیبات محفوظ</span></button>
+    </div>
+  </div>
+
+  <div class="card admin-only" style="max-width:640px;border-color:rgba(220,50,50,0.3)">
+    <div class="card-hdr" style="background:rgba(220,50,50,0.06)"><div class="card-title-ur" style="color:#f87171"><span class="i18n-en">⚠️ Danger Zone</span><span class="i18n-ur">⚠️ خطرناک علاقہ</span></div></div>
+    <div class="card-body">
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:rgba(220,50,50,0.04);border-radius:var(--r-sm);border:1px solid rgba(220,50,50,0.15)">
+          <div style="font-size:12px"><span class="i18n-en">Export all data (JSON backup)</span><span class="i18n-ur">سارا ڈیٹا برآمد کریں</span></div>
+          <button class="btn btn-ghost btn-sm" onclick="exportBackup()">⬇ <span class="i18n-en">Export</span><span class="i18n-ur">برآمد</span></button>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:rgba(220,50,50,0.04);border-radius:var(--r-sm);border:1px solid rgba(220,50,50,0.15)">
+          <div style="font-size:12px"><span class="i18n-en">Import from backup file</span><span class="i18n-ur">بیک اپ سے درآمد</span></div>
+          <label class="btn btn-ghost btn-sm" style="cursor:pointer;margin:0">⬆ <span class="i18n-en">Import</span><span class="i18n-ur">درآمد</span><input type="file" id="impFile" accept=".json" style="display:none" onchange="importBackup(this)"></label>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:rgba(220,50,50,0.04);border-radius:var(--r-sm);border:1px solid rgba(220,50,50,0.15)">
+          <div style="font-size:12px"><span class="i18n-en">Clear all payments & cases</span><span class="i18n-ur">تمام ادائیگیاں اور کیسز صاف کریں</span></div>
+          <button class="btn btn-red btn-sm" onclick="dangerClearAll()"><span class="i18n-en">Clear All</span><span class="i18n-ur">سب صاف</span></button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SETUP WIZARD MODAL -->
+<div class="modal-bg" id="wizM">
+  <div class="modal" style="max-width:540px">
+    <div class="modal-hdr"><div class="modal-title-ur" id="wzTitle"><span class="i18n-en">Welcome — Complete your profile</span><span class="i18n-ur">خوش آمدید — پروفائل مکمل کریں</span></div></div>
+    <div class="modal-body">
+      <div class="ajer" style="margin-bottom:14px">
+        <div class="ajer-ar">وَتَعَاوَنُوا عَلَى الْبِرِّ وَالتَّقْوَىٰ</div>
+        <div class="ajer-ur i18n-ur">نیکی اور پرہیزگاری میں ایک دوسرے کی مدد کرو — المائدہ ٢</div>
+        <div class="ajer-ur i18n-en" style="direction:ltr;font-family:var(--font-en);font-style:italic">Cooperate in righteousness and piety — Al-Maidah 5:2</div>
+      </div>
+      <div style="font-size:12px;color:var(--gold4);margin-bottom:12px;line-height:1.6"><span class="i18n-en">All fields are required. You'll only see this once.</span><span class="i18n-ur">تمام خانے لازمی ہیں۔ یہ صرف ایک بار دکھایا جائے گا۔</span></div>
+      <div class="frow">
+        <div class="fgrp"><label class="flbl"><span class="i18n-en">English Name</span><span class="i18n-ur">انگلش نام</span> <span style="color:#f87171">*</span></label><input class="finp" id="wzNen" placeholder="e.g. Ahmad Baloch" style="direction:ltr"></div>
+        <div class="fgrp"><label class="flbl"><span class="i18n-en">Urdu Name (auto)</span><span class="i18n-ur">اردو نام</span></label><input class="finp" id="wzNur" placeholder="auto from English"></div>
+      </div>
+      <div class="fgrp"><label class="flbl"><span class="i18n-en">Father's Name</span><span class="i18n-ur">والد کا نام</span> <span style="color:#f87171">*</span></label><input class="finp" id="wzFather" placeholder="e.g. Abu Baker" style="direction:ltr"></div>
+      <div class="frow">
+        <div class="fgrp"><label class="flbl"><span class="i18n-en">Phone</span><span class="i18n-ur">فون</span> <span style="color:#f87171">*</span></label><input class="finp" id="wzPhone" placeholder="03xx-xxxxxxx" style="direction:ltr"></div>
+        <div class="fgrp"><label class="flbl"><span class="i18n-en">City</span><span class="i18n-ur">شہر</span> <span style="color:#f87171">*</span></label><input class="finp" id="wzCity" placeholder="e.g. Quetta" style="direction:ltr"></div>
+      </div>
+      <div class="fgrp"><label class="flbl"><span class="i18n-en">Province</span><span class="i18n-ur">صوبہ</span> <span style="color:#f87171">*</span></label><select class="fsel" id="wzProvince" style="direction:ltr"></select></div>
+      <div class="frow">
+        <div class="fgrp"><label class="flbl"><span class="i18n-en">New Password</span><span class="i18n-ur">نیا پاس ورڈ</span> <span style="color:#f87171">*</span></label><input class="finp" id="wzPass" type="password" placeholder="min 6 chars" style="direction:ltr"></div>
+        <div class="fgrp"><label class="flbl"><span class="i18n-en">Confirm</span><span class="i18n-ur">تصدیق</span> <span style="color:#f87171">*</span></label><input class="finp" id="wzPass2" type="password" style="direction:ltr"></div>
+      </div>
+      <div style="font-size:11px;color:var(--gold4);padding:8px 10px;background:rgba(201,168,76,0.06);border:1px solid var(--border);border-radius:var(--r-sm);margin-top:6px;font-style:italic">
+        <span class="i18n-en">After this, you can edit anything in Settings.</span><span class="i18n-ur">اس کے بعد آپ ترتیبات میں سب کچھ تبدیل کر سکتے ہیں۔</span>
+      </div>
+    </div>
+    <div class="modal-ft">
+      <button class="btn btn-gold" onclick="completeSetup()"><span class="i18n-en">Complete Setup</span><span class="i18n-ur">ترتیب مکمل</span></button>
+    </div>
+  </div>
+</div>
+
+<!-- COLOR PICKER MODAL -->
+<div class="modal-bg" id="colorM">
+  <div class="modal" style="max-width:340px">
+    <div class="modal-hdr"><div class="modal-title-ur"><span class="i18n-en">Choose Avatar Color</span><span class="i18n-ur">رنگ منتخب کریں</span></div></div>
+    <div class="modal-body">
+      <div id="colorGrid" style="display:flex;flex-wrap:wrap;gap:10px;justify-content:center;padding:6px"></div>
+    </div>
+    <div class="modal-ft"><button class="btn btn-ghost" onclick="closeModal('colorM')"><span class="i18n-en">Close</span><span class="i18n-ur">بند کریں</span></button></div>
+  </div>
+</div>
+
 <!-- ADMIN: BROADCAST -->
 <div id="tab-broadcast" class="hidden admin-only">
   <div class="pg-hdr"><div class="pg-title-ar"><span class="i18n-en">Broadcast</span><span class="i18n-ur">اعلان</span></div></div>
@@ -1049,9 +1432,10 @@ body.lang-ur .i18n-en{display:none!important}
     </div>
     <div class="fgrp" id="nmParentWrap"><label class="flbl"><span class="i18n-en">Family head / parent in tree</span><span class="i18n-ur">خاندان کا سربراہ / والد</span></label><select class="fsel" id="nmParent"></select></div>
     <div class="frow">
-      <div class="fgrp"><label class="flbl"><span class="i18n-en">Phone </span><span class="i18n-ur">فون</span> <span style="font-size:9px;color:var(--gold4);font-style:italic">(optional)</span></label><input class="finp" id="nmPhone" placeholder="03xx-xxxxxxx" style="direction:ltr"></div>
-      <div class="fgrp"><label class="flbl"><span class="i18n-en">City </span><span class="i18n-ur">شہر</span> <span style="font-size:9px;color:var(--gold4);font-style:italic">(optional)</span></label><input class="finp" id="nmCity" placeholder="e.g. Quetta" style="direction:ltr"></div>
+      <div class="fgrp"><label class="flbl"><span class="i18n-en">Phone </span><span class="i18n-ur">فون</span></label><input class="finp" id="nmPhone" placeholder="03xx-xxxxxxx" style="direction:ltr"></div>
+      <div class="fgrp"><label class="flbl"><span class="i18n-en">City </span><span class="i18n-ur">شہر</span></label><input class="finp" id="nmCity" placeholder="e.g. Quetta" style="direction:ltr"></div>
     </div>
+    <div class="fgrp"><label class="flbl"><span class="i18n-en">Province </span><span class="i18n-ur">صوبہ</span></label><select class="fsel" id="nmProvince" style="direction:ltr"></select></div>
     <div class="frow">
       <div class="fgrp"><label class="flbl"><span class="i18n-en">Username</span><span class="i18n-ur">صارف نام</span> <span style="font-size:9px;color:var(--gold4);font-style:italic">(optional — for login)</span></label><input class="finp" id="nmUser" placeholder="leave empty for record-only" style="direction:ltr"></div>
       <div class="fgrp"><label class="flbl"><span class="i18n-en">Password</span><span class="i18n-ur">پاس ورڈ</span></label><input class="finp" id="nmPass" placeholder="password" style="direction:ltr"></div>
@@ -1074,13 +1458,10 @@ body.lang-ur .i18n-en{display:none!important}
 /* ══════════════════════════════════════════
    DATA
 ══════════════════════════════════════════ */
+// Single admin to start. All family members get added by admin (or self-register → admin approves).
+// Internal id stays 'abubakar' (used in 50+ refs) but it's just a key — name/details are blank, filled in wizard.
 const USERS = {
-  abubakar:   {id:'abubakar',  ur:'ابوبکر',     en:'Abu Baker',  role:'admin',  rel:'سربراہ / Head',                   color:'#c9a84c', pass:'admin123',    parent:null,       phone:'', city:'', father:'', deceased:false, pic:null},
-  umar:       {id:'umar',      ur:'عمر',         en:'Umar',       role:'member', rel:'بھائی / Brother',                 color:'#1f8a5a', pass:'umar123',     parent:'abubakar', phone:'', city:'', father:'', deceased:false, pic:null},
-  bilal:      {id:'bilal',     ur:'بلال',        en:'Bilal',      role:'member', rel:'کزن / Cousin (sibling of Jamal & Quratulain)',  color:'#3b82f6', pass:'bilal123',    parent:'abubakar', phone:'', city:'', father:'', deceased:false, pic:null},
-  jamal:      {id:'jamal',     ur:'جمال',        en:'Jamal',      role:'member', rel:'کزن / Cousin (sibling of Bilal & Quratulain)',  color:'#8b5cf6', pass:'jamal123',    parent:'abubakar', phone:'', city:'', father:'', deceased:false, pic:null},
-  quratulain: {id:'quratulain',ur:'قرۃ العین',  en:'Quratulain', role:'member', rel:'کزن / Cousin (sibling of Bilal & Jamal)',       color:'#ec4899', pass:'qura123',     parent:'abubakar', phone:'', city:'', father:'', deceased:false, pic:null},
-  sikandar:   {id:'sikandar',  ur:'سکندر',       en:'Sikandar',   role:'member', rel:'کزن / Cousin (separate family)',  color:'#f59e0b', pass:'sikandar123', parent:'abubakar', phone:'', city:'', father:'', deceased:false, pic:null},
+  abubakar: {id:'abubakar', ur:'', en:'', role:'admin', rel:'ایڈمن / Admin', color:'#c9a84c', pass:'admin123', parent:null, phone:'', city:'', province:'', father:'', deceased:false, pic:null, _needsSetup:true},
 };
  
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -1103,6 +1484,18 @@ const RELATIONS = [
   'بہنوئی / Sister\'s husband','دیور / Husband\'s younger brother',
   'جیٹھ / Husband\'s elder brother','دیورانی / Younger brother\'s wife',
   'جیٹھانی / Elder brother\'s wife','رشتہ دار / Other relative','دوست / Friend','دیگر / Other',
+];
+
+const PROVINCES = [
+  {key:'balochistan', en:'Balochistan', ur:'بلوچستان'},
+  {key:'sindh',       en:'Sindh',       ur:'سندھ'},
+  {key:'punjab',      en:'Punjab',      ur:'پنجاب'},
+  {key:'kpk',         en:'Khyber Pakhtunkhwa', ur:'خیبر پختونخوا'},
+  {key:'gilgit',      en:'Gilgit-Baltistan', ur:'گلگت بلتستان'},
+  {key:'azadkashmir', en:'Azad Kashmir', ur:'آزاد کشمیر'},
+  {key:'islamabad',   en:'Islamabad',    ur:'اسلام آباد'},
+  {key:'overseas',    en:'Overseas',     ur:'بیرونِ ملک'},
+  {key:'other',       en:'Other',        ur:'دیگر'},
 ];
 
 const COMMON_NAMES_UR = {
@@ -1324,8 +1717,42 @@ let S = {
   notifs:{abubakar:[]},
   messages:{abubakar:[]},
   nid:1,mid:1,
+  cfg:{voteThresh:50, defaultMonthly:1000, adminSetupDone:false},
 };
- 
+
+/* ══════════════════════════════════════════
+   LOCALSTORAGE PERSISTENCE
+══════════════════════════════════════════ */
+const LS_KEY = 'balochsath_v8';
+function saveDB(){
+  try{
+    const snap = {USERS, S:{...S, user: S.user?.id||null}};
+    localStorage.setItem(LS_KEY, JSON.stringify(snap));
+  }catch(e){console.warn('saveDB failed',e);}
+}
+function loadDB(){
+  try{
+    const raw = localStorage.getItem(LS_KEY);
+    if(!raw)return false;
+    const snap = JSON.parse(raw);
+    if(snap.USERS){
+      // merge so any new default users (added in code) still appear
+      Object.keys(snap.USERS).forEach(k=>USERS[k]=snap.USERS[k]);
+    }
+    if(snap.S){
+      const savedUserId = snap.S.user;
+      Object.assign(S, snap.S);
+      S.user = null; // user re-authenticates on each session
+      if(!S.cfg)S.cfg={voteThresh:50,defaultMonthly:1000,adminSetupDone:false};
+    }
+    return true;
+  }catch(e){console.warn('loadDB failed',e);return false;}
+}
+// Auto-save: wrap every mutation by listening to common entry points
+// We'll call saveDB() at end of mutating functions. Also a safety net interval:
+setInterval(saveDB, 5000);
+window.addEventListener('beforeunload', saveDB);
+
 /* ══════════════════════════════════════════
    VERSE TICKER
 ══════════════════════════════════════════ */
@@ -1353,14 +1780,15 @@ function avContent(u){
 }
 function fmt(n){return 'Rs. '+n.toLocaleString()}
 function t(ur,en){return S.lang==='ur'?ur:en}
-function totalFund(){return S.payments.reduce((a,p)=>a+p.amt,0)}
+function totalFund(){return S.payments.filter(p=>!p.pendingVerify).reduce((a,p)=>a+p.amt,0)}
 function poolType(p){return p.type||'sadaqah'}
-function poolInflow(t){return S.payments.filter(p=>poolType(p)===t).reduce((a,p)=>a+p.amt,0)}
+function poolInflow(t){return S.payments.filter(p=>poolType(p)===t&&!p.pendingVerify).reduce((a,p)=>a+p.amt,0)}
 function poolOutflow(t){return S.loans.filter(l=>(l.pool||'sadaqah')===t).reduce((a,l)=>a+(l.amt-l.paid),0)}
 function poolBalance(t){return poolInflow(t)-poolOutflow(t)}
 function emrCat(e){return EMR_CATEGORIES[e.category||'general']||EMR_CATEGORIES.general}
-function paidBy(uid){return S.payments.filter(p=>p.uid===uid).reduce((a,p)=>a+p.amt,0)}
-function mPaidBy(uid){return[...new Set(S.payments.filter(p=>p.uid===uid).map(p=>p.month))].length}
+function paidBy(uid){return S.payments.filter(p=>p.uid===uid&&!p.pendingVerify).reduce((a,p)=>a+p.amt,0)}
+function pendingBy(uid){return S.payments.filter(p=>p.uid===uid&&p.pendingVerify).reduce((a,p)=>a+p.amt,0)}
+function mPaidBy(uid){return[...new Set(S.payments.filter(p=>p.uid===uid&&!p.pendingVerify).map(p=>p.month))].length}
 function curMonthKey(){
   const d=new Date();
   return MONTHS[d.getMonth()]+' '+d.getFullYear();
@@ -1368,6 +1796,7 @@ function curMonthKey(){
 function paidCurMonth(uid){return S.payments.some(p=>p.uid===uid&&p.month===curMonthKey())}
 function voted(emr,uid){return emr.votes.yes.includes(uid)||emr.votes.no.includes(uid)}
 function votePct(emr){return Math.round(emr.votes.yes.length/Object.keys(USERS).length*100)}
+function voteThresh(){return (S.cfg?.voteThresh ?? 50)/100}
 function hijriDate(){
   try{return new Intl.DateTimeFormat('ar-SA-u-ca-islamic-umalqura',{day:'numeric',month:'long',year:'numeric'}).format(new Date())}
   catch(e){return''}
@@ -1432,15 +1861,24 @@ function updateBadges(){
   document.getElementById('msgBadge').textContent=um;
   document.getElementById('eBadge').textContent=ue;
 }
+function provinceOpts(includeBlank){
+  return (includeBlank?'<option value="">— Select / منتخب کریں —</option>':'')+
+    PROVINCES.map(p=>`<option value="${p.key}">${p.en} / ${p.ur}</option>`).join('');
+}
 function populateSels(){
-  const opts=Object.values(USERS).map(u=>`<option value="${u.id}">${u.en}${u.ur?' | '+u.ur:''}</option>`).join('');
+  const opts=Object.values(USERS).map(u=>`<option value="${u.id}">${u.en||u.ur||u.id}${u.ur&&u.en?' | '+u.ur:''}</option>`).join('');
   ['pMember','eApp','lMember'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=opts});
+  ['regProvince','nmProvince','wzProvince','stProvince','filterProvince'].forEach(id=>{
+    const el=document.getElementById(id); if(el && !el.dataset.populated){el.innerHTML=provinceOpts(true);el.dataset.populated='1';}
+  });
   const pOpts=['<option value="none">-- No Parent (Root) --</option>',...Object.values(USERS).map(u=>`<option value="${u.id}">${u.en}</option>`)].join('');
   const np=document.getElementById('nmParent');if(np)np.innerHTML=pOpts;
   const yr=new Date().getFullYear();
   const curM=new Date().getMonth();
   const pm=document.getElementById('pMonth');
   if(pm)pm.innerHTML=MONTHS.map((m,i)=>`<option ${i===curM?'selected':''}>${m} ${yr}</option>`).join('');
+  const md=document.getElementById('mdMonth');
+  if(md)md.innerHTML=MONTHS.map((m,i)=>`<option ${i===curM?'selected':''}>${m} ${yr}</option>`).join('');
   const ec=document.getElementById('eCat');
   if(ec){
     ec.innerHTML=Object.entries(EMR_CATEGORIES).map(([k,c])=>`<option value="${k}">${c.en} / ${c.ur}</option>`).join('');
@@ -1475,6 +1913,9 @@ function doLogin(){
   const p=document.getElementById('liPass').value;
   const usr=USERS[u];
   if(!usr||!usr.pass||usr.deceased||usr.pass!==p){
+    // Maybe their registration is still pending
+    const pending=S.pendingRegs.find(r=>r.user===u && r.pass===p);
+    if(pending){showPendingPage(pending);return;}
     const e=document.getElementById('liErr');e.style.display='block';
     setTimeout(()=>e.style.display='none',3000);return;
   }
@@ -1498,6 +1939,21 @@ function loginAs(usr){
   showTab('dashboard');
   updateBadges();
   paintIcons();
+  // First-time setup wizard — for ANY user with _needsSetup flag (admin OR member)
+  if(usr._needsSetup){
+    setTimeout(()=>{
+      populateSels();
+      const set=(id,v)=>{const e=document.getElementById(id);if(e)e.value=v||'';};
+      set('wzNen',usr.en); set('wzNur',usr.ur);
+      set('wzFather',usr.father);
+      set('wzPhone',usr.phone); set('wzCity',usr.city);
+      const wzpv=document.getElementById('wzProvince');if(wzpv)wzpv.value=usr.province||'';
+      // Auto-transliterate Urdu while typing English
+      const en=document.getElementById('wzNen'), ur=document.getElementById('wzNur');
+      if(en && ur){en.oninput=()=>{if(!ur.value||ur.dataset.auto==='1'){ur.value=transliterateName(en.value);ur.dataset.auto='1';}};}
+      openModal('wizM'); paintIcons();
+    },500);
+  }
 }
 function doLogout(){
   S.user=null;
@@ -1513,14 +1969,42 @@ function showRegister(){
   document.querySelector('.login-wrap:not(#regWrap)').style.display='none';
   document.getElementById('regWrap').style.display='block';
   const rt=document.getElementById('regRelTo');
-  if(rt)rt.innerHTML=Object.values(USERS).map(u=>`<option value="${u.id}">${u.en}${u.id==='abubakar'?' (Head)':''}</option>`).join('');
+  if(rt)rt.innerHTML=Object.values(USERS).map(u=>`<option value="${u.id}">${u.en||u.ur||u.id}${u.role==='admin'?' (Admin)':''}</option>`).join('');
   const rel=document.getElementById('regRel');
   if(rel)rel.innerHTML=`<option value="">-- ${t('منتخب کریں (اختیاری)','Select (optional)')} --</option>`+RELATIONS.map(r=>`<option>${r}</option>`).join('');
   paintIcons();
 }
 function showLoginForm(){
-  document.querySelector('.login-wrap:not(#regWrap)').style.display='block';
-  document.getElementById('regWrap').style.display='none';
+  document.querySelectorAll('.login-wrap').forEach(w=>w.style.display='none');
+  document.querySelector('.login-wrap:not(#regWrap):not(#pendWrap)').style.display='block';
+}
+function showPendingPage(reg){
+  document.querySelectorAll('.login-wrap').forEach(w=>w.style.display='none');
+  document.getElementById('pendWrap').style.display='block';
+  const av=document.getElementById('pendAv');
+  if(av){
+    av.textContent=ini(reg.en||reg.ur||'?');
+    av.style.background='#'+Math.floor(Math.random()*0x777777+0x444444).toString(16);
+  }
+  document.getElementById('pendName').textContent=reg.ur||reg.en||'—';
+  const pf=document.getElementById('pendFather');
+  pf.textContent=reg.father?(t('والد:','Father:')+' '+reg.father):'';
+  localStorage.setItem('balochsath_pendUser', reg.user);
+  paintIcons();
+}
+function checkApproval(){
+  const u=localStorage.getItem('balochsath_pendUser');
+  if(!u){showToast(t('کوئی منتظر اکاؤنٹ نہیں','No pending account'));return;}
+  if(USERS[u]){
+    showToast(t('مبارک ہو! اکاؤنٹ منظور ہو گیا','Approved! Logging you in'),'gold');
+    localStorage.removeItem('balochsath_pendUser');
+    setTimeout(()=>loginAs(USERS[u]),900);
+  }else if(S.pendingRegs.find(r=>r.user===u)){
+    showToast(t('ابھی منظوری نہیں ہوئی — تھوڑی دیر بعد چیک کریں','Not approved yet — try again shortly'));
+  }else{
+    showToast(t('درخواست مسترد ہو گئی','Registration was rejected'),'err');
+    localStorage.removeItem('balochsath_pendUser');
+  }
 }
 function submitRegister(){
   const en=document.getElementById('regEn').value.trim();
@@ -1529,6 +2013,7 @@ function submitRegister(){
   const pass=document.getElementById('regPass').value.trim();
   const phone=document.getElementById('regPhone').value.trim();
   const city=document.getElementById('regCity').value.trim();
+  const province=document.getElementById('regProvince')?.value||'';
   const father=document.getElementById('regFather').value.trim();
   const rel=document.getElementById('regRel').value||'رشتہ دار / Other relative';
   const relatedTo=document.getElementById('regRelTo').value;
@@ -1554,12 +2039,11 @@ function submitRegister(){
     errEl.textContent=t('پہلے سے موجود ہیں — لاگ ان کریں','You already exist in family — please login');
     errEl.style.display='block';return;
   }
-  S.pendingRegs.push({id:Date.now(),ur:ur||en,en,user,pass,phone,city,father,rel,relatedTo,votes:{yes:[],no:[]},date:new Date().toLocaleDateString('en-GB')});
+  const reg = {id:Date.now(),ur:ur||en,en,user,pass,phone,city,province,father,rel,relatedTo,votes:{yes:[],no:[]},date:new Date().toLocaleDateString('en-GB')};
+  S.pendingRegs.push(reg);
   const relName=USERS[relatedTo]?.ur||relatedTo;
   addNotif('abubakar',`نئی رجسٹریشن: ${ur} (${relName} کا ${rel.split(' /')[0]})`,`New registration: ${en||ur} — ${rel.split(' / ')[1]||rel} of ${USERS[relatedTo]?.en||relatedTo}`,'reg');
   Object.keys(USERS).filter(id=>id!=='abubakar').forEach(id=>addNotif(id,`نئی رجسٹریشن کے لیے ووٹ: ${ur}`,`Vote needed: New registration ${en||ur}`,'reg'));
-  okEl.textContent=t('درخواست بھیج دی گئی! ایڈمن کی منظوری کا انتظار کریں','Request sent! Waiting for admin approval');
-  okEl.style.display='block';
   document.getElementById('regEn').value='';
   document.getElementById('regUser').value='';
   document.getElementById('regPass').value='';
@@ -1568,23 +2052,25 @@ function submitRegister(){
   document.getElementById('regFather').value='';
   document.getElementById('regUrPrev').textContent='';
   document.getElementById('regFatherMatch').textContent='';
+  saveDB();
+  showPendingPage(reg);
 }
 
 function approveReg(id){
   const r=S.pendingRegs.find(x=>x.id===id);
   if(!r)return;
   const parent=r.relatedTo&&USERS[r.relatedTo]?r.relatedTo:'abubakar';
-  USERS[r.user]={id:r.user,ur:r.ur,en:r.en,role:'member',rel:r.rel,color:'#'+Math.floor(Math.random()*0x777777+0x444444).toString(16),pass:r.pass,parent,phone:r.phone,city:r.city,father:r.father||'',deceased:false};
+  USERS[r.user]={id:r.user,ur:r.ur,en:r.en,role:'member',rel:r.rel,color:'#'+Math.floor(Math.random()*0x777777+0x444444).toString(16),pass:r.pass,parent,phone:r.phone,city:r.city,province:r.province||'',father:r.father||'',deceased:false,_needsSetup:true};
   S.notifs[r.user]=[];S.messages[r.user]=[];
   S.pendingRegs=S.pendingRegs.filter(x=>x.id!==id);
   populateSels();
   showToast(`✓ ${r.ur} (${r.user}) ${t('منظور','approved')}`,'gold');
-  rMbr();updateBadges();
+  rMbr();updateBadges();saveDB();
 }
 function rejectReg(id){
   S.pendingRegs=S.pendingRegs.filter(x=>x.id!==id);
   showToast(t('درخواست مسترد','Registration rejected'));
-  rMbr();
+  rMbr();saveDB();
 }
 function renderPendingRegs(){
   const card=document.getElementById('pendingRegsCard');
@@ -1615,7 +2101,7 @@ function showTab(name){
   document.getElementById('tab-'+name)?.classList.remove('hidden');
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   document.getElementById('n-'+name)?.classList.add('active');
-  ({dashboard:rDash,myaccount:rMy,tree:rTree,emergency:rEmr,members:rMbr,fund:rFund,loans:rLoans,notifications:rNotif,messages:rMsg,broadcast:()=>{}})[name]?.();
+  ({dashboard:rDash,myaccount:rMy,tree:rTree,emergency:rEmr,members:rMbr,fund:rFund,loans:rLoans,notifications:rNotif,messages:rMsg,settings:rSettings,broadcast:()=>{}})[name]?.();
   paintIcons();
 }
  
@@ -1626,6 +2112,24 @@ function rDash(){
   const uid=S.user?.id,isA=S.user?.role==='admin';
   const tf=totalFund(),al=S.loans.filter(l=>l.active).reduce((a,l)=>a+l.amt-l.paid,0);
   const cmk=curMonthKey(),cmn=MONTHS[new Date().getMonth()];
+  // Quick actions strip (admin only)
+  const qaCard=document.getElementById('qaCard'), qaStrip=document.getElementById('qaStrip');
+  if(qaCard && qaStrip){
+    if(isA){
+      qaCard.style.display='';
+      const actions=[
+        ['+ '+t('ادائیگی','Payment'),"showTab('fund')",'btn-em'],
+        ['+ '+t('قرض حسنہ','Qarz'),"openModal('loanM')",'btn-gold'],
+        ['+ '+t('ایمرجنسی','Emergency'),"openEmrM()",'btn-red'],
+        ['+ '+t('رکن','Member'),"openAddMember('admin')",'btn-ghost'],
+        ['📢 '+t('اعلان','Broadcast'),"showTab('broadcast')",'btn-ghost'],
+        ['⚙️ '+t('ترتیبات','Settings'),"showTab('settings')",'btn-ghost'],
+      ];
+      qaStrip.innerHTML=actions.map(([l,fn,c])=>`<button class="btn ${c} btn-sm" onclick="${fn}">${l}</button>`).join('');
+    }else{
+      qaCard.style.display='none';
+    }
+  }
   if(isA){
     document.getElementById('dStats').innerHTML=`
       <div class="sc g"><div class="sc-icon" style="color:var(--em2)">${ic('wallet',22)}</div><div class="sc-lbl-ur">${t('کل جمع فنڈ','Total Fund')}</div><div class="sc-lbl-en">${t('Total Fund Collected','کل جمع فنڈ')}</div><div class="sc-val">${fmt(tf)}</div><div class="sc-hint">${cmn}: ${fmt(S.payments.filter(p=>p.month===cmk).reduce((a,p)=>a+p.amt,0))}</div></div>
@@ -1685,25 +2189,154 @@ function rDash(){
     <div style="display:flex;gap:4px;margin-top:6px">
       ${MONTHS.map((m,i)=>`<div style="flex:1;text-align:center;font-size:8px;color:${i===curMi?'var(--gold)':'rgba(255,255,255,0.3)'};font-family:var(--font-en)">${m.slice(0,3)}</div>`).join('')}
     </div>`:`<div style="text-align:center;color:rgba(255,255,255,0.25);padding:40px;font-family:var(--font-en);font-style:italic">${t('ابھی کوئی ڈیٹا نہیں','No data yet')}</div>`;
-  // Activity — admin sees amounts; member sees own amount only, others hidden
-  const acts=[...S.payments].reverse().slice(0,10);
-  document.getElementById('dActivity').innerHTML=acts.length?acts.map(p=>{
-    const isMine=p.uid===uid;
-    const showAmt=isA||isMine;
-    return`<div class="act-item">
+  // Activity — Sadqa privacy: admin sees all; member sees ONLY their own donations + aggregate
+  const acts=[...S.payments].reverse();
+  if(isA){
+    const top=acts.slice(0,10);
+    document.getElementById('dActivity').innerHTML=top.length?top.map(p=>`<div class="act-item">
       <div class="act-av" style="background:${USERS[p.uid]?.color||'#555'}">${avContent(USERS[p.uid])}</div>
-      <div style="flex:1"><div class="act-text">${USERS[p.uid]?.en||p.uid} ${showAmt?`- <b style="color:var(--gold)">${fmt(p.amt)}</b>`:`<span style="color:var(--em2);font-size:11px">${t('نے حصہ ڈالا','contributed')}</span>`}</div><div class="act-time">${p.month}${showAmt?' | '+p.date:''}</div></div>
-    </div>`;}).join(''):`<div style="text-align:center;color:rgba(255,255,255,0.25);padding:30px;font-family:var(--font-en);font-style:italic">${t('ابھی کوئی سرگرمی نہیں','No activity yet')}</div>`;
+      <div style="flex:1"><div class="act-text">${USERS[p.uid]?.en||p.uid} - <b style="color:var(--gold)">${fmt(p.amt)}</b></div><div class="act-time">${p.month} | ${p.date}</div></div>
+    </div>`).join(''):`<div style="text-align:center;color:rgba(255,255,255,0.25);padding:30px;font-family:var(--font-en);font-style:italic">${t('ابھی کوئی سرگرمی نہیں','No activity yet')}</div>`;
+  } else {
+    const myActs=acts.filter(p=>p.uid===uid).slice(0,10);
+    const totalThisMonth=acts.filter(p=>p.month===cmk).reduce((a,p)=>a+p.amt,0);
+    const cntThisMonth=acts.filter(p=>p.month===cmk).length;
+    const lastDate=acts[0]?.date||'-';
+    const aggBlock=`<div style="padding:14px 16px;border-bottom:1px solid var(--border);background:rgba(27,107,69,0.05)">
+      <div style="font-size:11px;color:var(--em2);font-family:var(--font-display);letter-spacing:1.5px;margin-bottom:6px">${t('🤲 خاندانی سرگرمی (سدقہ - گمنام)','🤲 Family activity (sadqa - anonymous)')}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div><div style="font-size:10px;color:var(--gold4);font-family:var(--font-en)">${cmn} ${t('ادائیگیاں','contributions')}</div><div style="font-size:18px;font-weight:700;color:var(--gold);font-family:'Cinzel',serif">${cntThisMonth}</div></div>
+        <div><div style="font-size:10px;color:var(--gold4);font-family:var(--font-en)">${t('کل ماہانہ جمع','Monthly total')}</div><div style="font-size:18px;font-weight:700;color:var(--em2);font-family:'Cinzel',serif">${fmt(totalThisMonth)}</div></div>
+      </div>
+      <div style="font-size:10px;color:rgba(255,255,255,0.3);margin-top:6px;font-style:italic">${t('انفرادی نام و رقم خفیہ ہے — یہ سدقے کا اصل ادب ہے','Individual names & amounts hidden — true spirit of sadqa')}</div>
+    </div>`;
+    const myBlock=myActs.length?
+      `<div style="padding:8px 16px"><div style="font-size:10px;color:var(--gold4);font-family:var(--font-display);letter-spacing:1.5px;padding:6px 0">${t('میری ادائیگیاں','My contributions')}</div>`+
+      myActs.map(p=>`<div class="act-item">
+        <div class="act-av" style="background:${S.user.color}">${avContent(S.user)}</div>
+        <div style="flex:1"><div class="act-text">${t('آپ نے دیا','You gave')} - <b style="color:var(--gold)">${fmt(p.amt)}</b></div><div class="act-time">${p.month} | ${p.date}</div></div>
+      </div>`).join('')+`</div>`
+      :`<div style="text-align:center;color:rgba(255,255,255,0.25);padding:24px;font-family:var(--font-en);font-style:italic">${t('آپ نے ابھی کوئی ادائیگی نہیں کی','You haven\'t contributed yet')}</div>`;
+    document.getElementById('dActivity').innerHTML=aggBlock+myBlock;
+  }
   // Emergency
   const ae=S.emergencies.filter(e=>e.status==='voting');
-  document.getElementById('dEmr').innerHTML=ae.length?ae.map(e=>emrHtml(e)).join(''):`<div style="text-align:center;color:rgba(255,255,255,0.3);padding:24px;font-family:var(--font-en);font-style:italic">No active emergency votes</div>`;
+  document.getElementById('dEmr').innerHTML=ae.length?ae.map(e=>emrHtml(e)).join(''):`<div style="text-align:center;color:var(--txt-3);padding:24px;font-family:var(--font-en);font-style:italic">No active emergency votes</div>`;
+  // Advanced visualization
+  rAdvancedViz(isA, uid);
 }
- 
+
+/* ══════════════════════════════════════════
+   ADVANCED VISUALIZATION
+══════════════════════════════════════════ */
+function rAdvancedViz(isA, uid){
+  const adv=document.getElementById('dAdvanced');
+  const lb=document.getElementById('dLeaderboard');
+  const pm=document.getElementById('dProvinceMap');
+  if(!adv)return;
+  // Pool donut chart
+  const pools=Object.entries(POOLS).map(([k,p])=>({k,p,bal:poolBalance(k),inflow:poolInflow(k)}));
+  const totalPool=pools.reduce((a,p)=>a+p.inflow,0);
+  let donutSvg='';
+  if(totalPool>0){
+    let cumulative=0;const cx=70,cy=70,r=50,sw=18;
+    const segs=pools.filter(p=>p.inflow>0).map(p=>{
+      const start=cumulative/totalPool*Math.PI*2-Math.PI/2;
+      cumulative+=p.inflow;
+      const end=cumulative/totalPool*Math.PI*2-Math.PI/2;
+      const large=end-start>Math.PI?1:0;
+      const x1=cx+r*Math.cos(start),y1=cy+r*Math.sin(start);
+      const x2=cx+r*Math.cos(end),y2=cy+r*Math.sin(end);
+      return `<path d="M ${x1} ${y1} A ${r} ${r} 0 ${large} 1 ${x2} ${y2}" stroke="${p.p.color}" stroke-width="${sw}" fill="none" stroke-linecap="butt"/>`;
+    }).join('');
+    donutSvg=`<svg viewBox="0 0 140 140" style="width:140px;height:140px">${segs}<text x="70" y="68" text-anchor="middle" font-family="Cinzel,serif" font-size="14" fill="var(--gold)" font-weight="600">${(totalPool/1000).toFixed(0)}k</text><text x="70" y="84" text-anchor="middle" font-family="Cormorant Garamond,serif" font-size="9" fill="var(--gold4)">TOTAL</text></svg>`;
+  }
+  const poolLegend=pools.map(p=>`<div style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--txt-2);padding:3px 0">
+    <div style="width:10px;height:10px;border-radius:2px;background:${p.p.color}"></div>
+    <span style="flex:1">${p.p.en}</span>
+    <span style="color:var(--gold);font-family:'Cinzel',serif;font-weight:600">${fmt(p.inflow)}</span>
+  </div>`).join('');
+  // Trend area chart (12 months)
+  const tData=MONTHS.map(m=>S.payments.filter(p=>p.month.startsWith(m)&&!p.pendingVerify).reduce((a,p)=>a+p.amt,0));
+  const tMax=Math.max(...tData,1);
+  const w=320,h=110,pad=8;
+  const pts=tData.map((v,i)=>{
+    const x=pad+(i/(tData.length-1))*(w-pad*2);
+    const y=h-pad-(v/tMax)*(h-pad*2);
+    return [x,y];
+  });
+  const path=pts.map((p,i)=>`${i===0?'M':'L'} ${p[0]} ${p[1]}`).join(' ');
+  const area=path+` L ${pts[pts.length-1][0]} ${h-pad} L ${pad} ${h-pad} Z`;
+  const trendSvg=`<svg viewBox="0 0 ${w} ${h+18}" style="width:100%;height:130px">
+    <defs><linearGradient id="trendGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="var(--gold)" stop-opacity="0.4"/><stop offset="100%" stop-color="var(--gold)" stop-opacity="0"/></linearGradient></defs>
+    <path d="${area}" fill="url(#trendGrad)"/>
+    <path d="${path}" stroke="var(--gold)" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    ${pts.map((p,i)=>`<circle cx="${p[0]}" cy="${p[1]}" r="${i===new Date().getMonth()?4:2.5}" fill="${i===new Date().getMonth()?'var(--em2)':'var(--gold2)'}" stroke="var(--ink)" stroke-width="1.5"/>`).join('')}
+    ${MONTHS.map((m,i)=>`<text x="${pad+(i/(tData.length-1))*(w-pad*2)}" y="${h+12}" text-anchor="middle" font-size="8" font-family="Cormorant Garamond,serif" fill="var(--gold4)">${m.slice(0,1)}</text>`).join('')}
+  </svg>`;
+  adv.innerHTML=`
+    <div class="card" style="margin:0">
+      <div class="card-hdr"><div><div class="card-title-ur"><span class="i18n-en">12-Month Trend</span><span class="i18n-ur">12-ماہ کا رجحان</span></div><div class="card-title-en">Verified contributions</div></div></div>
+      <div class="card-body">${tData.some(v=>v>0)?trendSvg:`<div style="text-align:center;color:var(--txt-3);padding:30px;font-style:italic">${t('ابھی ڈیٹا نہیں','No data yet')}</div>`}</div>
+    </div>
+    <div class="card" style="margin:0">
+      <div class="card-hdr"><div><div class="card-title-ur"><span class="i18n-en">Fund Pool Mix</span><span class="i18n-ur">فنڈ پولز</span></div><div class="card-title-en">By type</div></div></div>
+      <div class="card-body" style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+        <div style="flex-shrink:0">${donutSvg||'<div style="width:140px;height:140px;display:flex;align-items:center;justify-content:center;color:var(--txt-3);font-style:italic;font-size:11px">No data</div>'}</div>
+        <div style="flex:1;min-width:140px">${poolLegend}</div>
+      </div>
+    </div>`;
+  // Leaderboard (admin only — sadqa privacy for non-admin)
+  if(isA){
+    const top=Object.values(USERS).filter(u=>!u.deceased).map(u=>({u,total:paidBy(u.id)})).filter(x=>x.total>0).sort((a,b)=>b.total-a.total).slice(0,5);
+    const medals=['🥇','🥈','🥉','🏅','🏅'];
+    lb.innerHTML=top.length?`<div class="card" style="margin:0">
+      <div class="card-hdr"><div><div class="card-title-ur"><span class="i18n-en">Top Contributors</span><span class="i18n-ur">سب سے زیادہ حصہ ڈالنے والے</span></div><div class="card-title-en">Admin-only view (members see this anonymized)</div></div></div>
+      <div class="card-body" style="padding:8px 14px">
+        ${top.map((x,i)=>`<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
+          <div style="font-size:18px;width:28px;text-align:center">${medals[i]}</div>
+          <div class="av" style="background:${x.u.color};width:28px;height:28px;font-size:11px">${avContent(x.u)}</div>
+          <div style="flex:1"><div style="font-weight:600;color:var(--cream);font-size:13px">${x.u.en||x.u.ur}</div><div style="font-size:10px;color:var(--gold4)">${x.u.city||'—'}${x.u.province?' · '+(PROVINCES.find(p=>p.key===x.u.province)||{}).en:''}</div></div>
+          <div style="font-family:'Cinzel',serif;color:var(--gold);font-weight:700">${fmt(x.total)}</div>
+        </div>`).join('')}
+      </div>
+    </div>`:'';
+  } else {
+    lb.innerHTML='';
+  }
+  // Province distribution (admin only)
+  if(isA){
+    const byPv={};
+    Object.values(USERS).filter(u=>!u.deceased).forEach(u=>{
+      const k=u.province||'_unset';
+      if(!byPv[k])byPv[k]={count:0,total:0};
+      byPv[k].count++;
+      byPv[k].total+=paidBy(u.id);
+    });
+    const pvData=Object.entries(byPv).map(([k,v])=>({key:k,name:(PROVINCES.find(p=>p.key===k)||{en:'Unset'}).en,...v})).sort((a,b)=>b.total-a.total);
+    const pvMax=Math.max(...pvData.map(x=>x.total),1);
+    pm.innerHTML=pvData.length?`<div class="card" style="margin:0">
+      <div class="card-hdr"><div><div class="card-title-ur"><span class="i18n-en">Members by Province</span><span class="i18n-ur">صوبے کے حساب سے اراکین</span></div><div class="card-title-en">Geographic distribution</div></div></div>
+      <div class="card-body" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px">
+        ${pvData.map(d=>`<div style="padding:10px 12px;background:var(--gold5);border:1px solid var(--border);border-radius:8px">
+          <div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="font-size:12px;color:var(--cream);font-weight:600">${d.name}</span><span style="font-size:11px;color:var(--gold4)">${d.count} ${t('اراکین','members')}</span></div>
+          <div class="pb"><div class="pb-fill" style="width:${Math.round(d.total/pvMax*100)}%"></div></div>
+          <div style="font-size:11px;color:var(--gold);font-family:'Cinzel',serif;font-weight:700;margin-top:3px;text-align:right">${fmt(d.total)}</div>
+        </div>`).join('')}
+      </div>
+    </div>`:'';
+  } else {
+    pm.innerHTML='';
+  }
+}
+
 /* ══════════════════════════════════════════
    MY ACCOUNT
 ══════════════════════════════════════════ */
 function rMy(){
   const u=S.user,myP=S.payments.filter(p=>p.uid===u.id);
+  const verifiedP=myP.filter(p=>!p.pendingVerify), pendingP=myP.filter(p=>p.pendingVerify);
+  const pendingTotal=pendingBy(u.id);
   document.getElementById('myContent').innerHTML=`
     <div class="my-hero">
       <div class="my-hero-top">
@@ -1716,18 +2349,19 @@ function rMy(){
         </div>
         <button class="btn btn-ghost btn-sm" onclick="openAddMember('edit','${u.id}')" style="align-self:flex-start"><span class="i18n-en">✎ Edit Profile</span><span class="i18n-ur">✎ پروفائل</span></button>
       </div>
-      <div style="font-size:11px;color:var(--gold4);font-family:var(--font-en);margin-bottom:4px">${t("کل ادائیگی","Total Contribution")}</div>
+      <div style="font-size:11px;color:var(--gold4);font-family:var(--font-en);margin-bottom:4px">${t("کل تصدیق شدہ ادائیگی","Verified Total")}</div>
       <div class="my-big">${fmt(paidBy(u.id))}</div>
+      ${pendingTotal?`<div style="font-size:11px;color:var(--gold2);margin-top:4px;font-family:var(--font-en)">+ ${fmt(pendingTotal)} <span class="i18n-en">awaiting verification</span><span class="i18n-ur">تصدیق کی منتظر</span></div>`:''}
       <div style="font-size:11px;color:rgba(255,255,255,0.35);margin-top:4px;font-family:var(--font-en)">${mPaidBy(u.id)} months paid</div>
       <div class="my-months">
-        ${MONTHS.map(m=>{const p=myP.find(x=>x.month.startsWith(m));return`<div class="my-mc ${p?'paid':''}"><div class="my-mc-name">${m.slice(0,3)}</div><div class="my-mc-amt" style="color:${p?'var(--em2)':'rgba(255,255,255,0.2)'}">${p?fmt(p.amt):'-'}</div></div>`;}).join('')}
+        ${MONTHS.map(m=>{const p=verifiedP.find(x=>x.month.startsWith(m));return`<div class="my-mc ${p?'paid':''}"><div class="my-mc-name">${m.slice(0,3)}</div><div class="my-mc-amt" style="color:${p?'var(--em2)':'rgba(255,255,255,0.2)'}">${p?fmt(p.amt):'-'}</div></div>`;}).join('')}
       </div>
     </div>
     <div class="card">
-      <div class="card-hdr"><div class="card-title-ur"><span class="i18n-en">Payment History</span><span class="i18n-ur">ادائیگی تاریخ</span></div></div>
+      <div class="card-hdr"><div class="card-title-ur"><span class="i18n-en">My Payment History</span><span class="i18n-ur">میری ادائیگی تاریخ</span></div></div>
       <div class="tbl-wrap"><table>
-        <thead><tr><th>Month</th><th>Amount</th><th>Date</th><th>Note</th></tr></thead>
-        <tbody>${myP.length?myP.map(p=>`<tr><td>${p.month}</td><td style="color:var(--gold);font-weight:700">${fmt(p.amt)}</td><td style="direction:ltr;font-family:var(--font-en)">${p.date}</td><td style="color:rgba(255,255,255,0.35)">${p.note||'-'}</td></tr>`).join(''):'<tr><td colspan="4" style="text-align:center;color:rgba(255,255,255,0.3);padding:20px;font-family:var(--font-en);font-style:italic">No payments yet</td></tr>'}</tbody>
+        <thead><tr><th>Month</th><th>Amount</th><th>Status</th><th>Date</th><th>Note</th></tr></thead>
+        <tbody>${myP.length?myP.slice().reverse().map(p=>`<tr><td>${p.month}</td><td style="color:var(--gold);font-weight:700">${fmt(p.amt)}</td><td>${p.pendingVerify?'<span class="tag t-pending">⏳ Pending</span>':'<span class="tag t-active">✓ Verified</span>'}</td><td style="direction:ltr;font-family:var(--font-en)">${p.date}</td><td style="color:rgba(255,255,255,0.35)">${p.note||'-'}</td></tr>`).join(''):'<tr><td colspan="5" style="text-align:center;color:rgba(255,255,255,0.3);padding:20px;font-family:var(--font-en);font-style:italic">No payments yet — click "Record My Donation" above</td></tr>'}</tbody>
       </table></div>
     </div>`;
 }
@@ -1882,12 +2516,8 @@ function selectNode(uid){
    EMERGENCY
 ══════════════════════════════════════════ */
 function emrEligibleVoters(e){
-  // Round 1: only branch members (excluding requester). Round 2: everyone except requester.
-  const all=Object.keys(USERS).filter(id=>id!==e.uid);
-  if((e.round||1)===1&&e.branch){
-    return all.filter(id=>getBranchHead(id)===e.branch||id===e.branch);
-  }
-  return all;
+  // Open voting: ALL approved users (excluding requester and deceased) can vote on every emergency.
+  return Object.values(USERS).filter(u=>!u.deceased && u.id!==e.uid).map(u=>u.id);
 }
 function emrHtml(e){
   const uid=S.user?.id;
@@ -1901,7 +2531,7 @@ function emrHtml(e){
   const branchName=e.branch?USERS[e.branch]?.en:null;
   const canVote=eligible.includes(uid);
   const voterAvs=e.votes.yes.map(vid=>`<div class="voter-av" style="background:${USERS[vid]?.color||'#555'}" title="${USERS[vid]?.en}">${avContent(USERS[vid])}</div>`).join('');
-  const statusLbl=e.status==='approved'?(cat.instant?t('فوری منظور','Instant Approved'):t('منظور','Approved')):e.status==='rejected'?t('مسترد','Rejected'):round===1?`${t('پہلا دور: خاندان','Round 1: Branch')} (${branchName||'-'})`:t('دوسرا دور: تمام خاندان','Round 2: All Family');
+  const statusLbl=e.status==='approved'?(cat.instant?t('فوری منظور','Instant Approved'):t('منظور','Approved')):e.status==='rejected'?t('مسترد','Rejected'):t('ووٹنگ جاری','Voting Open');
   return`<div class="emr-card ${e.status}" style="border-right:3px solid ${cat.instant?'#dc2626':'var(--gold)'}">
     <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;flex-wrap:wrap">
       <span class="tag" style="background:rgba(201,168,76,0.15);color:var(--gold);border:1px solid var(--border);display:inline-flex;align-items:center;gap:5px">${ic(cat.icon,12)} ${cat.en} / ${cat.ur}</span>
@@ -1931,16 +2561,17 @@ function emrHtml(e){
         <div style="margin-top:6px"><span class="tag ${e.status==='approved'?'t-approved':e.status==='rejected'?'t-loan':'t-vote'}">${statusLbl}</span></div>
       </div>
     </div>
-    ${e.status==='voting'?`<div class="vote-row">
-      <div class="vote-stat">${e.votes.yes.length}/${total} votes</div>
+    ${e.status==='voting'?(()=>{const need=Math.ceil(total*voteThresh());const reached=pct>=(S.cfg?.voteThresh??50);return`<div class="vote-row">
+      <div class="vote-stat">${e.votes.yes.length}/${total} ${t('ووٹ','votes')}</div>
       <div class="vote-track"><div class="vote-fill" style="width:${pct}%"></div></div>
-      <div class="vote-stat">${pct}%</div>
-    </div>`:''}
+      <div class="vote-stat">${pct}% ${reached?'✓':''}</div>
+    </div>
+    <div style="font-size:10px;color:var(--gold4);margin-top:4px;font-family:var(--font-en);font-style:italic">${t('منظوری کے لیے درکار:','Needed for approval:')} ${need} ${t('ووٹ','votes')} (${S.cfg?.voteThresh??50}%)</div>`;})():''}
     ${voterAvs?`<div class="voter-row">${voterAvs}</div>`:''}
     ${e.status==='voting'?`<div class="vbtns">
       <button class="vbtn vbtn-yes" onclick="castVote(${e.id},true)" ${isVoted||!canVote?'disabled':''}>✓ Yes - حق</button>
       <button class="vbtn vbtn-no" onclick="castVote(${e.id},false)" ${isVoted||!canVote?'disabled':''}>✗ No - مخالف</button>
-      ${isVoted?`<span class="voted-tag">${t('آپ نے ووٹ دیا','You voted')} ✓</span>`:uid===e.uid?`<span class="voted-tag">${t('اپنی درخواست','Own request')}</span>`:!canVote?`<span class="voted-tag">${round===1?t('پہلا دور — صرف خاندانی ارکان','Round 1 — branch only'):t('اہل نہیں','Not eligible')}</span>`:''}
+      ${isVoted?`<span class="voted-tag">${t('آپ نے ووٹ دیا','You voted')} ✓</span>`:uid===e.uid?`<span class="voted-tag">${t('اپنی درخواست','Own request')}</span>`:!canVote?`<span class="voted-tag">${t('اہل نہیں','Not eligible')}</span>`:''}
     </div>`:''}
   </div>`;
 }
@@ -1957,22 +2588,17 @@ function castVote(id,yes){
   if(!eligible.includes(uid))return;
   if(yes)e.votes.yes.push(uid);else e.votes.no.push(uid);
   const tot=eligible.length;
-  const round=e.round||1;
   const cat=emrCat(e);
-  if(e.votes.yes.length>tot/2){
-    if(round===1&&e.branch&&cat.votePath!=='all-only'){
-      e.round=2;e.votes={yes:[],no:[]};
-      addNotif(e.uid,`پہلا دور پاس! اب پورے خاندان کا ووٹ`,`Round 1 passed! Family-wide vote opened`,'vote-yes');
-      Object.keys(USERS).filter(id=>id!==e.uid&&getBranchHead(id)!==e.branch&&id!==e.branch).forEach(id=>addNotif(id,`ووٹ کے لیے: ${USERS[e.uid]?.ur} - ${fmt(e.amt)}`,`Vote: ${USERS[e.uid]?.en} needs ${fmt(e.amt)} (${cat.en})`,'emr'));
-    }else{
-      e.status='approved';
-      S.loans.unshift({id:Date.now(),uid:e.uid,amt:e.amt,paid:0,purpose:`[${cat.en}] ${e.rUr} | ${e.rEn}`,type:'emergency',pool:e.pool||cat.pool,issued:new Date().toLocaleDateString('en',{month:'long',year:'numeric'}),ret:'TBD',active:true});
-      addNotif(e.uid,`✓ منظور! ${fmt(e.amt)} (${cat.ur})`,`✓ Approved! ${fmt(e.amt)} (${cat.en})`,'vote-yes');
-    }
-  }else if(e.votes.no.length>=tot/2){
+  const need=Math.ceil(tot*voteThresh());
+  if(e.votes.yes.length>=need){
+    e.status='approved';
+    S.loans.unshift({id:Date.now(),uid:e.uid,amt:e.amt,paid:0,purpose:`[${cat.en}] ${e.rUr} | ${e.rEn}`,type:'emergency',pool:e.pool||cat.pool,issued:new Date().toLocaleDateString('en',{month:'long',year:'numeric'}),ret:'TBD',active:true});
+    addNotif(e.uid,`✓ منظور! ${fmt(e.amt)} (${cat.ur})`,`✓ Approved! ${fmt(e.amt)} (${cat.en})`,'vote-yes');
+  }else if(e.votes.no.length>=need){
     e.status='rejected';
     addNotif(e.uid,`درخواست مسترد ہوئی`,`Request rejected`,'vote-no');
   }
+  saveDB();
   addNotif(e.uid,`${USERS[uid]?.ur} نے ${yes?'حق':'مخالف'} ووٹ دیا`,`${USERS[uid]?.en} voted ${yes?'Yes':'No'}`,yes?'vote-yes':'vote-no');
   addNotif('abubakar',`Vote on ${USERS[e.uid]?.en}'s request by ${USERS[uid]?.en}`,`${USERS[uid]?.ur} نے ووٹ دیا`,'vote');
   showToast(yes?'✓ Vote Yes recorded - جزاکم اللہ':'Vote No recorded');
@@ -2026,25 +2652,50 @@ function submitEmr(){
 /* ══════════════════════════════════════════
    MEMBERS
 ══════════════════════════════════════════ */
-function rMbr(){filterMbr('');renderPendingRegs()}
-function filterMbr(q){
-  const list=Object.values(USERS).filter(u=>(u.ur||'').includes(q)||u.en.toLowerCase().includes(q.toLowerCase()));
+function rMbr(){
+  populateSels();
+  // Populate city dropdown dynamically
+  const cities=[...new Set(Object.values(USERS).map(u=>u.city).filter(Boolean))].sort();
+  const fc=document.getElementById('filterCity');
+  if(fc)fc.innerHTML=`<option value="">All Cities</option>`+cities.map(c=>`<option value="${c}">${c}</option>`).join('');
+  applyMemberFilters();
+  renderPendingRegs();
+}
+function applyMemberFilters(){
+  const q=(document.getElementById('filterSearch')?.value||'').toLowerCase();
+  const s=document.getElementById('filterStatus')?.value||'';
+  const pv=document.getElementById('filterProvince')?.value||'';
+  const ct=document.getElementById('filterCity')?.value||'';
+  const list=Object.values(USERS).filter(u=>{
+    if(q && !(u.ur||'').includes(q) && !(u.en||'').toLowerCase().includes(q) && !(u.father||'').toLowerCase().includes(q) && !(u.city||'').toLowerCase().includes(q))return false;
+    if(s){
+      if(s==='admin' && u.role!=='admin')return false;
+      if(s==='active' && !(paidCurMonth(u.id)&&u.role!=='admin'))return false;
+      if(s==='pending' && !(!paidCurMonth(u.id)&&u.role!=='admin'))return false;
+    }
+    if(pv && (u.province||'')!==pv)return false;
+    if(ct && (u.city||'')!==ct)return false;
+    return true;
+  });
   renderMbrTbl(list);
 }
-function filterMbrSt(s){
-  const list=Object.values(USERS).filter(u=>!s||(s==='head'?u.id==='abubakar':s==='active'?paidCurMonth(u.id)&&u.id!=='abubakar':!paidCurMonth(u.id)&&u.id!=='abubakar'));
-  renderMbrTbl(list);
+function resetMemberFilters(){
+  ['filterSearch','filterStatus','filterProvince','filterCity'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  applyMemberFilters();
 }
+// Backwards-compat shims (in case old onclick refs exist)
+function filterMbr(q){const e=document.getElementById('filterSearch');if(e)e.value=q;applyMemberFilters();}
+function filterMbrSt(s){const e=document.getElementById('filterStatus');if(e)e.value=s;applyMemberFilters();}
 function renderMbrTbl(list){
   document.getElementById('mbrBody').innerHTML=list.map((u,i)=>{
     const dots=MONTHS.map(m=>{const p=S.payments.find(x=>x.uid===u.id&&x.month.startsWith(m));return`<div class="md ${p?'md-p':'md-u'}" title="${m}: ${p?fmt(p.amt):'Not paid'}">${m.slice(0,3)}</div>`;}).join('');
     return`<tr>
       <td style="color:var(--gold4);font-family:var(--font-en)">${i+1}</td>
-      <td><div class="mc"><div class="av" style="background:${u.color}">${avContent(u)}</div><div class="mi"><div class="mn"><span class="i18n-ur">${u.ur||u.en}</span><span class="i18n-en">${u.en}</span></div><div class="mr">${u.en} · ${u.rel||'—'}</div><div style="font-size:9px;color:rgba(255,255,255,0.4)">${[u.city,u.phone].filter(Boolean).join(' · ')||'—'}</div></div></div></td>
-      <td style="color:var(--gold4)">${u.city||"-"}</td>
+      <td><div class="mc"><div class="av" style="background:${u.color}">${avContent(u)}</div><div class="mi"><div class="mn"><span class="i18n-ur">${u.ur||u.en}</span><span class="i18n-en">${u.en}</span></div><div class="mr">${u.en} · ${u.rel||'—'}${u.father?' · s/o '+u.father:''}</div><div style="font-size:9px;color:rgba(255,255,255,0.4)">${[u.city,(PROVINCES.find(p=>p.key===u.province)||{}).en,u.phone].filter(Boolean).join(' · ')||'—'}</div></div></div></td>
+      <td style="color:var(--gold4)">${u.city||"-"}${u.province?'<br><span style="font-size:9px;opacity:0.7">'+(PROVINCES.find(p=>p.key===u.province)||{}).en+'</span>':''}</td>
       <td style="color:var(--em2)">${fmt(paidBy(u.id))}</td>
       <td><div class="mdots">${dots}</div><div style="font-size:9px;color:var(--gold4);margin-top:3px;font-family:var(--font-en)">${mPaidBy(u.id)}/${MONTHS.length} months</div></td>
-      <td><span class="tag ${u.deceased?'t-loan':u.id==='abubakar'?'t-head':paidCurMonth(u.id)?'t-active':'t-pending'}">${u.deceased?t('مرحوم','Deceased'):u.id==='abubakar'?t('سربراہ','Head'):paidCurMonth(u.id)?t('ادا کیا','Paid'):t('باقی','Unpaid')}</span></td>
+      <td><span class="tag ${u.deceased?'t-loan':u.role==='admin'?'t-head':paidCurMonth(u.id)?'t-active':'t-pending'}">${u.deceased?t('مرحوم','Deceased'):u.role==='admin'?t('ایڈمن','Admin'):paidCurMonth(u.id)?t('ادا کیا','Paid'):t('باقی','Unpaid')}</span></td>
       <td><div style="display:flex;gap:4px;flex-wrap:wrap">
         <button class="btn btn-ghost btn-sm" onclick="openAddMember('edit','${u.id}')" title="${t('ترمیم','Edit')}">✎</button>
         ${u.id==='abubakar'?'':`<button class="btn btn-ghost btn-sm" onclick="toggleDeceased('${u.id}')" title="${u.deceased?t('زندہ کریں','Mark Alive'):t('مرحوم کریں','Mark Deceased')}" style="color:${u.deceased?'var(--em2)':'#888'}">${u.deceased?'☥':'†'}</button>`}
@@ -2092,13 +2743,24 @@ function checkFatherMatch(srcId,outId,parentId){
   const v=document.getElementById(srcId).value.trim();
   const div=document.getElementById(outId);
   if(!v){div.textContent='';return;}
+  // 1) Father exists as a member in the system → auto-link as parent
   const match=findSimilarMember(v);
+  // 2) Other people with the SAME father → potential siblings/cousins
+  const norm=normalizeForMatch(v);
+  const siblings=Object.values(USERS).filter(u=>u.father && normalizeForMatch(u.father)===norm && u.id!==S.editingId);
+  let html='';
   if(match){
-    div.innerHTML=`<span style="color:var(--em2)">✓ ${match.en} (${match.ur}) — ${t('خاندان میں ملا، خود بخود جوڑ دیا','matched, auto-linked')}</span>`;
+    html+=`<div style="color:var(--em2)">✓ ${match.en} (${match.ur}) — ${t('خاندان میں ملا، خود بخود جوڑ دیا','matched, auto-linked')}</div>`;
     if(parentId){const p=document.getElementById(parentId);if(p&&!p.disabled)p.value=match.id;}
-  }else{
-    div.innerHTML=`<span style="color:var(--gold4)">${t('خاندان میں نہیں ملا — متن کے طور پر محفوظ ہو جائے گا','Not in family yet — saved as text')}</span>`;
   }
+  if(siblings.length){
+    const sibList=siblings.map(s=>s.en||s.ur).join(', ');
+    html+=`<div style="color:var(--gold);margin-top:3px;padding:6px 8px;background:rgba(201,168,76,0.08);border:1px solid var(--border);border-radius:6px"><b>👥 ${t('انہی والد کے دوسرے ارکان:','Same father — possible siblings:')}</b> ${sibList}<br><span style="font-size:10px;color:var(--gold4);font-style:italic">${t('اوپر "Relation" میں بھائی/بہن منتخب کریں','Select Brother/Sister in the Relation field above')}</span></div>`;
+  }
+  if(!match && !siblings.length){
+    html=`<span style="color:var(--gold4)">${t('خاندان میں نہیں ملا — متن کے طور پر محفوظ ہو جائے گا','Not in family yet — saved as text')}</span>`;
+  }
+  div.innerHTML=html;
 }
 
 function openAddMember(mode='admin',editId=null){
@@ -2107,6 +2769,7 @@ function openAddMember(mode='admin',editId=null){
   S.tempPic=null;
   populateSels();
   ['nmEn','nmUser','nmPass','nmPhone','nmCity','nmFather'].forEach(id=>{const e=document.getElementById(id);if(e){e.value='';e.disabled=false}});
+  const nmpv=document.getElementById('nmProvince');if(nmpv)nmpv.value='';
   document.getElementById('nmUrPrev').textContent='';
   document.getElementById('nmFatherMatch').textContent='';
   const dupEl=document.getElementById('nmEnDup');if(dupEl)dupEl.innerHTML='';
@@ -2128,6 +2791,7 @@ function openAddMember(mode='admin',editId=null){
     document.getElementById('nmParent').value=u.parent||'none';
     document.getElementById('nmPhone').value=u.phone||'';
     document.getElementById('nmCity').value=u.city||'';
+    const nmpv=document.getElementById('nmProvince');if(nmpv)nmpv.value=u.province||'';
     document.getElementById('nmUser').value=u.id;
     document.getElementById('nmUser').disabled=true;
     document.getElementById('nmPass').placeholder=t('خالی چھوڑیں اگر تبدیل نہیں کرنا','Leave empty to keep current');
@@ -2169,9 +2833,10 @@ function saveEditMember(){
   const father=document.getElementById('nmFather').value.trim();
   const phone=document.getElementById('nmPhone').value.trim();
   const city=document.getElementById('nmCity').value.trim();
+  const province=document.getElementById('nmProvince')?.value||u.province||'';
   const newPass=document.getElementById('nmPass').value.trim();
   if(!en){showToast(t('نام ضروری ہے','Name required'),'err');return;}
-  u.father=father;u.phone=phone;u.city=city;
+  u.father=father;u.phone=phone;u.city=city;u.province=province;
   if(S.tempPic)u.pic=S.tempPic;
   if(newPass)u.pass=newPass;
   if(isAdmin){
@@ -2188,7 +2853,7 @@ function saveEditMember(){
   document.getElementById('nmUser').disabled=false;
   closeModal('addM');populateSels();
   showToast(`✓ ${u.en} ${t('تبدیلی محفوظ','updated')}`,'gold');
-  rMbr();rTree();
+  rMbr();rTree();saveDB();
   if(isSelf){
     document.getElementById('tbName').textContent=u.ur||u.en;
     const tba=document.getElementById('tbAv');
@@ -2208,6 +2873,7 @@ function submitAddMbr(){
   const parent=document.getElementById('nmParent').value;
   const phone=document.getElementById('nmPhone').value.trim();
   const city=document.getElementById('nmCity')?.value.trim()||'';
+  const province=document.getElementById('nmProvince')?.value||'';
   const father=document.getElementById('nmFather').value.trim();
   const deceased=document.getElementById('nmDeceased').checked;
   if(!en){showToast(t('نام ضروری ہے','Name is required'),'err');return;}
@@ -2224,14 +2890,51 @@ function submitAddMbr(){
     user='m_'+Date.now().toString(36)+Math.random().toString(36).slice(2,5);
   }
   if(USERS[user]){showToast(t('یہ صارف نام پہلے سے موجود ہے','Username already exists'),'err');return;}
-  USERS[user]={id:user,ur:ur||en,en,role:'member',rel,color:'#'+Math.floor(Math.random()*0x777777+0x444444).toString(16),pass:pass||null,parent:parent==='none'?null:parent,phone,city,father,deceased,pic:S.tempPic||null};
+  USERS[user]={id:user,ur:ur||en,en,role:'member',rel,color:'#'+Math.floor(Math.random()*0x777777+0x444444).toString(16),pass:pass||null,parent:parent==='none'?null:parent,phone,city,province,father,deceased,pic:S.tempPic||null,_needsSetup:!!pass};
   S.tempPic=null;
   S.notifs[user]=[];S.messages[user]=[];
   closeModal('addM');populateSels();
   showToast(`✓ ${en} ${deceased?t('(مرحوم) شامل','(deceased) added'):t('شامل','added')}`,'gold');
-  rMbr();rTree();
+  rMbr();rTree();saveDB();
 }
  
+/* ══════════════════════════════════════════
+   MEMBER SELF-DONATION (verified by admin)
+══════════════════════════════════════════ */
+function openMyDonateM(){
+  if(!S.user)return;
+  populateSels();
+  document.getElementById('mdAmt').value='';
+  document.getElementById('mdNote').value='';
+  openModal('myDonM');
+}
+function submitMyDonation(){
+  const u=S.user; if(!u)return;
+  const amt=parseInt(document.getElementById('mdAmt').value)||0;
+  const month=document.getElementById('mdMonth').value;
+  const type=document.getElementById('mdType').value;
+  const note=document.getElementById('mdNote').value.trim();
+  if(amt<=0){showToast(t('رقم درج کریں','Enter amount'),'err');return;}
+  S.payments.push({id:S.payments.length+100,uid:u.id,month,amt,type,date:new Date().toISOString().slice(0,10),note,pendingVerify:true});
+  addNotif('abubakar',`نئی ادائیگی برائے تصدیق: ${u.ur} - ${fmt(amt)}`,`New payment for verification: ${u.en} - ${fmt(amt)}`,'pay-verify');
+  closeModal('myDonM');saveDB();
+  showToast(t('درخواست بھیج دی — ایڈمن کی تصدیق کا انتظار','Submitted — awaiting admin verification'),'gold');
+  rMy();rDash();
+}
+function verifyPayment(pid){
+  const p=S.payments.find(x=>x.id===pid); if(!p)return;
+  delete p.pendingVerify;
+  addNotif(p.uid,`آپ کی ادائیگی تصدیق ہو گئی: ${fmt(p.amt)}`,`Your payment verified: ${fmt(p.amt)}`,'verified');
+  showToast(t('تصدیق ہو گئی','Verified'),'gold');saveDB();rFund();rDash();
+}
+function rejectPayment(pid){
+  if(!confirm(t('کیا آپ واقعی مسترد کرنا چاہتے ہیں؟','Reject this submission?')))return;
+  const p=S.payments.find(x=>x.id===pid); if(!p)return;
+  S.payments=S.payments.filter(x=>x.id!==pid);
+  addNotif(p.uid,`آپ کی ادائیگی مسترد ہو گئی: ${fmt(p.amt)}`,`Your payment rejected: ${fmt(p.amt)}`,'verified');
+  showToast(t('مسترد','Rejected'),'err');saveDB();rFund();rDash();
+}
+
 /* ══════════════════════════════════════════
    FUND
 ══════════════════════════════════════════ */
@@ -2249,7 +2952,23 @@ function rFund(){
         <div class="sc-val" style="color:${p.color}">${fmt(bal)}</div>
         <div class="sc-hint" style="font-family:var(--font-en);font-size:9px">+${fmt(inflow)} / -${fmt(outflow)}</div>
       </div>`).join('')}`;
-  const ph=[...S.payments].reverse().slice(0,25);
+  // Pending verifications
+  const pending=S.payments.filter(p=>p.pendingVerify);
+  const pvCard=document.getElementById('pendVerifyCard'), pvList=document.getElementById('pendVerifyList'), pvCnt=document.getElementById('pendVerifyCount');
+  if(pvCard){
+    pvCard.style.display=pending.length?'block':'none';
+    if(pvCnt)pvCnt.textContent=pending.length;
+    if(pvList)pvList.innerHTML=pending.map(p=>{
+      const pool=POOLS[poolType(p)]||{en:'Sadaqah',color:'#1b6b45'};
+      return`<div style="padding:12px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px">
+        <div class="av" style="background:${USERS[p.uid]?.color||'#555'};width:32px;height:32px">${avContent(USERS[p.uid])}</div>
+        <div style="flex:1"><div style="font-weight:600;color:var(--cream);font-size:13px">${USERS[p.uid]?.en||p.uid} • <span style="color:var(--gold);font-family:'Cinzel',serif">${fmt(p.amt)}</span></div><div style="font-size:11px;color:var(--gold4)">${p.month} • ${pool.en}${p.note?' • '+p.note:''}</div></div>
+        <button class="btn btn-em btn-sm" onclick="verifyPayment(${p.id})">✓ <span class="i18n-en">Verify</span><span class="i18n-ur">تصدیق</span></button>
+        <button class="btn btn-red btn-sm" onclick="rejectPayment(${p.id})">✕ <span class="i18n-en">Reject</span><span class="i18n-ur">مسترد</span></button>
+      </div>`;}).join('');
+  }
+  // History (verified only in main view, pending shown separately)
+  const ph=[...S.payments].filter(p=>!p.pendingVerify).reverse().slice(0,25);
   document.getElementById('payHist').innerHTML=ph.length?ph.map(p=>{
     const pool=POOLS[poolType(p)];
     return`<div class="msg-item">
@@ -2377,6 +3096,247 @@ function sendBC(){
 }
  
 /* ══════════════════════════════════════════
+   SETTINGS TAB
+══════════════════════════════════════════ */
+const PALETTE = ['#c9a84c','#1b6b45','#1d4ed8','#7c3aed','#c0392b','#d97706','#0891b2','#059669','#be185d','#0d9488','#374151','#065f46','#92400e','#1e3a5f'];
+
+// Apex Dashboard inspired premium palettes
+const THEMES = {
+  gold:    {name:'Royal Gold',    primary:'#c9a84c', primary2:'#e8c96a', primary4:'#7a5c1e', accent:'#1b6b45', accent2:'#24925e', accent3:'#0d4a2f'},
+  cosmic:  {name:'Cosmic',        primary:'#a855f7', primary2:'#c084fc', primary4:'#581c87', accent:'#06b6d4', accent2:'#22d3ee', accent3:'#164e63'},
+  aurora:  {name:'Aurora',        primary:'#10b981', primary2:'#34d399', primary4:'#064e3b', accent:'#06b6d4', accent2:'#22d3ee', accent3:'#155e75'},
+  sunset:  {name:'Sunset',        primary:'#fb7185', primary2:'#fda4af', primary4:'#9f1239', accent:'#f59e0b', accent2:'#fbbf24', accent3:'#78350f'},
+  midnight:{name:'Midnight',      primary:'#6366f1', primary2:'#818cf8', primary4:'#312e81', accent:'#06b6d4', accent2:'#22d3ee', accent3:'#164e63'},
+  crimson: {name:'Crimson',       primary:'#dc2626', primary2:'#ef4444', primary4:'#7f1d1d', accent:'#fbbf24', accent2:'#fcd34d', accent3:'#78350f'},
+  forest:  {name:'Forest',        primary:'#15803d', primary2:'#22c55e', primary4:'#14532d', accent:'#ca8a04', accent2:'#eab308', accent3:'#713f12'},
+  ocean:   {name:'Deep Ocean',    primary:'#0284c7', primary2:'#38bdf8', primary4:'#0c4a6e', accent:'#10b981', accent2:'#34d399', accent3:'#064e3b'},
+  emerald: {name:'Emerald Classic',primary:'#1b6b45', primary2:'#24925e', primary4:'#0d4a2f', accent:'#c9a84c', accent2:'#e8c96a', accent3:'#3a2d0c'},
+  rose:    {name:'Rose',          primary:'#e11d48', primary2:'#f43f5e', primary4:'#881337', accent:'#c9a84c', accent2:'#e8c96a', accent3:'#3a2d0c'},
+  ember:   {name:'Ember',         primary:'#d97706', primary2:'#f59e0b', primary4:'#7c2d12', accent:'#1b6b45', accent2:'#24925e', accent3:'#0d4a2f'},
+};
+
+function applyTheme(key){
+  const th=THEMES[key]||THEMES.gold;
+  const r=document.documentElement.style;
+  // Primary accent (gold family) — used for buttons, highlights, headings
+  r.setProperty('--gold', th.primary);
+  r.setProperty('--gold2', th.primary2);
+  r.setProperty('--gold4', th.primary4);
+  r.setProperty('--gold5', th.primary+'1f'); // ~12% alpha
+  // Secondary accent (emerald family) — used for success, payment, money
+  r.setProperty('--emerald', th.accent);
+  r.setProperty('--em2', th.accent2);
+  r.setProperty('--em3', th.accent3);
+  r.setProperty('--em5', th.accent+'26'); // ~15% alpha
+  // Border tints
+  r.setProperty('--border', th.primary+'40');  // ~25% alpha
+  r.setProperty('--border2', th.primary+'80'); // ~50% alpha
+  // Shadow color matches primary
+  r.setProperty('--shadow-gold', '0 4px 24px '+th.primary+'2e');
+  r.setProperty('--shadow-hover','0 8px 28px '+th.primary+'38,0 2px 6px rgba(0,0,0,0.12)');
+}
+function setTheme(key){
+  S.cfg = S.cfg || {};
+  S.cfg.themePalette = key;
+  applyTheme(key);
+  document.querySelectorAll('.theme-swatch').forEach(t=>t.classList.toggle('selected', t.dataset.theme===key));
+  showToast(t('تھیم لاگو ہوا','Theme applied'),'gold');
+  saveDB();
+}
+function setMode(m){
+  document.body.classList.toggle('light', m==='light');
+  S.theme = m;
+  document.getElementById('modeDark')?.classList.toggle('btn-gold', m==='dark');
+  document.getElementById('modeLight')?.classList.toggle('btn-gold', m==='light');
+  saveDB();
+}
+function renderThemePicker(){
+  const wrap=document.getElementById('themePicker'); if(!wrap)return;
+  wrap.innerHTML=Object.entries(THEMES).map(([k,th])=>`
+    <div class="theme-swatch" data-theme="${k}" onclick="setTheme('${k}')">
+      <div class="ts-circles">
+        <div class="tsc" style="background:${th.primary}"></div>
+        <div class="tsc" style="background:${th.primary2}"></div>
+        <div class="tsc" style="background:${th.accent}"></div>
+      </div>
+      <div class="ts-name">${th.name}</div>
+    </div>`).join('');
+  // Mode buttons
+  const m=S.theme||'dark';
+  const md=document.getElementById('modeDark'), ml=document.getElementById('modeLight');
+  if(md)md.classList.toggle('btn-gold', m==='dark');
+  if(ml)ml.classList.toggle('btn-gold', m==='light');
+  // Apply selected
+  const cur=S.cfg?.themePalette||'gold';
+  document.querySelectorAll('.theme-swatch').forEach(t=>t.classList.toggle('selected', t.dataset.theme===cur));
+}
+
+function rSettings(){
+  const u=S.user; if(!u)return;
+  const av=document.getElementById('stAv');
+  if(av){av.style.background=u.color||'#c9a84c';av.innerHTML=avContent(u);}
+  document.getElementById('stName').textContent=u.ur||u.en;
+  document.getElementById('stRole').textContent=`${u.rel||''} · ${u.role==='admin'?'Admin':'Member'}`;
+  const set=(id,v)=>{const e=document.getElementById(id);if(e)e.value=v||'';};
+  set('stNur',u.ur); set('stNen',u.en); set('stPhone',u.phone); set('stCity',u.city);
+  const stpv=document.getElementById('stProvince');if(stpv)stpv.value=u.province||'';
+  const rm=document.getElementById('stRmPic'); if(rm)rm.style.display=u.pic?'inline-flex':'none';
+  if(u.role==='admin'){
+    set('stMonthly', S.cfg?.defaultMonthly ?? 1000);
+    const th=document.getElementById('stThresh'), tv=document.getElementById('stThreshVal');
+    if(th)th.value=S.cfg?.voteThresh ?? 50;
+    if(tv)tv.textContent=(S.cfg?.voteThresh ?? 50)+'%';
+  }
+  renderThemePicker();
+  paintIcons();
+}
+function saveProfile(){
+  const u=S.user; if(!u)return;
+  const ur=document.getElementById('stNur').value.trim();
+  const en=document.getElementById('stNen').value.trim();
+  const phone=document.getElementById('stPhone').value.trim();
+  const city=document.getElementById('stCity').value.trim();
+  const province=document.getElementById('stProvince')?.value||'';
+  const p1=document.getElementById('stPass').value;
+  const p2=document.getElementById('stPass2').value;
+  if(!ur && !en){showToast(t('کم از کم ایک نام درج کریں','At least one name required'),'err');return;}
+  if(p1 && p1!==p2){showToast(t('پاس ورڈ میل نہیں کھاتے','Passwords do not match'),'err');return;}
+  if(p1 && p1.length<4){showToast(t('پاس ورڈ کم از کم 4 حروف','Password min 4 chars'),'err');return;}
+  USERS[u.id].ur = ur || u.ur;
+  USERS[u.id].en = en || u.en;
+  USERS[u.id].phone = phone;
+  USERS[u.id].city = city;
+  USERS[u.id].province = province;
+  if(p1) USERS[u.id].pass = p1;
+  S.user = USERS[u.id];
+  document.getElementById('tbName').textContent = USERS[u.id].ur;
+  document.getElementById('greetName').textContent = USERS[u.id].ur;
+  showToast(t('پروفائل محفوظ ✓','Profile saved ✓'),'gold');
+  saveDB(); rSettings();
+}
+function saveAdminCfg(){
+  if(S.user?.role!=='admin')return;
+  S.cfg = S.cfg || {};
+  S.cfg.voteThresh = parseInt(document.getElementById('stThresh').value)||50;
+  S.cfg.defaultMonthly = parseInt(document.getElementById('stMonthly').value)||1000;
+  showToast(t('ترتیبات محفوظ ✓','Configuration saved ✓'),'gold');
+  saveDB();
+}
+function openColorPicker(){
+  const grid=document.getElementById('colorGrid');
+  if(!grid)return;
+  const cur=S.user?.color;
+  grid.innerHTML=PALETTE.map(c=>`<div class="clr-swatch ${cur===c?'selected':''}" style="background:${c}" onclick="setMyColor('${c}')"></div>`).join('');
+  openModal('colorM');
+}
+function setMyColor(c){
+  if(!S.user)return;
+  USERS[S.user.id].color=c;
+  S.user.color=c;
+  document.getElementById('tbAv').style.background=c;
+  const av=document.getElementById('stAv'); if(av)av.style.background=c;
+  closeModal('colorM');
+  showToast(t('رنگ تبدیل ✓','Color updated ✓'),'gold');
+  saveDB();
+}
+function setMyPic(input){
+  if(!S.user)return;
+  const f=input.files?.[0]; if(!f)return;
+  if(f.size>2*1024*1024){showToast(t('تصویر بہت بڑی (>2MB)','Image too large (>2MB)'),'err');return;}
+  const r=new FileReader();
+  r.onload=()=>{
+    USERS[S.user.id].pic=r.result;
+    S.user.pic=r.result;
+    document.getElementById('tbAv').innerHTML=avContent(S.user);
+    rSettings();
+    showToast(t('تصویر محفوظ ✓','Photo updated ✓'),'gold');
+    saveDB();
+  };
+  r.readAsDataURL(f);
+  input.value='';
+}
+function removeMyPic(){
+  if(!S.user)return;
+  USERS[S.user.id].pic=null;
+  S.user.pic=null;
+  document.getElementById('tbAv').innerHTML=avContent(S.user);
+  rSettings();
+  showToast(t('تصویر ہٹا دی','Photo removed'),'gold');
+  saveDB();
+}
+function completeSetup(){
+  const u=S.user; if(!u)return;
+  const ur=document.getElementById('wzNur').value.trim();
+  const en=document.getElementById('wzNen').value.trim();
+  const father=document.getElementById('wzFather').value.trim();
+  const phone=document.getElementById('wzPhone').value.trim();
+  const city=document.getElementById('wzCity').value.trim();
+  const province=document.getElementById('wzProvince').value;
+  const p1=document.getElementById('wzPass').value;
+  const p2=document.getElementById('wzPass2').value;
+  if(!en){showToast(t('انگلش نام لازمی ہے','English name is required'),'err');return;}
+  if(!father){showToast(t('والد کا نام لازمی ہے','Father\'s name is required'),'err');return;}
+  if(!phone){showToast(t('فون نمبر لازمی ہے','Phone is required'),'err');return;}
+  if(!city){showToast(t('شہر لازمی ہے','City is required'),'err');return;}
+  if(!province){showToast(t('صوبہ منتخب کریں','Select province'),'err');return;}
+  if(!p1){showToast(t('نیا پاس ورڈ سیٹ کریں','Set a new password'),'err');return;}
+  if(p1!==p2){showToast(t('پاس ورڈ میل نہیں کھاتے','Passwords do not match'),'err');return;}
+  if(p1.length<6){showToast(t('پاس ورڈ کم از کم 6 حروف','Password min 6 chars'),'err');return;}
+  USERS[u.id].en = en;
+  USERS[u.id].ur = ur || transliterateName(en);
+  USERS[u.id].father = father;
+  USERS[u.id].phone = phone;
+  USERS[u.id].city = city;
+  USERS[u.id].province = province;
+  USERS[u.id].pass = p1;
+  delete USERS[u.id]._needsSetup;
+  if(u.role==='admin') S.cfg.adminSetupDone = true;
+  S.user = USERS[u.id];
+  document.getElementById('tbName').textContent = USERS[u.id].ur || USERS[u.id].en;
+  document.getElementById('greetName').textContent = USERS[u.id].ur || USERS[u.id].en;
+  closeModal('wizM'); saveDB();
+  showToast(t('ترتیب مکمل ✓ خوش آمدید','Setup complete ✓ Welcome'),'gold');
+  rDash();
+}
+function skipSetup(){closeModal('wizM');}
+function exportBackup(){
+  const snap={USERS,S:{...S,user:S.user?.id||null},exportedAt:new Date().toISOString()};
+  const blob=new Blob([JSON.stringify(snap,null,2)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=`balochsath-backup-${new Date().toISOString().slice(0,10)}.json`;
+  a.click(); URL.revokeObjectURL(a.href);
+  showToast(t('بیک اپ ڈاؤن لوڈ ہوا','Backup downloaded'),'gold');
+}
+function importBackup(input){
+  const f=input.files?.[0]; if(!f)return;
+  const r=new FileReader();
+  r.onload=()=>{
+    try{
+      const snap=JSON.parse(r.result);
+      if(!snap.USERS||!snap.S){showToast(t('غلط فائل','Invalid backup'),'err');return;}
+      if(!confirm(t('موجودہ ڈیٹا اوور رائٹ ہو گا۔ جاری رکھیں؟','This will overwrite current data. Continue?')))return;
+      Object.keys(USERS).forEach(k=>delete USERS[k]);
+      Object.assign(USERS, snap.USERS);
+      Object.assign(S, snap.S);
+      S.user=null;
+      saveDB();
+      showToast(t('درآمد مکمل — ری لوڈ ہو رہا ہے','Imported — reloading'),'gold');
+      setTimeout(()=>location.reload(),900);
+    }catch(e){showToast(t('فائل پڑھ نہیں سکا','Could not read file'),'err');}
+  };
+  r.readAsText(f);
+  input.value='';
+}
+function dangerClearAll(){
+  if(!confirm(t('کیا آپ واقعی ساری ادائیگیاں اور کیسز صاف کرنا چاہتے ہیں؟','Really clear all payments and cases? This cannot be undone.')))return;
+  S.payments=[]; S.emergencies=[]; S.loans=[];
+  saveDB();
+  showToast(t('صاف کر دیا','Cleared'),'gold');
+  rDash();
+}
+
+/* ══════════════════════════════════════════
    MODAL + TOAST
 ══════════════════════════════════════════ */
 function openModal(id){document.getElementById(id).classList.add('open')}
@@ -2393,6 +3353,9 @@ function showToast(msg,type=''){
   toastT=setTimeout(()=>t.classList.remove('show'),4000);
 }
 
+loadDB();
+if(S.cfg?.themePalette) applyTheme(S.cfg.themePalette);
+if(S.theme==='light') document.body.classList.add('light');
 paintIcons();
 paintVerseBar();
 </script>
