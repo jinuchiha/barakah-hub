@@ -291,15 +291,19 @@ html,body{height:100%;background:var(--ink);font-family:var(--font-body);color:v
 .sc:hover{transform:translateY(-4px);box-shadow:0 14px 32px rgba(0,0,0,0.28),0 4px 8px rgba(0,0,0,0.14)}
 .sc::after{content:'';position:absolute;top:-30px;right:-30px;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,0.08)}
 .sc::before{content:'';position:absolute;bottom:-40px;right:-40px;width:140px;height:140px;border-radius:50%;background:rgba(255,255,255,0.04)}
-/* Vibrant gradient variants — Adminty inspired */
-.sc.g {background:linear-gradient(135deg,#11998e 0%,#38ef7d 100%)}   /* green/aurora */
-.sc.gl{background:linear-gradient(135deg,#f7971e 0%,#ffd200 100%);color:#3a2810}  /* orange/sun */
-.sc.r {background:linear-gradient(135deg,#fc466b 0%,#ff6e7f 100%)}   /* pink/rose */
-.sc.b {background:linear-gradient(135deg,#4facfe 0%,#00f2fe 100%);color:#0a2540} /* blue/cyan */
-.sc.p {background:linear-gradient(135deg,#7f00ff 0%,#e100ff 100%)}   /* purple */
-.sc.t {background:linear-gradient(135deg,#0f2027 0%,#2c5364 100%)}   /* teal-dark */
-body.light .sc{box-shadow:0 6px 16px rgba(0,0,0,0.08),0 2px 4px rgba(0,0,0,0.05)}
-body.light .sc:hover{box-shadow:0 12px 28px rgba(0,0,0,0.12),0 4px 8px rgba(0,0,0,0.08)}
+/* Refined gradient variants — softer & more elegant (deeper, less neon) */
+.sc.g {background:linear-gradient(135deg,#1f4e3a 0%,#2d8364 60%,#3aa380 100%)}    /* deep emerald */
+.sc.gl{background:linear-gradient(135deg,#a7741a 0%,#c89b3c 60%,#e2bd6a 100%)}    /* aged gold */
+.sc.r {background:linear-gradient(135deg,#7a1d3a 0%,#a83254 60%,#d04d72 100%)}    /* burgundy rose */
+.sc.b {background:linear-gradient(135deg,#1e3a5f 0%,#2d5a8c 60%,#4a7fc1 100%)}    /* indigo blue */
+.sc.p {background:linear-gradient(135deg,#3d2c5e 0%,#5e4691 60%,#7a5fb8 100%)}    /* royal violet */
+.sc.t {background:linear-gradient(135deg,#0a2942 0%,#163e5e 60%,#1f5a7a 100%)}    /* deep ocean */
+.sc.k {background:linear-gradient(135deg,#1a1a14 0%,#2a2a20 60%,#3a3a2a 100%)}    /* charcoal */
+.sc{color:#fff}
+body.light .sc{box-shadow:0 8px 22px rgba(0,0,0,0.1),0 3px 6px rgba(0,0,0,0.06)}
+body.light .sc:hover{box-shadow:0 14px 34px rgba(0,0,0,0.14),0 4px 10px rgba(0,0,0,0.08)}
+body.light .sc::after{background:rgba(255,255,255,0.12)}
+body.light .sc::before{background:rgba(255,255,255,0.06)}
 .sc-lbl-ur{font-size:13px;color:rgba(255,255,255,0.92);font-weight:500;direction:rtl;position:relative;z-index:1}
 .sc-lbl-en{font-size:10px;color:rgba(255,255,255,0.7);font-family:var(--font-en);letter-spacing:1.5px;text-transform:uppercase;margin-top:2px;position:relative;z-index:1}
 .sc-val{font-size:30px;font-weight:700;color:#fff;margin:8px 0 6px;letter-spacing:-0.5px;font-family:'Cinzel',serif;position:relative;z-index:1;text-shadow:0 2px 8px rgba(0,0,0,0.15)}
@@ -308,12 +312,7 @@ body.light .sc:hover{box-shadow:0 12px 28px rgba(0,0,0,0.12),0 4px 8px rgba(0,0,
 .sc-spark{position:absolute;bottom:14px;right:18px;width:60px;height:30px;opacity:0.7;z-index:1}
 .sc-spark path{fill:none;stroke:rgba(255,255,255,0.85);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .sc-spark .area{fill:rgba(255,255,255,0.18);stroke:none}
-.sc.gl .sc-lbl-ur,.sc.b .sc-lbl-ur{color:rgba(0,0,0,0.78)}
-.sc.gl .sc-lbl-en,.sc.b .sc-lbl-en{color:rgba(0,0,0,0.6)}
-.sc.gl .sc-val,.sc.b .sc-val{color:#1a1a14;text-shadow:none}
-.sc.gl .sc-hint,.sc.b .sc-hint{color:rgba(0,0,0,0.7)}
-.sc.gl .sc-spark path,.sc.b .sc-spark path{stroke:rgba(0,0,0,0.6)}
-.sc.gl .sc-spark .area,.sc.b .sc-spark .area{fill:rgba(0,0,0,0.1)}
+/* All refined gradients are deep enough for white text; no inversions needed */
  
 /* ─── CARDS ─── */
 .card{
@@ -620,6 +619,14 @@ body.light .card-title-en{color:#7a5c1e}
 body.light .tb-name-ar{color:#5a4010}
 body.light .tb-uname{color:#1a1a14}
 body.light .tb-urole{color:#7a5c1e}
+body.light #tbSearch{background:rgba(0,0,0,0.04);color:#1a1a14;border-color:rgba(0,0,0,0.12)}
+body.light #tbSearch::placeholder{color:rgba(0,0,0,0.4)}
+body.light #searchResults{background:#fff;border-color:rgba(0,0,0,0.15);color:#1a1a14;box-shadow:0 12px 32px rgba(0,0,0,0.12)}
+#tbSearch:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,168,76,0.18)}
+#tbSearch::placeholder{color:rgba(255,255,255,0.4)}
+.search-result-item{padding:10px 14px;border-bottom:1px solid var(--border);cursor:pointer;display:flex;align-items:center;gap:10px;transition:background .15s}
+.search-result-item:hover{background:var(--gold5)}
+.search-result-cat{font-size:9px;letter-spacing:1.5px;color:var(--gold4);font-family:var(--font-display);text-transform:uppercase;padding:6px 14px;background:var(--gold5)}
 body.light .tb-icon-btn{background:rgba(122,92,30,0.08);border-color:rgba(0,0,0,0.15);color:#5a4010}
 body.light .tb-icon-btn:hover{background:rgba(122,92,30,0.18)}
 body.light .tb-user{background:rgba(122,92,30,0.06);border-color:rgba(0,0,0,0.1)}
@@ -930,6 +937,10 @@ body.lang-ur .i18n-en{display:none!important}
       <div class="tb-name-ar"><span class="i18n-ur">بیت المال بلوچ ساتھ</span><span class="i18n-en">Bait ul Maal BalochSath</span></div>
     </div>
   </div>
+  <div class="tb-search-wrap" style="flex:1;max-width:420px;margin:0 24px;position:relative">
+    <input type="text" id="tbSearch" placeholder="🔍 Search members, payments, cases..." oninput="globalSearch(this.value)" onfocus="showSearchResults()" onblur="setTimeout(hideSearchResults,200)" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:24px;padding:8px 16px;color:var(--cream);font-size:13px;outline:none;transition:all 0.2s">
+    <div id="searchResults" style="position:absolute;top:42px;left:0;right:0;background:linear-gradient(145deg,#141410,#0e0e0a);border:1px solid var(--border2);border-radius:var(--r);max-height:380px;overflow-y:auto;display:none;z-index:200;box-shadow:0 12px 32px rgba(0,0,0,0.4)"></div>
+  </div>
   <div class="tb-right">
     <button class="tb-icon-btn" onclick="toggleTheme()" title="Theme" id="themeBtn" data-icon="sun"></button>
     <button class="tb-icon-btn" onclick="toggleLang()" title="Language" style="font-size:11px;font-weight:700;font-family:var(--font-display)" id="langBtn">UR</button>
@@ -1145,6 +1156,7 @@ body.lang-ur .i18n-en{display:none!important}
     <select class="fsel" style="width:auto" id="filterProvince" onchange="applyMemberFilters()"></select>
     <select class="fsel" style="width:auto" id="filterCity" onchange="applyMemberFilters()"><option value="">All Cities</option></select>
     <button class="btn btn-ghost btn-sm" onclick="resetMemberFilters()">↺ Reset</button>
+    <button class="btn btn-sm" style="background:#25d366;color:#fff;border-color:#1da851" onclick="waPaymentReminders()">📱 <span class="i18n-en">WA Bulk Reminders</span><span class="i18n-ur">ادائیگی یاد دہانی</span></button>
   </div>
   <div class="card">
     <div class="tbl-wrap"><table>
@@ -1267,6 +1279,10 @@ body.lang-ur .i18n-en{display:none!important}
           <button class="btn btn-ghost btn-sm" id="modeDark" onclick="setMode('dark')">🌙 Dark</button>
           <button class="btn btn-ghost btn-sm" id="modeLight" onclick="setMode('light')">☀️ Light</button>
         </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:14px;padding:10px 12px;background:rgba(0,0,0,0.04);border:1px solid var(--border);border-radius:var(--r-sm);margin-top:10px">
+        <span style="font-size:12px;color:var(--cream2);flex:1"><span class="i18n-en">Notification sounds</span><span class="i18n-ur">اطلاع کی آواز</span></span>
+        <button class="btn btn-ghost btn-sm" id="soundToggle" onclick="toggleSounds()">🔔 On</button>
       </div>
     </div>
   </div>
@@ -1782,6 +1798,136 @@ let S = {
   audit:[], // {id,uid,action,detail,date}
 };
 
+/* ══════════════════════════════════════════
+   NOTIFICATION SOUNDS (Web Audio — no asset files)
+══════════════════════════════════════════ */
+let _audioCtx=null;
+function getAudio(){
+  if(_audioCtx)return _audioCtx;
+  try{_audioCtx=new (window.AudioContext||window.webkitAudioContext)();return _audioCtx;}catch(e){return null;}
+}
+function playTone(freq=880, dur=0.18, gain=0.06, type='sine', delay=0){
+  if(S.cfg?.soundsMuted)return;
+  const ctx=getAudio();if(!ctx)return;
+  const now=ctx.currentTime+delay;
+  const o=ctx.createOscillator(),g=ctx.createGain();
+  o.type=type;o.frequency.value=freq;
+  g.gain.setValueAtTime(0,now);
+  g.gain.linearRampToValueAtTime(gain,now+0.015);
+  g.gain.exponentialRampToValueAtTime(0.0001,now+dur);
+  o.connect(g);g.connect(ctx.destination);
+  o.start(now);o.stop(now+dur+0.02);
+}
+const SOUNDS={
+  notification: ()=>{playTone(880,0.12,0.05);playTone(1175,0.16,0.05,'sine',0.08);},
+  message:      ()=>{playTone(660,0.12,0.05);playTone(880,0.18,0.05,'sine',0.1);},
+  vote:         ()=>{playTone(523,0.1,0.06);playTone(659,0.1,0.06,'sine',0.08);playTone(784,0.16,0.06,'sine',0.16);},
+  approved:     ()=>{playTone(659,0.12,0.06);playTone(784,0.12,0.06,'sine',0.1);playTone(988,0.22,0.06,'sine',0.2);},
+  rejected:     ()=>{playTone(440,0.18,0.06,'triangle');playTone(330,0.22,0.06,'triangle',0.15);},
+  error:        ()=>{playTone(220,0.14,0.07,'square');playTone(180,0.22,0.07,'square',0.12);},
+  click:        ()=>{playTone(1200,0.04,0.03,'sine');},
+};
+function playSound(kind){try{(SOUNDS[kind]||SOUNDS.notification)();}catch(e){}}
+
+/* ══════════════════════════════════════════
+   WHATSAPP INTEGRATION
+══════════════════════════════════════════ */
+function waUrl(phone, message){
+  // Sanitize phone: digits only, prepend country code if missing
+  let p=(phone||'').replace(/\D/g,'');
+  if(!p)return null;
+  if(p.length===10&&p.startsWith('3'))p='92'+p;       // 3xx-xxxxxxx → 923xx
+  else if(p.length===11&&p.startsWith('0'))p='92'+p.slice(1); // 03xx-xxxxxxx → 923xx
+  return `https://wa.me/${p}?text=${encodeURIComponent(message||'')}`;
+}
+function waMessage(uid, kind, ctx){
+  const u=USERS[uid]||{}; const orgUr=DB?.cfg?.nameUr||'بیت المال بلوچ ساتھ';
+  const greeting=`السلام علیکم ${u.ur||u.en||''}\n\n`;
+  const closing='\n\nجزاک اللہ خیر — بیت المال بلوچ ساتھ';
+  const bismillah='بسم اللہ الرحمن الرحیم\n\n';
+  if(kind==='vote'){
+    const e=ctx; const cat=emrCat(e);
+    return bismillah+greeting+
+      `*${cat.ur} ووٹ کی درخواست*\n\n`+
+      `درخواست کنندہ: *${USERS[e.uid]?.ur||USERS[e.uid]?.en}*\n`+
+      `رقم: *${fmt(e.amt)}*\n`+
+      `وجہ: ${e.rUr}\n\n`+
+      `براہ کرم ایپ میں جا کر اپنا ووٹ ضرور دیں۔\n`+
+      `آپ کا ووٹ خاندان کے لیے اہم ہے۔`+
+      closing;
+  }
+  if(kind==='payment-reminder'){
+    const month=ctx?.month||MONTHS[new Date().getMonth()];
+    const monthly=u.monthly||S.cfg?.defaultMonthly||1000;
+    return bismillah+greeting+
+      `یاد دہانی: *${month}* کی ماہانہ ادائیگی ابھی باقی ہے\n\n`+
+      `ماہانہ حصہ: *${fmt(monthly)}*\n\n`+
+      `براہ کرم جلد از جلد ادائیگی کریں\n`+
+      `سدقہ بلاؤں کو ٹال دیتا ہے`+
+      closing;
+  }
+  if(kind==='approved'){
+    const e=ctx;
+    return bismillah+greeting+
+      `🎉 *مبارک ہو!*\n\n`+
+      `آپ کی ${emrCat(e).ur} درخواست منظور ہو گئی\n`+
+      `رقم: *${fmt(e.amt)}*\n\n`+
+      `اللہ آپ کی مشکل آسان فرمائے`+
+      closing;
+  }
+  if(kind==='general'){
+    return bismillah+greeting+(ctx?.text||'')+closing;
+  }
+  if(kind==='balance'){
+    const total=paidBy(uid);
+    return bismillah+greeting+
+      `*آپ کا کھاتہ*\n\n`+
+      `کل ادائیگی: *${fmt(total)}*\n`+
+      `ادا کیے مہینے: *${mPaidBy(uid)}/${MONTHS.length}*\n\n`+
+      `جزاک اللہ خیر آپ کے تعاون پر`+
+      closing;
+  }
+  return greeting+(ctx?.text||'')+closing;
+}
+function waSend(uid, kind, ctx){
+  const u=USERS[uid]; if(!u)return;
+  const url=waUrl(u.phone, waMessage(uid, kind, ctx));
+  if(!url){showToast(t(`فون نمبر نہیں — ${u.en||u.ur}`,`No phone number for ${u.en||u.ur}`),'err');return;}
+  window.open(url, '_blank');
+  addAudit(uid, 'whatsapp-sent', `Sent ${kind} reminder via WhatsApp`);
+  playSound('click');
+}
+function waBroadcastVote(emrId){
+  const e=S.emergencies.find(x=>x.id===emrId); if(!e)return;
+  const eligible=emrEligibleVoters(e).filter(uid=>!voted(e,uid)&&USERS[uid]?.phone);
+  if(!eligible.length){showToast(t('کوئی اہل ووٹر فون کے ساتھ نہیں','No eligible voters with phone numbers'),'err');return;}
+  if(!confirm(t(`${eligible.length} اراکین کو واٹس ایپ بھیجیں؟`,`Send WhatsApp to ${eligible.length} members?`)))return;
+  // Open them sequentially with small delays so browser doesn't block
+  let i=0;
+  function nextOne(){
+    if(i>=eligible.length){showToast(t(`${eligible.length} ووٹ یاد دہانیاں بھیجی گئیں`,`Sent ${eligible.length} vote reminders`),'gold');return;}
+    waSend(eligible[i],'vote',e);
+    i++;
+    if(i<eligible.length)setTimeout(nextOne, 600);
+    else nextOne();
+  }
+  nextOne();
+}
+function waPaymentReminders(){
+  const cm=MONTHS[new Date().getMonth()];
+  const overdue=Object.values(USERS).filter(u=>!u.deceased&&u.role!=='admin'&&!paidCurMonth(u.id)&&u.phone);
+  if(!overdue.length){showToast(t('کوئی ادائیگی باقی نہیں','No pending payments'),'gold');return;}
+  if(!confirm(t(`${overdue.length} اراکین کو ${cm} یاد دہانی واٹس ایپ بھیجیں؟`,`Send ${cm} reminder via WhatsApp to ${overdue.length} members?`)))return;
+  let i=0;
+  function nextOne(){
+    if(i>=overdue.length){showToast(t(`${overdue.length} یاد دہانیاں بھیجی گئیں`,`${overdue.length} reminders sent`),'gold');return;}
+    waSend(overdue[i].id,'payment-reminder',{month:cm});
+    i++;
+    if(i<overdue.length)setTimeout(nextOne, 600);
+  }
+  nextOne();
+}
+
 // Audit logger — append-only event journal (last 1000 entries)
 function addAudit(uid, action, detail){
   if(!S.audit) S.audit = [];
@@ -1926,6 +2072,11 @@ function deleteMember(uid){
 function addNotif(uid,ur,en,type){
   if(!S.notifs[uid])S.notifs[uid]=[];
   S.notifs[uid].unshift({id:S.nid++,ur,en,type,read:false,date:'Just now'});
+  // Play sound only if it's for the CURRENT user (live feedback)
+  if(S.user && uid===S.user.id){
+    const map={'vote-yes':'approved','vote-no':'rejected','approved':'approved','rejected':'rejected','vote':'vote','emr':'vote','msg':'message','reg':'notification','pay':'notification','pay-verify':'notification','verified':'approved'};
+    playSound(map[type]||'notification');
+  }
 }
 function updateBadges(){
   const uid=S.user?.id;if(!uid)return;
@@ -2069,6 +2220,91 @@ function showPendingPage(reg){
   localStorage.setItem('balochsath_pendUser', reg.user);
   paintIcons();
 }
+/* ══════════════════════════════════════════
+   GLOBAL SEARCH (topbar)
+══════════════════════════════════════════ */
+function globalSearch(q){
+  const r=document.getElementById('searchResults'); if(!r)return;
+  const term=(q||'').trim().toLowerCase();
+  if(term.length<2){r.style.display='none';return;}
+  r.style.display='block';
+  const results={members:[],payments:[],cases:[],loans:[]};
+  // Members
+  Object.values(USERS).forEach(u=>{
+    const hay=`${u.en||''} ${u.ur||''} ${u.father||''} ${u.city||''} ${u.phone||''}`.toLowerCase();
+    if(hay.includes(term))results.members.push(u);
+  });
+  // Payments — search by member name or note
+  S.payments.forEach(p=>{
+    const u=USERS[p.uid]||{};
+    const hay=`${u.en||''} ${u.ur||''} ${p.note||''} ${p.month||''}`.toLowerCase();
+    if(hay.includes(term))results.payments.push(p);
+  });
+  // Emergency cases
+  S.emergencies.forEach(e=>{
+    const u=USERS[e.uid]||{};
+    const hay=`${u.en||''} ${u.ur||''} ${e.rEn||''} ${e.rUr||''}`.toLowerCase();
+    if(hay.includes(term))results.cases.push(e);
+  });
+  // Loans
+  S.loans.forEach(l=>{
+    const u=USERS[l.uid]||{};
+    const hay=`${u.en||''} ${u.ur||''} ${l.purpose||''}`.toLowerCase();
+    if(hay.includes(term))results.loans.push(l);
+  });
+  const total=results.members.length+results.payments.length+results.cases.length+results.loans.length;
+  if(!total){
+    r.innerHTML=`<div style="padding:20px;text-align:center;color:var(--txt-3);font-style:italic">${t('کوئی نتیجہ نہیں ملا','No results found')}</div>`;
+    return;
+  }
+  let html='';
+  if(results.members.length){
+    html+=`<div class="search-result-cat">👥 ${t('اراکین','Members')} (${results.members.length})</div>`;
+    html+=results.members.slice(0,5).map(u=>`
+      <div class="search-result-item" onclick="goToMember('${u.id}')">
+        <div class="av" style="background:${u.color};width:28px;height:28px;font-size:11px">${avContent(u)}</div>
+        <div style="flex:1"><div style="font-size:13px;color:var(--cream);font-weight:600">${u.en||u.ur}</div><div style="font-size:11px;color:var(--gold4)">${[u.father?'s/o '+u.father:'',u.city,u.phone].filter(Boolean).join(' · ')||u.rel}</div></div>
+      </div>`).join('');
+  }
+  if(results.payments.length){
+    html+=`<div class="search-result-cat">💰 ${t('ادائیگیاں','Payments')} (${results.payments.length})</div>`;
+    html+=results.payments.slice(0,5).map(p=>{
+      const u=USERS[p.uid]||{};
+      return`<div class="search-result-item" onclick="showTab('fund')">
+        <div class="av" style="background:${u.color||'#888'};width:28px;height:28px;font-size:11px">${avContent(u)}</div>
+        <div style="flex:1"><div style="font-size:13px;color:var(--cream);font-weight:600">${u.en||u.ur||'Member'} • <span style="color:var(--gold)">${fmt(p.amt)}</span></div><div style="font-size:11px;color:var(--gold4)">${p.month}${p.note?' • '+p.note:''}${p.pendingVerify?' ⏳ pending':' ✓ verified'}</div></div>
+      </div>`;}).join('');
+  }
+  if(results.cases.length){
+    html+=`<div class="search-result-cat">🚨 ${t('ایمرجنسی کیسز','Emergency Cases')} (${results.cases.length})</div>`;
+    html+=results.cases.slice(0,5).map(e=>{
+      const u=USERS[e.uid]||{};
+      return`<div class="search-result-item" onclick="showTab('emergency')">
+        <div class="av" style="background:${u.color||'#888'};width:28px;height:28px;font-size:11px">${avContent(u)}</div>
+        <div style="flex:1"><div style="font-size:13px;color:var(--cream);font-weight:600">${u.en||u.ur} • <span style="color:var(--gold)">${fmt(e.amt)}</span></div><div style="font-size:11px;color:var(--gold4)">${(e.rEn||'').slice(0,60)}${e.status!=='voting'?' · '+e.status:''}</div></div>
+      </div>`;}).join('');
+  }
+  if(results.loans.length){
+    html+=`<div class="search-result-cat">📤 ${t('قرض حسنہ','Qarz-e-Hasana')} (${results.loans.length})</div>`;
+    html+=results.loans.slice(0,5).map(l=>{
+      const u=USERS[l.uid]||{};
+      return`<div class="search-result-item" onclick="showTab('loans')">
+        <div class="av" style="background:${u.color||'#888'};width:28px;height:28px;font-size:11px">${avContent(u)}</div>
+        <div style="flex:1"><div style="font-size:13px;color:var(--cream);font-weight:600">${u.en||u.ur} • <span style="color:var(--gold)">${fmt(l.amt-l.paid)} ${t('باقی','outstanding')}</span></div><div style="font-size:11px;color:var(--gold4)">${(l.purpose||'').slice(0,60)}</div></div>
+      </div>`;}).join('');
+  }
+  r.innerHTML=html;
+}
+function showSearchResults(){const v=document.getElementById('tbSearch')?.value||'';if(v.length>=2)globalSearch(v);}
+function hideSearchResults(){const r=document.getElementById('searchResults');if(r)r.style.display='none';}
+function goToMember(uid){
+  document.getElementById('tbSearch').value='';
+  hideSearchResults();
+  const isAdmin=S.user?.role==='admin';
+  if(isAdmin){showTab('members');setTimeout(()=>{filterMbr(USERS[uid]?.en||uid);},100);}
+  else{showTab('tree');setTimeout(()=>selectNode(uid),100);}
+}
+
 function openForgotPassword(){
   ['fpUser','fpFather','fpPass','fpPass2'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
   document.getElementById('fpStep2').style.display='none';
@@ -2260,6 +2496,7 @@ function rDash(){
         ['+ '+t('قرض حسنہ','Qarz'),"openModal('loanM')",'btn-gold'],
         ['+ '+t('ایمرجنسی','Emergency'),"openEmrM()",'btn-red'],
         ['+ '+t('رکن','Member'),"openAddMember('admin')",'btn-ghost'],
+        ['📱 '+t('یاد دہانی','WA Reminders'),"waPaymentReminders()",'btn-ghost'],
         ['📢 '+t('اعلان','Broadcast'),"showTab('broadcast')",'btn-ghost'],
         ['⚙️ '+t('ترتیبات','Settings'),"showTab('settings')",'btn-ghost'],
       ];
@@ -2765,6 +3002,7 @@ function emrHtml(e){
       <button class="vbtn vbtn-yes" onclick="castVote(${e.id},true)" ${isVoted||!canVote?'disabled':''}>✓ Yes - حق</button>
       <button class="vbtn vbtn-no" onclick="castVote(${e.id},false)" ${isVoted||!canVote?'disabled':''}>✗ No - مخالف</button>
       ${isVoted?`<span class="voted-tag">${t('آپ نے ووٹ دیا','You voted')} ✓</span>`:uid===e.uid?`<span class="voted-tag">${t('اپنی درخواست','Own request')}</span>`:!canVote?`<span class="voted-tag">${t('اہل نہیں','Not eligible')}</span>`:''}
+      ${S.user?.role==='admin'?`<button class="vbtn" style="background:#25d366;color:#fff;border-color:#1da851;margin-left:auto" onclick="waBroadcastVote(${e.id})">📱 WhatsApp Vote Reminder</button>`:''}
     </div>`:''}
   </div>`;
 }
@@ -2895,6 +3133,7 @@ function renderMbrTbl(list){
         ${u.id==='abubakar'?'':`<button class="btn btn-ghost btn-sm" onclick="toggleDeceased('${u.id}')" title="${u.deceased?t('زندہ کریں','Mark Alive'):t('مرحوم کریں','Mark Deceased')}" style="color:${u.deceased?'var(--em2)':'#888'}">${u.deceased?'☥':'†'}</button>`}
         ${u.id==='abubakar'?'':`<button class="btn btn-red btn-sm" onclick="deleteMember('${u.id}')" title="${t('حذف','Delete')}">✕</button>`}
         <button class="btn btn-em btn-sm" onclick="goPayFor('${u.id}')">+ Pay</button>
+        ${u.phone?`<button class="btn btn-sm" style="background:#25d366;color:#fff;border-color:#1da851" onclick="waSend('${u.id}','payment-reminder',null)" title="WhatsApp reminder">📱</button>`:''}
       </div></td>
     </tr>`;
   }).join('');
@@ -3296,19 +3535,19 @@ function sendBC(){
 ══════════════════════════════════════════ */
 const PALETTE = ['#c9a84c','#1b6b45','#1d4ed8','#7c3aed','#c0392b','#d97706','#0891b2','#059669','#be185d','#0d9488','#374151','#065f46','#92400e','#1e3a5f'];
 
-// Apex Dashboard inspired premium palettes
+// Refined premium palettes — sophisticated, not neon
 const THEMES = {
-  gold:    {name:'Royal Gold',    primary:'#c9a84c', primary2:'#e8c96a', primary4:'#7a5c1e', accent:'#1b6b45', accent2:'#24925e', accent3:'#0d4a2f'},
-  cosmic:  {name:'Cosmic',        primary:'#a855f7', primary2:'#c084fc', primary4:'#581c87', accent:'#06b6d4', accent2:'#22d3ee', accent3:'#164e63'},
-  aurora:  {name:'Aurora',        primary:'#10b981', primary2:'#34d399', primary4:'#064e3b', accent:'#06b6d4', accent2:'#22d3ee', accent3:'#155e75'},
-  sunset:  {name:'Sunset',        primary:'#fb7185', primary2:'#fda4af', primary4:'#9f1239', accent:'#f59e0b', accent2:'#fbbf24', accent3:'#78350f'},
-  midnight:{name:'Midnight',      primary:'#6366f1', primary2:'#818cf8', primary4:'#312e81', accent:'#06b6d4', accent2:'#22d3ee', accent3:'#164e63'},
-  crimson: {name:'Crimson',       primary:'#dc2626', primary2:'#ef4444', primary4:'#7f1d1d', accent:'#fbbf24', accent2:'#fcd34d', accent3:'#78350f'},
-  forest:  {name:'Forest',        primary:'#15803d', primary2:'#22c55e', primary4:'#14532d', accent:'#ca8a04', accent2:'#eab308', accent3:'#713f12'},
-  ocean:   {name:'Deep Ocean',    primary:'#0284c7', primary2:'#38bdf8', primary4:'#0c4a6e', accent:'#10b981', accent2:'#34d399', accent3:'#064e3b'},
-  emerald: {name:'Emerald Classic',primary:'#1b6b45', primary2:'#24925e', primary4:'#0d4a2f', accent:'#c9a84c', accent2:'#e8c96a', accent3:'#3a2d0c'},
-  rose:    {name:'Rose',          primary:'#e11d48', primary2:'#f43f5e', primary4:'#881337', accent:'#c9a84c', accent2:'#e8c96a', accent3:'#3a2d0c'},
-  ember:   {name:'Ember',         primary:'#d97706', primary2:'#f59e0b', primary4:'#7c2d12', accent:'#1b6b45', accent2:'#24925e', accent3:'#0d4a2f'},
+  gold:    {name:'Royal Gold',     primary:'#b8902f', primary2:'#d4af3f', primary4:'#5a4010', accent:'#1f4e3a', accent2:'#2d8364', accent3:'#0d2e22'},
+  emerald: {name:'Emerald',        primary:'#1f6e4a', primary2:'#2d8364', primary4:'#0d3a26', accent:'#b8902f', accent2:'#d4af3f', accent3:'#5a4010'},
+  sapphire:{name:'Sapphire',       primary:'#2d5a8c', primary2:'#4a7fc1', primary4:'#1a3a5f', accent:'#b8902f', accent2:'#d4af3f', accent3:'#5a4010'},
+  ruby:    {name:'Ruby',           primary:'#a83254', primary2:'#c44d72', primary4:'#651832', accent:'#b8902f', accent2:'#d4af3f', accent3:'#5a4010'},
+  amethyst:{name:'Amethyst',       primary:'#5e4691', primary2:'#7a5fb8', primary4:'#3a2c5a', accent:'#b8902f', accent2:'#d4af3f', accent3:'#5a4010'},
+  bronze:  {name:'Bronze',         primary:'#a0671e', primary2:'#c0833a', primary4:'#5a3a10', accent:'#1f4e3a', accent2:'#2d8364', accent3:'#0d2e22'},
+  forest:  {name:'Forest',         primary:'#2d6a4f', primary2:'#48916c', primary4:'#1a3d2e', accent:'#a8862c', accent2:'#c89b3c', accent3:'#4a3810'},
+  midnight:{name:'Midnight',       primary:'#3a4a7a', primary2:'#5a6e9e', primary4:'#1f2842', accent:'#c89b3c', accent2:'#d4af3f', accent3:'#5a4010'},
+  copper:  {name:'Copper',         primary:'#b85a2e', primary2:'#d27447', primary4:'#5a2810', accent:'#1f4e3a', accent2:'#2d8364', accent3:'#0d2e22'},
+  slate:   {name:'Graphite',       primary:'#475569', primary2:'#64748b', primary4:'#1e293b', accent:'#b8902f', accent2:'#d4af3f', accent3:'#5a4010'},
+  charcoal:{name:'Charcoal',       primary:'#3a3a2a', primary2:'#5a5a3a', primary4:'#1a1a14', accent:'#b8902f', accent2:'#d4af3f', accent3:'#5a4010'},
 };
 
 function applyTheme(key){
@@ -3344,6 +3583,14 @@ function setMode(m){
   S.theme = m;
   document.getElementById('modeDark')?.classList.toggle('btn-gold', m==='dark');
   document.getElementById('modeLight')?.classList.toggle('btn-gold', m==='light');
+  saveDB();
+}
+function toggleSounds(){
+  S.cfg=S.cfg||{};
+  S.cfg.soundsMuted=!S.cfg.soundsMuted;
+  const b=document.getElementById('soundToggle');
+  if(b)b.innerHTML=S.cfg.soundsMuted?'🔕 Off':'🔔 On';
+  if(!S.cfg.soundsMuted)playSound('click');
   saveDB();
 }
 function renderThemePicker(){
@@ -3384,6 +3631,8 @@ function rSettings(){
     if(tv)tv.textContent=(S.cfg?.voteThresh ?? 50)+'%';
   }
   renderThemePicker();
+  const sb=document.getElementById('soundToggle');
+  if(sb)sb.innerHTML=S.cfg?.soundsMuted?'🔕 Off':'🔔 On';
   paintIcons();
 }
 function saveProfile(){
@@ -3613,6 +3862,9 @@ function showToast(msg,type=''){
   t.textContent=msg;t.className='toast '+type;
   t.classList.add('show');clearTimeout(toastT);
   toastT=setTimeout(()=>t.classList.remove('show'),4000);
+  // Sound feedback for important toasts
+  if(type==='gold')playSound('approved');
+  else if(type==='err')playSound('error');
 }
 
 loadDB();
