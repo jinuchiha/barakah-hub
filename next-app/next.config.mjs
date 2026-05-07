@@ -1,8 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  // Next 16: typedRoutes moved out of experimental
+  typedRoutes: true,
   experimental: {
-    typedRoutes: true,
     optimizePackageImports: ['lucide-react', 'date-fns'],
   },
   images: {

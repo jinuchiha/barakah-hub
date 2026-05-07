@@ -22,7 +22,7 @@ export default async function TreePage() {
     .where(eq(payments.pendingVerify, false));
   const paidByMap = new Map<string, number>();
   for (const t of totals) {
-    paidByMap.set(t.memberId, (paidByMap.get(t.memberId) || 0) + t.amount);
+    paidByMap.set(t.memberId, (paidByMap.get(t.memberId) || 0) + t.total);
   }
   const paidByObj: Record<string, number> = {};
   paidByMap.forEach((v, k) => { paidByObj[k] = v; });
