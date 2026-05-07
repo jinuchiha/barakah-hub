@@ -12,6 +12,7 @@ desktop.ini
 # Backups
 *.bak
 *-backup-*.json
+*-backup-*.html
 balochsath-*.json
 
 # Local instructions (kept local)

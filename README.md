@@ -1,141 +1,167 @@
-# BalochSath · بلوچ ساتھ
+# Bait ul Maal BalochSath · بیت المال بلوچ ساتھ
 
 **بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ**
 
-*Khandan ka saath, har mushkil mein.*
+> *Khandan ka saath, har mushkil mein.*
+> Premium Islamic family fund — sadqa, qarz-e-hasana, emergency vote, full audit trail.
+> Single HTML file. No build. No backend. Works offline as a PWA.
 
-Premium Islamic family fund + emergency support + governance dashboard. Ek hi HTML file. Koi setup nahi.
+**Live commit:** [`57a061f`](https://github.com/jinuchiha/balochsath/commit/57a061f) on `main`
 
 ---
 
-## Setup (pehli baar)
+## Quick start
 
-1. `index.html` par double-click
-2. Welcome screen par naam + 4-digit PIN — admin profile ban jaye gi
-3. Sidebar par tabs explore karein
+```bash
+# Just open it
+open index.html      # macOS
+start index.html     # Windows
+xdg-open index.html  # Linux
+```
 
-## Bismillah aur Islamic content
+**Default admin login:** `abubakar` / `admin123` → first-login wizard forces real details + new password.
 
-- **Top par Bismillah** har page par
-- **Verse banner** — har din ek alag Quranic verse Sadqa/charity ke baare mein (7 verses rotate)
-- **Logo**: emerald + gold, crescent moon + handshake (family unity + Islamic identity)
-- **Print statement** par bhi BalochSath logo + Bismillah
+To install as an app: open in Chrome/Edge → click the `⤓ Install App` button bottom-left, or use browser menu → "Install app".
 
-## Features
+---
 
-### 1. Login system (multi-profile, PIN-protected)
-Har family member ka apna profile, 4-digit PIN, role.
+## Files
 
-### 2. Roles
-| Role | Permissions |
+| File | Purpose |
 |---|---|
-| **Admin** | Sab kuch |
-| **Fund Collector** | Contributions record karein |
-| **Supervisor** | Contributions verify, disbursements |
-| **Management Committee** | Cases pe vote, contributions verify |
-| **Emergency Committee** | Emergency cases, voting |
-| **Contributor** | Read-only, apni history |
-
-### 3. Members (city REQUIRED)
-- City field zaroori hai (city-wise WhatsApp groups, reports)
-- **Admin approval required** for new members (toggle in Settings)
-- Pending members admin ke pass approval queue mein
-- Phone, monthly pledge, role
-
-### 4. Contributions with **3-approval verification**
-- Slip photo **REQUIRED** when method != Cash (bank transfer, JazzCash, Easypaisa, etc)
-- Status flow: `recorded` → 3 verifiers approve → `verified`
-- Until verified, doesn't count in balance
-- Configurable approval count (default 3, per your proposal)
-- Verifier can vote approve/reject with note
-
-### 5. Cases — Gift OR Loan (Qarz-e-Hasna)
-- **Gift / Sadqa**: wapas nahi karna
-- **Qarz-e-Hasna (Loan)**: wapas karna hai, expected return date set kar sakte hain
-
-Workflow:
-1. Committee member case create karta hai (beneficiary, relation, city, category, amount, reason, supporting photos)
-2. **2 approvals** mil jayein → APPROVED
-3. Supervisor disburses (date, method, **receipt photo**)
-4. **For Loan type:** repayments record kar sakte hain (amount, date, slip photo)
-5. Outstanding amount auto-calculate, progress bar, overdue alerts
-
-### 6. Loans tab (NEW)
-- **Outstanding loans list** — kis ko kitna paisa baqi hai
-- **Overdue loans** — due date past ho gayi to red flag, top par alert
-- **Repayment recording** — slip ke saath
-- **Progress bar** — kitna repaid, kitna outstanding
-- Total outstanding number top par
-
-### 7. Dashboard (premium)
-- Hero greeting "Assalam o Alaikum, [name]"
-- 4 KPI cards: Balance, This Month In, Outstanding Loans, Active Members
-- 12-month trend chart (in vs out)
-- Disbursement category donut
-- **Top contributors leaderboard** (gold/silver/bronze)
-- Pending dues with WhatsApp button
-- Pending member approvals (admin only)
-- Pending contribution verifications
-
-### 8. Audit log (immutable)
-Sab actions log: profile created, member added/approved/rejected, contribution recorded/verified, case created/voted/approved/disbursed/closed, repayments. Last 1000 entries. Admin-only.
-
-### 9. Monthly Statement
-- Premium printable design with logo, Bismillah, signature areas
-- Year-wise table: members × months, totals, disbursements
-- Disbursement detail with type (gift/loan), approvers
-- Print/PDF se sath sath family group mein bhej dein
-
-### 10. Hijri date
-Header par har waqt Hijri (Umm al-Qura) + Gregorian.
-
-### 11. WhatsApp share
-Members tab pe har card pe green WhatsApp button — auto message generate hota hai with Islamic greeting, balance, dues.
-
-### 12. Toasts
-Har action pe slick notification (success/error).
-
-## Roman Urdu mein quick guide
-
-**Member add karna:**
-Members tab → Add member → name + city (required) + phone + monthly pledge + role
-Agar admin nahi ho, "Submit for approval" hoga, admin approve karega
-
-**Contribution dena:**
-Members card → "+ Contribution" ya direct Contributions tab
-Member select → amount → date → method → agar bank transfer hai to slip photo
-Save ke baad: "Awaiting verification" status, 3 logon ko verify karna hoga
-
-**Verify karna:**
-Dashboard pe "Contributions needing verification" panel ya Contributions tab > "Needs verification" sub-tab
-Slip photo dekh sakte hain, approve ya reject vote dalein
-
-**Case banana (emergency / qarz):**
-Cases tab > New case
-Type: Gift (wapas nahi) ya Loan (wapas)
-Beneficiary, relation, category, amount, reason, supporting photos
-2 approvals = APPROVED → supervisor disburses
-
-**Loan repayment:**
-Loans tab → outstanding loans → "+ Repayment" button → amount + slip photo
-Progress bar update ho jayega
-
-## Backup
-
-**Settings > Export all data (JSON)** — har hafte zaroor karein.
-
-## Stage 3 (jab fund grow ho jaye)
-
-Multi-device live sync, real auth, cloud photo storage, realtime committee voting, public transparency URL, WhatsApp auto reminders — yeh sab Next.js + Supabase backend mein hoga. Bolein jab chahiye.
-
-## File path
-
-- `index.html` — full app (~3000 lines)
-- `README.md` — yeh file
-- Backups: `balochsath-YYYY-MM-DD.json`
+| `index.html` | The entire app (~4,200 lines: HTML + CSS + vanilla JS) |
+| `manifest.json` | PWA manifest (icons, name, theme color) |
+| `sw.js` | Service worker (offline + stale-while-revalidate cache) |
+| `AUDIT.md` | Honest internal audit |
+| `images/` | Logo and reference assets |
 
 ---
 
-**JazakAllah Khair.** Koi tweak chahiye to bata dein.
+## Features (current)
 
-*"وَأَنفِقُوا۟ مِن مَّا رَزَقْنَـٰكُم"* — *And spend from what We have provided you* — Al-Munafiqun 63:10
+### Identity & access
+- ✅ First-time setup wizard (3 steps: Identity → Contact → Security)
+- ✅ Forgot password flow (username + father's name security check)
+- ✅ Pending verification page for new registrations
+- ✅ Per-user profile photo upload + 14-color avatar picker
+- ✅ Roles: admin (full) / member (own data + voting)
+
+### Family & relationships
+- ✅ Family tree with father-name badges, sibling counters, location pins
+- ✅ Smart father-match — typing father's name detects existing siblings
+- ✅ City + Province + 8-province dropdown (Balochistan, Sindh, Punjab, KPK, GB, AJK, Islamabad, Overseas)
+- ✅ Member self-add family (wife, kids) without admin involvement
+- ✅ Mandatory father name on every member
+
+### Money flow
+- ✅ Multi-pool fund: Sadaqah / Zakat / Qarz pool (Q.9:60 compliance)
+- ✅ Member self-records donation → admin verifies → counts in fund
+- ✅ Qarz-e-Hasana issuance + repayment tracking
+- ✅ Emergency requests with category-specific verses + voting
+- ✅ Configurable vote threshold (30–75%) — admin sets
+
+### Sadqa privacy (the moat)
+- ✅ Non-admin dashboard hides ALL other donors' names + amounts
+- ✅ Each donor sees only their own contributions
+- ✅ Aggregate "12 contributions this month, total Rs. X" — no individual breakdown
+- ✅ "انفرادی نام و رقم خفیہ ہے" — true spirit of sadqa
+
+### Visualization
+- ✅ Vibrant gradient stat cards with inline SVG sparklines
+- ✅ 12-month area trend chart
+- ✅ Fund pool donut chart
+- ✅ Top contributors leaderboard (admin only)
+- ✅ Members-by-province distribution
+- ✅ Personal yearly bar chart on My Account
+- ✅ 🔥 Streak counter (consecutive months paid)
+
+### Theme & UX
+- ✅ 11 refined color palettes (Royal Gold, Emerald, Sapphire, Ruby, Amethyst, Bronze, Forest, Midnight, Copper, Graphite, Charcoal)
+- ✅ Dark + Light mode (fully readable in both)
+- ✅ Bilingual UI (Urdu RTL + English LTR via single class toggle)
+- ✅ Hijri date in header
+- ✅ Verse banner ticker with bilingual translations
+- ✅ Empty-state SVG illustrations
+- ✅ Multi-step wizard with progress dots
+
+### Communication
+- ✅ Global topbar search (members / payments / cases / loans)
+- ✅ WhatsApp integration:
+  - Per-member 📱 button → payment reminder
+  - Bulk reminders (all unpaid members at once)
+  - Vote reminders (broadcast to non-voters)
+  - Auto Pakistan country-code normalization (`03xx` → `+923xx`)
+- ✅ Notification sounds (Web Audio API — no asset files)
+- ✅ Broadcast messaging
+- ✅ Notifications inbox per user
+- ✅ Family Goal Bar with adaptive cheer text
+
+### Compliance & trust
+- ✅ Audit Log — every action recorded (login, payment, vote, password reset, etc.)
+- ✅ Audit log filterable by action + user, exportable to CSV
+- ✅ JSON backup export / import (Settings → Danger Zone)
+- ✅ Configurable auto-save (every 5 seconds + on page close)
+
+### Accessibility (WCAG 2.1)
+- ✅ Universal `:focus-visible` rings
+- ✅ Toast announced via `role="status" aria-live="polite"`
+- ✅ `prefers-reduced-motion` honored
+- ✅ Semantic buttons with `aria-label`
+
+### Power user
+- ✅ Keyboard shortcuts (`/` search, `?` help, `g` then letter for navigation)
+- ✅ PWA installable, offline-capable
+
+---
+
+## Roadmap
+
+### Phase 1 — Polish ✅ **DONE** (commit `57a061f`)
+PWA, WCAG AA, Goal Bar, Multi-step Wizard, Empty states, Undo, Keyboard shortcuts.
+
+### Phase 2 — Sync & Trust (pending)
+Backend introduction, ~24 hours work:
+- Supabase auth (replace plaintext localStorage passwords)
+- Postgres for relational family data
+- Multi-device live sync via Supabase Realtime
+- Cloud photo storage
+- Sentry error tracking + PostHog analytics
+
+### Phase 3 — Modern Rebuild (pending)
+The React/MERN/PERN stack rewrite, ~1 month:
+- Next.js 16 App Router + Tailwind v4 + shadcn/ui
+- TanStack Query (server state) + Zustand (client state)
+- Postgres on Supabase (PERN preferred over MERN for relational fit)
+- NextAuth.js with magic-link
+- Expo wrapper for native mobile
+- Vitest + Playwright + Sentry + PostHog
+
+---
+
+## Backup discipline
+
+**Every week:** Settings → Danger Zone → ⬇ Export → save the JSON to Drive/Dropbox.
+
+If localStorage is wiped, drop that JSON back in via ⬆ Import — full state restored.
+
+---
+
+## Default credentials (clean install)
+
+| Username | Password | Role |
+|---|---|---|
+| `abubakar` | `admin123` | Admin |
+
+First login forces wizard: name, father, phone, city, province, new password. The default password is then deactivated.
+
+---
+
+## License
+
+Closed family-internal use. Not for redistribution.
+
+---
+
+**JazakAllah Khair.**
+
+> *وَأَنفِقُوا۟ مِن مَّا رَزَقْنَـٰكُم* — *And spend from what We have provided you* — Al-Munafiqun 63:10
