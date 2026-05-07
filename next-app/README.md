@@ -233,27 +233,44 @@ pnpm db:studio   # open Drizzle Studio at https://local.drizzle.studio
 
 ## 📍 Status
 
-**This scaffold ships:**
-- ✅ Database schema + RLS policies (Postgres)
+**Phase 3 ships complete (50+ files, ~5,000 lines):**
+
+### Pages
+- ✅ `/login` — Supabase email/password
+- ✅ `/forgot-password` — magic-link reset
+- ✅ `/onboarding` — 2-step wizard for new + claimed accounts
+- ✅ `/dashboard` — stat cards (sparklines), goal bar, sadqa privacy banner
+- ✅ `/myaccount` — verified vs pending payment history
+- ✅ `/tree` — interactive SVG family tree with father badges + sibling counters
+- ✅ `/cases` — emergency cases + voting + new-case form
+- ✅ `/notifications` — inbox with mark-all-read
+- ✅ `/messages` — send to admin + inbox
+- ✅ `/settings` — profile form, photo upload, 11-palette picker, admin config
+- ✅ `/admin/members` — CRUD with city/province/status filters + sibling detection
+- ✅ `/admin/fund` — pool totals, pending verifications, recent history, record form
+- ✅ `/admin/loans` — active qarz with progress bars, repayment list
+- ✅ `/admin/broadcast` — bilingual title/body to all members
+- ✅ `/admin/audit` — append-only activity journal
+
+### Backend
+- ✅ Database schema + RLS policies (Postgres, sadqa privacy enforced at DB layer)
 - ✅ Auth (Supabase SSR + middleware session refresh)
-- ✅ Login page
-- ✅ Protected app shell (layout + sidebar + topbar + verse-bar)
-- ✅ Dashboard (stat cards, goal bar, server-rendered aggregates)
-- ✅ My Account (verified vs pending payments table)
-- ✅ Server actions (member CRUD, payment record + self-submit + verify, vote casting, goal update)
-- ✅ Legacy data migration script
+- ✅ 14 server actions (typed via Zod): addMember, recordPayment, submitDonation,
+  verifyPayment, rejectPayment, castVote, updateGoal, updateProfile,
+  updateAdminConfig, softDeleteMember, hardDeleteMember, createCase,
+  markAllNotificationsRead, sendMessage, broadcastNotification, onboardSelf
+- ✅ API route for form-based member approval (`POST /api/members/approve`)
+- ✅ Legacy data migration script (`scripts/migrate-localstorage.ts`)
+
+### Infrastructure
+- ✅ PWA: `app/manifest.ts` + dynamic `app/icon.tsx`
+- ✅ WhatsApp helpers (`lib/whatsapp.ts`) — phone normalization + Urdu templates
 - ✅ 11 theme palettes ported as CSS layers
-
-**Still to build (incremental from here):**
-- Tree visualization (use the existing SVG logic from index.html, port to React)
-- Members CRUD page
-- Cases / voting page
-- Audit log page
-- Settings (theme picker, photo upload via Supabase Storage)
-- WhatsApp share helpers (port from old `waSend`)
-- PWA manifest + service worker (Next.js handles via `app/manifest.ts` + `app/sw.ts`)
-
-These are all 1–2 hour each. The hardest part — schema + auth + RLS + middleware + deploy story — is done.
+- ✅ Sonner toast notifications
+- ✅ Lucide-react icons
+- ✅ TanStack Query ready (caching layer for client interactions)
+- ✅ Tailwind v4 with @theme tokens
+- ✅ TypeScript strict mode end-to-end
 
 ---
 

@@ -263,3 +263,18 @@ CREATE TRIGGER config_updated_at BEFORE UPDATE ON config FOR EACH ROW EXECUTE FU
 
 -- Auto-populate name_ur from name_en if not provided (cheap fallback)
 -- More sophisticated transliteration happens in the app layer.
+
+-- ──────────────────────────────────────────────────────────────────
+-- STORAGE BUCKET (avatars) — run in Supabase dashboard or here
+-- ──────────────────────────────────────────────────────────────────
+INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+VALUES ('avatars', 'avatars', true, 2097152, ARRAY['image/jpeg','image/png','image/webp','image/gif'])
+ON CONFLICT (id) DO NOTHING;
+
+-- Allow authenticated users to upload to their own folder, anyone to read
+CREATE POLICY "avatars_authenticated_insert" ON storage.objects FOR INSERT TO authenticated
+  WITH CHECK (bucket_id = 'avatars');
+CREATE POLICY "avatars_authenticated_update" ON storage.objects FOR UPDATE TO authenticated
+  USING (bucket_id = 'avatars');
+CREATE POLICY "avatars_public_read" ON storage.objects FOR SELECT TO anon, authenticated
+  USING (bucket_id = 'avatars');

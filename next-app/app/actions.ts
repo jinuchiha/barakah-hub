@@ -174,3 +174,126 @@ export async function updateGoal(input: z.infer<typeof goalSchema>) {
   revalidatePath('/dashboard');
   revalidatePath('/settings');
 }
+
+/* ─── update profile (self) */
+const profileSchema = z.object({
+  nameUr: z.string().min(1).max(80).optional(),
+  nameEn: z.string().min(1).max(80).optional(),
+  phone: z.string().max(30).optional().nullable(),
+  city: z.string().max(60).optional().nullable(),
+  province: z.string().max(40).optional().nullable(),
+  color: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional(),
+  photoUrl: z.string().url().nullable().optional(),
+});
+
+export async function updateProfile(input: z.infer<typeof profileSchema>) {
+  const me = await meOrThrow();
+  const data = profileSchema.parse(input);
+  await db.update(members).set({ ...data, needsSetup: false }).where(eq(members.id, me.id));
+  await audit(me.id, 'profile-updated', 'Self-edit via Settings');
+  revalidatePath('/settings');
+  revalidatePath('/myaccount');
+  revalidatePath('/dashboard');
+}
+
+/* ─── update admin config (admin only) */
+const adminCfgSchema = z.object({
+  voteThresholdPct: z.number().int().min(30).max(75).optional(),
+  defaultMonthlyPledge: z.number().int().min(0).optional(),
+  themePalette: z.string().max(20).optional(),
+  orgNameUr: z.string().max(80).optional(),
+  orgNameEn: z.string().max(80).optional(),
+});
+
+export async function updateAdminConfig(input: z.infer<typeof adminCfgSchema>) {
+  const me = await meOrThrow();
+  if (me.role !== 'admin') throw new Error('Admin only');
+  const data = adminCfgSchema.parse(input);
+  await db.update(configTbl).set(data).where(eq(configTbl.id, 1));
+  await audit(me.id, 'config-changed', JSON.stringify(data));
+  revalidatePath('/dashboard');
+  revalidatePath('/settings');
+}
+
+/* ─── delete member (admin) — soft via deceased=false→true OR hard delete */
+export async function softDeleteMember(memberId: string) {
+  const me = await meOrThrow();
+  if (me.role !== 'admin') throw new Error('Admin only');
+  await db.update(members).set({ deceased: true }).where(eq(members.id, memberId));
+  await audit(me.id, 'member-deceased', `Marked deceased`, memberId);
+  revalidatePath('/admin/members');
+  revalidatePath('/tree');
+}
+
+export async function hardDeleteMember(memberId: string) {
+  const me = await meOrThrow();
+  if (me.role !== 'admin') throw new Error('Admin only');
+  if (memberId === me.id) throw new Error('Cannot delete yourself');
+  // Re-parent any children to the admin
+  await db.update(members).set({ parentId: me.id }).where(eq(members.parentId, memberId));
+  await db.delete(members).where(eq(members.id, memberId));
+  await audit(me.id, 'member-deleted', 'Hard deleted', memberId);
+  revalidatePath('/admin/members');
+  revalidatePath('/tree');
+}
+
+/* ─── create case (any approved member) */
+const caseSchema = z.object({
+  caseType: z.enum(['gift', 'qarz']),
+  pool: z.enum(['sadaqah', 'zakat', 'qarz']).default('sadaqah'),
+  category: z.string().min(1).max(40),
+  beneficiaryName: z.string().min(2).max(80),
+  relation: z.string().max(40).optional(),
+  city: z.string().max(60).optional(),
+  amount: z.number().int().positive().max(10_000_000),
+  reasonUr: z.string().min(3).max(500),
+  reasonEn: z.string().min(3).max(500),
+  emergency: z.boolean().default(false),
+  doc: z.string().max(200).optional(),
+  returnDate: z.string().nullable().optional(),
+});
+
+export async function createCase(input: z.infer<typeof caseSchema>) {
+  const me = await meOrThrow();
+  if (me.status !== 'approved') throw new Error('Account not approved');
+  const data = caseSchema.parse(input);
+  const [created] = await db
+    .insert(cases)
+    .values({ ...data, applicantId: me.id, status: 'voting' })
+    .returning();
+  await audit(me.id, 'emergency-create', `${data.caseType} ${data.amount} for ${data.beneficiaryName}`);
+  revalidatePath('/cases');
+  revalidatePath('/dashboard');
+  return created;
+}
+
+/* ─── notifications: mark read */
+export async function markAllNotificationsRead() {
+  const me = await meOrThrow();
+  const { notifications } = await import('@/lib/db/schema');
+  await db.update(notifications).set({ read: true }).where(eq(notifications.recipientId, me.id));
+  revalidatePath('/notifications');
+}
+
+/* ─── messages: send */
+const sendMessageSchema = z.object({
+  toId: z.string().uuid(),
+  subject: z.string().min(1).max(200),
+  body: z.string().min(1).max(5000),
+});
+
+export async function sendMessage(input: z.infer<typeof sendMessageSchema>) {
+  const me = await meOrThrow();
+  const data = sendMessageSchema.parse(input);
+  const { messages, notifications } = await import('@/lib/db/schema');
+  await db.insert(messages).values({ ...data, fromId: me.id });
+  // Also drop a notification on the recipient so they see the badge
+  await db.insert(notifications).values({
+    recipientId: data.toId,
+    ur: `نیا پیغام: ${data.subject}`,
+    en: `New message: ${data.subject}`,
+    type: 'msg',
+  });
+  await audit(me.id, 'message-sent', `Subject: ${data.subject}`);
+  revalidatePath('/messages');
+}
