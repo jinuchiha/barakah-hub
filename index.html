@@ -2,8 +2,12 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover">
+<meta name="description" content="Bait ul Maal BalochSath — Islamic family fund: sadqa, qarz-e-hasana, emergency vote, audit log">
+<meta name="theme-color" content="#0a0a08">
 <title>بیت المال بلوچ ساتھ | Bait ul Maal BalochSath</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><circle cx='32' cy='32' r='26' fill='%230a0a08' stroke='%23c9a84c' stroke-width='2'/><path d='M40 22 a14 14 0 1 0 0 20 a10 10 0 1 1 0 -20 z' fill='%23c9a84c'/></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Cinzel:wght@400;500;600&family=Tajawal:wght@300;400;500;700&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
 <style>
@@ -38,6 +42,14 @@
 }
 html,body{height:100%;background:var(--ink);font-family:var(--font-body);color:var(--cream);font-size:15px;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
 .hidden{display:none!important}
+/* WCAG AA — visible focus everywhere, no exceptions */
+*:focus-visible{outline:2px solid var(--gold);outline-offset:2px;border-radius:4px}
+button:focus-visible,a:focus-visible,[role="button"]:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--gold);outline-offset:3px;box-shadow:0 0 0 4px rgba(201,168,76,0.18)}
+input:focus-visible,textarea:focus-visible,select:focus-visible{outline:none}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation-duration:0.01ms!important;animation-iteration-count:1!important;transition-duration:0.01ms!important;scroll-behavior:auto!important}
+}
 @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 @keyframes shimmer{0%,100%{opacity:0.6}50%{opacity:1}}
 .fade-in{animation:fadeIn 0.4s ease-out}
@@ -118,6 +130,27 @@ html,body{height:100%;background:var(--ink);font-family:var(--font-body);color:v
   color:#f87171;padding:9px 14px;border-radius:var(--r-sm);font-size:12px;
   text-align:center;margin-top:12px;display:none;font-family:var(--font-body);
 }
+
+/* ─── KEYBOARD KBD ─── */
+.kbd{display:inline-flex;align-items:center;justify-content:center;min-width:36px;height:24px;padding:0 8px;background:rgba(0,0,0,0.3);border:1px solid var(--border2);border-radius:5px;color:var(--gold);font-family:'Courier New',monospace;font-size:11px;font-weight:700;letter-spacing:0.5px;box-shadow:0 1px 0 rgba(0,0,0,0.2),inset 0 -1px 0 rgba(255,255,255,0.05)}
+body.light .kbd{background:#f8f4ec;border-color:rgba(0,0,0,0.2);color:#5a4010;box-shadow:0 1px 0 rgba(0,0,0,0.08),inset 0 -1px 0 rgba(0,0,0,0.04)}
+
+/* ─── WIZARD STEPPER ─── */
+.wiz-dot{width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,0.06);border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:12px;color:var(--gold4);font-weight:700;transition:all 0.25s var(--ease)}
+.wiz-dot.active{background:linear-gradient(135deg,var(--gold4),var(--gold));color:var(--ink);border-color:var(--gold);box-shadow:0 0 12px rgba(201,168,76,0.4)}
+.wiz-dot.done{background:var(--em2);color:#fff;border-color:var(--em2)}
+.wiz-line{flex:1;height:2px;background:rgba(255,255,255,0.06);max-width:60px}
+.wiz-line.done{background:var(--em2)}
+body.light .wiz-dot{background:rgba(0,0,0,0.04);color:#5a4010}
+body.light .wiz-line{background:rgba(0,0,0,0.08)}
+
+/* ─── EMPTY STATES ─── */
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px;text-align:center;color:var(--txt-3)}
+.empty-state svg{width:120px;height:120px;margin-bottom:14px;opacity:0.55}
+.empty-state .es-title{font-size:14px;color:var(--cream);font-weight:600;margin-bottom:5px}
+.empty-state .es-sub{font-size:12px;color:var(--txt-3);font-style:italic;max-width:320px;line-height:1.6}
+body.light .empty-state{color:rgba(0,0,0,0.6)}
+body.light .empty-state .es-title{color:#1a1a14}
 
 /* ─── QUICK ACTIONS STRIP ─── */
 .qa-strip{display:flex;gap:8px;flex-wrap:wrap;padding:14px 18px;background:linear-gradient(90deg,rgba(27,107,69,0.08),rgba(201,168,76,0.08));border-radius:var(--r);position:relative;overflow:hidden}
@@ -942,18 +975,18 @@ body.lang-ur .i18n-en{display:none!important}
     <div id="searchResults" style="position:absolute;top:42px;left:0;right:0;background:linear-gradient(145deg,#141410,#0e0e0a);border:1px solid var(--border2);border-radius:var(--r);max-height:380px;overflow-y:auto;display:none;z-index:200;box-shadow:0 12px 32px rgba(0,0,0,0.4)"></div>
   </div>
   <div class="tb-right">
-    <button class="tb-icon-btn" onclick="toggleTheme()" title="Theme" id="themeBtn" data-icon="sun"></button>
-    <button class="tb-icon-btn" onclick="toggleLang()" title="Language" style="font-size:11px;font-weight:700;font-family:var(--font-display)" id="langBtn">UR</button>
-    <div class="tb-icon-btn" onclick="showTab('notifications')" title="Notifications" data-icon="bell">
-      <span class="nb" id="nBadge">0</span>
-    </div>
-    <div class="tb-user" onclick="showTab('myaccount')">
-      <div class="tb-avatar" id="tbAv">N</div>
+    <button class="tb-icon-btn" onclick="toggleTheme()" aria-label="Toggle dark/light theme" title="Theme" id="themeBtn" data-icon="sun"></button>
+    <button class="tb-icon-btn" onclick="toggleLang()" aria-label="Toggle language between Urdu and English" title="Language" style="font-size:11px;font-weight:700;font-family:var(--font-display)" id="langBtn">UR</button>
+    <button class="tb-icon-btn" onclick="showTab('notifications')" aria-label="Notifications" title="Notifications" data-icon="bell" style="border:1px solid var(--border);background:rgba(201,168,76,0.08);cursor:pointer">
+      <span class="nb" id="nBadge" aria-label="Unread count">0</span>
+    </button>
+    <button class="tb-user" onclick="showTab('myaccount')" aria-label="Open my account" style="border:1px solid var(--border);cursor:pointer">
+      <div class="tb-avatar" id="tbAv" aria-hidden="true">N</div>
       <div>
         <div class="tb-uname" id="tbName">-</div>
         <div class="tb-urole" id="tbRole">-</div>
       </div>
-    </div>
+    </button>
     <div style="text-align:center;font-size:11px;line-height:1.4;padding:0 4px" id="tbDates"></div>
     <button class="logout-btn" onclick="doLogout()"><span class="i18n-en">Logout</span><span class="i18n-ur">خارج</span></button>
   </div>
@@ -1027,6 +1060,7 @@ body.lang-ur .i18n-en{display:none!important}
     <div class="pg-title-ar">خوش آمدید - <span id="greetName">-</span></div>
     <div class="pg-title-en">Welcome to the Family Fund</div>
   </div>
+  <div id="goalBar" style="display:none"></div>
   <div class="card admin-only" id="qaCard" style="margin-bottom:14px;display:none">
     <div class="qa-strip" id="qaStrip"></div>
   </div>
@@ -1297,6 +1331,17 @@ body.lang-ur .i18n-en{display:none!important}
       <div class="fgrp"><label class="flbl"><span class="i18n-en">Default Monthly Pledge (Rs.)</span><span class="i18n-ur">طے شدہ ماہانہ (روپے)</span></label>
         <input class="finp" id="stMonthly" type="number" style="direction:ltr">
       </div>
+      <div style="border-top:1px dashed var(--border);margin:14px 0 12px;padding-top:14px">
+        <div style="font-size:11px;color:var(--gold4);font-family:var(--font-display);letter-spacing:2px;margin-bottom:10px">🎯 <span class="i18n-en">FAMILY GOAL</span><span class="i18n-ur">خاندانی ہدف</span></div>
+        <div class="frow">
+          <div class="fgrp"><label class="flbl"><span class="i18n-en">Goal label (Urdu)</span><span class="i18n-ur">ہدف کا نام (اردو)</span></label><input class="finp" id="stGoalLabelUr" placeholder="مثلاً: عید الفطر تک"></div>
+          <div class="fgrp"><label class="flbl"><span class="i18n-en">Goal label (English)</span><span class="i18n-ur">ہدف (انگلش)</span></label><input class="finp" id="stGoalLabel" placeholder="e.g. Eid-ul-Fitr Goal" style="direction:ltr"></div>
+        </div>
+        <div class="frow">
+          <div class="fgrp"><label class="flbl"><span class="i18n-en">Target amount (Rs.)</span><span class="i18n-ur">ہدف رقم</span></label><input class="finp" id="stGoalAmount" type="number" placeholder="0 = no goal" style="direction:ltr"></div>
+          <div class="fgrp"><label class="flbl"><span class="i18n-en">Deadline</span><span class="i18n-ur">آخری تاریخ</span></label><input class="finp" id="stGoalDeadline" type="date" style="direction:ltr"></div>
+        </div>
+      </div>
       <button class="btn btn-gold btn-sm" onclick="saveAdminCfg()"><span class="i18n-en">Save Configuration</span><span class="i18n-ur">ترتیبات محفوظ</span></button>
     </div>
   </div>
@@ -1322,38 +1367,94 @@ body.lang-ur .i18n-en{display:none!important}
   </div>
 </div>
 
-<!-- SETUP WIZARD MODAL -->
+<!-- SETUP WIZARD MODAL — multi-step -->
 <div class="modal-bg" id="wizM">
   <div class="modal" style="max-width:540px">
-    <div class="modal-hdr"><div class="modal-title-ur" id="wzTitle"><span class="i18n-en">Welcome — Complete your profile</span><span class="i18n-ur">خوش آمدید — پروفائل مکمل کریں</span></div></div>
+    <div class="modal-hdr">
+      <div class="modal-title-ur"><span class="i18n-en">Welcome — Complete your profile</span><span class="i18n-ur">خوش آمدید — پروفائل مکمل کریں</span></div>
+      <!-- Step indicator -->
+      <div style="display:flex;align-items:center;gap:8px;margin-top:14px">
+        <div class="wiz-dot active" data-step="1">1</div>
+        <div class="wiz-line"></div>
+        <div class="wiz-dot" data-step="2">2</div>
+        <div class="wiz-line"></div>
+        <div class="wiz-dot" data-step="3">3</div>
+        <div style="margin-left:10px;font-size:10px;color:var(--gold4);font-family:var(--font-en);letter-spacing:1.5px" id="wzStepLbl">IDENTITY</div>
+      </div>
+    </div>
     <div class="modal-body">
       <div class="ajer" style="margin-bottom:14px">
         <div class="ajer-ar">وَتَعَاوَنُوا عَلَى الْبِرِّ وَالتَّقْوَىٰ</div>
         <div class="ajer-ur i18n-ur">نیکی اور پرہیزگاری میں ایک دوسرے کی مدد کرو — المائدہ ٢</div>
         <div class="ajer-ur i18n-en" style="direction:ltr;font-family:var(--font-en);font-style:italic">Cooperate in righteousness and piety — Al-Maidah 5:2</div>
       </div>
-      <div style="font-size:12px;color:var(--gold4);margin-bottom:12px;line-height:1.6"><span class="i18n-en">All fields are required. You'll only see this once.</span><span class="i18n-ur">تمام خانے لازمی ہیں۔ یہ صرف ایک بار دکھایا جائے گا۔</span></div>
-      <div class="frow">
-        <div class="fgrp"><label class="flbl"><span class="i18n-en">English Name</span><span class="i18n-ur">انگلش نام</span> <span style="color:#f87171">*</span></label><input class="finp" id="wzNen" placeholder="e.g. Ahmad Baloch" style="direction:ltr"></div>
-        <div class="fgrp"><label class="flbl"><span class="i18n-en">Urdu Name (auto)</span><span class="i18n-ur">اردو نام</span></label><input class="finp" id="wzNur" placeholder="auto from English"></div>
+
+      <!-- STEP 1: Identity -->
+      <div class="wiz-step" data-step="1">
+        <div style="font-size:12px;color:var(--gold4);margin-bottom:12px;line-height:1.6"><span class="i18n-en">First — your name and lineage. We use the father's name to build the family tree.</span><span class="i18n-ur">پہلے: آپ کا نام اور والد کا نام۔ ہم خاندانی درخت اسی سے بناتے ہیں۔</span></div>
+        <div class="frow">
+          <div class="fgrp"><label class="flbl"><span class="i18n-en">English Name</span><span class="i18n-ur">انگلش نام</span> <span style="color:#f87171">*</span></label><input class="finp" id="wzNen" placeholder="e.g. Ahmad Baloch" style="direction:ltr"></div>
+          <div class="fgrp"><label class="flbl"><span class="i18n-en">Urdu Name (auto)</span><span class="i18n-ur">اردو نام</span></label><input class="finp" id="wzNur" placeholder="auto from English"></div>
+        </div>
+        <div class="fgrp"><label class="flbl"><span class="i18n-en">Father's Name</span><span class="i18n-ur">والد کا نام</span> <span style="color:#f87171">*</span></label><input class="finp" id="wzFather" placeholder="e.g. Abu Baker" style="direction:ltr"></div>
       </div>
-      <div class="fgrp"><label class="flbl"><span class="i18n-en">Father's Name</span><span class="i18n-ur">والد کا نام</span> <span style="color:#f87171">*</span></label><input class="finp" id="wzFather" placeholder="e.g. Abu Baker" style="direction:ltr"></div>
-      <div class="frow">
-        <div class="fgrp"><label class="flbl"><span class="i18n-en">Phone</span><span class="i18n-ur">فون</span> <span style="color:#f87171">*</span></label><input class="finp" id="wzPhone" placeholder="03xx-xxxxxxx" style="direction:ltr"></div>
-        <div class="fgrp"><label class="flbl"><span class="i18n-en">City</span><span class="i18n-ur">شہر</span> <span style="color:#f87171">*</span></label><input class="finp" id="wzCity" placeholder="e.g. Quetta" style="direction:ltr"></div>
+
+      <!-- STEP 2: Contact -->
+      <div class="wiz-step" data-step="2" style="display:none">
+        <div style="font-size:12px;color:var(--gold4);margin-bottom:12px;line-height:1.6"><span class="i18n-en">Where can we reach you? Phone enables WhatsApp reminders for vote and dues.</span><span class="i18n-ur">آپ سے رابطہ کیسے ہو؟ فون پر واٹس ایپ پر یاد دہانی بھیجی جا سکتی ہے۔</span></div>
+        <div class="frow">
+          <div class="fgrp"><label class="flbl"><span class="i18n-en">Phone</span><span class="i18n-ur">فون</span> <span style="color:#f87171">*</span></label><input class="finp" id="wzPhone" placeholder="03xx-xxxxxxx" style="direction:ltr"></div>
+          <div class="fgrp"><label class="flbl"><span class="i18n-en">City</span><span class="i18n-ur">شہر</span> <span style="color:#f87171">*</span></label><input class="finp" id="wzCity" placeholder="e.g. Quetta" style="direction:ltr"></div>
+        </div>
+        <div class="fgrp"><label class="flbl"><span class="i18n-en">Province</span><span class="i18n-ur">صوبہ</span> <span style="color:#f87171">*</span></label><select class="fsel" id="wzProvince" style="direction:ltr"></select></div>
       </div>
-      <div class="fgrp"><label class="flbl"><span class="i18n-en">Province</span><span class="i18n-ur">صوبہ</span> <span style="color:#f87171">*</span></label><select class="fsel" id="wzProvince" style="direction:ltr"></select></div>
-      <div class="frow">
-        <div class="fgrp"><label class="flbl"><span class="i18n-en">New Password</span><span class="i18n-ur">نیا پاس ورڈ</span> <span style="color:#f87171">*</span></label><input class="finp" id="wzPass" type="password" placeholder="min 6 chars" style="direction:ltr"></div>
-        <div class="fgrp"><label class="flbl"><span class="i18n-en">Confirm</span><span class="i18n-ur">تصدیق</span> <span style="color:#f87171">*</span></label><input class="finp" id="wzPass2" type="password" style="direction:ltr"></div>
-      </div>
-      <div style="font-size:11px;color:var(--gold4);padding:8px 10px;background:rgba(201,168,76,0.06);border:1px solid var(--border);border-radius:var(--r-sm);margin-top:6px;font-style:italic">
-        <span class="i18n-en">After this, you can edit anything in Settings.</span><span class="i18n-ur">اس کے بعد آپ ترتیبات میں سب کچھ تبدیل کر سکتے ہیں۔</span>
+
+      <!-- STEP 3: Security -->
+      <div class="wiz-step" data-step="3" style="display:none">
+        <div style="font-size:12px;color:var(--gold4);margin-bottom:12px;line-height:1.6"><span class="i18n-en">Last step — set your own password. The default one will be deactivated.</span><span class="i18n-ur">آخری مرحلہ — اپنا ذاتی پاس ورڈ سیٹ کریں۔ پہلے والا غیر فعال ہو جائے گا۔</span></div>
+        <div class="frow">
+          <div class="fgrp"><label class="flbl"><span class="i18n-en">New Password</span><span class="i18n-ur">نیا پاس ورڈ</span> <span style="color:#f87171">*</span></label><input class="finp" id="wzPass" type="password" placeholder="min 6 chars" style="direction:ltr"></div>
+          <div class="fgrp"><label class="flbl"><span class="i18n-en">Confirm</span><span class="i18n-ur">تصدیق</span> <span style="color:#f87171">*</span></label><input class="finp" id="wzPass2" type="password" style="direction:ltr"></div>
+        </div>
+        <div style="font-size:11px;color:var(--gold4);padding:8px 10px;background:rgba(201,168,76,0.06);border:1px solid var(--border);border-radius:var(--r-sm);margin-top:6px;font-style:italic">
+          <span class="i18n-en">After this, you can edit anything in Settings.</span><span class="i18n-ur">اس کے بعد آپ ترتیبات میں سب کچھ تبدیل کر سکتے ہیں۔</span>
+        </div>
       </div>
     </div>
     <div class="modal-ft">
-      <button class="btn btn-gold" onclick="completeSetup()"><span class="i18n-en">Complete Setup</span><span class="i18n-ur">ترتیب مکمل</span></button>
+      <button class="btn btn-ghost" onclick="wizPrev()" id="wzBackBtn" style="display:none">← <span class="i18n-en">Back</span><span class="i18n-ur">واپس</span></button>
+      <button class="btn btn-gold" onclick="wizNext()" id="wzNextBtn"><span class="i18n-en">Next →</span><span class="i18n-ur">آگے ←</span></button>
+      <button class="btn btn-gold" onclick="completeSetup()" id="wzFinishBtn" style="display:none">✓ <span class="i18n-en">Complete</span><span class="i18n-ur">مکمل</span></button>
     </div>
+  </div>
+</div>
+
+<!-- KEYBOARD SHORTCUTS HELP MODAL -->
+<div class="modal-bg" id="kbM">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-hdr"><div class="modal-title-ur">⌨️ <span class="i18n-en">Keyboard Shortcuts</span><span class="i18n-ur">کی بورڈ شارٹ کٹس</span></div></div>
+    <div class="modal-body" style="font-family:var(--font-en)">
+      <div style="display:grid;grid-template-columns:auto 1fr;gap:10px 18px;font-size:13px">
+        <kbd class="kbd">/</kbd><span><span class="i18n-en">Focus search bar</span><span class="i18n-ur">سرچ فوکس</span></span>
+        <kbd class="kbd">?</kbd><span><span class="i18n-en">Show this help</span><span class="i18n-ur">یہ مدد</span></span>
+        <kbd class="kbd">Esc</kbd><span><span class="i18n-en">Close modal / search</span><span class="i18n-ur">بند کریں</span></span>
+        <div style="grid-column:1/-1;border-top:1px dashed var(--border);padding-top:10px;font-size:10px;color:var(--gold4);letter-spacing:1.5px;text-transform:uppercase">Navigation — press G then letter</div>
+        <kbd class="kbd">g d</kbd><span>Dashboard</span>
+        <kbd class="kbd">g a</kbd><span>My Account</span>
+        <kbd class="kbd">g t</kbd><span>Family Tree</span>
+        <kbd class="kbd">g e</kbd><span>Emergency Vote</span>
+        <kbd class="kbd">g n</kbd><span>Notifications</span>
+        <kbd class="kbd">g m</kbd><span>Messages</span>
+        <kbd class="kbd">g s</kbd><span>Settings</span>
+        <div style="grid-column:1/-1;border-top:1px dashed var(--border);padding-top:10px;font-size:10px;color:var(--gold4);letter-spacing:1.5px;text-transform:uppercase">Admin Only</div>
+        <kbd class="kbd">g u</kbd><span>Members</span>
+        <kbd class="kbd">g f</kbd><span>Fund Register</span>
+        <kbd class="kbd">g l</kbd><span>Qarz-e-Hasana (Loans)</span>
+        <kbd class="kbd">g b</kbd><span>Broadcast</span>
+        <kbd class="kbd">g o</kbd><span>Audit Log</span>
+      </div>
+    </div>
+    <div class="modal-ft"><button class="btn btn-ghost" onclick="closeModal('kbM')"><span class="i18n-en">Close</span><span class="i18n-ur">بند کریں</span></button></div>
   </div>
 </div>
 
@@ -1529,7 +1630,7 @@ body.lang-ur .i18n-en{display:none!important}
 </div>
 </div>
  
-<div class="toast" id="toast"></div>
+<div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
  
 <script>
 /* ══════════════════════════════════════════
@@ -1794,7 +1895,7 @@ let S = {
   notifs:{abubakar:[]},
   messages:{abubakar:[]},
   nid:1,mid:1,
-  cfg:{voteThresh:50, defaultMonthly:1000, adminSetupDone:false},
+  cfg:{voteThresh:50, defaultMonthly:1000, adminSetupDone:false, goalAmount:0, goalLabel:'', goalLabelUr:'', goalDeadline:''},
   audit:[], // {id,uid,action,detail,date}
 };
 
@@ -2061,12 +2162,31 @@ function toggleDeceased(uid){
 function deleteMember(uid){
   if(uid==='abubakar')return;
   const u=USERS[uid];
-  if(!u||!confirm(t('کیا آپ واقعی حذف کرنا چاہتے ہیں؟','Delete '+u.en+'? This cannot be undone.')))return;
+  if(!u)return;
+  // Snapshot for undo
+  const snapshot={
+    user: JSON.parse(JSON.stringify(u)),
+    notifs: JSON.parse(JSON.stringify(S.notifs[uid]||[])),
+    messages: JSON.parse(JSON.stringify(S.messages[uid]||[])),
+    childrenWhoseParentChanged: Object.values(USERS).filter(c=>c.parent===uid).map(c=>c.id),
+  };
+  // Perform delete
   Object.values(USERS).filter(c=>c.parent===uid).forEach(c=>c.parent='abubakar');
   delete USERS[uid];
   delete S.notifs[uid];delete S.messages[uid];
   populateSels();rMbr();rTree();
-  showToast('Deleted: '+u.en,'gold');
+  addAudit(uid,'member-deleted',`Deleted ${u.en||u.ur}`);
+  // Show undo toast
+  showUndoToast(t(`حذف: ${u.en||u.ur}`,`Deleted: ${u.en||u.ur}`),()=>{
+    USERS[uid]=snapshot.user;
+    S.notifs[uid]=snapshot.notifs;
+    S.messages[uid]=snapshot.messages;
+    snapshot.childrenWhoseParentChanged.forEach(cid=>{if(USERS[cid])USERS[cid].parent=uid;});
+    populateSels();rMbr();rTree();
+    addAudit(uid,'member-restored',`Restored ${u.en||u.ur} via undo`);
+    saveDB();
+  });
+  saveDB();
 }
  
 function addNotif(uid,ur,en,type){
@@ -2179,6 +2299,7 @@ function loginAs(usr){
       // Auto-transliterate Urdu while typing English
       const en=document.getElementById('wzNen'), ur=document.getElementById('wzNur');
       if(en && ur){en.oninput=()=>{if(!ur.value||ur.dataset.auto==='1'){ur.value=transliterateName(en.value);ur.dataset.auto='1';}};}
+      wizGoTo(1);
       openModal('wizM'); paintIcons();
     },500);
   }
@@ -2254,7 +2375,7 @@ function globalSearch(q){
   });
   const total=results.members.length+results.payments.length+results.cases.length+results.loans.length;
   if(!total){
-    r.innerHTML=`<div style="padding:20px;text-align:center;color:var(--txt-3);font-style:italic">${t('کوئی نتیجہ نہیں ملا','No results found')}</div>`;
+    r.innerHTML=`<div style="padding:24px 16px">${emptyStateHtml('search','کوئی نتیجہ نہیں','No results found','کوئی اور لفظ آزمائیں','Try a different keyword')}</div>`;
     return;
   }
   let html='';
@@ -2465,6 +2586,103 @@ function showTab(name){
 /* ══════════════════════════════════════════
    DASHBOARD
 ══════════════════════════════════════════ */
+// Empty-state SVG library — themed line illustrations
+const EMPTY_SVG={
+  payments:`<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <rect x="20" y="38" width="80" height="54" rx="8" stroke-opacity="0.7"/>
+    <path d="M20 54 H100" stroke-opacity="0.5"/>
+    <circle cx="35" cy="73" r="3" fill="currentColor"/>
+    <path d="M45 71 H85" stroke-opacity="0.4"/>
+    <path d="M45 78 H75" stroke-opacity="0.3"/>
+    <path d="M60 28 L60 38 M50 32 L60 22 L70 32" stroke-opacity="0.6"/>
+    <circle cx="60" cy="14" r="6" stroke-opacity="0.5"/>
+  </svg>`,
+  members:`<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <circle cx="60" cy="40" r="14"/>
+    <path d="M30 90 c0-14 13-22 30-22 s30 8 30 22"/>
+    <circle cx="28" cy="48" r="9" stroke-opacity="0.5"/>
+    <circle cx="92" cy="48" r="9" stroke-opacity="0.5"/>
+    <path d="M14 92 c0-9 6-15 14-15" stroke-opacity="0.4"/>
+    <path d="M106 92 c0-9-6-15-14-15" stroke-opacity="0.4"/>
+  </svg>`,
+  cases:`<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M60 14 L100 90 H20 Z" stroke-opacity="0.7"/>
+    <line x1="60" y1="44" x2="60" y2="64"/>
+    <circle cx="60" cy="74" r="2.5" fill="currentColor"/>
+    <circle cx="60" cy="60" r="32" stroke-opacity="0.2"/>
+  </svg>`,
+  notifications:`<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M40 50 a20 20 0 0 1 40 0 c0 18 6 26 6 26 H34 s6-8 6-26z"/>
+    <path d="M52 88 a8 8 0 0 0 16 0"/>
+    <circle cx="86" cy="38" r="6" fill="currentColor" opacity="0.3"/>
+  </svg>`,
+  loans:`<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <circle cx="60" cy="60" r="38" stroke-opacity="0.4"/>
+    <path d="M44 60 L56 72 L78 50" />
+    <path d="M30 30 L40 40 M90 30 L80 40 M30 90 L40 80 M90 90 L80 80" stroke-opacity="0.3"/>
+  </svg>`,
+  search:`<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <circle cx="48" cy="50" r="22"/>
+    <line x1="65" y1="68" x2="86" y2="88"/>
+    <path d="M40 50 a8 8 0 0 1 16 0" stroke-opacity="0.5"/>
+  </svg>`,
+};
+function emptyStateHtml(kind,titleUr,titleEn,subUr,subEn){
+  return `<div class="empty-state">
+    ${EMPTY_SVG[kind]||''}
+    <div class="es-title"><span class="i18n-ur">${titleUr}</span><span class="i18n-en">${titleEn}</span></div>
+    <div class="es-sub"><span class="i18n-ur">${subUr||''}</span><span class="i18n-en">${subEn||''}</span></div>
+  </div>`;
+}
+
+// Family goal bar — admin sets target + deadline, all see progress
+function rGoalBar(){
+  const el=document.getElementById('goalBar');if(!el)return;
+  const goal=S.cfg?.goalAmount||0;
+  if(!goal){el.style.display='none';el.innerHTML='';return;}
+  const tf=totalFund();
+  const pct=Math.min(100,Math.round(tf/goal*100));
+  const remaining=Math.max(0,goal-tf);
+  const labelUr=S.cfg?.goalLabelUr||'خاندانی ہدف';
+  const labelEn=S.cfg?.goalLabel||'Family Goal';
+  const deadline=S.cfg?.goalDeadline;
+  let daysLeft='';
+  if(deadline){
+    const d=Math.ceil((new Date(deadline)-new Date())/(1000*60*60*24));
+    daysLeft=d>0?` · ${d} ${t('دن باقی','days left')}`:t(' · ہدف کی تاریخ گزر گئی',' · deadline passed');
+  }
+  let cheer='';
+  if(pct>=100)cheer=t('🎉 الحمدللہ! ہدف مکمل','🎉 Alhamdulillah! Goal achieved');
+  else if(pct>=75)cheer=t('🔥 شاندار! بس تھوڑا اور','🔥 So close — keep going');
+  else if(pct>=50)cheer=t('💪 آدھے سے زیادہ ہو گیا','💪 Past halfway');
+  else if(pct>=25)cheer=t('🌱 آغاز ہو چکا','🌱 Off to a strong start');
+  else cheer=t('🤲 ہم سب مل کر کر سکتے ہیں','🤲 Together we can');
+  el.style.display='block';
+  el.innerHTML=`<div class="card" style="margin-bottom:14px;border-color:var(--border2);background:linear-gradient(135deg,var(--gold5),rgba(27,107,69,0.06))">
+    <div class="card-body" style="padding:18px 22px">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:10px">
+        <div>
+          <div style="font-size:11px;color:var(--gold4);font-family:var(--font-display);letter-spacing:2px;text-transform:uppercase">🎯 ${t('ہدف','Goal')}</div>
+          <div style="font-size:18px;color:var(--cream);font-weight:600;margin-top:2px;font-family:var(--font-arabic)"><span class="i18n-ur">${labelUr}</span><span class="i18n-en" style="font-family:var(--font-en);font-style:italic">${labelEn}</span></div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-family:'Cinzel',serif;font-size:22px;color:var(--gold);font-weight:700">${fmt(tf)} <span style="font-size:14px;color:var(--gold4)">/ ${fmt(goal)}</span></div>
+          <div style="font-size:10px;color:var(--gold4);font-family:var(--font-en)">${pct}%${daysLeft}</div>
+        </div>
+      </div>
+      <div style="height:10px;background:rgba(0,0,0,0.2);border-radius:6px;overflow:hidden;position:relative;box-shadow:inset 0 1px 2px rgba(0,0,0,0.2)">
+        <div style="height:100%;width:${pct}%;background:linear-gradient(90deg,var(--em2),var(--gold));border-radius:6px;transition:width 0.8s var(--ease);box-shadow:0 0 12px rgba(201,168,76,0.4);position:relative">
+          ${pct>0&&pct<100?'<div style="position:absolute;right:0;top:0;bottom:0;width:3px;background:#fff;box-shadow:0 0 8px rgba(255,255,255,0.6)"></div>':''}
+        </div>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;font-size:12px;flex-wrap:wrap;gap:8px">
+        <span style="color:var(--em2);font-weight:600">${cheer}</span>
+        ${remaining>0?`<span style="color:var(--gold4);font-family:var(--font-en);font-style:italic">${fmt(remaining)} ${t('باقی','to go')}</span>`:''}
+      </div>
+    </div>
+  </div>`;
+}
+
 // Mini sparkline SVG — feed last N values
 function sparkSvg(values,w=60,h=30){
   if(!values||!values.length)return '';
@@ -2483,6 +2701,7 @@ function rDash(){
   const uid=S.user?.id,isA=S.user?.role==='admin';
   const tf=totalFund(),al=S.loans.filter(l=>l.active).reduce((a,l)=>a+l.amt-l.paid,0);
   const cmk=curMonthKey(),cmn=MONTHS[new Date().getMonth()];
+  rGoalBar();
   // Pre-compute monthly series for sparklines
   const monthlyTotals=MONTHS.map(m=>S.payments.filter(p=>p.month.startsWith(m)&&!p.pendingVerify).reduce((a,p)=>a+p.amt,0));
   const last6=monthlyTotals.slice(Math.max(0,new Date().getMonth()-5),new Date().getMonth()+1);
@@ -3008,7 +3227,7 @@ function emrHtml(e){
 }
  
 function rEmr(){
-  document.getElementById('emrList').innerHTML=S.emergencies.length?S.emergencies.map(e=>emrHtml(e)).join(''):`<div style="text-align:center;color:rgba(255,255,255,0.3);padding:40px;font-family:var(--font-en);font-style:italic">No emergency requests</div>`;
+  document.getElementById('emrList').innerHTML=S.emergencies.length?S.emergencies.map(e=>emrHtml(e)).join(''):emptyStateHtml('cases','کوئی ایمرجنسی درخواست نہیں','No emergency requests','الحمدللہ — اس وقت سب خیریت ہے','Alhamdulillah — all is well right now');
 }
  
 function castVote(id,yes){
@@ -3362,11 +3581,17 @@ function verifyPayment(pid){
   showToast(t('تصدیق ہو گئی','Verified'),'gold');saveDB();rFund();rDash();
 }
 function rejectPayment(pid){
-  if(!confirm(t('کیا آپ واقعی مسترد کرنا چاہتے ہیں؟','Reject this submission?')))return;
   const p=S.payments.find(x=>x.id===pid); if(!p)return;
+  const snapshot=JSON.parse(JSON.stringify(p));
   S.payments=S.payments.filter(x=>x.id!==pid);
   addNotif(p.uid,`آپ کی ادائیگی مسترد ہو گئی: ${fmt(p.amt)}`,`Your payment rejected: ${fmt(p.amt)}`,'verified');
-  showToast(t('مسترد','Rejected'),'err');saveDB();rFund();rDash();
+  addAudit(p.uid,'payment-rejected',`Rejected pending payment ${fmt(p.amt)}`);
+  rFund();rDash();saveDB();
+  showUndoToast(t(`مسترد: ${fmt(p.amt)}`,`Rejected: ${fmt(p.amt)}`),()=>{
+    S.payments.push(snapshot);
+    addAudit(p.uid,'payment-restored',`Restored rejected payment ${fmt(p.amt)} via undo`);
+    rFund();rDash();saveDB();
+  });
 }
 
 /* ══════════════════════════════════════════
@@ -3408,7 +3633,7 @@ function rFund(){
     return`<div class="msg-item">
       <div class="act-av" style="background:${USERS[p.uid]?.color||'#555'};width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:var(--ink);flex-shrink:0;position:relative;overflow:hidden">${avContent(USERS[p.uid])}</div>
       <div style="flex:1"><div class="msg-text">${USERS[p.uid]?.en} <span style="color:var(--gold);font-weight:700">${fmt(p.amt)}</span> <span class="tag" style="background:${pool.color}22;color:${pool.color};border:1px solid ${pool.color}55;margin-right:6px;display:inline-flex;align-items:center;gap:4px">${ic(pool.icon,11)} ${pool.en}</span></div><div class="msg-time">${p.month} | ${p.date} ${p.note?'| '+p.note:''}</div></div>
-    </div>`;}).join(''):`<div style="text-align:center;color:rgba(255,255,255,0.25);padding:30px;font-family:var(--font-en);font-style:italic">${t('ابھی کوئی ادائیگی نہیں','No payments yet')}</div>`;
+    </div>`;}).join(''):emptyStateHtml('payments','ابھی کوئی ادائیگی نہیں','No payments yet','اوپر فارم سے پہلی ادائیگی درج کریں','Use the form above to record the first payment');
 }
 function recPay(){
   const uid=document.getElementById('pMember').value;
@@ -3484,7 +3709,7 @@ function rNotif(){
     <div class="msg-item ${n.read?'':'unread'}" onclick="markNR(${n.id})">
       <div class="msg-dot ${n.read?'read':''}"></div>
       <div><div class="msg-text">${n.ur}</div><div class="msg-sub">${n.en}</div><div class="msg-time">${n.date} <span class="mbadge">${n.type}</span></div></div>
-    </div>`).join(''):`<div style="text-align:center;color:rgba(255,255,255,0.3);padding:40px;font-family:var(--font-en);font-style:italic">No notifications</div>`;
+    </div>`).join(''):emptyStateHtml('notifications','کوئی اطلاع نہیں','All caught up','جیسے ہی کوئی نئی اطلاع آئے گی، یہاں دکھائی دے گی','New notifications will appear here as they arrive');
   list.forEach(n=>n.read=true);updateBadges();
 }
 function markNR(id){const uid=S.user?.id;const n=(S.notifs[uid]||[]).find(x=>x.id===id);if(n)n.read=true;updateBadges();}
@@ -3626,6 +3851,10 @@ function rSettings(){
   const rm=document.getElementById('stRmPic'); if(rm)rm.style.display=u.pic?'inline-flex':'none';
   if(u.role==='admin'){
     set('stMonthly', S.cfg?.defaultMonthly ?? 1000);
+    set('stGoalAmount', S.cfg?.goalAmount||'');
+    set('stGoalLabel', S.cfg?.goalLabel);
+    set('stGoalLabelUr', S.cfg?.goalLabelUr);
+    set('stGoalDeadline', S.cfg?.goalDeadline);
     const th=document.getElementById('stThresh'), tv=document.getElementById('stThreshVal');
     if(th)th.value=S.cfg?.voteThresh ?? 50;
     if(tv)tv.textContent=(S.cfg?.voteThresh ?? 50)+'%';
@@ -3664,7 +3893,12 @@ function saveAdminCfg(){
   S.cfg = S.cfg || {};
   S.cfg.voteThresh = parseInt(document.getElementById('stThresh').value)||50;
   S.cfg.defaultMonthly = parseInt(document.getElementById('stMonthly').value)||1000;
+  S.cfg.goalAmount = parseInt(document.getElementById('stGoalAmount')?.value)||0;
+  S.cfg.goalLabel = document.getElementById('stGoalLabel')?.value.trim()||'';
+  S.cfg.goalLabelUr = document.getElementById('stGoalLabelUr')?.value.trim()||'';
+  S.cfg.goalDeadline = document.getElementById('stGoalDeadline')?.value||'';
   showToast(t('ترتیبات محفوظ ✓','Configuration saved ✓'),'gold');
+  addAudit(null,'config-changed','Admin configuration updated');
   saveDB();
 }
 function openColorPicker(){
@@ -3709,6 +3943,47 @@ function removeMyPic(){
   showToast(t('تصویر ہٹا دی','Photo removed'),'gold');
   saveDB();
 }
+// Multi-step wizard navigation
+let _wizStep=1;
+function wizGoTo(n){
+  _wizStep=n;
+  document.querySelectorAll('.wiz-step').forEach(el=>el.style.display='none');
+  document.querySelector(`.wiz-step[data-step="${n}"]`).style.display='block';
+  document.querySelectorAll('.wiz-dot').forEach(d=>{
+    const sn=parseInt(d.dataset.step);
+    d.classList.toggle('active',sn===n);
+    d.classList.toggle('done',sn<n);
+    if(sn<n)d.innerHTML='✓'; else d.innerHTML=sn;
+  });
+  document.querySelectorAll('.wiz-line').forEach((l,i)=>l.classList.toggle('done',(i+1)<n));
+  const labels=['IDENTITY · شناخت','CONTACT · رابطہ','SECURITY · حفاظت'];
+  document.getElementById('wzStepLbl').textContent=labels[n-1];
+  document.getElementById('wzBackBtn').style.display=n>1?'inline-flex':'none';
+  document.getElementById('wzNextBtn').style.display=n<3?'inline-flex':'none';
+  document.getElementById('wzFinishBtn').style.display=n===3?'inline-flex':'none';
+  // Auto-focus first input of step
+  const first=document.querySelector(`.wiz-step[data-step="${n}"] input,.wiz-step[data-step="${n}"] select`);
+  if(first)setTimeout(()=>first.focus(),200);
+}
+function wizNext(){
+  // Validate current step
+  if(_wizStep===1){
+    const en=document.getElementById('wzNen').value.trim();
+    const father=document.getElementById('wzFather').value.trim();
+    if(!en){showToast(t('انگلش نام درج کریں','Enter English name'),'err');return;}
+    if(!father){showToast(t('والد کا نام درج کریں','Enter father\'s name'),'err');return;}
+  }else if(_wizStep===2){
+    const phone=document.getElementById('wzPhone').value.trim();
+    const city=document.getElementById('wzCity').value.trim();
+    const province=document.getElementById('wzProvince').value;
+    if(!phone){showToast(t('فون درج کریں','Enter phone'),'err');return;}
+    if(!city){showToast(t('شہر درج کریں','Enter city'),'err');return;}
+    if(!province){showToast(t('صوبہ منتخب کریں','Select province'),'err');return;}
+  }
+  wizGoTo(_wizStep+1);
+}
+function wizPrev(){if(_wizStep>1)wizGoTo(_wizStep-1);}
+
 function completeSetup(){
   const u=S.user; if(!u)return;
   const ur=document.getElementById('wzNur').value.trim();
@@ -3809,7 +4084,7 @@ function rAudit(){
   const filterA=af?.value||'', filterU=uf?.value||'';
   let entries=S.audit.filter(e=>(!filterA||e.action===filterA)&&(!filterU||e.actor===filterU));
   if(!entries.length){
-    document.getElementById('auditList').innerHTML=`<div style="text-align:center;padding:50px;color:var(--txt-3);font-style:italic">${t('کوئی آڈٹ اندراج نہیں','No audit entries')}</div>`;
+    document.getElementById('auditList').innerHTML=emptyStateHtml('search','کوئی آڈٹ اندراج نہیں','No audit entries yet','جیسے ہی کوئی عمل ہو گا، یہاں ریکارڈ ہو گا','Every action will be logged here automatically');
     return;
   }
   document.getElementById('auditList').innerHTML=entries.slice(0,300).map(e=>{
@@ -3855,6 +4130,43 @@ function closeModal(id){document.getElementById(id).classList.remove('open')}
 document.querySelectorAll('.modal-bg').forEach(m=>m.addEventListener('click',function(e){if(e.target===this)this.classList.remove('open')}));
 document.getElementById('liPass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin()});
 document.getElementById('liUser').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('liPass').focus()});
+
+/* ══════════════════════════════════════════
+   KEYBOARD SHORTCUTS
+══════════════════════════════════════════ */
+let _kbBuffer='', _kbBufferT=null;
+document.addEventListener('keydown',(e)=>{
+  // Skip if typing in input/textarea/select/contenteditable
+  if(e.target.matches('input,textarea,select,[contenteditable]'))return;
+  // Skip if a modal is open (except for Escape)
+  const modalOpen=document.querySelector('.modal-bg.open');
+  if(e.key==='Escape'){
+    if(modalOpen)modalOpen.classList.remove('open');
+    else if(document.querySelector('#searchResults[style*="display:block"], #searchResults:not([style*="display:none"])')){
+      hideSearchResults();document.getElementById('tbSearch').blur();
+    }
+    return;
+  }
+  if(modalOpen)return;
+  // Ctrl/Cmd combos — let browser handle
+  if(e.ctrlKey||e.metaKey||e.altKey)return;
+  const k=e.key.toLowerCase();
+  // "/" → focus search
+  if(k==='/'){e.preventDefault();const s=document.getElementById('tbSearch');if(s){s.focus();s.select();}return;}
+  // "?" → show shortcut help
+  if(k==='?'||(e.shiftKey&&k==='/')){e.preventDefault();openModal('kbM');return;}
+  // "g" then letter — go-to navigation
+  if(k==='g'){_kbBuffer='g';clearTimeout(_kbBufferT);_kbBufferT=setTimeout(()=>_kbBuffer='',1500);return;}
+  if(_kbBuffer==='g'){
+    _kbBuffer='';clearTimeout(_kbBufferT);
+    const map={d:'dashboard',a:'myaccount',t:'tree',e:'emergency',n:'notifications',m:'messages',s:'settings',u:'members',f:'fund',l:'loans',b:'broadcast',o:'audit'};
+    const tab=map[k];
+    if(tab){e.preventDefault();showTab(tab);playSound('click');}
+    return;
+  }
+  // Single-key shortcuts
+  if(k==='?'){openModal('kbM');return;}
+});
  
 let toastT;
 function showToast(msg,type=''){
@@ -3866,10 +4178,59 @@ function showToast(msg,type=''){
   if(type==='gold')playSound('approved');
   else if(type==='err')playSound('error');
 }
+// Undo toast — shows action button for 6 seconds
+let _undoToastT, _undoFn=null;
+function showUndoToast(msg, undoFn){
+  _undoFn=undoFn;
+  const t=document.getElementById('toast');
+  t.innerHTML=`<span>${msg}</span><button onclick="performUndo()" style="margin-left:14px;background:rgba(255,255,255,0.18);border:1px solid rgba(255,255,255,0.4);color:#fff;padding:4px 14px;border-radius:14px;font-family:var(--font-display);font-size:11px;letter-spacing:1.5px;cursor:pointer;font-weight:700">↺ UNDO</button>`;
+  t.className='toast';t.classList.add('show');
+  clearTimeout(_undoToastT);
+  _undoToastT=setTimeout(()=>{t.classList.remove('show');_undoFn=null;},6000);
+  playSound('error');
+}
+function performUndo(){
+  if(typeof _undoFn==='function'){
+    try{_undoFn();showToast(t('واپس ہو گیا ✓','Restored ✓'),'gold');}catch(e){showToast('Restore failed','err');}
+  }
+  _undoFn=null;
+  document.getElementById('toast').classList.remove('show');
+}
 
 loadDB();
 if(S.cfg?.themePalette) applyTheme(S.cfg.themePalette);
 if(S.theme==='light') document.body.classList.add('light');
+
+/* ══════════════════════════════════════════
+   PWA INSTALL — service worker + custom install prompt
+══════════════════════════════════════════ */
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('sw.js').catch(()=>{/* offline-only feature, silent fail */});
+  });
+}
+let _installPromptEvt=null;
+window.addEventListener('beforeinstallprompt',(e)=>{e.preventDefault();_installPromptEvt=e;updateInstallButton();});
+window.addEventListener('appinstalled',()=>{_installPromptEvt=null;updateInstallButton();showToast(t('انسٹال ہو گیا — مبارک','Installed — Mubarak'),'gold');addAudit(S.user?.id,'pwa-installed','App installed to home screen');});
+function updateInstallButton(){
+  let btn=document.getElementById('installBtn');
+  if(!_installPromptEvt){if(btn)btn.style.display='none';return;}
+  if(!btn){
+    btn=document.createElement('button');
+    btn.id='installBtn';
+    btn.className='btn btn-gold btn-sm';
+    btn.style.cssText='position:fixed;bottom:20px;left:20px;z-index:300;box-shadow:0 8px 24px rgba(201,168,76,0.35)';
+    btn.innerHTML='⤓ Install App';
+    btn.setAttribute('aria-label','Install app to home screen');
+    btn.onclick=async()=>{
+      if(!_installPromptEvt)return;
+      _installPromptEvt.prompt();
+      await _installPromptEvt.userChoice;
+      _installPromptEvt=null;updateInstallButton();
+    };
+    document.body.appendChild(btn);
+  }else btn.style.display='inline-flex';
+}
 paintIcons();
 paintVerseBar();
 </script>
