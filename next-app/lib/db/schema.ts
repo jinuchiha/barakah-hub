@@ -1,0 +1,200 @@
+/**
+ * BalochSath Postgres schema (Drizzle ORM)
+ *
+ * Design notes:
+ *  - `members` is the canonical user-of-app table; auth.users (Supabase) → members via auth_id.
+ *  - `payments` carries the verification flag — only verified rows count toward fund total.
+ *  - `audit_log` is append-only (RLS denies UPDATE/DELETE except for service role).
+ *  - Soft-delete via `deceased` flag on members; hard-delete restricted by RLS.
+ */
+import { pgTable, pgEnum, uuid, text, integer, timestamp, boolean, jsonb, index, primaryKey, date } from 'drizzle-orm/pg-core';
+import { relations } from 'drizzle-orm';
+
+/* ─── ENUMS ─── */
+export const roleEnum = pgEnum('role', ['admin', 'member']);
+export const statusEnum = pgEnum('member_status', ['pending', 'approved', 'rejected']);
+export const poolEnum = pgEnum('fund_pool', ['sadaqah', 'zakat', 'qarz']);
+export const caseStatusEnum = pgEnum('case_status', ['voting', 'approved', 'rejected', 'disbursed']);
+export const caseTypeEnum = pgEnum('case_type', ['gift', 'qarz']);
+
+/* ─── MEMBERS ─── */
+export const members = pgTable('members', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  authId: uuid('auth_id').unique(), // Supabase auth.users.id — null for record-only members
+  username: text('username').notNull().unique(),
+  nameUr: text('name_ur').notNull(),
+  nameEn: text('name_en').notNull(),
+  fatherName: text('father_name').notNull(),
+  clan: text('clan'),
+  relation: text('relation'),
+  parentId: uuid('parent_id'),
+  role: roleEnum('role').notNull().default('member'),
+  status: statusEnum('status').notNull().default('pending'),
+  phone: text('phone'),
+  city: text('city'),
+  province: text('province'),
+  monthlyPledge: integer('monthly_pledge').notNull().default(1000),
+  color: text('color').notNull().default('#c9a84c'),
+  photoUrl: text('photo_url'),
+  deceased: boolean('deceased').notNull().default(false),
+  needsSetup: boolean('needs_setup').notNull().default(true),
+  joinedAt: date('joined_at').notNull().defaultNow(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+}, (t) => ({
+  parentIdx: index('members_parent_idx').on(t.parentId),
+  fatherIdx: index('members_father_idx').on(t.fatherName),
+  cityIdx: index('members_city_idx').on(t.city),
+  provinceIdx: index('members_province_idx').on(t.province),
+  authIdx: index('members_auth_idx').on(t.authId),
+}));
+
+export const membersRelations = relations(members, ({ one, many }) => ({
+  parent: one(members, { fields: [members.parentId], references: [members.id], relationName: 'parent' }),
+  children: many(members, { relationName: 'parent' }),
+  payments: many(payments),
+  cases: many(cases),
+  loans: many(loans),
+}));
+
+/* ─── PAYMENTS ─── */
+export const payments = pgTable('payments', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  memberId: uuid('member_id').notNull().references(() => members.id, { onDelete: 'cascade' }),
+  amount: integer('amount').notNull(),
+  pool: poolEnum('pool').notNull().default('sadaqah'),
+  monthLabel: text('month_label').notNull(), // e.g. 'May 2026'
+  paidOn: date('paid_on').notNull().defaultNow(),
+  note: text('note'),
+  pendingVerify: boolean('pending_verify').notNull().default(false),
+  verifiedById: uuid('verified_by_id').references(() => members.id),
+  verifiedAt: timestamp('verified_at', { withTimezone: true }),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+}, (t) => ({
+  memberIdx: index('payments_member_idx').on(t.memberId),
+  monthIdx: index('payments_month_idx').on(t.monthLabel),
+  pendingIdx: index('payments_pending_idx').on(t.pendingVerify),
+}));
+
+export const paymentsRelations = relations(payments, ({ one }) => ({
+  member: one(members, { fields: [payments.memberId], references: [members.id] }),
+  verifier: one(members, { fields: [payments.verifiedById], references: [members.id], relationName: 'verifier' }),
+}));
+
+/* ─── EMERGENCY CASES (votes) ─── */
+export const cases = pgTable('cases', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  applicantId: uuid('applicant_id').notNull().references(() => members.id),
+  caseType: caseTypeEnum('case_type').notNull(),
+  pool: poolEnum('pool').notNull(),
+  category: text('category').notNull(),
+  beneficiaryName: text('beneficiary_name').notNull(),
+  relation: text('relation'),
+  city: text('city'),
+  amount: integer('amount').notNull(),
+  reasonUr: text('reason_ur').notNull(),
+  reasonEn: text('reason_en').notNull(),
+  emergency: boolean('emergency').notNull().default(false),
+  doc: text('doc'),
+  returnDate: date('return_date'),
+  status: caseStatusEnum('status').notNull().default('voting'),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  resolvedAt: timestamp('resolved_at', { withTimezone: true }),
+});
+
+export const votes = pgTable('votes', {
+  caseId: uuid('case_id').notNull().references(() => cases.id, { onDelete: 'cascade' }),
+  memberId: uuid('member_id').notNull().references(() => members.id),
+  vote: boolean('vote').notNull(), // true = yes, false = no
+  votedAt: timestamp('voted_at', { withTimezone: true }).notNull().defaultNow(),
+}, (t) => ({
+  pk: primaryKey({ columns: [t.caseId, t.memberId] }),
+}));
+
+/* ─── LOANS (Qarz-e-Hasana) ─── */
+export const loans = pgTable('loans', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  memberId: uuid('member_id').notNull().references(() => members.id),
+  amount: integer('amount').notNull(),
+  paid: integer('paid').notNull().default(0),
+  purpose: text('purpose').notNull(),
+  pool: poolEnum('pool').notNull().default('qarz'),
+  city: text('city'),
+  issuedOn: date('issued_on').notNull().defaultNow(),
+  expectedReturn: date('expected_return'),
+  active: boolean('active').notNull().default(true),
+  caseId: uuid('case_id').references(() => cases.id),
+});
+
+export const repayments = pgTable('repayments', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  loanId: uuid('loan_id').notNull().references(() => loans.id, { onDelete: 'cascade' }),
+  amount: integer('amount').notNull(),
+  paidOn: date('paid_on').notNull().defaultNow(),
+  note: text('note'),
+});
+
+/* ─── NOTIFICATIONS / MESSAGES ─── */
+export const notifications = pgTable('notifications', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  recipientId: uuid('recipient_id').notNull().references(() => members.id, { onDelete: 'cascade' }),
+  ur: text('ur').notNull(),
+  en: text('en').notNull(),
+  type: text('type').notNull(),
+  read: boolean('read').notNull().default(false),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+}, (t) => ({
+  recipientIdx: index('notifications_recipient_idx').on(t.recipientId),
+  unreadIdx: index('notifications_unread_idx').on(t.recipientId, t.read),
+}));
+
+export const messages = pgTable('messages', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  fromId: uuid('from_id').notNull().references(() => members.id),
+  toId: uuid('to_id').notNull().references(() => members.id, { onDelete: 'cascade' }),
+  subject: text('subject').notNull(),
+  body: text('body').notNull(),
+  read: boolean('read').notNull().default(false),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+/* ─── AUDIT LOG (append-only) ─── */
+export const auditLog = pgTable('audit_log', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  actorId: uuid('actor_id').references(() => members.id),
+  targetId: uuid('target_id').references(() => members.id),
+  action: text('action').notNull(),
+  detail: text('detail'),
+  metadata: jsonb('metadata'),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+}, (t) => ({
+  actorIdx: index('audit_actor_idx').on(t.actorId),
+  actionIdx: index('audit_action_idx').on(t.action),
+  createdIdx: index('audit_created_idx').on(t.createdAt),
+}));
+
+/* ─── CONFIG (singleton row) ─── */
+export const config = pgTable('config', {
+  id: integer('id').primaryKey().default(1),
+  voteThresholdPct: integer('vote_threshold_pct').notNull().default(50),
+  defaultMonthlyPledge: integer('default_monthly_pledge').notNull().default(1000),
+  goalAmount: integer('goal_amount').notNull().default(0),
+  goalLabelUr: text('goal_label_ur'),
+  goalLabelEn: text('goal_label_en'),
+  goalDeadline: date('goal_deadline'),
+  themePalette: text('theme_palette').notNull().default('gold'),
+  orgNameUr: text('org_name_ur').notNull().default('بیت المال بلوچ ساتھ'),
+  orgNameEn: text('org_name_en').notNull().default('Bait ul Maal BalochSath'),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+/* ─── TYPES ─── */
+export type Member = typeof members.$inferSelect;
+export type NewMember = typeof members.$inferInsert;
+export type Payment = typeof payments.$inferSelect;
+export type NewPayment = typeof payments.$inferInsert;
+export type Case = typeof cases.$inferSelect;
+export type Loan = typeof loans.$inferSelect;
+export type Notification = typeof notifications.$inferSelect;
+export type AuditEntry = typeof auditLog.$inferSelect;
+export type Config = typeof config.$inferSelect;

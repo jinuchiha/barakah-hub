@@ -1,0 +1,143 @@
+@import "tailwindcss";
+
+/* ─────────────────────────────────────────
+   THEME TOKENS — Tailwind v4 @theme directive
+   ───────────────────────────────────────── */
+@theme {
+  --font-display: 'Cinzel', serif;
+  --font-arabic: 'Amiri', serif;
+  --font-body: 'Tajawal', sans-serif;
+  --font-en: 'Cormorant Garamond', serif;
+
+  /* Default Royal Gold palette — overridden via .theme-* class on <html> */
+  --color-gold: #c9a84c;
+  --color-gold-2: #e8c96a;
+  --color-gold-3: #f5e6b8;
+  --color-gold-4: #7a5c1e;
+
+  --color-emerald-1: #1b6b45;
+  --color-emerald-2: #24925e;
+  --color-emerald-3: #0d4a2f;
+
+  --color-ink: #0a0a08;
+  --color-ink-2: #1a1a14;
+  --color-ink-3: #2a2a20;
+  --color-cream: #f8f4ec;
+  --color-cream-2: #ede8da;
+
+  --radius-r: 14px;
+  --radius-r-sm: 8px;
+  --radius-r-lg: 20px;
+
+  --shadow-card: 0 1px 3px rgba(0,0,0,0.12), 0 4px 16px rgba(0,0,0,0.06);
+  --shadow-hover: 0 8px 28px rgba(201,168,76,0.22), 0 2px 6px rgba(0,0,0,0.12);
+}
+
+/* ─────────────────────────────────────────
+   SEMANTIC SURFACE / TEXT TOKENS
+   These swap on .light / .dark — used in inline styles and components
+   ───────────────────────────────────────── */
+:root {
+  --txt-1: #f8f4ec;
+  --txt-2: rgba(255,255,255,0.7);
+  --txt-3: rgba(255,255,255,0.45);
+  --txt-4: rgba(255,255,255,0.25);
+  --surf-1: #141410;
+  --surf-2: #0e0e0a;
+  --surf-3: rgba(255,255,255,0.04);
+  --border: rgba(201,168,76,0.25);
+  --border-2: rgba(201,168,76,0.5);
+}
+
+.light {
+  --txt-1: #1a1a14;
+  --txt-2: rgba(0,0,0,0.72);
+  --txt-3: rgba(0,0,0,0.55);
+  --txt-4: rgba(0,0,0,0.35);
+  --surf-1: #ffffff;
+  --surf-2: #faf6ec;
+  --surf-3: rgba(0,0,0,0.04);
+  --border: rgba(0,0,0,0.12);
+  --border-2: rgba(0,0,0,0.25);
+  --color-gold: #6d4f17;
+  --color-gold-2: #7a5c1e;
+  --color-gold-4: #3a2810;
+  --color-cream: #1a1a14;
+  --color-ink: #faf8f4;
+  --color-ink-2: #f0ece4;
+}
+
+/* ─────────────────────────────────────────
+   THEME PALETTE OVERRIDES (11 palettes)
+   Apply via `<html class="theme-emerald">`
+   ───────────────────────────────────────── */
+.theme-gold     { --color-gold: #b8902f; --color-gold-2: #d4af3f; --color-gold-4: #5a4010; --color-emerald-1: #1f4e3a; --color-emerald-2: #2d8364; --color-emerald-3: #0d2e22; }
+.theme-emerald  { --color-gold: #1f6e4a; --color-gold-2: #2d8364; --color-gold-4: #0d3a26; --color-emerald-1: #b8902f; --color-emerald-2: #d4af3f; --color-emerald-3: #5a4010; }
+.theme-sapphire { --color-gold: #2d5a8c; --color-gold-2: #4a7fc1; --color-gold-4: #1a3a5f; --color-emerald-1: #b8902f; --color-emerald-2: #d4af3f; --color-emerald-3: #5a4010; }
+.theme-ruby     { --color-gold: #a83254; --color-gold-2: #c44d72; --color-gold-4: #651832; }
+.theme-amethyst { --color-gold: #5e4691; --color-gold-2: #7a5fb8; --color-gold-4: #3a2c5a; }
+.theme-bronze   { --color-gold: #a0671e; --color-gold-2: #c0833a; --color-gold-4: #5a3a10; --color-emerald-1: #1f4e3a; --color-emerald-2: #2d8364; --color-emerald-3: #0d2e22; }
+.theme-forest   { --color-gold: #2d6a4f; --color-gold-2: #48916c; --color-gold-4: #1a3d2e; }
+.theme-midnight { --color-gold: #3a4a7a; --color-gold-2: #5a6e9e; --color-gold-4: #1f2842; }
+.theme-copper   { --color-gold: #b85a2e; --color-gold-2: #d27447; --color-gold-4: #5a2810; --color-emerald-1: #1f4e3a; --color-emerald-2: #2d8364; --color-emerald-3: #0d2e22; }
+.theme-slate    { --color-gold: #475569; --color-gold-2: #64748b; --color-gold-4: #1e293b; }
+.theme-charcoal { --color-gold: #3a3a2a; --color-gold-2: #5a5a3a; --color-gold-4: #1a1a14; }
+
+/* ─────────────────────────────────────────
+   GLOBAL RESETS
+   ───────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body {
+  background: var(--color-ink);
+  color: var(--color-cream);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+[dir="rtl"] body { font-family: var(--font-arabic), var(--font-body); }
+
+/* WCAG AA — universal focus visibility */
+*:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+button:focus-visible,
+[role="button"]:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 3px;
+  box-shadow: 0 0 0 4px rgba(201,168,76,0.18);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Screen-reader-only utility */
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+}
+
+/* Refined gradient stat-card variants */
+.sc-grad-emerald  { background: linear-gradient(135deg,#1f4e3a,#2d8364 60%,#3aa380); }
+.sc-grad-gold     { background: linear-gradient(135deg,#a7741a,#c89b3c 60%,#e2bd6a); }
+.sc-grad-ruby     { background: linear-gradient(135deg,#7a1d3a,#a83254 60%,#d04d72); }
+.sc-grad-sapphire { background: linear-gradient(135deg,#1e3a5f,#2d5a8c 60%,#4a7fc1); }
+.sc-grad-violet   { background: linear-gradient(135deg,#3d2c5e,#5e4691 60%,#7a5fb8); }
+.sc-grad-ocean    { background: linear-gradient(135deg,#0a2942,#163e5e 60%,#1f5a7a); }
+
+/* Subtle scroll-bar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--color-gold-4); border-radius: 3px; }
+.light ::-webkit-scrollbar-thumb { background: rgba(122,92,30,0.4); }
