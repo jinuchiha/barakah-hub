@@ -16,13 +16,13 @@
       "src": "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='32' fill='%230a0a08'/><circle cx='96' cy='96' r='52' fill='none' stroke='%23c9a84c' stroke-width='4'/><path d='M118 78 a32 32 0 1 0 0 36 a24 24 0 1 1 0 -36 z' fill='%23c9a84c'/></svg>",
       "sizes": "192x192",
       "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "purpose": "maskable"
     },
     {
       "src": "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='80' fill='%230a0a08'/><circle cx='256' cy='256' r='140' fill='none' stroke='%23c9a84c' stroke-width='10'/><path d='M315 210 a85 85 0 1 0 0 92 a64 64 0 1 1 0 -92 z' fill='%23c9a84c'/><polygon points='256,140 271,180 312,180 280,205 292,245 256,222 220,245 232,205 200,180 241,180' fill='%23e8c96a' opacity='0.85'/></svg>",
       "sizes": "512x512",
       "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "purpose": "maskable"
     }
   ],
   "shortcuts": [
