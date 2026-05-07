@@ -13,7 +13,10 @@
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
-    "import:legacy": "tsx scripts/migrate-localstorage.ts"
+    "import:legacy": "tsx scripts/migrate-localstorage.ts",
+    "build:cf": "npx @cloudflare/next-on-pages",
+    "deploy:cf": "npm run build:cf && wrangler pages deploy .vercel/output/static --project-name=balochsath",
+    "preview:cf": "npm run build:cf && wrangler pages dev .vercel/output/static --compatibility-flag=nodejs_compat"
   },
   "dependencies": {
     "next": "^16.0.0",
@@ -46,6 +49,9 @@
     "drizzle-kit": "^0.28.0",
     "tsx": "^4.19.2",
     "eslint": "^9.14.0",
-    "eslint-config-next": "^16.0.0"
+    "eslint-config-next": "^16.0.0",
+    "@cloudflare/next-on-pages": "^1.13.5",
+    "wrangler": "^3.86.0",
+    "vercel": "^39.0.0"
   }
 }

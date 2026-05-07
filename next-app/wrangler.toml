@@ -1,0 +1,17 @@
+# Cloudflare Pages config — project: balochsath
+# Account: 4fa684cc34a11f5dc284ac725c7d8f41
+
+name = "balochsath"
+compatibility_date = "2026-05-07"
+compatibility_flags = ["nodejs_compat"]
+pages_build_output_dir = ".vercel/output/static"
+
+# IMPORTANT: env vars are managed in the Cloudflare Pages dashboard, not here.
+# Go to: https://dash.cloudflare.com/4fa684cc34a11f5dc284ac725c7d8f41/pages/view/balochsath/settings/environment-variables
+# and add:
+#   NEXT_PUBLIC_SUPABASE_URL       = https://oryyeqdyhmagvjvbgvkt.supabase.co
+#   NEXT_PUBLIC_SUPABASE_ANON_KEY  = <anon key from Supabase API settings>
+#   SUPABASE_SERVICE_ROLE_KEY      = <service role key — keep server-only>
+#   DATABASE_URL                   = postgresql://postgres.oryyeqdyhmagvjvbgvkt:<PASSWORD>@aws-0-<REGION>.pooler.supabase.com:6543/postgres
+
+# Pages doesn't use [vars] from this file — set them in the dashboard for both Preview + Production envs.
