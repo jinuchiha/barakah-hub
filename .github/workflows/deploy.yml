@@ -1,0 +1,62 @@
+name: Deploy to Cloudflare Workers
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false   # never cancel a deploy in progress
+
+defaults:
+  run:
+    working-directory: next-app
+
+jobs:
+  deploy:
+    name: OpenNext build + wrangler deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    # GitHub Environment for production secrets + manual approval gate.
+    # Configure under: Settings → Environments → production
+    environment:
+      name: production
+      url: https://barakahhub.bakerabi91.workers.dev
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+          run_install: false
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: next-app/pnpm-lock.yaml
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Build (OpenNext)
+        run: pnpm build:cf
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+      - name: Deploy
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: next-app
+          command: deploy
+          # wrangler.toml in next-app/ describes the Worker; secrets are
+          # already set on the Worker via `wrangler secret put` (one-off).

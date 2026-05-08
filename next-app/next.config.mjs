@@ -7,8 +7,8 @@ const nextConfig = {
     optimizePackageImports: ['lucide-react', 'date-fns'],
   },
   images: {
-    // Cloudflare Pages doesn't run the Image Optimization API by default — disable it.
-    // Supabase delivers WebP-ready originals; loaders not required for our scale.
+    // Cloudflare Workers don't run the Next image-optimisation pipeline.
+    // Supabase delivers WebP-ready originals; loaders aren't required at our scale.
     unoptimized: true,
     remotePatterns: [
       { protocol: 'https', hostname: '**.supabase.co' },
@@ -17,11 +17,7 @@ const nextConfig = {
   },
 };
 
-// Required for Cloudflare Pages local preview (next-on-pages dev binding)
-if (process.env.NODE_ENV === 'development') {
-  await import('@cloudflare/next-on-pages/next-dev').then((m) =>
-    m.setupDevPlatform?.(),
-  ).catch(() => {});
-}
+// OpenNext for Cloudflare Workers handles dev-platform bindings via its
+// `opennextjs-cloudflare preview` command — no setup needed in this file.
 
 export default nextConfig;

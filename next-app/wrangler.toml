@@ -1,18 +1,37 @@
-# Cloudflare Pages config — project: barakah-hub
-# (If migrating an existing Pages project named "balochsath", create a new
-#  project under "barakah-hub" or rename the existing one in the CF dashboard.)
+# Cloudflare Workers config — Barakah Hub
+# Phase 3 Next.js app deployed via @opennextjs/cloudflare adapter.
+#
+# Live URL: https://barakahhub.bakerabi91.workers.dev
+# (Worker subdomain = `name` below; account = bakerabi91)
+#
+# To deploy:
+#   pnpm install
+#   pnpm build:cf            # OpenNext build → .open-next/
+#   wrangler login           # one-off
+#   wrangler secret put DATABASE_URL                # paste Postgres URL
+#   wrangler secret put SUPABASE_SERVICE_ROLE_KEY   # paste service role key
+#   pnpm deploy:cf
 
-name = "barakah-hub"
-compatibility_date = "2026-05-07"
-compatibility_flags = ["nodejs_compat"]
-pages_build_output_dir = ".vercel/output/static"
+name = "barakahhub"
+main = ".open-next/worker.js"
+compatibility_date = "2026-05-08"
+compatibility_flags = ["nodejs_compat", "global_fetch_strictly_public"]
 
-# IMPORTANT: env vars are managed in the Cloudflare Pages dashboard, not here.
-# Go to: Pages → barakah-hub → Settings → Environment variables
-# and add (BOTH Production AND Preview):
-#   NEXT_PUBLIC_SUPABASE_URL       = https://<your-project>.supabase.co
-#   NEXT_PUBLIC_SUPABASE_ANON_KEY  = <anon key from Supabase API settings>
-#   SUPABASE_SERVICE_ROLE_KEY      = <service role key — keep server-only>
-#   DATABASE_URL                   = postgresql://postgres.<your-project>:<PASSWORD>@aws-0-<REGION>.pooler.supabase.com:6543/postgres
+# Bind static assets (CSS, JS bundles, images, /public/*) so the Worker
+# can serve them without round-tripping through user code.
+[assets]
+binding = "ASSETS"
+directory = ".open-next/assets"
+run_worker_first = false
 
-# Pages doesn't use [vars] from this file — set them in the dashboard for both Preview + Production envs.
+# Build-time / public env vars. These end up in the client bundle, so
+# they are NOT secret. Put real Supabase URL + anon key here.
+# (Use `wrangler secret put` for DATABASE_URL and the service-role key.)
+[vars]
+NEXT_PUBLIC_SUPABASE_URL = "https://placeholder.supabase.co"
+NEXT_PUBLIC_SUPABASE_ANON_KEY = "placeholder-anon-key"
+
+# Observability — free tier; ships logs to the Cloudflare dashboard.
+[observability]
+enabled = true
+head_sampling_rate = 1
