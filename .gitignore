@@ -74,3 +74,6 @@ NOTES.local.md
 .cursor/
 .aider*
 .ruler/
+
+.dev.vars*
+!.dev.vars.example
