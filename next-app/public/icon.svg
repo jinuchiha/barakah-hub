@@ -1,0 +1,23 @@
+<!--
+  Barakah Hub — primary app icon (Concept A on ink ground).
+  Used for `purpose: any` — full bleed, decorative.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Barakah Hub">
+  <defs>
+    <mask id="cr">
+      <rect width="512" height="512" fill="black"/>
+      <circle cx="256" cy="256" r="170" fill="white"/>
+      <circle cx="328.4" cy="229" r="148.75" fill="black"/>
+    </mask>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%"  stop-color="#0e0e0a"/>
+      <stop offset="100%" stop-color="#0a0a08"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"  stop-color="#e8c96a"/>
+      <stop offset="100%" stop-color="#c9a84c"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="80" fill="url(#bg)"/>
+  <circle cx="256" cy="256" r="170" fill="url(#gold)" mask="url(#cr)"/>
+</svg>

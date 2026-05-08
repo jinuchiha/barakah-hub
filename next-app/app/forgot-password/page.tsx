@@ -1,7 +1,7 @@
 import { Card, CardBody } from '@/components/ui/card';
 import ForgotForm from './forgot-form';
 
-export const metadata = { title: 'Reset Password · BalochSath' };
+export const metadata = { title: 'Reset Password · Barakah Hub' };
 
 export default function ForgotPasswordPage() {
   return (

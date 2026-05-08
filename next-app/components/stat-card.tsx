@@ -1,3 +1,5 @@
+'use client';
+import { motion, useReducedMotion } from 'motion/react';
 import { cn } from '@/lib/utils';
 
 type Tone = 'emerald' | 'gold' | 'ruby' | 'sapphire' | 'violet' | 'ocean';
@@ -22,10 +24,15 @@ export function StatCard({ label, sublabel, value, hint, tone = 'emerald', spark
     ocean:   'sc-grad-ocean',
   }[tone];
 
+  const reduce = useReducedMotion();
+
   return (
-    <div
+    <motion.div
+      whileHover={reduce ? undefined : { y: -4, scale: 1.015 }}
+      transition={{ type: 'spring', stiffness: 300, damping: 22 }}
       className={cn(
-        'relative flex min-h-[130px] flex-col justify-between overflow-hidden rounded-[var(--radius-r)] p-5 text-white shadow-[0_6px_18px_rgba(0,0,0,0.18)] transition-all hover:-translate-y-1 hover:shadow-[0_14px_32px_rgba(0,0,0,0.28)]',
+        'relative flex min-h-[130px] flex-col justify-between overflow-hidden rounded-[var(--radius-r)] p-5 text-white shadow-[0_6px_18px_rgba(0,0,0,0.18)]',
+        'hover:shadow-[0_14px_32px_rgba(0,0,0,0.28)]',
         toneClass,
       )}
     >
@@ -43,7 +50,7 @@ export function StatCard({ label, sublabel, value, hint, tone = 'emerald', spark
       </div>
 
       {spark && spark.length > 0 && <Sparkline values={spark} />}
-    </div>
+    </motion.div>
   );
 }
 

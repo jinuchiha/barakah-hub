@@ -1,12 +1,12 @@
 import { redirect } from 'next/navigation';
-import { eq, desc } from 'drizzle-orm';
+import { eq, desc, inArray } from 'drizzle-orm';
 import { createClient } from '@/lib/supabase/server';
 import { db } from '@/lib/db';
 import { members, auditLog } from '@/lib/db/schema';
 import { Card, CardHeader, CardTitle, CardBody } from '@/components/ui/card';
 import { ini } from '@/lib/utils';
 
-export const metadata = { title: 'Audit Log · BalochSath' };
+export const metadata = { title: 'Audit Log · Barakah Hub' };
 
 const ICONS: Record<string, string> = {
   login: '🔓', logout: '🔒',
@@ -22,18 +22,20 @@ const ICONS: Record<string, string> = {
 export default async function AuditPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  const [me] = await db.select().from(members).where(eq(members.authId, user!.id)).limit(1);
+  if (!user) redirect('/login');
+  const [me] = await db.select().from(members).where(eq(members.authId, user.id)).limit(1);
+  if (!me) redirect('/onboarding');
   if (me.role !== 'admin') redirect('/dashboard');
 
   const entries = await db.select().from(auditLog).orderBy(desc(auditLog.createdAt)).limit(300);
-  const memberIds = new Set([
-    ...entries.map((e) => e.actorId).filter(Boolean) as string[],
-    ...entries.map((e) => e.targetId).filter(Boolean) as string[],
-  ]);
-  const allMembers = memberIds.size > 0
-    ? await db.select().from(members)
+  const memberIds = [...new Set([
+    ...entries.map((e) => e.actorId).filter((v): v is string => !!v),
+    ...entries.map((e) => e.targetId).filter((v): v is string => !!v),
+  ])];
+  const referencedMembers = memberIds.length > 0
+    ? await db.select().from(members).where(inArray(members.id, memberIds))
     : [];
-  const memById = new Map(allMembers.map((m) => [m.id, m]));
+  const memById = new Map(referencedMembers.map((m) => [m.id, m]));
 
   return (
     <div>

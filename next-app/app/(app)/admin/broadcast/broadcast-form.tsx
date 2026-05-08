@@ -19,13 +19,17 @@ export default function BroadcastForm() {
     start(async () => {
       try {
         await broadcastNotification({
+          titleUr: titleUr || titleEn,
+          titleEn,
           ur: bodyUr || bodyEn,
           en: bodyEn,
           type,
         });
         toast.success('Broadcast sent to all members');
         setTitleUr(''); setTitleEn(''); setBodyUr(''); setBodyEn('');
-      } catch (e: any) { toast.error(e.message); }
+      } catch (e: unknown) {
+        toast.error(e instanceof Error ? e.message : 'Failed');
+      }
     });
   }
 

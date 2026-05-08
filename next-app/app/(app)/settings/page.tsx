@@ -1,3 +1,4 @@
+import { redirect } from 'next/navigation';
 import { eq } from 'drizzle-orm';
 import { createClient } from '@/lib/supabase/server';
 import { db } from '@/lib/db';
@@ -7,12 +8,14 @@ import ProfileForm from './profile-form';
 import ThemePicker from './theme-picker';
 import AdminConfigForm from './admin-config-form';
 
-export const metadata = { title: 'Settings · BalochSath' };
+export const metadata = { title: 'Settings · Barakah Hub' };
 
 export default async function SettingsPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  const [me] = await db.select().from(members).where(eq(members.authId, user!.id)).limit(1);
+  if (!user) redirect('/login');
+  const [me] = await db.select().from(members).where(eq(members.authId, user.id)).limit(1);
+  if (!me) redirect('/onboarding');
   const [cfg] = await db.select().from(configTbl).where(eq(configTbl.id, 1)).limit(1);
   const isAdmin = me.role === 'admin';
 

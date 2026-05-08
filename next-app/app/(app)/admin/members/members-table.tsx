@@ -6,9 +6,10 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { fmtRs } from '@/lib/i18n/dict';
 import { ini, normalizePkPhone } from '@/lib/utils';
-import { hardDeleteMember, softDeleteMember } from '@/app/actions';
+import { hardDeleteMember } from '@/app/actions';
 import { toast } from 'sonner';
 import type { Member } from '@/lib/db/schema';
+import MemberDialog from './member-dialog';
 
 interface Props { initial: Member[] }
 
@@ -31,6 +32,7 @@ export default function MembersTable({ initial }: Props) {
   const [province, setProvince] = useState('');
   const [city, setCity] = useState('');
   const [pending, startTransition] = useTransition();
+  const [dialog, setDialog] = useState<{ kind: 'add' } | { kind: 'edit'; member: Member } | null>(null);
 
   const cities = useMemo(
     () => [...new Set(initial.map((m) => m.city).filter(Boolean) as string[])].sort(),
@@ -74,7 +76,9 @@ export default function MembersTable({ initial }: Props) {
     <Card>
       <CardHeader>
         <CardTitle>{filtered.length} of {initial.length} members</CardTitle>
-        <Button variant="gold" size="sm"><Plus className="size-3" />Add Member</Button>
+        <Button variant="gold" size="sm" onClick={() => setDialog({ kind: 'add' })}>
+          <Plus className="size-3" />Add Member
+        </Button>
       </CardHeader>
       <CardBody className="p-0">
         <div className="flex flex-wrap items-center gap-2 border-b border-[var(--border)] p-3">
@@ -130,7 +134,15 @@ export default function MembersTable({ initial }: Props) {
                   </td>
                   <td className="px-4 py-2">
                     <div className="flex gap-1">
-                      <button title="Edit" className="rounded p-1.5 hover:bg-[rgba(201,168,76,0.1)]"><Pencil className="size-3.5 text-[var(--txt-2)]" /></button>
+                      <button
+                        type="button"
+                        title="Edit"
+                        aria-label={`Edit ${m.nameEn || m.nameUr}`}
+                        onClick={() => setDialog({ kind: 'edit', member: m })}
+                        className="rounded p-1.5 hover:bg-[rgba(201,168,76,0.1)]"
+                      >
+                        <Pencil className="size-3.5 text-[var(--txt-2)]" />
+                      </button>
                       {m.phone && (
                         <button title="WhatsApp" onClick={() => whatsapp(m)} className="rounded p-1.5 hover:bg-[rgba(37,211,102,0.15)]">
                           <MessageCircle className="size-3.5 text-[#25d366]" />
@@ -152,6 +164,13 @@ export default function MembersTable({ initial }: Props) {
           </table>
         </div>
       </CardBody>
+      {dialog && (
+        <MemberDialog
+          key={dialog.kind === 'edit' ? `edit-${dialog.member.id}` : 'add'}
+          mode={dialog}
+          onClose={() => setDialog(null)}
+        />
+      )}
     </Card>
   );
 }

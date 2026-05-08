@@ -4,16 +4,18 @@ import { createClient } from '@/lib/supabase/server';
 import { db } from '@/lib/db';
 import { members } from '@/lib/db/schema';
 import { Card, CardHeader, CardTitle, CardBody } from '@/components/ui/card';
-import { fmtRs } from '@/lib/i18n/dict';
 import { ini } from '@/lib/utils';
 import MembersTable from './members-table';
+import ApproveButton from './approve-button';
 
-export const metadata = { title: 'Members · BalochSath' };
+export const metadata = { title: 'Members · Barakah Hub' };
 
 export default async function MembersPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  const [me] = await db.select().from(members).where(eq(members.authId, user!.id)).limit(1);
+  if (!user) redirect('/login');
+  const [me] = await db.select().from(members).where(eq(members.authId, user.id)).limit(1);
+  if (!me) redirect('/onboarding');
   if (me.role !== 'admin') redirect('/dashboard');
 
   const all = await db.select().from(members).orderBy(asc(members.nameEn));
@@ -44,10 +46,7 @@ export default async function MembersPage() {
                     {m.city && ` · ${m.city}`}
                   </div>
                 </div>
-                <form action="/api/members/approve" method="post">
-                  <input type="hidden" name="id" value={m.id} />
-                  <button type="submit" className="rounded-md bg-[rgba(31,110,74,0.15)] px-3 py-1 text-xs font-bold text-[var(--color-emerald-2)]">✓ Approve</button>
-                </form>
+                <ApproveButton memberId={m.id} />
               </div>
             ))}
           </CardBody>

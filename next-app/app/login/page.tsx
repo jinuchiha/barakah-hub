@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
+import { Crescent as CrescentMark } from '@/components/icons/crescent';
 import LoginForm from './login-form';
 
 export default async function LoginPage({ searchParams }: { searchParams: Promise<{ next?: string }> }) {
@@ -18,9 +19,9 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
             <div className="absolute left-0 right-0 top-0 h-0.5 bg-gradient-to-r from-transparent via-[var(--color-gold)] to-transparent" />
             <div className="border-b border-[var(--border)] bg-gradient-to-b from-[rgba(201,168,76,0.06)] to-transparent px-8 pb-6 pt-8 text-center">
               <Crescent />
-              <h1 className="font-[var(--font-arabic)] text-2xl text-[var(--color-gold-2)]">بیت المال بلوچ ساتھ</h1>
+              <h1 className="font-[var(--font-arabic)] text-2xl text-[var(--color-gold-2)]">بَرَكَة ہب</h1>
               <div className="mt-1.5 font-[var(--font-display)] text-[11px] uppercase tracking-[4px] text-[var(--color-gold-4)] opacity-80">
-                Bait ul Maal BalochSath
+                Barakah Hub
               </div>
               <div className="mx-0 mt-4 rounded-md border border-[var(--border)] bg-[rgba(201,168,76,0.05)] p-3.5 text-center">
                 <div className="font-[var(--font-arabic)] text-base text-[var(--color-gold)]">وَأَنفِقُوا فِي سَبِيلِ اللَّهِ</div>
@@ -39,9 +40,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
 function Crescent() {
   return (
     <span className="mb-3 inline-grid size-10 place-items-center rounded-full bg-gradient-to-br from-[var(--color-gold-4)] to-[var(--color-gold)]" aria-hidden="true">
-      <svg viewBox="0 0 24 24" className="size-5 text-[var(--color-ink)]" fill="currentColor">
-        <path d="M14 4 a8 8 0 1 0 0 16 a6 6 0 1 1 0 -16 z" />
-      </svg>
+      <CrescentMark className="size-5 text-[var(--color-ink)]" title="" />
     </span>
   );
 }

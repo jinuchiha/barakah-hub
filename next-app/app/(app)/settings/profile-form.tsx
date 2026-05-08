@@ -30,8 +30,12 @@ export default function ProfileForm({ member }: { member: Member }) {
 
   async function uploadPhoto(file: File) {
     if (file.size > 2 * 1024 * 1024) { toast.error('Image too large (>2MB)'); return; }
+    if (!file.type.startsWith('image/')) { toast.error('Image files only'); return; }
     const supabase = createClient();
-    const path = `${member.id}/avatar-${Date.now()}.${file.name.split('.').pop()}`;
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { toast.error('Session expired'); return; }
+    const ext = (file.name.split('.').pop() || 'png').replace(/[^a-z0-9]/gi, '').slice(0, 4);
+    const path = `${user.id}/avatar-${Date.now()}.${ext}`;
     const { error } = await supabase.storage.from('avatars').upload(path, file, { upsert: true });
     if (error) { toast.error(error.message); return; }
     const { data } = supabase.storage.from('avatars').getPublicUrl(path);

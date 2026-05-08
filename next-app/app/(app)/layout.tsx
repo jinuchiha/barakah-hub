@@ -1,11 +1,12 @@
 import { redirect } from 'next/navigation';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 import { createClient } from '@/lib/supabase/server';
 import { db } from '@/lib/db';
 import { members, notifications } from '@/lib/db/schema';
 import { Sidebar } from '@/components/sidebar';
 import { Topbar } from '@/components/topbar';
 import { VerseBar } from '@/components/verse-bar';
+import { TooltipProvider } from '@/components/ui/tooltip';
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();
@@ -15,19 +16,24 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const [me] = await db.select().from(members).where(eq(members.authId, user.id)).limit(1);
   if (!me) redirect('/onboarding');
 
-  const unreadCount = await db.$count(notifications, eq(notifications.recipientId, me.id));
+  const unreadCount = await db.$count(
+    notifications,
+    and(eq(notifications.recipientId, me.id), eq(notifications.read, false)),
+  );
 
   return (
-    <div className="flex h-screen flex-col">
-      <Topbar
-        user={{ name: me.nameEn || me.nameUr, role: me.role === 'admin' ? 'Admin' : 'Member', color: me.color, photoUrl: me.photoUrl }}
-        unreadCount={unreadCount}
-      />
-      <VerseBar />
-      <div className="flex flex-1 overflow-hidden">
-        <Sidebar isAdmin={me.role === 'admin'} />
-        <main className="flex-1 overflow-y-auto p-6">{children}</main>
+    <TooltipProvider delayDuration={200}>
+      <div className="flex h-screen flex-col">
+        <Topbar
+          user={{ name: me.nameEn || me.nameUr, role: me.role === 'admin' ? 'Admin' : 'Member', color: me.color, photoUrl: me.photoUrl }}
+          unreadCount={unreadCount}
+        />
+        <VerseBar />
+        <div className="flex flex-1 overflow-hidden">
+          <Sidebar isAdmin={me.role === 'admin'} />
+          <main className="flex-1 overflow-y-auto p-6">{children}</main>
+        </div>
       </div>
-    </div>
+    </TooltipProvider>
   );
 }

@@ -6,12 +6,14 @@ import { members } from '@/lib/db/schema';
 import { Card, CardHeader, CardTitle, CardBody } from '@/components/ui/card';
 import BroadcastForm from './broadcast-form';
 
-export const metadata = { title: 'Broadcast · BalochSath' };
+export const metadata = { title: 'Broadcast · Barakah Hub' };
 
 export default async function BroadcastPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  const [me] = await db.select().from(members).where(eq(members.authId, user!.id)).limit(1);
+  if (!user) redirect('/login');
+  const [me] = await db.select().from(members).where(eq(members.authId, user.id)).limit(1);
+  if (!me) redirect('/onboarding');
   if (me.role !== 'admin') redirect('/dashboard');
 
   const recipientCount = await db.$count(members, eq(members.deceased, false));

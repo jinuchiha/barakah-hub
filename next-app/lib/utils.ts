@@ -25,7 +25,7 @@ export function pickColor(seed?: string): string {
 /** Pakistan phone normalization for WhatsApp (`03xx-xxxxxxx` → `923xx...`). */
 export function normalizePkPhone(phone?: string | null): string | null {
   if (!phone) return null;
-  let p = phone.replace(/\D/g, '');
+  const p = phone.replace(/\D/g, '');
   if (p.length === 11 && p.startsWith('0')) return '92' + p.slice(1);
   if (p.length === 10 && p.startsWith('3')) return '92' + p;
   if (p.length >= 10) return p;

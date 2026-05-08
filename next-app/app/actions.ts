@@ -1,14 +1,32 @@
 'use server';
 /**
- * Server actions — all mutations go through here.
- * RLS provides defense-in-depth; these add validation + business rules.
+ * Server actions — every mutation goes through here.
+ *
+ * SECURITY MODEL
+ * ──────────────
+ * The app connects to Postgres via `lib/db/index.ts` using DATABASE_URL,
+ * which authenticates as a privileged role and BYPASSES the RLS policies
+ * defined in `supabase/migrations/0001_initial_schema.sql`. Those policies
+ * are documentation of intent + protection for any future direct REST
+ * access via supabase.from(...) — they do NOT cover this code path.
+ *
+ * Therefore every action in this file must:
+ *   1. Call `meOrThrow()` to confirm a session exists.
+ *   2. Check role / ownership explicitly before any read or write.
+ *   3. Validate input with Zod (refuse anything from the body we cannot
+ *      independently confirm against the session).
+ *   4. Append an `audit_log` row for any state change.
+ *
+ * The `audit_log` table has an UPDATE/DELETE trigger (migration 0002)
+ * making it append-only at the DB layer regardless of role.
  */
 import { revalidatePath } from 'next/cache';
 import { eq, and } from 'drizzle-orm';
 import { z } from 'zod';
 import { createClient } from '@/lib/supabase/server';
 import { db } from '@/lib/db';
-import { members, payments, cases, votes, loans, auditLog, config as configTbl } from '@/lib/db/schema';
+import { members, payments, cases, votes, loans, repayments, auditLog, notifications, messages, config as configTbl } from '@/lib/db/schema';
+import { monthStartFromLabel } from '@/lib/month';
 
 /* ─── helpers */
 async function meOrThrow() {
@@ -22,6 +40,29 @@ async function meOrThrow() {
 
 async function audit(actorId: string, action: string, detail: string, targetId?: string) {
   await db.insert(auditLog).values({ actorId, targetId, action, detail });
+}
+
+/* ─── approve pending member (admin) */
+export async function approveMember(memberId: string) {
+  const me = await meOrThrow();
+  if (me.role !== 'admin') throw new Error('Admin only');
+  if (!/^[0-9a-f-]{36}$/i.test(memberId)) throw new Error('Invalid id');
+
+  const [m] = await db.select().from(members).where(eq(members.id, memberId)).limit(1);
+  if (!m) throw new Error('Member not found');
+  if (m.status === 'approved') return;
+
+  await db.update(members).set({ status: 'approved' }).where(eq(members.id, memberId));
+  await audit(me.id, 'member-approved', `Approved ${m.nameEn || m.nameUr}`, memberId);
+  await db.insert(notifications).values({
+    recipientId: memberId,
+    titleUr: 'منظوری',
+    titleEn: 'Approved',
+    ur: 'آپ کا اکاؤنٹ منظور ہو گیا — اب آپ ایپ استعمال کر سکتے ہیں',
+    en: 'Your account has been approved — you can now use the app',
+    type: 'approved',
+  });
+  revalidatePath('/admin/members');
 }
 
 /* ─── add member (admin) */
@@ -67,7 +108,13 @@ export async function recordPayment(input: z.infer<typeof recordPaymentSchema>) 
   const data = recordPaymentSchema.parse(input);
   const [created] = await db
     .insert(payments)
-    .values({ ...data, pendingVerify: false, verifiedById: me.id, verifiedAt: new Date() })
+    .values({
+      ...data,
+      monthStart: monthStartFromLabel(data.monthLabel),
+      pendingVerify: false,
+      verifiedById: me.id,
+      verifiedAt: new Date(),
+    })
     .returning();
   await audit(me.id, 'payment-record', `${data.pool} payment ${data.amount} for ${data.monthLabel}`, data.memberId);
   revalidatePath('/admin/fund');
@@ -85,10 +132,16 @@ const submitDonationSchema = z.object({
 
 export async function submitDonation(input: z.infer<typeof submitDonationSchema>) {
   const me = await meOrThrow();
+  if (me.deceased) throw new Error('Account inactive');
   const data = submitDonationSchema.parse(input);
   const [created] = await db
     .insert(payments)
-    .values({ ...data, memberId: me.id, pendingVerify: true })
+    .values({
+      ...data,
+      memberId: me.id,
+      monthStart: monthStartFromLabel(data.monthLabel),
+      pendingVerify: true,
+    })
     .returning();
   await audit(me.id, 'payment-self-submit', `Submitted ${data.pool} ${data.amount} for ${data.monthLabel}`, me.id);
   revalidatePath('/myaccount');
@@ -98,6 +151,7 @@ export async function submitDonation(input: z.infer<typeof submitDonationSchema>
 
 /* ─── verify / reject pending payment (admin) */
 export async function verifyPayment(paymentId: string) {
+  if (!/^[0-9a-f-]{36}$/i.test(paymentId)) throw new Error('Invalid id');
   const me = await meOrThrow();
   if (me.role !== 'admin') throw new Error('Admin only');
   await db
@@ -110,6 +164,7 @@ export async function verifyPayment(paymentId: string) {
 }
 
 export async function rejectPayment(paymentId: string) {
+  if (!/^[0-9a-f-]{36}$/i.test(paymentId)) throw new Error('Invalid id');
   const me = await meOrThrow();
   if (me.role !== 'admin') throw new Error('Admin only');
   const [p] = await db.select().from(payments).where(eq(payments.id, paymentId)).limit(1);
@@ -121,12 +176,14 @@ export async function rejectPayment(paymentId: string) {
 
 /* ─── cast vote on a case */
 export async function castVote(caseId: string, yes: boolean) {
+  if (!/^[0-9a-f-]{36}$/i.test(caseId)) throw new Error('Invalid case id');
   const me = await meOrThrow();
+  if (me.status !== 'approved') throw new Error('Account not approved');
+  if (me.deceased) throw new Error('Not eligible');
   const [c] = await db.select().from(cases).where(eq(cases.id, caseId)).limit(1);
   if (!c) throw new Error('Case not found');
   if (c.status !== 'voting') throw new Error('Voting closed');
   if (c.applicantId === me.id) throw new Error('Cannot vote on your own request');
-  if (me.deceased) throw new Error('Not eligible');
 
   // Insert (ON CONFLICT — would fail naturally via PK; handle in caller)
   await db.insert(votes).values({ caseId, memberId: me.id, vote: yes }).onConflictDoNothing();
@@ -215,6 +272,37 @@ export async function updateAdminConfig(input: z.infer<typeof adminCfgSchema>) {
   revalidatePath('/settings');
 }
 
+/* ─── edit member (admin) */
+const editMemberSchema = z.object({
+  id: z.string().uuid(),
+  nameEn: z.string().min(2).max(80).optional(),
+  nameUr: z.string().min(1).max(80).optional(),
+  fatherName: z.string().min(2).max(80).optional(),
+  relation: z.string().max(80).optional().nullable(),
+  phone: z.string().max(30).optional().nullable(),
+  city: z.string().max(60).optional().nullable(),
+  province: z.string().max(40).optional().nullable(),
+  monthlyPledge: z.number().int().min(0).max(1_000_000).optional(),
+  role: z.enum(['admin', 'member']).optional(),
+  status: z.enum(['pending', 'approved', 'rejected']).optional(),
+});
+
+export async function editMember(input: z.infer<typeof editMemberSchema>) {
+  const me = await meOrThrow();
+  if (me.role !== 'admin') throw new Error('Admin only');
+  const { id, ...rest } = editMemberSchema.parse(input);
+
+  // Refuse self-demotion to avoid lockout
+  if (id === me.id && rest.role && rest.role !== 'admin') {
+    throw new Error('Cannot demote yourself — promote another admin first');
+  }
+
+  await db.update(members).set(rest).where(eq(members.id, id));
+  await audit(me.id, 'member-edited', `Edited member ${id}`, id);
+  revalidatePath('/admin/members');
+  revalidatePath('/tree');
+}
+
 /* ─── delete member (admin) — soft via deceased=false→true OR hard delete */
 export async function softDeleteMember(memberId: string) {
   const me = await meOrThrow();
@@ -267,12 +355,99 @@ export async function createCase(input: z.infer<typeof caseSchema>) {
   return created;
 }
 
+/* ─── issue loan (admin) */
+const issueLoanSchema = z.object({
+  memberId: z.string().uuid(),
+  amount: z.number().int().positive().max(10_000_000),
+  purpose: z.string().min(2).max(200),
+  city: z.string().max(60).optional(),
+  expectedReturn: z.string().nullable().optional(),
+  caseId: z.string().uuid().nullable().optional(),
+});
+
+export async function issueLoan(input: z.infer<typeof issueLoanSchema>) {
+  const me = await meOrThrow();
+  if (me.role !== 'admin') throw new Error('Admin only');
+  const data = issueLoanSchema.parse(input);
+
+  const [borrower] = await db.select().from(members).where(eq(members.id, data.memberId)).limit(1);
+  if (!borrower) throw new Error('Member not found');
+
+  const [created] = await db
+    .insert(loans)
+    .values({
+      memberId: data.memberId,
+      amount: data.amount,
+      purpose: data.purpose,
+      pool: 'qarz',
+      city: data.city,
+      expectedReturn: data.expectedReturn || null,
+      caseId: data.caseId || null,
+      paid: 0,
+      active: true,
+    })
+    .returning();
+  await audit(me.id, 'loan-issue', `Issued ${data.amount} qarz: ${data.purpose}`, data.memberId);
+  revalidatePath('/admin/loans');
+  revalidatePath('/dashboard');
+  return created;
+}
+
+/* ─── record loan repayment (admin) */
+const repaySchema = z.object({
+  loanId: z.string().uuid(),
+  amount: z.number().int().positive().max(10_000_000),
+  note: z.string().max(200).optional(),
+});
+
+export async function recordRepayment(input: z.infer<typeof repaySchema>) {
+  const me = await meOrThrow();
+  if (me.role !== 'admin') throw new Error('Admin only');
+  const data = repaySchema.parse(input);
+
+  const [loan] = await db.select().from(loans).where(eq(loans.id, data.loanId)).limit(1);
+  if (!loan) throw new Error('Loan not found');
+  if (!loan.active) throw new Error('Loan already settled');
+
+  const remaining = loan.amount - loan.paid;
+  if (data.amount > remaining) {
+    throw new Error(`Amount exceeds remaining ${remaining}`);
+  }
+
+  const newPaid = loan.paid + data.amount;
+  const fullySettled = newPaid >= loan.amount;
+
+  await db.insert(repayments).values({
+    loanId: data.loanId,
+    amount: data.amount,
+    note: data.note,
+  });
+  await db
+    .update(loans)
+    .set({ paid: newPaid, active: !fullySettled })
+    .where(eq(loans.id, data.loanId));
+  await audit(
+    me.id,
+    'loan-repay',
+    fullySettled ? `Settled loan ${data.loanId} (final ${data.amount})` : `Repayment ${data.amount} on loan ${data.loanId}`,
+    loan.memberId,
+  );
+  revalidatePath('/admin/loans');
+  revalidatePath('/dashboard');
+}
+
 /* ─── notifications: mark read */
 export async function markAllNotificationsRead() {
   const me = await meOrThrow();
-  const { notifications } = await import('@/lib/db/schema');
   await db.update(notifications).set({ read: true }).where(eq(notifications.recipientId, me.id));
   revalidatePath('/notifications');
+}
+
+/* ─── messages: mark all read */
+export async function markAllMessagesRead() {
+  const me = await meOrThrow();
+  await db.update(messages).set({ read: true }).where(eq(messages.toId, me.id));
+  revalidatePath('/messages');
 }
 
 /* ─── messages: send */
@@ -285,13 +460,14 @@ const sendMessageSchema = z.object({
 export async function sendMessage(input: z.infer<typeof sendMessageSchema>) {
   const me = await meOrThrow();
   const data = sendMessageSchema.parse(input);
-  const { messages, notifications } = await import('@/lib/db/schema');
   await db.insert(messages).values({ ...data, fromId: me.id });
   // Also drop a notification on the recipient so they see the badge
   await db.insert(notifications).values({
     recipientId: data.toId,
-    ur: `نیا پیغام: ${data.subject}`,
-    en: `New message: ${data.subject}`,
+    titleUr: 'نیا پیغام',
+    titleEn: 'New message',
+    ur: data.subject,
+    en: data.subject,
     type: 'msg',
   });
   await audit(me.id, 'message-sent', `Subject: ${data.subject}`);

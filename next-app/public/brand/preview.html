@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>Barakah Hub — logo concepts</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@400;500;700&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      /* Cool palette per the brief */
+      --midnight:   #0b1220;
+      --midnight-2: #14202f;
+      --slate-1:    #243042;
+      --silver:     #c0c8d0;
+      --silver-2:   #8a929c;
+      --ice:        #d8e3f0;
+      --charcoal:   #1a1f26;
+      --white:      #ffffff;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, sans-serif;
+      background: #0e141d;
+      color: #e6edf7;
+    }
+    main {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 56px 32px 96px;
+    }
+    h1 {
+      font-size: 36px;
+      font-weight: 700;
+      margin: 0 0 8px;
+      letter-spacing: -0.5px;
+    }
+    .lede {
+      color: #8a929c;
+      max-width: 60ch;
+      margin: 0 0 48px;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+      border-radius: 14px;
+      overflow: hidden;
+      margin-bottom: 32px;
+      box-shadow: 0 14px 40px rgba(0,0,0,0.35);
+    }
+    .panel {
+      padding: 56px 40px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 220px;
+      gap: 24px;
+    }
+    .panel.dark  { background: var(--midnight); color: var(--silver); }
+    .panel.light { background: var(--white);    color: var(--charcoal); }
+    .panel svg.mark   { width: 96px; height: 96px; }
+    .panel svg.lockup { height: 56px; width: auto; }
+    .meta {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      padding: 14px 24px;
+      background: #11161e;
+      color: #8a929c;
+      font-size: 12px;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      border-top: 1px solid rgba(255,255,255,0.04);
+    }
+    .meta strong { color: var(--ice); letter-spacing: 0.5px; text-transform: none; font-weight: 600; }
+    .palette {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin-top: 16px;
+    }
+    .swatch {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08);
+    }
+    .swatch.midnight   { background: var(--midnight); }
+    .swatch.midnight2  { background: var(--midnight-2); }
+    .swatch.slate      { background: var(--slate-1); }
+    .swatch.silver     { background: var(--silver); }
+    .swatch.silver2    { background: var(--silver-2); }
+    .swatch.ice        { background: var(--ice); }
+    .swatch.charcoal   { background: var(--charcoal); }
+    .palette-label {
+      font-size: 11px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: #8a929c;
+      width: 80px;
+    }
+    section.specimen {
+      margin-top: 64px;
+      padding: 32px;
+      background: #11161e;
+      border-radius: 14px;
+    }
+    section.specimen h2 {
+      font-size: 14px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: #8a929c;
+      margin: 0 0 24px;
+    }
+    .sizes {
+      display: flex;
+      gap: 32px;
+      align-items: flex-end;
+      color: var(--ice);
+      flex-wrap: wrap;
+    }
+    .size-spec { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+    .size-spec svg { color: var(--ice); }
+    .size-spec span { font-size: 11px; color: #8a929c; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Barakah Hub — logo concepts</h1>
+    <p class="lede">
+      Three directions for the wordmark and crescent. Each is colour-controlled
+      via <code>currentColor</code>, so the same SVG re-tints on dark
+      (silver/ice) and light (charcoal) backgrounds without edits. Pick one
+      and we'll wire it through <code>app/icon.tsx</code>, the manifest, the
+      login screen, and the topbar.
+    </p>
+
+    <!-- ===== Concept A ===== -->
+    <div class="row">
+      <div class="panel dark"  style="color: var(--silver)">
+        <object data="lockup-A.svg" type="image/svg+xml" class="lockup" aria-label="Concept A on midnight"></object>
+      </div>
+      <div class="panel light" style="color: var(--charcoal)">
+        <object data="lockup-A.svg" type="image/svg+xml" class="lockup" aria-label="Concept A on white"></object>
+      </div>
+    </div>
+    <div class="meta">
+      <span><strong>A · Pure Geometric</strong> — golden-ratio mask · single weight · works at 16×16</span>
+      <span>Recommended for primary brand</span>
+    </div>
+
+    <!-- ===== Concept B ===== -->
+    <div class="row" style="margin-top: 48px">
+      <div class="panel dark"  style="color: var(--ice)">
+        <object data="lockup-B.svg" type="image/svg+xml" class="lockup" aria-label="Concept B on midnight"></object>
+      </div>
+      <div class="panel light" style="color: var(--charcoal)">
+        <object data="lockup-B.svg" type="image/svg+xml" class="lockup" aria-label="Concept B on white"></object>
+      </div>
+    </div>
+    <div class="meta">
+      <span><strong>B · Faceted</strong> — gradient + facet ridge · Montserrat all-caps · "premium boutique" vibe</span>
+      <span>Recommended for marketing</span>
+    </div>
+
+    <!-- ===== Concept C ===== -->
+    <div class="row" style="margin-top: 48px">
+      <div class="panel dark"  style="color: var(--silver)">
+        <object data="lockup-C.svg" type="image/svg+xml" class="lockup" aria-label="Concept C on midnight"></object>
+      </div>
+      <div class="panel light" style="color: var(--charcoal)">
+        <object data="lockup-C.svg" type="image/svg+xml" class="lockup" aria-label="Concept C on white"></object>
+      </div>
+    </div>
+    <div class="meta">
+      <span><strong>C · Crescent + Star</strong> — most explicitly Islamic-finance · star doubles as separator</span>
+      <span>Recommended if cultural cue matters</span>
+    </div>
+
+    <!-- ===== Size specimen ===== -->
+    <section class="specimen">
+      <h2>Concept A — size specimen (mark only)</h2>
+      <div class="sizes">
+        <div class="size-spec">
+          <object data="mark-A.svg" type="image/svg+xml" style="width:128px;height:128px;color:var(--ice)"></object>
+          <span>128 px · app icon</span>
+        </div>
+        <div class="size-spec">
+          <object data="mark-A.svg" type="image/svg+xml" style="width:64px;height:64px;color:var(--ice)"></object>
+          <span>64 px · header</span>
+        </div>
+        <div class="size-spec">
+          <object data="mark-A.svg" type="image/svg+xml" style="width:32px;height:32px;color:var(--ice)"></object>
+          <span>32 px · favicon</span>
+        </div>
+        <div class="size-spec">
+          <object data="mark-A.svg" type="image/svg+xml" style="width:16px;height:16px;color:var(--ice)"></object>
+          <span>16 px · tab</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== Palette ===== -->
+    <section class="specimen">
+      <h2>Cool palette (proposal)</h2>
+      <div class="palette">
+        <span class="palette-label">Midnight</span>
+        <div class="swatch midnight"  title="#0b1220"></div>
+        <div class="swatch midnight2" title="#14202f"></div>
+        <div class="swatch slate"     title="#243042"></div>
+      </div>
+      <div class="palette">
+        <span class="palette-label">Silver</span>
+        <div class="swatch ice"       title="#d8e3f0"></div>
+        <div class="swatch silver"    title="#c0c8d0"></div>
+        <div class="swatch silver2"   title="#8a929c"></div>
+      </div>
+      <div class="palette">
+        <span class="palette-label">Charcoal</span>
+        <div class="swatch charcoal"  title="#1a1f26"></div>
+      </div>
+      <p style="color:#8a929c; font-size:12px; margin-top: 24px; line-height: 1.6;">
+        Tokens to add to <code>globals.css</code> if you adopt the cool palette
+        site-wide:
+        <code>--midnight: #0b1220</code>,
+        <code>--slate-1: #14202f</code>,
+        <code>--slate-2: #243042</code>,
+        <code>--ice: #d8e3f0</code>,
+        <code>--silver: #c0c8d0</code>,
+        <code>--silver-muted: #8a929c</code>,
+        <code>--charcoal: #1a1f26</code>.
+      </p>
+    </section>
+  </main>
+</body>
+</html>

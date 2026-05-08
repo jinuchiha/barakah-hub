@@ -1,5 +1,7 @@
 -- ════════════════════════════════════════════════════════════════════
--- BalochSath — initial schema + Row Level Security policies
+-- Barakah Hub — initial schema + Row Level Security policies
+-- (Originally authored when the project was named "BalochSath" — column
+--  defaults reflect that history; a later migration renames them.)
 -- Apply via:  supabase db push   (or via dashboard SQL editor)
 -- ════════════════════════════════════════════════════════════════════
 

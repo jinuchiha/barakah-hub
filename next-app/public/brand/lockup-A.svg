@@ -1,0 +1,23 @@
+<!--
+  Barakah Hub — full lockup, concept A.
+  Mark + wordmark, sized for header use (48px tall).
+  Type: Inter or Geist Sans, weight 600, tracking -0.02em.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 96" role="img" aria-label="Barakah Hub">
+  <defs>
+    <mask id="crescent-AL">
+      <rect width="360" height="96" fill="black"/>
+      <circle cx="48" cy="48" r="32" fill="white"/>
+      <circle cx="61.6" cy="43" r="28" fill="black"/>
+    </mask>
+  </defs>
+  <circle cx="48" cy="48" r="32" fill="currentColor" mask="url(#crescent-AL)"/>
+  <text
+    x="100" y="58"
+    font-family="Inter, 'Geist Sans', system-ui, -apple-system, sans-serif"
+    font-size="32"
+    font-weight="600"
+    letter-spacing="-0.5"
+    fill="currentColor"
+  >Barakah Hub</text>
+</svg>

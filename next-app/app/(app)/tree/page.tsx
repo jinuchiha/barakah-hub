@@ -1,31 +1,39 @@
-import { eq, asc } from 'drizzle-orm';
+import { redirect } from 'next/navigation';
+import { eq, and, asc } from 'drizzle-orm';
 import { createClient } from '@/lib/supabase/server';
 import { db } from '@/lib/db';
 import { members, payments } from '@/lib/db/schema';
 import { Card, CardHeader, CardTitle, CardBody } from '@/components/ui/card';
 import TreeView from './tree-view';
-import type { Member } from '@/lib/db/schema';
 
-export const metadata = { title: 'Family Tree · BalochSath' };
+export const metadata = { title: 'Family Tree · Barakah Hub' };
 
 export default async function TreePage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  const [me] = await db.select().from(members).where(eq(members.authId, user!.id)).limit(1);
+  if (!user) redirect('/login');
+  const [me] = await db.select().from(members).where(eq(members.authId, user.id)).limit(1);
+  if (!me) redirect('/onboarding');
 
   const all = await db.select().from(members).orderBy(asc(members.nameEn));
+  const isAdmin = me.role === 'admin';
 
-  // Aggregate paid amount per member for badge display
-  const totals = await db
-    .select({ memberId: payments.memberId, total: payments.amount })
-    .from(payments)
-    .where(eq(payments.pendingVerify, false));
-  const paidByMap = new Map<string, number>();
-  for (const t of totals) {
-    paidByMap.set(t.memberId, (paidByMap.get(t.memberId) || 0) + t.total);
-  }
+  // Aggregate paid amount per member — sadqa privacy: non-admins only get
+  // their own total; the rest are stripped before crossing the network.
+  const totalsQuery = isAdmin
+    ? db
+        .select({ memberId: payments.memberId, total: payments.amount })
+        .from(payments)
+        .where(eq(payments.pendingVerify, false))
+    : db
+        .select({ memberId: payments.memberId, total: payments.amount })
+        .from(payments)
+        .where(and(eq(payments.pendingVerify, false), eq(payments.memberId, me.id)));
+  const totals = await totalsQuery;
   const paidByObj: Record<string, number> = {};
-  paidByMap.forEach((v, k) => { paidByObj[k] = v; });
+  for (const t of totals) {
+    paidByObj[t.memberId] = (paidByObj[t.memberId] ?? 0) + t.total;
+  }
 
   return (
     <div>
@@ -40,7 +48,7 @@ export default async function TreePage() {
           <span className="text-xs text-[var(--color-gold-4)]">{all.length} members</span>
         </CardHeader>
         <CardBody>
-          <TreeView members={all} paidBy={paidByObj} viewerId={me.id} viewerIsAdmin={me.role === 'admin'} />
+          <TreeView members={all} paidBy={paidByObj} viewerId={me.id} viewerIsAdmin={isAdmin} />
         </CardBody>
       </Card>
     </div>

@@ -1,0 +1,120 @@
+/**
+ * Security tests for the P0-1 fix.
+ * Verifies that `onboardSelf` derives identity from session, never the body.
+ */
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { makeDbMock, makeSupabaseMock } from '../helpers/db-mock';
+
+const supabaseMock = vi.hoisted(() => ({ instance: null as unknown }));
+const dbMock = vi.hoisted(() => ({ instance: null as unknown }));
+
+vi.mock('@/lib/supabase/server', () => ({
+  createClient: async () => supabaseMock.instance,
+}));
+
+vi.mock('@/lib/db', () => ({
+  get db() { return dbMock.instance; },
+}));
+
+vi.mock('next/cache', () => ({
+  revalidatePath: vi.fn(),
+}));
+
+describe('onboardSelf', () => {
+  beforeEach(() => {
+    vi.resetModules();
+  });
+
+  it('rejects when user is not authenticated', async () => {
+    supabaseMock.instance = makeSupabaseMock(null);
+    dbMock.instance = makeDbMock({});
+    const { onboardSelf } = await import('@/app/onboarding/actions');
+
+    await expect(
+      onboardSelf({
+        nameEn: 'Test',
+        fatherName: 'Test Father',
+        phone: '0300-1234567',
+        city: 'Karachi',
+        province: 'sindh',
+      }),
+    ).rejects.toThrow(/not authenticated/i);
+  });
+
+  it('rejects when user has no email', async () => {
+    supabaseMock.instance = makeSupabaseMock({ id: 'auth-uuid-123' });
+    dbMock.instance = makeDbMock({});
+    const { onboardSelf } = await import('@/app/onboarding/actions');
+
+    await expect(
+      onboardSelf({
+        nameEn: 'Test',
+        fatherName: 'Test Father',
+        phone: '0300-1234567',
+        city: 'Karachi',
+        province: 'sindh',
+      }),
+    ).rejects.toThrow(/not authenticated/i);
+  });
+
+  it('rejects when account already onboarded', async () => {
+    supabaseMock.instance = makeSupabaseMock({ id: 'auth-uuid-123', email: 'me@x.com' });
+    dbMock.instance = makeDbMock({
+      // First select returns the existing member, so onboardSelf bails.
+      selectQueue: [
+        [{ id: 'member-1', authId: 'auth-uuid-123', role: 'member' }],
+      ],
+    });
+    const { onboardSelf } = await import('@/app/onboarding/actions');
+
+    await expect(
+      onboardSelf({
+        nameEn: 'Test',
+        fatherName: 'Test Father',
+        phone: '0300-1234567',
+        city: 'Karachi',
+        province: 'sindh',
+      }),
+    ).rejects.toThrow(/already onboarded/i);
+  });
+
+  it('rejects self-claim of an admin record (P0-1 regression test)', async () => {
+    supabaseMock.instance = makeSupabaseMock({ id: 'auth-uuid-123', email: 'evil@x.com' });
+    dbMock.instance = makeDbMock({
+      selectQueue: [
+        // 1st: select by authId — no rows (not yet onboarded)
+        [],
+        // 2nd: select by username — finds an unclaimed admin record
+        [{ id: 'admin-1', authId: null, role: 'admin', status: 'approved', username: 'evil' }],
+      ],
+    });
+    const { onboardSelf } = await import('@/app/onboarding/actions');
+
+    await expect(
+      onboardSelf({
+        nameEn: 'Evil',
+        fatherName: 'Evil Father',
+        phone: '0300-1234567',
+        city: 'Karachi',
+        province: 'sindh',
+      }),
+    ).rejects.toThrow(/admin records cannot be self-claimed/i);
+  });
+
+  it('rejects invalid input (Zod validation)', async () => {
+    supabaseMock.instance = makeSupabaseMock({ id: 'auth-uuid-123', email: 'a@b.com' });
+    dbMock.instance = makeDbMock({ selectQueue: [[], []] });
+    const { onboardSelf } = await import('@/app/onboarding/actions');
+
+    // nameEn too short
+    await expect(
+      onboardSelf({
+        nameEn: 'A',
+        fatherName: 'Test Father',
+        phone: '0300-1234567',
+        city: 'Karachi',
+        province: 'sindh',
+      }),
+    ).rejects.toThrow();
+  });
+});

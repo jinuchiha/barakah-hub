@@ -1,26 +1,33 @@
-import { eq, desc, asc } from 'drizzle-orm';
+import { redirect } from 'next/navigation';
+import { eq, desc, inArray } from 'drizzle-orm';
 import { createClient } from '@/lib/supabase/server';
 import { db } from '@/lib/db';
 import { members, cases, votes, config as configTbl } from '@/lib/db/schema';
 import { Card, CardHeader, CardTitle, CardBody } from '@/components/ui/card';
 import { fmtRs } from '@/lib/i18n/dict';
-import { ini } from '@/lib/utils';
 import VoteButtons from './vote-buttons';
 import NewCaseForm from './new-case-form';
 
-export const metadata = { title: 'Emergency Cases · BalochSath' };
+export const metadata = { title: 'Emergency Cases · Barakah Hub' };
 
 export default async function CasesPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  const [me] = await db.select().from(members).where(eq(members.authId, user!.id)).limit(1);
+  if (!user) redirect('/login');
+  const [me] = await db.select().from(members).where(eq(members.authId, user.id)).limit(1);
+  if (!me) redirect('/onboarding');
 
-  const [allCases, allMembers, allVotes, [cfg]] = await Promise.all([
+  const [allCases, allMembers, [cfg]] = await Promise.all([
     db.select().from(cases).orderBy(desc(cases.createdAt)).limit(50),
     db.select().from(members).where(eq(members.deceased, false)),
-    db.select().from(votes),
     db.select().from(configTbl).where(eq(configTbl.id, 1)).limit(1),
   ]);
+
+  const caseIds = allCases.map((c) => c.id);
+  const allVotes = caseIds.length > 0
+    ? await db.select().from(votes).where(inArray(votes.caseId, caseIds))
+    : [];
+
   const memById = new Map(allMembers.map((m) => [m.id, m]));
   const eligibleCount = Math.max(0, allMembers.filter((m) => m.status === 'approved').length - 1);
   const voteThresh = cfg?.voteThresholdPct ?? 50;

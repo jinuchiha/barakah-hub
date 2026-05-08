@@ -1,0 +1,31 @@
+<!--
+  Barakah Hub — logo mark concept B: Faceted Crescent
+  Same crescent silhouette as A, but with a subtle inner facet line
+  suggesting cut-gemstone depth. Two-colour: silhouette in `currentColor`,
+  facet line in `currentColor` at 35% opacity.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Barakah Hub mark">
+  <defs>
+    <mask id="crescent-B">
+      <rect width="128" height="128" fill="black"/>
+      <circle cx="64" cy="64" r="48" fill="white"/>
+      <circle cx="84.4" cy="56.5" r="42" fill="black"/>
+    </mask>
+    <linearGradient id="facet-B" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"  stop-color="currentColor" stop-opacity="1"/>
+      <stop offset="100%" stop-color="currentColor" stop-opacity="0.55"/>
+    </linearGradient>
+  </defs>
+  <g mask="url(#crescent-B)">
+    <circle cx="64" cy="64" r="48" fill="url(#facet-B)"/>
+    <!-- Internal facet — single thin line that reads as a highlight ridge -->
+    <path
+      d="M 30 44 Q 44 64 30 90"
+      fill="none"
+      stroke="currentColor"
+      stroke-opacity="0.28"
+      stroke-width="1.4"
+      stroke-linecap="round"
+    />
+  </g>
+</svg>

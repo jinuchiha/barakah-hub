@@ -3,11 +3,11 @@ import './globals.css';
 import { Toaster } from 'sonner';
 
 export const metadata: Metadata = {
-  title: 'بیت المال بلوچ ساتھ | Bait ul Maal BalochSath',
-  description: 'Islamic family fund — sadqa, qarz-e-hasana, emergency vote, full audit trail',
-  manifest: '/manifest.json',
-  applicationName: 'BalochSath',
-  appleWebApp: { capable: true, title: 'BalochSath', statusBarStyle: 'black-translucent' },
+  title: 'Barakah Hub — Islamic Family Fund',
+  description: 'Barakah Hub — Islamic family fund: sadqa, qarz-e-hasana, emergency vote, audit trail',
+  manifest: '/manifest.webmanifest',
+  applicationName: 'Barakah Hub',
+  appleWebApp: { capable: true, title: 'Barakah Hub', statusBarStyle: 'black-translucent' },
 };
 
 export const viewport: Viewport = {

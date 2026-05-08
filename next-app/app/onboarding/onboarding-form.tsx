@@ -9,9 +9,9 @@ import type { Member } from '@/lib/db/schema';
 
 const PROVINCES = ['', 'balochistan', 'sindh', 'punjab', 'kpk', 'gilgit', 'azadkashmir', 'islamabad', 'overseas', 'other'];
 
-interface Props { authId: string; email: string; existing?: Member }
+interface Props { existing?: Member }
 
-export default function OnboardingForm({ authId, email, existing }: Props) {
+export default function OnboardingForm({ existing }: Props) {
   const [pending, start] = useTransition();
   const [step, setStep] = useState(1);
   const [form, setForm] = useState({
@@ -43,7 +43,7 @@ export default function OnboardingForm({ authId, email, existing }: Props) {
   function submit() {
     start(async () => {
       try {
-        await onboardSelf({ ...form, authId, email });
+        await onboardSelf(form);
         toast.success('Welcome — setup complete ✨');
         router.replace('/dashboard');
       } catch (e: any) { toast.error(e.message); }
@@ -65,11 +65,11 @@ export default function OnboardingForm({ authId, email, existing }: Props) {
 
       {step === 1 && (
         <>
-          <p className="mb-4 text-xs italic text-[var(--color-gold-4)]">Your name + father's name. We use the father's name to build the family tree.</p>
+          <p className="mb-4 text-xs italic text-[var(--color-gold-4)]">Your name + father&apos;s name. We use the father&apos;s name to build the family tree.</p>
           <div className="grid gap-3 md:grid-cols-2">
             <div><Label>English Name *</Label><Input value={form.nameEn} onChange={(e) => set('nameEn', e.target.value)} placeholder="Ahmad Baloch" /></div>
             <div><Label>Urdu Name</Label><Input value={form.nameUr} onChange={(e) => set('nameUr', e.target.value)} dir="rtl" /></div>
-            <div className="md:col-span-2"><Label>Father's Name *</Label><Input value={form.fatherName} onChange={(e) => set('fatherName', e.target.value)} /></div>
+            <div className="md:col-span-2"><Label>Father&apos;s Name *</Label><Input value={form.fatherName} onChange={(e) => set('fatherName', e.target.value)} /></div>
             <div className="md:col-span-2"><Label>Relation in family</Label><Input value={form.relation} onChange={(e) => set('relation', e.target.value)} placeholder="e.g. Son of Abu Baker" /></div>
           </div>
         </>

@@ -27,8 +27,8 @@ export default function ForgotForm() {
   return (
     <form onSubmit={submit}>
       <p className="mb-4 text-xs leading-relaxed text-[var(--txt-2)]">
-        Enter the email tied to your account. We'll send a magic link to reset your password.
-        If you can't access your email, contact the family admin directly.
+        Enter the email tied to your account. We&apos;ll send a magic link to reset your password.
+        If you can&apos;t access your email, contact the family admin directly.
       </p>
       <Label htmlFor="fp-email">Email *</Label>
       <Input id="fp-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required placeholder="you@family.com" />

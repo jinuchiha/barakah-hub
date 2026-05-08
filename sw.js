@@ -1,7 +1,8 @@
-// Bait ul Maal BalochSath — minimal service worker
+// Barakah Hub (legacy single-HTML predecessor) — minimal service worker
 // Caches the app shell so it's installable + offline-capable.
 // Strategy: stale-while-revalidate for the HTML shell.
-const CACHE = 'balochsath-v1-2026-05-07';
+// Cache name bumped to bust the previous "balochsath-*" caches on rename.
+const CACHE = 'barakah-hub-v1-2026-05-08';
 const SHELL = ['./index.html', './manifest.json'];
 
 self.addEventListener('install', (e) => {

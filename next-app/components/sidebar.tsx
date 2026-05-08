@@ -1,6 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { motion } from 'motion/react';
 import { cn } from '@/lib/utils';
 import {
   LayoutDashboard, User, Users, GitBranch, Bell, Mail, Settings, Wallet,
@@ -45,7 +46,7 @@ export function Sidebar({ isAdmin = false, locale = 'en' }: { isAdmin?: boolean;
         })}
       </nav>
       <div className="border-t border-[var(--border)] p-3 text-center text-[10px] uppercase tracking-[1px] text-[var(--color-gold-4)] opacity-60">
-        v3.0 · BalochSath
+        v3.0 · Barakah Hub
       </div>
     </aside>
   );
@@ -61,14 +62,21 @@ function NavItem({ n, isActive, locale }: { n: typeof NAV[number]; isActive: boo
     <Link
       href={n.href as any}
       className={cn(
-        'group relative mx-2 my-0.5 flex items-center gap-3 rounded-md border border-transparent px-3 py-2.5 text-sm transition-all',
+        'group relative mx-2 my-0.5 flex items-center gap-3 rounded-md border border-transparent px-3 py-2.5 text-sm transition-colors',
         isActive
           ? 'border-[var(--border)] bg-[rgba(201,168,76,0.1)] text-[var(--color-gold-2)]'
           : 'text-[var(--txt-3)] hover:border-[var(--border)] hover:bg-[rgba(201,168,76,0.06)] hover:text-[var(--txt-1)]',
       )}
       aria-current={isActive ? 'page' : undefined}
     >
-      {isActive && <span className="absolute left-0 top-[20%] h-[60%] w-0.5 rounded-r-sm bg-[var(--color-gold)]" />}
+      {isActive && (
+        <motion.span
+          layoutId="sidebar-active-indicator"
+          aria-hidden="true"
+          className="absolute left-0 top-[20%] h-[60%] w-0.5 rounded-r-sm bg-[var(--color-gold)]"
+          transition={{ type: 'spring', stiffness: 380, damping: 32 }}
+        />
+      )}
       <Icon className="size-4 shrink-0 text-[var(--color-gold)]" />
       <span>{locale === 'ur' ? n.labelUr : n.label}</span>
     </Link>

@@ -1,5 +1,5 @@
 /**
- * BalochSath Postgres schema (Drizzle ORM)
+ * Barakah Hub Postgres schema (Drizzle ORM)
  *
  * Design notes:
  *  - `members` is the canonical user-of-app table; auth.users (Supabase) → members via auth_id.
@@ -27,7 +27,7 @@ export const members = pgTable('members', {
   fatherName: text('father_name').notNull(),
   clan: text('clan'),
   relation: text('relation'),
-  parentId: uuid('parent_id'),
+  parentId: uuid('parent_id').references((): any => members.id, { onDelete: 'set null' }),
   role: roleEnum('role').notNull().default('member'),
   status: statusEnum('status').notNull().default('pending'),
   phone: text('phone'),
@@ -63,7 +63,8 @@ export const payments = pgTable('payments', {
   memberId: uuid('member_id').notNull().references(() => members.id, { onDelete: 'cascade' }),
   amount: integer('amount').notNull(),
   pool: poolEnum('pool').notNull().default('sadaqah'),
-  monthLabel: text('month_label').notNull(), // e.g. 'May 2026'
+  monthLabel: text('month_label').notNull(), // e.g. 'May 2026' (display)
+  monthStart: date('month_start').notNull(),  // first-of-month — sortable
   paidOn: date('paid_on').notNull().defaultNow(),
   note: text('note'),
   pendingVerify: boolean('pending_verify').notNull().default(false),
@@ -73,6 +74,7 @@ export const payments = pgTable('payments', {
 }, (t) => ({
   memberIdx: index('payments_member_idx').on(t.memberId),
   monthIdx: index('payments_month_idx').on(t.monthLabel),
+  monthStartIdx: index('payments_month_start_idx').on(t.monthStart),
   pendingIdx: index('payments_pending_idx').on(t.pendingVerify),
 }));
 
@@ -138,6 +140,8 @@ export const repayments = pgTable('repayments', {
 export const notifications = pgTable('notifications', {
   id: uuid('id').primaryKey().defaultRandom(),
   recipientId: uuid('recipient_id').notNull().references(() => members.id, { onDelete: 'cascade' }),
+  titleUr: text('title_ur'),
+  titleEn: text('title_en'),
   ur: text('ur').notNull(),
   en: text('en').notNull(),
   type: text('type').notNull(),
@@ -183,8 +187,8 @@ export const config = pgTable('config', {
   goalLabelEn: text('goal_label_en'),
   goalDeadline: date('goal_deadline'),
   themePalette: text('theme_palette').notNull().default('gold'),
-  orgNameUr: text('org_name_ur').notNull().default('بیت المال بلوچ ساتھ'),
-  orgNameEn: text('org_name_en').notNull().default('Bait ul Maal BalochSath'),
+  orgNameUr: text('org_name_ur').notNull().default('بَرَكَة ہب'),
+  orgNameEn: text('org_name_en').notNull().default('Barakah Hub'),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });
 

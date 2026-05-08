@@ -5,18 +5,21 @@ interface GoalBarProps {
   config: Pick<Config, 'goalAmount' | 'goalLabelUr' | 'goalLabelEn' | 'goalDeadline'>;
   totalFund: number;
   locale?: 'ur' | 'en';
+  /** Days remaining until deadline. Computed on the server to keep this component pure. */
+  daysRemaining?: number | null;
 }
 
-export function GoalBar({ config, totalFund, locale = 'en' }: GoalBarProps) {
+export function GoalBar({ config, totalFund, locale = 'en', daysRemaining = null }: GoalBarProps) {
   if (!config.goalAmount || config.goalAmount === 0) return null;
   const pct = Math.min(100, Math.round((totalFund / config.goalAmount) * 100));
   const remaining = Math.max(0, config.goalAmount - totalFund);
   const labelUr = config.goalLabelUr || 'خاندانی ہدف';
   const labelEn = config.goalLabelEn || 'Family Goal';
   let daysLeft = '';
-  if (config.goalDeadline) {
-    const d = Math.ceil((new Date(config.goalDeadline).getTime() - Date.now()) / 86_400_000);
-    daysLeft = d > 0 ? ` · ${d} ${locale === 'ur' ? 'دن باقی' : 'days left'}` : (locale === 'ur' ? ' · ہدف کی تاریخ گزر گئی' : ' · deadline passed');
+  if (daysRemaining !== null) {
+    daysLeft = daysRemaining > 0
+      ? ` · ${daysRemaining} ${locale === 'ur' ? 'دن باقی' : 'days left'}`
+      : (locale === 'ur' ? ' · ہدف کی تاریخ گزر گئی' : ' · deadline passed');
   }
   let cheer = '';
   if (pct >= 100) cheer = locale === 'ur' ? '🎉 الحمدللہ! ہدف مکمل' : '🎉 Alhamdulillah! Goal achieved';

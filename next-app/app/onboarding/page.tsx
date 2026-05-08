@@ -6,7 +6,7 @@ import { members } from '@/lib/db/schema';
 import { Card, CardBody } from '@/components/ui/card';
 import OnboardingForm from './onboarding-form';
 
-export const metadata = { title: 'Welcome · BalochSath' };
+export const metadata = { title: 'Welcome · Barakah Hub' };
 
 /**
  * Onboarding — for newly authenticated users without a `members` row yet,
@@ -35,7 +35,7 @@ export default async function OnboardingPage() {
               <div className="font-[var(--font-arabic)] text-sm text-[var(--color-gold)]">وَتَعَاوَنُوا عَلَى الْبِرِّ وَالتَّقْوَىٰ</div>
               <div className="mt-1 font-[var(--font-en)] text-[10px] italic text-[var(--txt-3)]">Cooperate in righteousness and piety · Al-Maidah 5:2</div>
             </div>
-            <OnboardingForm authId={user.id} email={user.email!} existing={existing} />
+            <OnboardingForm existing={existing} />
           </CardBody>
         </Card>
       </div>

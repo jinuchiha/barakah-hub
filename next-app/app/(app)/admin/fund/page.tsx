@@ -9,12 +9,14 @@ import { ini } from '@/lib/utils';
 import RecordPaymentForm from './record-payment-form';
 import VerifyButtons from './verify-buttons';
 
-export const metadata = { title: 'Fund Register · BalochSath' };
+export const metadata = { title: 'Fund Register · Barakah Hub' };
 
 export default async function FundPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  const [me] = await db.select().from(members).where(eq(members.authId, user!.id)).limit(1);
+  if (!user) redirect('/login');
+  const [me] = await db.select().from(members).where(eq(members.authId, user.id)).limit(1);
+  if (!me) redirect('/onboarding');
   if (me.role !== 'admin') redirect('/dashboard');
 
   const [allMembers, history, pending] = await Promise.all([

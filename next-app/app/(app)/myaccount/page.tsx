@@ -1,15 +1,19 @@
-import { eq, and, desc, sql } from 'drizzle-orm';
+import { redirect } from 'next/navigation';
+import { eq, desc } from 'drizzle-orm';
 import { createClient } from '@/lib/supabase/server';
 import { db } from '@/lib/db';
 import { members, payments } from '@/lib/db/schema';
 import { Card, CardHeader, CardTitle, CardBody } from '@/components/ui/card';
 import { fmtRs } from '@/lib/i18n/dict';
 import { ini } from '@/lib/utils';
+import DonationForm from './donation-form';
 
 export default async function MyAccountPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  const [me] = await db.select().from(members).where(eq(members.authId, user!.id)).limit(1);
+  if (!user) redirect('/login');
+  const [me] = await db.select().from(members).where(eq(members.authId, user.id)).limit(1);
+  if (!me) redirect('/onboarding');
 
   const myPayments = await db
     .select()
@@ -61,6 +65,13 @@ export default async function MyAccountPage() {
               + {fmtRs(pendingTotal)} awaiting admin verification
             </div>
           )}
+        </CardBody>
+      </Card>
+
+      <Card className="mb-4">
+        <CardHeader><CardTitle>🤲 Submit a Donation</CardTitle></CardHeader>
+        <CardBody>
+          <DonationForm />
         </CardBody>
       </Card>
 

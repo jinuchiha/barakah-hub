@@ -1,19 +1,76 @@
-# OS
+# ═══════════════════════════════════════════════════════════════════
+# Barakah Hub — repository .gitignore
+# (Per-folder ignores live in their own .gitignore; this is the root.)
+# ═══════════════════════════════════════════════════════════════════
+
+# ── OS / editor noise
 .DS_Store
 Thumbs.db
 desktop.ini
 *.swp
 *~
-
-# Editor
 .vscode/
 .idea/
+*.iml
+.history/
 
-# Backups
+# ── Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# ── Node / pnpm / npm
+node_modules/
+.pnpm-store/
+.pnpm-debug.log
+.npm/
+
+# ── Next.js / Vercel / Cloudflare build output
+.next/
+out/
+.vercel/
+.wrangler/
+*.tsbuildinfo
+next-env.d.ts
+
+# ── Test + coverage
+coverage/
+.nyc_output/
+*.lcov
+test-results/
+playwright-report/
+
+# ── Environment + secrets (NEVER commit)
+.env
+.env.*
+!.env.example
+
+# ── Supabase local
+supabase/.branches/
+supabase/.temp/
+supabase/.env
+supabase/.supabase/
+
+# ── Backups + legacy data exports
 *.bak
 *-backup-*.json
 *-backup-*.html
 balochsath-*.json
+barakah-hub-*.json
 
-# Local instructions (kept local)
+# ── Drizzle generated
+drizzle/
+
+# ── Local instructions / scratch files
 LOGO-INSTRUCTIONS.txt
+TODO.local.md
+NOTES.local.md
+
+# ── Claude Code / AI-tooling session metadata (per-machine, not the repo's)
+.claude/
+.cursor/
+.aider*
+.ruler/

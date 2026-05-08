@@ -7,7 +7,7 @@ import { fmtRs } from '@/lib/i18n/dict';
 import type { Member } from '@/lib/db/schema';
 
 const BISMILLAH = 'بسم اللہ الرحمن الرحیم';
-const CLOSING = '\n\nجزاک اللہ خیر — بیت المال بلوچ ساتھ';
+const CLOSING = '\n\nجزاک اللہ خیر — بَرَكَة ہب · Barakah Hub';
 
 export function waUrl(phone: string | null | undefined, message: string): string | null {
   const p = normalizePkPhone(phone);

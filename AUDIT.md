@@ -1,4 +1,13 @@
-# BalochSath — Honest Internal Audit
+# Barakah Hub (Phase 1 predecessor) — Honest Internal Audit
+
+> Historical document. The project has since been renamed from
+> "Bait ul Maal BalochSath" to **Barakah Hub** and the active codebase
+> moved to [`next-app/`](next-app/). The single-HTML predecessor remains
+> at the repo root (`index.html`) as a frozen reference + data-import
+> source. See [`next-app/AUDIT_PHASE3.md`](next-app/AUDIT_PHASE3.md) for
+> the current audit.
+
+
 
 **Date:** 7 May 2026
 **File under audit:** `index.html` (4,238 lines) + `manifest.json` + `sw.js`
@@ -161,7 +170,7 @@ The React/Tailwind/Next.js rewrite documented in the strategic analysis. Honors 
 ## File map
 
 ```
-balochsath/
+barakah-hub/  (legacy file map — Phase 1 single-HTML predecessor)
 ├── index.html          # full app — 4,238 lines
 ├── manifest.json       # PWA manifest
 ├── sw.js               # service worker (offline shell cache)

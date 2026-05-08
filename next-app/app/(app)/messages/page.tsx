@@ -1,33 +1,32 @@
-import { eq, or, desc, asc } from 'drizzle-orm';
+import { redirect } from 'next/navigation';
+import { eq, desc, asc } from 'drizzle-orm';
 import { createClient } from '@/lib/supabase/server';
 import { db } from '@/lib/db';
 import { members, messages } from '@/lib/db/schema';
 import { Card, CardHeader, CardTitle, CardBody } from '@/components/ui/card';
 import MessageForm from './message-form';
+import MarkAllRead from './mark-all-read';
 
-export const metadata = { title: 'Messages · BalochSath' };
+export const metadata = { title: 'Messages · Barakah Hub' };
 
 export default async function MessagesPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  const [me] = await db.select().from(members).where(eq(members.authId, user!.id)).limit(1);
+  if (!user) redirect('/login');
+  const [me] = await db.select().from(members).where(eq(members.authId, user.id)).limit(1);
+  if (!me) redirect('/onboarding');
 
-  const inbox = await db
-    .select()
-    .from(messages)
-    .where(eq(messages.toId, me.id))
-    .orderBy(desc(messages.createdAt))
-    .limit(50);
-  const recipients = await db
-    .select({ id: members.id, nameEn: members.nameEn, nameUr: members.nameUr })
-    .from(members)
-    .where(eq(members.role, 'admin'))
-    .orderBy(asc(members.nameEn));
-  const memById = new Map(
-    (await db.select({ id: members.id, nameEn: members.nameEn, nameUr: members.nameUr }).from(members)).map(
-      (m) => [m.id, m],
-    ),
-  );
+  const [inbox, allMembers] = await Promise.all([
+    db.select().from(messages).where(eq(messages.toId, me.id)).orderBy(desc(messages.createdAt)).limit(50),
+    db
+      .select({ id: members.id, nameEn: members.nameEn, nameUr: members.nameUr, role: members.role })
+      .from(members)
+      .where(eq(members.deceased, false))
+      .orderBy(asc(members.nameEn)),
+  ]);
+  const recipients = allMembers.filter((m) => m.role === 'admin');
+  const memById = new Map(allMembers.map((m) => [m.id, m]));
+  const unread = inbox.filter((m) => !m.read).length;
 
   return (
     <div className="grid max-w-5xl gap-4 lg:grid-cols-2">
@@ -37,7 +36,10 @@ export default async function MessagesPage() {
       </Card>
 
       <Card>
-        <CardHeader><CardTitle>📥 Inbox ({inbox.length})</CardTitle></CardHeader>
+        <CardHeader>
+          <CardTitle>📥 Inbox ({unread} unread / {inbox.length})</CardTitle>
+          {unread > 0 && <MarkAllRead />}
+        </CardHeader>
         <CardBody className="p-0">
           {inbox.length === 0 && (
             <div className="py-12 text-center text-sm italic text-[var(--txt-3)]">Inbox empty</div>

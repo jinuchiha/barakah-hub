@@ -1,4 +1,5 @@
-import { eq, and, sql } from 'drizzle-orm';
+import { redirect } from 'next/navigation';
+import { eq, and, sql, desc } from 'drizzle-orm';
 import { createClient } from '@/lib/supabase/server';
 import { db } from '@/lib/db';
 import { members, payments, cases, loans, config as configTbl } from '@/lib/db/schema';
@@ -10,7 +11,9 @@ import { fmtRs } from '@/lib/i18n/dict';
 export default async function DashboardPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  const [me] = await db.select().from(members).where(eq(members.authId, user!.id)).limit(1);
+  if (!user) redirect('/login');
+  const [me] = await db.select().from(members).where(eq(members.authId, user.id)).limit(1);
+  if (!me) redirect('/onboarding');
   const isAdmin = me.role === 'admin';
 
   // ─── Aggregates (verified-only)
@@ -34,18 +37,20 @@ export default async function DashboardPage() {
 
   const [cfg] = await db.select().from(configTbl).where(eq(configTbl.id, 1)).limit(1);
 
-  // ─── Last-6-month series for sparklines
+  const daysRemaining = computeDaysRemaining(cfg?.goalDeadline ?? null);
+
+  // ─── Last-6-month series for sparklines (chronological by month_start)
   const series = await db
     .select({
-      monthLabel: payments.monthLabel,
+      monthStart: payments.monthStart,
       total: sql<number>`SUM(${payments.amount})::int`,
     })
     .from(payments)
     .where(eq(payments.pendingVerify, false))
-    .groupBy(payments.monthLabel)
-    .orderBy(payments.monthLabel)
+    .groupBy(payments.monthStart)
+    .orderBy(desc(payments.monthStart))
     .limit(6);
-  const sparkValues = series.map((s) => Number(s.total));
+  const sparkValues = series.map((s) => Number(s.total)).reverse();
 
   return (
     <div>
@@ -56,7 +61,7 @@ export default async function DashboardPage() {
         <p className="mt-1 font-[var(--font-en)] text-sm italic text-[var(--color-gold-4)]">Welcome to the Family Fund</p>
       </header>
 
-      <GoalBar config={cfg} totalFund={totalFund} />
+      <GoalBar config={cfg} totalFund={totalFund} daysRemaining={daysRemaining} />
 
       {/* ─── Stat cards (admin sees all; member sees personal-only equivalents) */}
       <div className="mb-6 grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
@@ -108,20 +113,42 @@ export default async function DashboardPage() {
   );
 }
 
+function computeDaysRemaining(deadline: string | null): number | null {
+  if (!deadline) return null;
+  const ms = new Date(deadline).getTime() - new Date().getTime();
+  return Math.ceil(ms / 86_400_000);
+}
+
 async function MemberStats({ memberId, totalFund }: { memberId: string; totalFund: number }) {
+  const yearStart = `${new Date().getUTCFullYear()}-01-01`;
+  const monthsThisYearSoFar = new Date().getUTCMonth() + 1;
+
   const [myTotal] = await db
     .select({ total: sql<number>`COALESCE(SUM(${payments.amount}),0)::int` })
     .from(payments)
     .where(and(eq(payments.memberId, memberId), eq(payments.pendingVerify, false)));
   const my = Number(myTotal?.total ?? 0);
+
   const months = await db
-    .selectDistinct({ m: payments.monthLabel })
+    .selectDistinct({ m: payments.monthStart })
     .from(payments)
-    .where(and(eq(payments.memberId, memberId), eq(payments.pendingVerify, false)));
+    .where(
+      and(
+        eq(payments.memberId, memberId),
+        eq(payments.pendingVerify, false),
+        sql`${payments.monthStart} >= ${yearStart}::date`,
+      ),
+    );
+
   return (
     <>
       <StatCard label="My Total Paid" value={fmtRs(my)} hint="🤲 جزاک اللہ خیر" tone="emerald" />
-      <StatCard label="My Months Paid" value={`${months.length}/12`} hint={`📅 ${Math.round((months.length / 12) * 100)}% of year`} tone="gold" />
+      <StatCard
+        label="My Months Paid"
+        value={`${months.length}/${monthsThisYearSoFar}`}
+        hint={`📅 ${Math.round((months.length / monthsThisYearSoFar) * 100)}% of year so far`}
+        tone="gold"
+      />
       <StatCard label="Family Fund" value={fmtRs(totalFund)} hint="👥 collective trust" tone="sapphire" />
     </>
   );

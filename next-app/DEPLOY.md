@@ -1,8 +1,9 @@
-# Deploy Guide — Cloudflare Pages + Supabase
+# Deploy Guide — Barakah Hub on Cloudflare Pages + Supabase
 
-> **Your specific projects:**
-> - Supabase: [`oryyeqdyhmagvjvbgvkt`](https://supabase.com/dashboard/project/oryyeqdyhmagvjvbgvkt)
-> - Cloudflare Pages: [`balochsath`](https://dash.cloudflare.com/4fa684cc34a11f5dc284ac725c7d8f41/pages/view/balochsath)
+> Replace placeholders below with your real values:
+> - `<your-project>` — your Supabase project ref (the slug in the dashboard URL)
+> - `<cf-account-id>` — your Cloudflare account ID
+> - `<region>` — Supabase Postgres region (e.g. `ap-south-1`, `us-east-1`)
 
 ---
 
@@ -11,7 +12,7 @@
 **Inside `next-app/`** — that's where the Next.js app lives. From the repo root:
 
 ```powershell
-cd "c:\Users\Uchiha\Desktop\Family-Fund\next-app"
+cd "<repo-root>/next-app"
 pnpm install
 ```
 
@@ -27,41 +28,49 @@ Opens at http://localhost:3000
 
 ## Part 1 — Set up Supabase (5 minutes)
 
-You already have project [`oryyeqdyhmagvjvbgvkt`](https://supabase.com/dashboard/project/oryyeqdyhmagvjvbgvkt) ready.
+You already have project [`<your-project>`](https://supabase.com/dashboard/project/<your-project>) ready.
 
-### 1.1 Run the SQL migration
+### 1.1 Run the SQL migrations
 
-1. Open https://supabase.com/dashboard/project/oryyeqdyhmagvjvbgvkt/sql/new
-2. Copy everything from `next-app/supabase/migrations/0001_initial_schema.sql`
-3. Paste into the SQL editor
-4. Click **Run** (bottom right)
+Apply the migrations in order from `next-app/supabase/migrations/`:
 
-You should see: `Success. No rows returned`
+1. Open https://supabase.com/dashboard/project/<your-project>/sql/new
+2. Copy everything from `0001_initial_schema.sql` and paste into the SQL editor
+3. Click **Run** (you should see `Success. No rows returned`)
+4. Open another SQL editor tab and run `0002_security_fixes.sql` the same way
 
-This created:
+What each migration does:
+
+`0001_initial_schema.sql`
 - 10 tables (members, payments, cases, votes, loans, repayments, notifications, messages, audit_log, config)
 - 8 enums + indexes
-- Row Level Security policies (sadqa privacy enforced at DB layer)
+- Row Level Security policies (note: the app currently bypasses RLS via direct Postgres connection — see SECURITY MODEL note in [app/actions.ts](app/actions.ts) — these policies protect any future direct-REST access)
 - Storage bucket `avatars` for profile photos
+
+`0002_security_fixes.sql` *(new)*
+- P0-3: avatar storage policy now scoped to `auth.uid()` folder (was unrestricted)
+- P1-6: `payments.month_start` DATE column for chronological sparkline ordering
+- P1-14: `notifications.title_ur` / `title_en` columns
+- P0-2 hardening: append-only triggers on `audit_log` (UPDATE/DELETE blocked)
 
 ### 1.2 Grab your credentials
 
-Open https://supabase.com/dashboard/project/oryyeqdyhmagvjvbgvkt/settings/api
+Open https://supabase.com/dashboard/project/<your-project>/settings/api
 
 Copy these three values:
-- **Project URL** → `NEXT_PUBLIC_SUPABASE_URL` → `https://oryyeqdyhmagvjvbgvkt.supabase.co`
+- **Project URL** → `NEXT_PUBLIC_SUPABASE_URL` → `https://<your-project>.supabase.co`
 - **anon / public** key → `NEXT_PUBLIC_SUPABASE_ANON_KEY` (starts with `eyJ...`, very long)
 - **service_role** key → `SUPABASE_SERVICE_ROLE_KEY` (also `eyJ...`, **keep server-only**)
 
 ### 1.3 Get the Postgres connection string
 
-Open https://supabase.com/dashboard/project/oryyeqdyhmagvjvbgvkt/settings/database
+Open https://supabase.com/dashboard/project/<your-project>/settings/database
 
 Scroll to **Connection string** → choose **Transaction** mode (port `6543`).
 
 Copy the URI. It will look like:
 ```
-postgresql://postgres.oryyeqdyhmagvjvbgvkt:[YOUR-PASSWORD]@aws-0-ap-south-1.pooler.supabase.com:6543/postgres
+postgresql://postgres.<your-project>:[YOUR-PASSWORD]@aws-0-ap-south-1.pooler.supabase.com:6543/postgres
 ```
 
 Replace `[YOUR-PASSWORD]` with your actual database password (set when you created the project — if forgotten, reset it in the same dashboard page).
@@ -101,17 +110,17 @@ Replace `PASTE-YOUR-UUID-HERE` with the UUID you copied.
 ## Part 2 — Set up local environment (2 minutes)
 
 ```powershell
-cd "c:\Users\Uchiha\Desktop\Family-Fund\next-app"
+cd "<repo-root>/next-app"
 copy .env.example .env.local
 ```
 
 Open `.env.local` in your editor and fill in:
 
 ```bash
-NEXT_PUBLIC_SUPABASE_URL=https://oryyeqdyhmagvjvbgvkt.supabase.co
+NEXT_PUBLIC_SUPABASE_URL=https://<your-project>.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGc... (the anon key from 1.2)
 SUPABASE_SERVICE_ROLE_KEY=eyJhbGc... (the service role key from 1.2)
-DATABASE_URL=postgresql://postgres.oryyeqdyhmagvjvbgvkt:YOURPASSWORD@aws-0-...pooler.supabase.com:6543/postgres
+DATABASE_URL=postgresql://postgres.<your-project>:YOURPASSWORD@aws-0-...pooler.supabase.com:6543/postgres
 ```
 
 Test locally:
@@ -126,11 +135,11 @@ Visit http://localhost:3000/login and sign in with the email/password from step 
 
 ## Part 3 — Deploy to Cloudflare Pages
 
-You already have project [`balochsath`](https://dash.cloudflare.com/4fa684cc34a11f5dc284ac725c7d8f41/pages/view/balochsath) created. Two paths:
+You already have project [`barakah-hub`](https://dash.cloudflare.com/<cf-account-id>/pages/view/barakah-hub) created. Two paths:
 
 ### Path A — Auto-deploy from GitHub (recommended, set once)
 
-1. Go to https://dash.cloudflare.com/4fa684cc34a11f5dc284ac725c7d8f41/pages/view/balochsath/settings
+1. Go to https://dash.cloudflare.com/<cf-account-id>/pages/view/barakah-hub/settings
 2. **Build settings**:
    - **Framework preset:** `Next.js`
    - **Build command:** `npx @cloudflare/next-on-pages`
@@ -142,7 +151,7 @@ You already have project [`balochsath`](https://dash.cloudflare.com/4fa684cc34a1
 
    | Variable name | Value |
    |---|---|
-   | `NEXT_PUBLIC_SUPABASE_URL` | `https://oryyeqdyhmagvjvbgvkt.supabase.co` |
+   | `NEXT_PUBLIC_SUPABASE_URL` | `https://<your-project>.supabase.co` |
    | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | (anon key from Supabase API settings) |
    | `SUPABASE_SERVICE_ROLE_KEY` | (service role key — type=`Secret` to encrypt) |
    | `DATABASE_URL` | (Postgres URI from step 1.3 — type=`Secret`) |
@@ -157,12 +166,12 @@ You already have project [`balochsath`](https://dash.cloudflare.com/4fa684cc34a1
 6. **Deploys** tab → click **Create deployment** → it'll pull from GitHub `main`, run `npx @cloudflare/next-on-pages` in `next-app/`, and ship.
 
 After 2–3 minutes, your app is live at:
-**https://balochsath.pages.dev**
+**https://barakah-hub.pages.dev**
 
 ### Path B — Manual deploy from your machine (one-shot)
 
 ```powershell
-cd "c:\Users\Uchiha\Desktop\Family-Fund\next-app"
+cd "<repo-root>/next-app"
 
 # 1. Authenticate Wrangler with Cloudflare (browser opens once)
 npx wrangler login
@@ -180,12 +189,12 @@ This pushes directly without needing GitHub. Use this for a quick test.
 
 ## Part 4 — Test deployment
 
-1. Open `https://balochsath.pages.dev`
+1. Open `https://barakah-hub.pages.dev`
 2. Click `/login`
 3. Sign in with your admin email/password
 4. ✓ Should land on the dashboard
 
-If you see "Unauthorized" or something blank — check the Cloudflare deployment logs (https://dash.cloudflare.com/4fa684cc34a11f5dc284ac725c7d8f41/pages/view/balochsath) and verify env vars are set in BOTH Production + Preview environments.
+If you see "Unauthorized" or something blank — check the Cloudflare deployment logs (https://dash.cloudflare.com/<cf-account-id>/pages/view/barakah-hub) and verify env vars are set in BOTH Production + Preview environments.
 
 ---
 
@@ -195,10 +204,10 @@ If you have data in the original single-HTML app you want to bring over:
 
 ```powershell
 # In the OLD app: Settings → Danger Zone → ⬇ Export
-# Save the JSON somewhere, e.g. balochsath-2026-05-07.json
+# Save the JSON somewhere, e.g. barakah-hub-2026-05-07.json
 
-cd "c:\Users\Uchiha\Desktop\Family-Fund\next-app"
-pnpm import:legacy ./path/to/balochsath-2026-05-07.json
+cd "<repo-root>/next-app"
+pnpm import:legacy ./path/to/barakah-hub-2026-05-07.json
 ```
 
 This:
@@ -232,7 +241,7 @@ Env vars only load on **next deploy** after you add them. Either:
 
 Supabase Auth needs your Cloudflare URL in allowed origins:
 - Supabase dashboard → Authentication → URL Configuration
-- Add `https://balochsath.pages.dev` to **Site URL** + **Redirect URLs**
+- Add `https://barakah-hub.pages.dev` to **Site URL** + **Redirect URLs**
 
 ### "Email not confirmed" on login
 
@@ -265,8 +274,11 @@ cd next-app
 pnpm install
 pnpm dev                  # http://localhost:3000
 
-# Type-check before commit
-pnpm typecheck
+# Pre-commit checks (matches CI)
+pnpm typecheck            # tsc --noEmit
+pnpm lint                 # eslint .
+pnpm test                 # vitest run (48 tests)
+pnpm build                # next build (full production build)
 
 # Database
 pnpm db:studio            # GUI at https://local.drizzle.studio
@@ -277,8 +289,28 @@ pnpm preview:cf           # local preview at http://127.0.0.1:8788
 pnpm deploy:cf            # publishes to Pages
 
 # Migrate from legacy
-pnpm import:legacy ./balochsath-backup-YYYY-MM-DD.json
+pnpm import:legacy ./barakah-hub-backup-YYYY-MM-DD.json
 ```
+
+> **First time on a new machine?** `pnpm install` reads `.npmrc` and hoists
+> `typescript` so `pnpm typecheck` works directly. If typecheck errors with
+> "Cannot find module 'typescript/bin/tsc'", delete `node_modules` and re-run
+> `pnpm install`.
+
+## Continuous integration
+
+[`.github/workflows/ci.yml`](../.github/workflows/ci.yml) runs on every push
+and pull request to `main`:
+
+1. `pnpm install --frozen-lockfile`
+2. `pnpm typecheck`
+3. `pnpm lint`
+4. `pnpm test`
+5. `pnpm build` (with placeholder env vars — real secrets come from the
+   deployment platform at runtime)
+
+Cloudflare Pages auto-deploys from `main` once CI passes (set up in
+**Settings → Builds & deployments → Production branch deployments**).
 
 ---
 

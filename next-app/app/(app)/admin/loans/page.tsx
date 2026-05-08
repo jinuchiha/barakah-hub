@@ -1,26 +1,36 @@
 import { redirect } from 'next/navigation';
-import { eq, desc } from 'drizzle-orm';
+import { eq, desc, asc } from 'drizzle-orm';
 import { createClient } from '@/lib/supabase/server';
 import { db } from '@/lib/db';
 import { members, loans } from '@/lib/db/schema';
 import { Card, CardHeader, CardTitle, CardBody } from '@/components/ui/card';
 import { fmtRs } from '@/lib/i18n/dict';
+import IssueLoanForm from './issue-loan-form';
+import RepayForm from './repay-form';
 
-export const metadata = { title: 'Qarz-e-Hasana · BalochSath' };
+export const metadata = { title: 'Qarz-e-Hasana · Barakah Hub' };
 
 export default async function LoansPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  const [me] = await db.select().from(members).where(eq(members.authId, user!.id)).limit(1);
+  if (!user) redirect('/login');
+  const [me] = await db.select().from(members).where(eq(members.authId, user.id)).limit(1);
+  if (!me) redirect('/onboarding');
   if (me.role !== 'admin') redirect('/dashboard');
 
-  const all = await db.select().from(loans).orderBy(desc(loans.issuedOn));
-  const allMembers = await db.select().from(members);
+  const [all, allMembers] = await Promise.all([
+    db.select().from(loans).orderBy(desc(loans.issuedOn)),
+    db.select().from(members).where(eq(members.deceased, false)).orderBy(asc(members.nameEn)),
+  ]);
   const memById = new Map(allMembers.map((m) => [m.id, m]));
 
   const active = all.filter((l) => l.active);
   const repaid = all.filter((l) => !l.active);
   const outstanding = active.reduce((a, l) => a + (l.amount - l.paid), 0);
+
+  const memberOptions = allMembers
+    .filter((m) => m.status === 'approved')
+    .map((m) => ({ id: m.id, name: m.nameEn || m.nameUr || m.username }));
 
   return (
     <div>
@@ -28,6 +38,13 @@ export default async function LoansPage() {
         <h1 className="font-[var(--font-arabic)] text-3xl text-[var(--color-gold-2)]">قرض حسنہ</h1>
         <p className="mt-1 font-[var(--font-en)] text-sm italic text-[var(--color-gold-4)]">Interest-free loans · {active.length} active · {fmtRs(outstanding)} outstanding</p>
       </header>
+
+      <Card className="mb-4">
+        <CardHeader><CardTitle>📤 Issue New Loan</CardTitle></CardHeader>
+        <CardBody>
+          <IssueLoanForm members={memberOptions} />
+        </CardBody>
+      </Card>
 
       <Card className="mb-4">
         <CardHeader><CardTitle>Active Qarz</CardTitle></CardHeader>
@@ -61,6 +78,7 @@ export default async function LoansPage() {
                 <div className="mt-1 font-[var(--font-en)] text-[10px] text-[var(--color-gold-4)]">
                   {fmtRs(l.paid)} repaid of {fmtRs(l.amount)} ({pct}%)
                 </div>
+                <RepayForm loanId={l.id} remaining={remaining} />
               </div>
             );
           })}

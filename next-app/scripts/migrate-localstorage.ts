@@ -1,10 +1,13 @@
 /**
- * Migrate exported localStorage JSON (Phase 1/2 single-HTML app) → Postgres (Phase 3).
+ * Migrate exported localStorage JSON (Phase 1/2 single-HTML predecessor) →
+ * Postgres (Phase 3 / Barakah Hub).
  *
  * Usage:
- *   1. In old app: Settings → Danger Zone → ⬇ Export → save `balochsath-backup-YYYY-MM-DD.json`
+ *   1. In legacy app: Settings → Danger Zone → ⬇ Export → save the JSON file
+ *      (the export filename is set by the legacy app — typically
+ *      `balochsath-backup-YYYY-MM-DD.json`; the filename does not matter).
  *   2. Set DATABASE_URL in .env.local + Supabase service role key
- *   3. Run:  pnpm import:legacy ./balochsath-backup-2026-05-07.json
+ *   3. Run:  pnpm import:legacy ./<exported-file>.json
  *
  * What it does:
  *   - Reads USERS map → inserts into `members` (auth_id null until users sign up)
@@ -109,12 +112,15 @@ async function main() {
   for (const p of data.S.payments || []) {
     const memberId = idMap.get(p.uid);
     if (!memberId) continue;
+    const paidOn = p.date || new Date().toISOString().slice(0, 10);
+    const monthStart = paidOn.slice(0, 7) + '-01';
     await db.insert(schema.payments).values({
       memberId,
       amount: p.amt,
-      pool: (p.type as any) || 'sadaqah',
+      pool: (p.type as 'sadaqah' | 'zakat' | 'qarz') || 'sadaqah',
       monthLabel: p.month,
-      paidOn: p.date || new Date().toISOString().slice(0, 10),
+      monthStart,
+      paidOn,
       note: p.note,
       pendingVerify: !!p.pendingVerify,
     }).onConflictDoNothing();

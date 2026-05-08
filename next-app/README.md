@@ -174,12 +174,21 @@ next-app/
 │
 ├── supabase/
 │   └── migrations/
-│       └── 0001_initial_schema.sql     # Tables + indexes + RLS policies
+│       ├── 0001_initial_schema.sql     # Tables + indexes + RLS policies
+│       └── 0002_security_fixes.sql     # Avatar policy + month_start + audit triggers
 │
 ├── scripts/
 │   └── migrate-localstorage.ts         # Legacy JSON → Postgres importer
 │
-├── middleware.ts                       # Next middleware (Supabase session refresh)
+├── test/                               # Vitest + RTL — 48 tests
+│   ├── utils.test.ts
+│   ├── month.test.ts
+│   ├── components/
+│   ├── actions/                        # Security-critical action tests
+│   ├── helpers/db-mock.ts
+│   └── setup.ts
+│
+├── proxy.ts                            # Next 16 proxy (was: middleware.ts) — Supabase session refresh
 ├── next.config.mjs
 ├── tailwind.config.ts                  # (none needed — using v4 @theme)
 ├── tsconfig.json
@@ -191,14 +200,24 @@ next-app/
 
 ## 🛡 Security model
 
+The app connects to Postgres via `lib/db/index.ts` using `DATABASE_URL`,
+which authenticates as a privileged role and **bypasses** the RLS policies
+in the migration. The RLS policies are documentation of intent + protection
+for any future direct-REST access via `supabase.from(...)` — they do not
+cover the Drizzle code path. **Authorization happens in [app/actions.ts](app/actions.ts)**,
+which every mutation goes through.
+
 | Concern | Mitigation |
 |---|---|
-| Sadqa privacy (members not seeing each other's donations) | **RLS policy** on `payments`: `member_id = my_member_id() OR is_admin()` |
+| Sadqa privacy (members not seeing each other's donations) | Server actions filter by `me.id` for non-admins; tree/dashboard strip foreign totals before crossing the network |
 | Plaintext passwords (was: localStorage) | Supabase Auth — bcrypt-hashed, never seen by app code |
-| Audit log tampering | RLS allows INSERT only — UPDATE/DELETE require `service_role` (server-side bypass key) |
+| Onboarding identity hijack | `onboardSelf` derives `authId`/`email` from the session cookie, never the request body. Admin records cannot be self-claimed. |
+| Audit log tampering | DB triggers reject UPDATE/DELETE on `audit_log` regardless of role (migration 0002) |
+| Avatar bucket overwrite | Storage policy restricts insert/update to `(storage.foldername(name))[1] = auth.uid()::text` (migration 0002) |
 | SQL injection | Drizzle ORM — parameterized everywhere |
 | XSS | React auto-escapes; `dangerouslySetInnerHTML` not used |
-| CSRF | Next.js + Supabase cookies are HttpOnly + SameSite=Lax |
+| CSRF | All mutations go through Next.js server actions (origin-checked); approve flow no longer uses an open form-POST route |
+| Input validation | Every action parses through a Zod schema before any DB write |
 
 ---
 
@@ -221,45 +240,74 @@ Less boilerplate. Type-safe end-to-end. Automatic CSRF protection. Revalidation 
 
 ---
 
-## 🧪 Run-time check
+## 🧪 Quality gates
+
+The same four checks CI runs (see [`.github/workflows/ci.yml`](../.github/workflows/ci.yml)):
 
 ```bash
 pnpm typecheck   # tsc --noEmit
-pnpm lint        # next lint
+pnpm lint        # eslint . (flat config)
+pnpm test        # vitest run — 48 tests across utils, components, security-critical actions
+pnpm build       # next build (production)
 pnpm db:studio   # open Drizzle Studio at https://local.drizzle.studio
 ```
+
+Test layout:
+- `test/utils.test.ts`, `test/month.test.ts` — pure utilities
+- `test/components/*.test.tsx` — RTL renders for `GoalBar`, `StatCard`
+- `test/actions/*.test.ts` — security gates on `onboardSelf`, `castVote`,
+  `approveMember`, `recordRepayment`, `editMember`. Each test mocks `@/lib/db`
+  and `@/lib/supabase/server` via `test/helpers/db-mock.ts` so no live DB is
+  needed.
 
 ---
 
 ## 📍 Status
 
-**Phase 3 ships complete (50+ files, ~5,000 lines):**
+**Phase 3 ships complete (60+ files, ~6,000 lines), audited and remediated:**
+
+The audit + fix history is in [`AUDIT_PHASE3.md`](AUDIT_PHASE3.md) — it covers:
+- 5 P0 (security) findings, all fixed
+- 11 P1 (functionality) gaps, all fixed
+- 10 P2 (perf/correctness) drifts, all fixed
+
+Open backlog (P3 — explicit follow-ups):
+- Tests cover security gates + utilities + a couple of components; broader UI
+  coverage and an integration suite against a test Postgres are next steps.
+- AUDIT.md feature gaps still open: leaderboard, branch analytics, donut
+  chart, province distribution, streak counter, bulk WhatsApp, JSON
+  backup/restore, audit filter+CSV.
+- Observability (Sentry/PostHog) and multi-tenant scaffolding deferred.
+
+
 
 ### Pages
 - ✅ `/login` — Supabase email/password
 - ✅ `/forgot-password` — magic-link reset
-- ✅ `/onboarding` — 2-step wizard for new + claimed accounts
-- ✅ `/dashboard` — stat cards (sparklines), goal bar, sadqa privacy banner
-- ✅ `/myaccount` — verified vs pending payment history
-- ✅ `/tree` — interactive SVG family tree with father badges + sibling counters
+- ✅ `/onboarding` — 2-step wizard for new + claimed accounts (session-derived identity)
+- ✅ `/dashboard` — stat cards (chronological sparklines), goal bar, sadqa privacy banner
+- ✅ `/myaccount` — verified vs pending payment history + member donation form
+- ✅ `/tree` — interactive SVG family tree, server-filtered totals (admins see all, members see own only)
 - ✅ `/cases` — emergency cases + voting + new-case form
-- ✅ `/notifications` — inbox with mark-all-read
-- ✅ `/messages` — send to admin + inbox
+- ✅ `/search` — global search across members + cases (+ payments + loans for admins)
+- ✅ `/notifications` — inbox with bilingual titles + mark-all-read
+- ✅ `/messages` — send to admin + inbox + mark-all-read
 - ✅ `/settings` — profile form, photo upload, 11-palette picker, admin config
-- ✅ `/admin/members` — CRUD with city/province/status filters + sibling detection
+- ✅ `/admin/members` — full CRUD via dialog (add + edit + approve + soft/hard delete) with city/province/status filters
 - ✅ `/admin/fund` — pool totals, pending verifications, recent history, record form
-- ✅ `/admin/loans` — active qarz with progress bars, repayment list
+- ✅ `/admin/loans` — issue qarz form, active loans with progress + per-row repayment, repaid history
 - ✅ `/admin/broadcast` — bilingual title/body to all members
-- ✅ `/admin/audit` — append-only activity journal
+- ✅ `/admin/audit` — append-only activity journal (DB triggers enforce immutability)
 
 ### Backend
 - ✅ Database schema + RLS policies (Postgres, sadqa privacy enforced at DB layer)
 - ✅ Auth (Supabase SSR + middleware session refresh)
-- ✅ 14 server actions (typed via Zod): addMember, recordPayment, submitDonation,
-  verifyPayment, rejectPayment, castVote, updateGoal, updateProfile,
-  updateAdminConfig, softDeleteMember, hardDeleteMember, createCase,
-  markAllNotificationsRead, sendMessage, broadcastNotification, onboardSelf
-- ✅ API route for form-based member approval (`POST /api/members/approve`)
+- ✅ 19 server actions (typed via Zod): `approveMember`, `addMember`,
+  `editMember`, `recordPayment`, `submitDonation`, `verifyPayment`,
+  `rejectPayment`, `castVote`, `createCase`, `issueLoan`, `recordRepayment`,
+  `updateGoal`, `updateProfile`, `updateAdminConfig`, `softDeleteMember`,
+  `hardDeleteMember`, `markAllNotificationsRead`, `markAllMessagesRead`,
+  `sendMessage`, `broadcastNotification`, `onboardSelf`
 - ✅ Legacy data migration script (`scripts/migrate-localstorage.ts`)
 
 ### Infrastructure
