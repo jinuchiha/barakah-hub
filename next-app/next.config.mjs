@@ -7,12 +7,14 @@ const nextConfig = {
     optimizePackageImports: ['lucide-react', 'date-fns'],
   },
   images: {
-    // Cloudflare Workers don't run the Next image-optimisation pipeline.
-    // Supabase delivers WebP-ready originals; loaders aren't required at our scale.
+    // Cloudflare Workers don't run the Next image-optimisation pipeline,
+    // and our scale doesn't need it. Add R2 hosts here when Phase 6
+    // (storage migration) lands.
     unoptimized: true,
     remotePatterns: [
-      { protocol: 'https', hostname: '**.supabase.co' },
-      { protocol: 'https', hostname: '**.supabase.in' },
+      // Cloudflare R2 public URLs — uncomment + fill when Phase 6 ships.
+      // { protocol: 'https', hostname: 'pub-*.r2.dev' },
+      // { protocol: 'https', hostname: '<your-bucket>.r2.cloudflarestorage.com' },
     ],
   },
 };

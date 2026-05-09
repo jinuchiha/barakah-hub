@@ -17,9 +17,17 @@ const baseURL =
   process.env.BETTER_AUTH_URL ??
   'http://localhost:3000';
 
+const secret = process.env.BETTER_AUTH_SECRET;
+if (!secret || secret === 'change-me-via-env' || secret.length < 32) {
+  throw new Error(
+    'BETTER_AUTH_SECRET is not set or is too short (need ≥32 chars). ' +
+    'Generate one with `openssl rand -base64 32` and set it in .env.local + Worker secrets.',
+  );
+}
+
 export const auth = betterAuth({
   baseURL,
-  secret: process.env.BETTER_AUTH_SECRET ?? 'change-me-via-env',
+  secret,
 
   database: drizzleAdapter(db, {
     provider: 'pg',

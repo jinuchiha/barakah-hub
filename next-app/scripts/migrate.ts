@@ -86,37 +86,34 @@ function splitStatements(sql: string): string[] {
   return out;
 }
 
-const TOLERABLE = [
-  'already exists',
-  'duplicate object',
-  'duplicate_object',
-  'duplicate column',
-  'duplicate_column',
-  'relation', // covers "relation X already exists"
-  // Supabase-specific RLS / storage statements in 0001 reference an
-  // `auth` schema and `storage.*` tables that Neon doesn't have. Those
-  // policies are documentation-only on Neon (app-level authorisation is
-  // the actual boundary — see security model), so we let them no-op.
-  'schema "auth" does not exist',
-  'schema "storage" does not exist',
-  'function auth.uid() does not exist',
-  'relation "storage.buckets" does not exist',
-  'relation "storage.objects" does not exist',
-  // Idempotent INSERT noise: re-running an INSERT against a singleton
-  // config row that already exists is fine.
-  'duplicate key value',
-  'violates unique constraint',
-  // Supabase roles (authenticated, anon, service_role) don't exist on
-  // Neon. RLS GRANTs / CREATE POLICY ... TO authenticated all no-op.
-  'role "authenticated" does not exist',
-  'role "anon" does not exist',
-  'role "service_role" does not exist',
-  'role "supabase_admin" does not exist',
+/**
+ * Patterns we treat as "the migration meant to do this but the DB
+ * already has it". Each entry is a regex matched (case-insensitive)
+ * against the error message. NEVER use bare substrings here — a loose
+ * substring like `'relation'` would also match "relation X does not
+ * exist", silently masking real bugs.
+ */
+const TOLERABLE: RegExp[] = [
+  // CREATE TYPE / TABLE / INDEX / EXTENSION etc. that's already there
+  /already exists/i,
+  /duplicate(_object| object)/i,
+  /duplicate(_column| column)/i,
+  // Re-running INSERTs against a singleton row (config table)
+  /duplicate key value/i,
+  /violates unique constraint/i,
+  // Supabase-specific schema/role references in 0001 — no-ops on Neon.
+  // Authorization is enforced in app code, not DB-level RLS, so these
+  // missing policy targets don't reduce security.
+  /schema "auth" does not exist/i,
+  /schema "storage" does not exist/i,
+  /function auth\.uid\(\) does not exist/i,
+  /relation "storage\.(buckets|objects)" does not exist/i,
+  /role "(authenticated|anon|service_role|supabase_admin)" does not exist/i,
 ];
 
 function isTolerable(err: unknown): boolean {
-  const msg = err instanceof Error ? err.message.toLowerCase() : String(err).toLowerCase();
-  return TOLERABLE.some((needle) => msg.includes(needle));
+  const msg = err instanceof Error ? err.message : String(err);
+  return TOLERABLE.some((rx) => rx.test(msg));
 }
 
 async function main() {

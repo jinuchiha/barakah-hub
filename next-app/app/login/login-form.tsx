@@ -1,10 +1,23 @@
 'use client';
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
+import type { Route } from 'next';
 import { toast } from 'sonner';
 import { signIn } from '@/lib/auth-client';
 import { Input, Label } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+
+/**
+ * Restrict the post-login redirect to same-origin absolute paths so
+ * a crafted ?next=//evil.com URL can't redirect users off-site.
+ * Must start with '/' but NOT '//' (protocol-relative URL).
+ */
+function safeNext(next?: string): string {
+  if (!next || !next.startsWith('/') || next.startsWith('//') || next.startsWith('/\\')) {
+    return '/dashboard';
+  }
+  return next;
+}
 
 export default function LoginForm({ next }: { next?: string }) {
   const [email, setEmail] = useState('');
@@ -21,7 +34,7 @@ export default function LoginForm({ next }: { next?: string }) {
         return;
       }
       toast.success('السلام علیکم — Welcome back');
-      router.replace((next as any) || '/dashboard');
+      router.replace(safeNext(next) as Route);
       router.refresh();
     });
   }

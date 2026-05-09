@@ -156,7 +156,9 @@ export const cases = pgTable('cases', {
   status: caseStatusEnum('status').notNull().default('voting'),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   resolvedAt: timestamp('resolved_at', { withTimezone: true }),
-});
+}, (t) => ({
+  applicantIdx: index('cases_applicant_idx').on(t.applicantId),
+}));
 
 export const votes = pgTable('votes', {
   caseId: uuid('case_id').notNull().references(() => cases.id, { onDelete: 'cascade' }),
@@ -214,7 +216,9 @@ export const messages = pgTable('messages', {
   body: text('body').notNull(),
   read: boolean('read').notNull().default(false),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-});
+}, (t) => ({
+  toIdx: index('messages_to_idx').on(t.toId),
+}));
 
 /* ─── AUDIT LOG (append-only) ─── */
 export const auditLog = pgTable('audit_log', {

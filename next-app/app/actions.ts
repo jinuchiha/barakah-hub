@@ -4,24 +4,26 @@
  *
  * SECURITY MODEL
  * ──────────────
- * The app connects to Postgres via `lib/db/index.ts` using DATABASE_URL,
- * which authenticates as a privileged role and BYPASSES the RLS policies
- * defined in `supabase/migrations/0001_initial_schema.sql`. Those policies
- * are documentation of intent + protection for any future direct REST
- * access via supabase.from(...) — they do NOT cover this code path.
+ * Authorisation is enforced entirely in app code. The app connects to
+ * Neon Postgres via `lib/db/index.ts` using DATABASE_URL (HTTP driver,
+ * authenticated as `neondb_owner`); the RLS policies in 0001 are
+ * Supabase-flavoured (`auth.uid()`, `authenticated` role) and were
+ * skipped on Neon by the migration runner — they do not enforce
+ * anything in production. The session boundary is the Better-Auth
+ * cookie, validated server-side via `getSession()` / `meOrThrow()`.
  *
  * Therefore every action in this file must:
- *   1. Call `meOrThrow()` to confirm a session exists.
+ *   1. Call `meOrThrow()` to confirm a session + member record exist.
  *   2. Check role / ownership explicitly before any read or write.
  *   3. Validate input with Zod (refuse anything from the body we cannot
  *      independently confirm against the session).
  *   4. Append an `audit_log` row for any state change.
  *
- * The `audit_log` table has an UPDATE/DELETE trigger (migration 0002)
- * making it append-only at the DB layer regardless of role.
+ * The `audit_log` table has UPDATE/DELETE triggers (migration 0002)
+ * that block tampering at the DB layer regardless of caller.
  */
 import { revalidatePath } from 'next/cache';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, sql } from 'drizzle-orm';
 import { z } from 'zod';
 import { getSession } from '@/lib/auth-server';
 import { db } from '@/lib/db';
@@ -404,32 +406,53 @@ export async function recordRepayment(input: z.infer<typeof repaySchema>) {
   if (me.role !== 'admin') throw new Error('Admin only');
   const data = repaySchema.parse(input);
 
-  const [loan] = await db.select().from(loans).where(eq(loans.id, data.loanId)).limit(1);
-  if (!loan) throw new Error('Loan not found');
-  if (!loan.active) throw new Error('Loan already settled');
+  // Single guarded UPDATE: only succeeds when the loan is still active
+  // AND the new total paid wouldn't exceed the loan amount. Drizzle's
+  // neon-http driver can't wrap multi-statement transactions, so we
+  // make the UPDATE itself the race-safe gate. Two concurrent admins
+  // can't both pass — whichever loses the race gets `updated.length === 0`.
+  const updated = await db
+    .update(loans)
+    .set({
+      paid: sql`${loans.paid} + ${data.amount}`,
+      active: sql`(${loans.paid} + ${data.amount}) < ${loans.amount}`,
+    })
+    .where(
+      and(
+        eq(loans.id, data.loanId),
+        eq(loans.active, true),
+        sql`(${loans.paid} + ${data.amount}) <= ${loans.amount}`,
+      ),
+    )
+    .returning();
 
-  const remaining = loan.amount - loan.paid;
-  if (data.amount > remaining) {
-    throw new Error(`Amount exceeds remaining ${remaining}`);
+  if (updated.length === 0) {
+    // Either loan is already settled, doesn't exist, or the amount
+    // would push paid > amount. Surface a helpful message.
+    const [loan] = await db.select().from(loans).where(eq(loans.id, data.loanId)).limit(1);
+    if (!loan) throw new Error('Loan not found');
+    if (!loan.active) throw new Error('Loan already settled');
+    throw new Error(`Amount exceeds remaining ${loan.amount - loan.paid}`);
   }
 
-  const newPaid = loan.paid + data.amount;
-  const fullySettled = newPaid >= loan.amount;
+  const settledLoan = updated[0];
+  const fullySettled = !settledLoan.active;
 
+  // Now-safe insert + audit; if either fails, a nightly reconcile job
+  // (TODO: not yet implemented) would notice loan.paid disagreeing with
+  // SUM(repayments.amount).
   await db.insert(repayments).values({
     loanId: data.loanId,
     amount: data.amount,
     note: data.note,
   });
-  await db
-    .update(loans)
-    .set({ paid: newPaid, active: !fullySettled })
-    .where(eq(loans.id, data.loanId));
   await audit(
     me.id,
     'loan-repay',
-    fullySettled ? `Settled loan ${data.loanId} (final ${data.amount})` : `Repayment ${data.amount} on loan ${data.loanId}`,
-    loan.memberId,
+    fullySettled
+      ? `Settled loan ${data.loanId} (final ${data.amount})`
+      : `Repayment ${data.amount} on loan ${data.loanId}`,
+    settledLoan.memberId,
   );
   revalidatePath('/admin/loans');
   revalidatePath('/dashboard');

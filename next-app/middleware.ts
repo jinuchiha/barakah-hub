@@ -15,6 +15,8 @@ import { getSessionCookie } from 'better-auth/cookies';
  *    still functional and still permits Edge runtime — what Workers run.
  *  - Switch back to proxy.ts when OpenNext ships Node-runtime support.
  */
+// Next 16 rejects 'edge' on middleware ("currently experimental"); keep
+// 'experimental-edge' until that warning is gone in a later release.
 export const runtime = 'experimental-edge';
 
 const PUBLIC_ROUTES = ['/login', '/register', '/forgot-password', '/reset-password', '/api/auth'];

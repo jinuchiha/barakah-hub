@@ -21,8 +21,12 @@ import * as schema from './schema';
 
 const connectionString = process.env.DATABASE_URL;
 if (!connectionString) {
-  // Fail loudly only when actually invoked, not at import-time during build
-  console.warn('[db] DATABASE_URL not set');
+  // Fail at module-load. The previous warn-then-! pattern lied to
+  // TypeScript and crashed at first query with a confusing message.
+  throw new Error(
+    'DATABASE_URL must be set. Use the Neon pooled connection string ' +
+    '(includes `-pooler` in hostname).',
+  );
 }
 
 // Reuse the same SQL function across hot reloads in dev to avoid noise
@@ -30,7 +34,7 @@ const globalForDb = globalThis as unknown as {
   neonSql: ReturnType<typeof neon> | undefined;
 };
 
-const sql = globalForDb.neonSql ?? neon(connectionString!);
+const sql = globalForDb.neonSql ?? neon(connectionString);
 if (process.env.NODE_ENV !== 'production') globalForDb.neonSql = sql;
 
 export const db = drizzle(sql, { schema });
