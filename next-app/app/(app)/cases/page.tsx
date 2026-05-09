@@ -60,8 +60,8 @@ export default async function CasesPage() {
                 <div className="mb-3 flex items-start justify-between gap-3">
                   <div>
                     <div className="mb-1 flex flex-wrap items-center gap-2">
-                      <span className="rounded-full bg-[rgba(201,168,76,0.15)] px-2 py-0.5 text-[10px] font-bold uppercase text-[var(--color-gold)]">{c.caseType}</span>
-                      <span className="rounded-full bg-[rgba(31,110,74,0.12)] px-2 py-0.5 text-[10px] uppercase text-[var(--color-emerald-2)]">{c.pool}</span>
+                      <span className="rounded-full bg-[rgba(214,210,199,0.15)] px-2 py-0.5 text-[10px] font-bold uppercase text-[var(--color-gold)]">{c.caseType}</span>
+                      <span className="rounded-full bg-[rgba(30,42,74,0.12)] px-2 py-0.5 text-[10px] uppercase text-[var(--color-emerald-2)]">{c.pool}</span>
                       <span className="rounded-full border border-[var(--border)] px-2 py-0.5 text-[10px] uppercase text-[var(--txt-2)]">{c.category}</span>
                       {c.emergency && <span className="rounded-full bg-red-500/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-red-400">EMERGENCY</span>}
                     </div>
@@ -73,7 +73,7 @@ export default async function CasesPage() {
                   <div className="text-right">
                     <div className="font-[var(--font-display)] text-xl font-bold text-[var(--color-gold)]">{fmtRs(c.amount)}</div>
                     <span className={`mt-1 inline-block rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${
-                      c.status === 'approved' ? 'bg-[rgba(31,110,74,0.2)] text-[var(--color-emerald-2)]'
+                      c.status === 'approved' ? 'bg-[rgba(30,42,74,0.2)] text-[var(--color-emerald-2)]'
                       : c.status === 'rejected' ? 'bg-red-500/15 text-red-400'
                       : 'bg-[rgba(59,130,246,0.15)] text-blue-400'
                     }`}>{c.status === 'voting' ? 'Voting Open' : c.status}</span>

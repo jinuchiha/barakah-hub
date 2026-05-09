@@ -55,7 +55,7 @@ export default async function AuditPage() {
             const icon = ICONS[e.action] || '•';
             const dt = new Date(e.createdAt);
             return (
-              <div key={e.id} className="flex items-center gap-3 border-b border-[rgba(201,168,76,0.06)] px-4 py-3">
+              <div key={e.id} className="flex items-center gap-3 border-b border-[rgba(214,210,199,0.06)] px-4 py-3">
                 <div className="grid size-8 shrink-0 place-items-center rounded-full text-xs font-bold text-white" style={{ background: actor?.color || '#888' }}>
                   {actor ? ini(actor.nameEn || actor.nameUr) : '·'}
                 </div>

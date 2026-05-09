@@ -88,7 +88,7 @@ export const members = pgTable('members', {
   city: text('city'),
   province: text('province'),
   monthlyPledge: integer('monthly_pledge').notNull().default(1000),
-  color: text('color').notNull().default('#c9a84c'),
+  color: text('color').notNull().default('#2d3f6e'),
   photoUrl: text('photo_url'),
   deceased: boolean('deceased').notNull().default(false),
   needsSetup: boolean('needs_setup').notNull().default(true),

@@ -126,7 +126,7 @@ function Branch({ m, childrenOf, siblingsByFather, expanded, onToggle, onSelect,
         onClick={() => onSelect(m.id)}
         aria-current={isSelected ? 'true' : undefined}
         className={`relative flex w-44 flex-col items-center rounded-md border bg-gradient-to-br from-[var(--surf-1)] to-[var(--surf-2)] p-3 text-center transition-all hover:border-[var(--color-gold)] ${
-          isSelected ? 'border-[var(--color-gold)] shadow-[0_0_0_3px_rgba(201,168,76,0.18)]'
+          isSelected ? 'border-[var(--color-gold)] shadow-[0_0_0_3px_rgba(214,210,199,0.18)]'
           : isHead ? 'border-[var(--color-gold-2)]/60'
           : m.deceased ? 'border-[var(--border)] opacity-75'
           : 'border-[var(--border)]'

@@ -53,7 +53,7 @@ export default async function LoansPage() {
             const remaining = l.amount - l.paid;
             const pct = Math.round((l.paid / l.amount) * 100);
             return (
-              <div key={l.id} className="border-b border-[rgba(201,168,76,0.06)] p-4">
+              <div key={l.id} className="border-b border-[rgba(214,210,199,0.06)] p-4">
                 <div className="mb-2 flex items-start justify-between gap-3">
                   <div>
                     <div className="text-sm font-semibold text-[var(--color-cream)]">{m?.nameEn || m?.nameUr}</div>
@@ -88,7 +88,7 @@ export default async function LoansPage() {
             {repaid.map((l) => {
               const m = memById.get(l.memberId);
               return (
-                <div key={l.id} className="flex items-center justify-between border-b border-[rgba(201,168,76,0.06)] px-4 py-2.5">
+                <div key={l.id} className="flex items-center justify-between border-b border-[rgba(214,210,199,0.06)] px-4 py-2.5">
                   <span className="text-sm text-[var(--txt-2)]">{m?.nameEn || m?.nameUr} · {l.purpose}</span>
                   <span className="font-[var(--font-display)] text-sm text-[var(--color-emerald-2)]">{fmtRs(l.amount)} ✓</span>
                 </div>

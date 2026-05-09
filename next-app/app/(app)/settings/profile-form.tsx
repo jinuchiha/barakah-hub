@@ -9,7 +9,7 @@ import { ini } from '@/lib/utils';
 import type { Member } from '@/lib/db/schema';
 
 const PROVINCES = ['', 'balochistan', 'sindh', 'punjab', 'kpk', 'gilgit', 'azadkashmir', 'islamabad', 'overseas', 'other'];
-const PALETTE = ['#c9a84c', '#1f6e4a', '#2d5a8c', '#a83254', '#5e4691', '#a0671e', '#2d6a4f', '#3a4a7a', '#b85a2e', '#475569'];
+const PALETTE = ['#d6d2c7', '#1f6e4a', '#2d5a8c', '#a83254', '#5e4691', '#a0671e', '#2d6a4f', '#3a4a7a', '#b85a2e', '#475569'];
 
 export default function ProfileForm({ member }: { member: Member }) {
   const [pending, start] = useTransition();
@@ -47,9 +47,9 @@ export default function ProfileForm({ member }: { member: Member }) {
 
   return (
     <form onSubmit={save}>
-      <div className="mb-4 flex items-center gap-4 rounded-md border border-[var(--border)] bg-[rgba(201,168,76,0.05)] p-4">
+      <div className="mb-4 flex items-center gap-4 rounded-md border border-[var(--border)] bg-[rgba(214,210,199,0.05)] p-4">
         <div className="relative">
-          <button type="button" onClick={() => fileRef.current?.click()} className="grid size-16 place-items-center overflow-hidden rounded-full text-xl font-bold text-white shadow-[0_0_12px_rgba(201,168,76,0.2)]" style={{ background: form.color }}>
+          <button type="button" onClick={() => fileRef.current?.click()} className="grid size-16 place-items-center overflow-hidden rounded-full text-xl font-bold text-white shadow-[0_0_12px_rgba(214,210,199,0.2)]" style={{ background: form.color }}>
             {form.photoUrl ? <img src={form.photoUrl} alt="" className="size-full object-cover" /> : ini(form.nameEn || form.nameUr)}
           </button>
           <button type="button" onClick={() => fileRef.current?.click()} className="absolute -bottom-1 -right-1 grid size-6 place-items-center rounded-full border-2 border-[var(--color-ink)] bg-[var(--color-gold)] text-[10px] text-[var(--color-ink)]">

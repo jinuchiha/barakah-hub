@@ -35,7 +35,7 @@ export default async function MyAccountPage() {
         <CardBody className="p-6">
           <div className="mb-4 flex items-center gap-4">
             <div
-              className="grid size-14 place-items-center rounded-full text-xl font-bold text-white shadow-[0_0_12px_rgba(201,168,76,0.2)]"
+              className="grid size-14 place-items-center rounded-full text-xl font-bold text-white shadow-[0_0_12px_rgba(214,210,199,0.2)]"
               style={{ background: me.color }}
               aria-hidden="true"
             >
@@ -82,7 +82,7 @@ export default async function MyAccountPage() {
           ) : (
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-[var(--border)] bg-[rgba(201,168,76,0.06)] text-left text-[10px] uppercase tracking-[1px] text-[var(--color-gold-4)]">
+                <tr className="border-b border-[var(--border)] bg-[rgba(214,210,199,0.06)] text-left text-[10px] uppercase tracking-[1px] text-[var(--color-gold-4)]">
                   <th className="px-4 py-2.5">Month</th>
                   <th className="px-4 py-2.5">Pool</th>
                   <th className="px-4 py-2.5 text-right">Amount</th>
@@ -92,7 +92,7 @@ export default async function MyAccountPage() {
               </thead>
               <tbody>
                 {myPayments.map((p) => (
-                  <tr key={p.id} className="border-b border-[rgba(201,168,76,0.06)]">
+                  <tr key={p.id} className="border-b border-[rgba(214,210,199,0.06)]">
                     <td className="px-4 py-2.5">{p.monthLabel}</td>
                     <td className="px-4 py-2.5 capitalize">{p.pool}</td>
                     <td className="px-4 py-2.5 text-right font-bold text-[var(--color-gold)]">{fmtRs(p.amount)}</td>

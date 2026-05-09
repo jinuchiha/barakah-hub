@@ -64,8 +64,8 @@ function NavItem({ n, isActive, locale }: { n: typeof NAV[number]; isActive: boo
       className={cn(
         'group relative mx-2 my-0.5 flex items-center gap-3 rounded-md border border-transparent px-3 py-2.5 text-sm transition-colors',
         isActive
-          ? 'border-[var(--border)] bg-[rgba(201,168,76,0.1)] text-[var(--color-gold-2)]'
-          : 'text-[var(--txt-3)] hover:border-[var(--border)] hover:bg-[rgba(201,168,76,0.06)] hover:text-[var(--txt-1)]',
+          ? 'border-[var(--border)] bg-[rgba(214,210,199,0.1)] text-[var(--color-gold-2)]'
+          : 'text-[var(--txt-3)] hover:border-[var(--border)] hover:bg-[rgba(214,210,199,0.06)] hover:text-[var(--txt-1)]',
       )}
       aria-current={isActive ? 'page' : undefined}
     >

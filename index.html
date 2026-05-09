@@ -4,34 +4,35 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover">
 <meta name="description" content="Barakah Hub — Islamic family fund: sadqa, qarz-e-hasana, emergency vote, audit log">
-<meta name="theme-color" content="#0a0a08">
+<meta name="theme-color" content="#14171c">
 <title>Barakah Hub — Islamic Family Fund</title>
 <link rel="manifest" href="manifest.json">
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 128 128'><defs><mask id='cr'><rect width='128' height='128' fill='black'/><circle cx='64' cy='64' r='48' fill='white'/><circle cx='84.4' cy='56.5' r='42' fill='black'/></mask></defs><rect width='128' height='128' rx='20' fill='%230a0a08'/><circle cx='64' cy='64' r='48' fill='%23c9a84c' mask='url(%23cr)'/></svg>">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 128 128'><defs><mask id='cr'><rect width='128' height='128' fill='black'/><circle cx='64' cy='64' r='48' fill='white'/><circle cx='84.4' cy='56.5' r='42' fill='black'/></mask></defs><rect width='128' height='128' rx='20' fill='%2314171c'/><circle cx='64' cy='64' r='48' fill='%23ebe7dd' mask='url(%23cr)'/></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Cinzel:wght@400;500;600&family=Tajawal:wght@300;400;500;700&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-font-smoothing:antialiased}
 :root{
-  --ink:#0a0a08;--ink2:#1a1a14;--ink3:#2a2a20;
-  --gold:#c9a84c;--gold2:#e8c96a;--gold3:#f5e6b8;--gold4:#7a5c1e;--gold5:rgba(201,168,76,0.12);
-  --emerald:#1b6b45;--em2:#24925e;--em3:#0d4a2f;--em4:#d4f0e4;--em5:rgba(27,107,69,0.15);
-  --cream:#f8f4ec;--cream2:#ede8da;--cream3:#e0d8c4;
+  /* Brutalist Islamic palette: charcoal / navy / off-white. No gold. */
+  --ink:#14171c;--ink2:#1d2127;--ink3:#262a32;
+  --gold:#d6d2c7;--gold2:#ebe7dd;--gold3:#f5f3ed;--gold4:#6f7480;--gold5:rgba(214,210,199,0.1);
+  --emerald:#1e2a4a;--em2:#2d3f6e;--em3:#0f1828;--em4:#c4c0b5;--em5:rgba(30,42,74,0.16);
+  --cream:#ebe7dd;--cream2:#c4c0b5;--cream3:#a8a59c;
   /* SEMANTIC text + surface tokens — these are the ONLY ones that should be used in inline styles. They auto-swap on body.light */
   --txt-1:#f8f4ec;          /* primary text */
   --txt-2:rgba(255,255,255,0.7); /* secondary */
   --txt-3:rgba(255,255,255,0.45);/* muted */
   --txt-4:rgba(255,255,255,0.25);/* faint/placeholder */
-  --surf-1:#141410;         /* main card bg */
-  --surf-2:#0e0e0a;         /* deeper panel */
+  --surf-1:#1d2127;         /* main card bg */
+  --surf-2:#14171c;         /* deeper panel */
   --surf-3:rgba(255,255,255,0.04); /* input/sub bg */
   --surf-soft:rgba(0,0,0,0.04);
-  --parchment:linear-gradient(145deg,#f5f0e4,#ede8d5);
-  --shadow-gold:0 4px 24px rgba(201,168,76,0.18);
-  --shadow-deep:0 24px 60px rgba(0,0,0,0.45),0 4px 12px rgba(0,0,0,0.25);
+  --parchment:linear-gradient(145deg,#f5f3ed,#ebe7dd);
+  --shadow-gold:0 4px 24px rgba(30,42,74,0.32);   /* renamed conceptually — now navy glow */
+  --shadow-deep:0 24px 60px rgba(0,0,0,0.55),0 4px 12px rgba(0,0,0,0.28);
   --shadow-soft:0 1px 2px rgba(0,0,0,0.04),0 4px 12px rgba(0,0,0,0.08);
-  --shadow-card:0 1px 3px rgba(0,0,0,0.12),0 4px 16px rgba(0,0,0,0.06);
-  --shadow-hover:0 8px 28px rgba(201,168,76,0.22),0 2px 6px rgba(0,0,0,0.12);
+  --shadow-card:0 1px 3px rgba(0,0,0,0.18),0 4px 16px rgba(0,0,0,0.22);
+  --shadow-hover:0 8px 28px rgba(15,24,40,0.38),0 2px 6px rgba(0,0,0,0.18);
   --ease:cubic-bezier(0.22,0.61,0.36,1);
   --r:14px;--r-sm:8px;--r-lg:20px;
   --font-display:'Cinzel',serif;

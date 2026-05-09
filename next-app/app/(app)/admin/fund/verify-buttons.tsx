@@ -15,7 +15,7 @@ export default function VerifyButtons({ paymentId }: { paymentId: string }) {
   }
   return (
     <div className="flex gap-1.5">
-      <button onClick={() => act(true)} disabled={pending} className="rounded-md bg-[rgba(31,110,74,0.15)] px-3 py-1 text-xs font-bold text-[var(--color-emerald-2)] disabled:opacity-50 hover:bg-[rgba(31,110,74,0.25)]">✓ Verify</button>
+      <button onClick={() => act(true)} disabled={pending} className="rounded-md bg-[rgba(30,42,74,0.15)] px-3 py-1 text-xs font-bold text-[var(--color-emerald-2)] disabled:opacity-50 hover:bg-[rgba(30,42,74,0.25)]">✓ Verify</button>
       <button onClick={() => act(false)} disabled={pending} className="rounded-md bg-red-500/10 px-3 py-1 text-xs font-bold text-red-400 disabled:opacity-50 hover:bg-red-500/20">✗ Reject</button>
     </div>
   );
