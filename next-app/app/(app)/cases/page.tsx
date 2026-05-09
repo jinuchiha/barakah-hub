@@ -1,6 +1,5 @@
-import { redirect } from 'next/navigation';
 import { eq, desc, inArray } from 'drizzle-orm';
-import { createClient } from '@/lib/supabase/server';
+import { getMeOrRedirect } from '@/lib/auth-server';
 import { db } from '@/lib/db';
 import { members, cases, votes, config as configTbl } from '@/lib/db/schema';
 import { Card, CardHeader, CardTitle, CardBody } from '@/components/ui/card';
@@ -11,11 +10,7 @@ import NewCaseForm from './new-case-form';
 export const metadata = { title: 'Emergency Cases · Barakah Hub' };
 
 export default async function CasesPage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect('/login');
-  const [me] = await db.select().from(members).where(eq(members.authId, user.id)).limit(1);
-  if (!me) redirect('/onboarding');
+  const me = await getMeOrRedirect();
 
   const [allCases, allMembers, [cfg]] = await Promise.all([
     db.select().from(cases).orderBy(desc(cases.createdAt)).limit(50),

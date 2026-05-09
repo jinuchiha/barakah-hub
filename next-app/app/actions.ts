@@ -23,17 +23,16 @@
 import { revalidatePath } from 'next/cache';
 import { eq, and } from 'drizzle-orm';
 import { z } from 'zod';
-import { createClient } from '@/lib/supabase/server';
+import { getSession } from '@/lib/auth-server';
 import { db } from '@/lib/db';
 import { members, payments, cases, votes, loans, repayments, auditLog, notifications, messages, config as configTbl } from '@/lib/db/schema';
 import { monthStartFromLabel } from '@/lib/month';
 
 /* ─── helpers */
 async function meOrThrow() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error('Not authenticated');
-  const [m] = await db.select().from(members).where(eq(members.authId, user.id)).limit(1);
+  const session = await getSession();
+  if (!session?.user) throw new Error('Not authenticated');
+  const [m] = await db.select().from(members).where(eq(members.authId, session.user.id)).limit(1);
   if (!m) throw new Error('Member record not found');
   return m;
 }

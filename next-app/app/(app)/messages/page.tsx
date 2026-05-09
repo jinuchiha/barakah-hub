@@ -1,6 +1,5 @@
-import { redirect } from 'next/navigation';
 import { eq, desc, asc } from 'drizzle-orm';
-import { createClient } from '@/lib/supabase/server';
+import { getMeOrRedirect } from '@/lib/auth-server';
 import { db } from '@/lib/db';
 import { members, messages } from '@/lib/db/schema';
 import { Card, CardHeader, CardTitle, CardBody } from '@/components/ui/card';
@@ -10,11 +9,7 @@ import MarkAllRead from './mark-all-read';
 export const metadata = { title: 'Messages · Barakah Hub' };
 
 export default async function MessagesPage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect('/login');
-  const [me] = await db.select().from(members).where(eq(members.authId, user.id)).limit(1);
-  if (!me) redirect('/onboarding');
+  const me = await getMeOrRedirect();
 
   const [inbox, allMembers] = await Promise.all([
     db.select().from(messages).where(eq(messages.toId, me.id)).orderBy(desc(messages.createdAt)).limit(50),

@@ -2,7 +2,7 @@
 import { revalidatePath } from 'next/cache';
 import { eq } from 'drizzle-orm';
 import { z } from 'zod';
-import { createClient } from '@/lib/supabase/server';
+import { getSession } from '@/lib/auth-server';
 import { db } from '@/lib/db';
 import { members, auditLog } from '@/lib/db/schema';
 
@@ -24,10 +24,10 @@ const schema = z.object({
  * prevent claiming another user's pre-imported member record.
  */
 export async function onboardSelf(input: z.infer<typeof schema>) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user || !user.email) throw new Error('Not authenticated');
+  const session = await getSession();
+  if (!session?.user?.email) throw new Error('Not authenticated');
 
+  const user = session.user;
   const data = schema.parse(input);
   const username = user.email.split('@')[0].toLowerCase();
 

@@ -2,7 +2,7 @@
 import { revalidatePath } from 'next/cache';
 import { eq } from 'drizzle-orm';
 import { z } from 'zod';
-import { createClient } from '@/lib/supabase/server';
+import { getSession } from '@/lib/auth-server';
 import { db } from '@/lib/db';
 import { members, notifications, auditLog } from '@/lib/db/schema';
 
@@ -15,10 +15,9 @@ const schema = z.object({
 });
 
 export async function broadcastNotification(input: z.infer<typeof schema>) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error('Not authenticated');
-  const [me] = await db.select().from(members).where(eq(members.authId, user.id)).limit(1);
+  const session = await getSession();
+  if (!session?.user) throw new Error('Not authenticated');
+  const [me] = await db.select().from(members).where(eq(members.authId, session.user.id)).limit(1);
   if (!me || me.role !== 'admin') throw new Error('Admin only');
   const data = schema.parse(input);
 

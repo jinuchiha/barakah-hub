@@ -2,13 +2,65 @@
  * Barakah Hub Postgres schema (Drizzle ORM)
  *
  * Design notes:
- *  - `members` is the canonical user-of-app table; auth.users (Supabase) → members via auth_id.
+ *  - `members` is the domain user record (charity-specific fields).
+ *  - `users`/`sessions`/`accounts`/`verifications` are Better-Auth's
+ *    authentication tables. `members.auth_id` → `users.id`.
  *  - `payments` carries the verification flag — only verified rows count toward fund total.
- *  - `audit_log` is append-only (RLS denies UPDATE/DELETE except for service role).
- *  - Soft-delete via `deceased` flag on members; hard-delete restricted by RLS.
+ *  - `audit_log` is append-only (DB triggers in migration 0002 enforce this).
+ *  - Soft-delete via `deceased` flag on members.
  */
 import { pgTable, pgEnum, uuid, text, integer, timestamp, boolean, jsonb, index, primaryKey, date } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
+
+/* ─── BETTER-AUTH TABLES ─── */
+// Schema follows Better-Auth's Drizzle adapter expectations.
+// Migrations live in supabase/migrations/0004_better_auth_tables.sql.
+
+export const users = pgTable('users', {
+  id: text('id').primaryKey(),
+  email: text('email').notNull().unique(),
+  emailVerified: boolean('email_verified').notNull().default(false),
+  name: text('name'),
+  image: text('image'),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const sessions = pgTable('sessions', {
+  id: text('id').primaryKey(),
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  token: text('token').notNull().unique(),
+  expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+  ipAddress: text('ip_address'),
+  userAgent: text('user_agent'),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const accounts = pgTable('accounts', {
+  id: text('id').primaryKey(),
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  accountId: text('account_id').notNull(),
+  providerId: text('provider_id').notNull(),
+  accessToken: text('access_token'),
+  refreshToken: text('refresh_token'),
+  idToken: text('id_token'),
+  accessTokenExpiresAt: timestamp('access_token_expires_at', { withTimezone: true }),
+  refreshTokenExpiresAt: timestamp('refresh_token_expires_at', { withTimezone: true }),
+  scope: text('scope'),
+  password: text('password'), // bcrypt hash for email/password provider
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const verifications = pgTable('verifications', {
+  id: text('id').primaryKey(),
+  identifier: text('identifier').notNull(), // typically the email
+  value: text('value').notNull(),           // the verification token
+  expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+});
 
 /* ─── ENUMS ─── */
 export const roleEnum = pgEnum('role', ['admin', 'member']);
@@ -20,7 +72,9 @@ export const caseTypeEnum = pgEnum('case_type', ['gift', 'qarz']);
 /* ─── MEMBERS ─── */
 export const members = pgTable('members', {
   id: uuid('id').primaryKey().defaultRandom(),
-  authId: uuid('auth_id').unique(), // Supabase auth.users.id — null for record-only members
+  authId: text('auth_id').unique().references(() => users.id, { onDelete: 'set null' }),
+  // ↑ Better-Auth user.id (text/nanoid). Null for record-only members
+  //   that haven't claimed their account yet.
   username: text('username').notNull().unique(),
   nameUr: text('name_ur').notNull(),
   nameEn: text('name_en').notNull(),

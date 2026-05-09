@@ -1,158 +1,200 @@
-# Neon migration — operational checklist
+# Neon migration + Better-Auth — operational checklist
 
-> This branch (`feat/neon-migration`) carries every code change Phases 3–4
-> of [`MIGRATING_TO_NEON.md`](next-app/docs/MIGRATING_TO_NEON.md) require.
-> The remaining phases (1, 2, 5–7) are operational — they need your Neon
-> account, your Supabase data, and judgment calls about cutover timing.
+> This branch (`feat/neon-migration`) now bundles **Phases 3 + 4 + 5** of
+> [`MIGRATING_TO_NEON.md`](next-app/docs/MIGRATING_TO_NEON.md). The
+> "phases as separate streams" rule got overridden when the Supabase
+> project was deleted — auth + DB now have to land together because
+> there's nothing to fall back to.
 >
-> **Do not merge this branch into `main` until at least Phases 1 + 2 are
-> complete.** Merging early will break the live deployment because
-> `DATABASE_URL` will still point at Supabase, and the Neon HTTP driver
-> can't talk to a Supabase Postgres endpoint.
+> **Do not merge until every step below is done.** Merging early will
+> deploy a broken app: the DB is empty, no users exist, login fails.
 
 ---
 
-## What's in this branch (already done — Phases 3–4)
+## What's in this branch (already done — by code)
 
-- ✅ `lib/db/index.ts` rewritten for `drizzle-orm/neon-http` + `@neondatabase/serverless`
-- ✅ `drizzle.config.ts` reads `DATABASE_URL_DIRECT` (direct, non-pooled connection — Drizzle Kit needs this for migrations)
-- ✅ `.env.example` updated with the new var pair (pooled + direct)
-- ✅ Driver swap in `package.json` (removed `postgres`, added `@neondatabase/serverless`)
-- ✅ `.github/workflows/neon-pr-branch.yml` — branch-per-PR with auto migration apply + PR comment
-- ✅ `.github/workflows/neon-cleanup.yml` — deletes the branch on PR close
+**Phase 3 — DB driver swap**
+- ✅ `lib/db/index.ts` → `drizzle-orm/neon-http` + `@neondatabase/serverless`
+- ✅ `drizzle.config.ts` reads `DATABASE_URL_DIRECT` for migrations
+- ✅ `scripts/migrate-localstorage.ts` uses `drizzle-orm/neon-serverless` (transactions)
 
-## What you do (Phases 1 + 2 — required before merge)
+**Phase 4 — Branch-per-PR CI**
+- ✅ `.github/workflows/neon-pr-branch.yml` — fresh Neon branch per PR
+- ✅ `.github/workflows/neon-cleanup.yml` — deletes branch on PR close
 
-### 1 · Stand up Neon
+**Phase 5 — Better-Auth (replaces deleted Supabase Auth)**
+- ✅ `users` / `sessions` / `accounts` / `verifications` tables in schema
+- ✅ Migration `0004_better_auth_tables.sql`
+- ✅ `lib/auth.ts` (server) + `lib/auth-client.ts` (client) + `lib/auth-server.ts` helpers
+- ✅ `app/api/auth/[...all]/route.ts` catch-all handler
+- ✅ `middleware.ts` rewritten — `getSessionCookie` for fast edge auth gate
+- ✅ Login / register / forgot-password / reset-password UI rewritten
+- ✅ Topbar logout uses `authClient.signOut()`
+- ✅ `meOrThrow` + `onboardSelf` + every `(app)/*` page swapped to `getMeOrRedirect()`
+- ✅ Removed `@supabase/ssr` + `@supabase/supabase-js` + `lib/supabase/`
+- ✅ Photo upload stubbed pending Phase 6 (R2)
+- ✅ Tests updated (47 passing — one Supabase-shape test dropped)
 
-```bash
-npm i -g neonctl
-neonctl auth                                        # browser auth
-neonctl projects create --name barakah-hub \
-  --region-id aws-ap-southeast-1                    # pick the region nearest your users
-neonctl branches create --name production --parent main
-neonctl branches create --name dev        --parent main
-```
+**OpenNext deploy** (from earlier work, still on this branch)
+- ✅ `wrangler.toml` for Workers, `.github/workflows/deploy.yml`
 
-Save the **project ID** (`neonctl projects list`) — you'll need it for GitHub secrets.
+---
 
-### 2 · Export from Supabase, import to Neon
+## What you do (Phases 1 + 2 + secrets)
 
-```bash
-# From your Supabase dashboard → Settings → Database → Connection String → Direct
-export SUPABASE_DB_URL='postgresql://postgres.<ref>:<pw>@aws-0-<region>.pooler.supabase.com:5432/postgres?sslmode=require'
+### 1 · Apply schema to Neon
 
-# 2.1 Schema-only dump (public schema, no Supabase internals)
-pg_dump "$SUPABASE_DB_URL" \
-  --schema-only --no-owner --no-privileges --schema=public \
-  -f schema-from-supabase.sql
-
-# 2.2 Strip Supabase-specific GRANT statements + RLS that references auth.uid()
-#     (open the file and remove anything referencing supabase_admin / authenticated /
-#      anon / service_role)
-
-# 2.3 Apply schema to Neon production branch
-psql "$(neonctl connection-string production)" -f schema-from-supabase.sql
-
-# 2.4 Data dump
-pg_dump "$SUPABASE_DB_URL" \
-  --data-only --schema=public --column-inserts \
-  -f data-from-supabase.sql
-
-# 2.5 Import data
-psql "$(neonctl connection-string production)" -f data-from-supabase.sql
-
-# 2.6 Validate row counts (script in MIGRATING_TO_NEON.md §2.5)
-```
-
-### 3 · Set the secrets
-
-**Cloudflare Worker** (runtime — server actions read these):
+In your terminal, with `DATABASE_URL_DIRECT` set in `next-app/.env.local`:
 
 ```bash
 cd next-app
-wrangler secret put DATABASE_URL          # paste pooled Neon URL
-wrangler secret put DATABASE_URL_DIRECT   # paste direct Neon URL
-# Keep SUPABASE_SERVICE_ROLE_KEY until Phase 5 (auth migration)
+pnpm install
+pnpm db:migrate
 ```
 
-**GitHub Actions** — Settings → Secrets → Actions → New repository secret:
+This applies migrations `0001` → `0004` in order. After it succeeds, you should see all 14 tables:
+
+```bash
+psql "$DATABASE_URL_DIRECT" -c '\dt'
+# expected: members, payments, cases, votes, loans, repayments,
+#           notifications, messages, audit_log, config,
+#           users, sessions, accounts, verifications
+```
+
+### 2 · Generate a Better-Auth secret
+
+```bash
+openssl rand -base64 32
+# OR
+npx auth secret
+```
+
+This produces a 32-character random string. Save it — you'll set it as `BETTER_AUTH_SECRET` next.
+
+### 3 · Set Worker secrets *(production runtime — server actions read these)*
+
+```bash
+cd next-app
+pnpm exec wrangler secret put DATABASE_URL          # paste pooled Neon URL
+pnpm exec wrangler secret put DATABASE_URL_DIRECT   # paste direct Neon URL
+pnpm exec wrangler secret put BETTER_AUTH_SECRET    # paste output of step 2
+pnpm exec wrangler secret put RESEND_API_KEY        # optional, for password-reset emails
+```
+
+Update [`next-app/wrangler.toml`](next-app/wrangler.toml) if needed:
+```toml
+[vars]
+NEXT_PUBLIC_APP_URL = "https://barakahhub.bakerabi91.workers.dev"
+```
+
+**Remove old Supabase secrets** (no longer used):
+```bash
+pnpm exec wrangler secret delete NEXT_PUBLIC_SUPABASE_URL
+pnpm exec wrangler secret delete NEXT_PUBLIC_SUPABASE_ANON_KEY
+pnpm exec wrangler secret delete SUPABASE_SERVICE_ROLE_KEY
+```
+
+### 4 · Set GitHub Actions secrets
+
+Repo → Settings → Secrets and variables → Actions → New repository secret:
 
 | Secret | Source |
 |---|---|
-| `NEON_PROJECT_ID` | `neonctl projects list` |
-| `NEON_API_KEY` | Neon dashboard → Account Settings → API Keys |
-| `DATABASE_URL` | pooled Neon URL (matches Worker secret) |
+| `NEON_PROJECT_ID` | `winter-dew-24737818` (or `neonctl projects list`) |
+| `NEON_API_KEY` | Neon dashboard → Account → API Keys |
+| `DATABASE_URL` | pooled Neon URL |
 | `DATABASE_URL_DIRECT` | direct Neon URL |
+| `BETTER_AUTH_SECRET` | same value as Worker secret |
+| `CLOUDFLARE_API_TOKEN` | Cloudflare → My Profile → API Tokens → "Edit Cloudflare Workers" |
+| `CLOUDFLARE_ACCOUNT_ID` | Cloudflare dashboard right sidebar |
 
-### 4 · Local dev setup
+### 5 · Set up Resend (optional — only if you want password-reset emails)
+
+1. Sign up at <https://resend.com> (free tier: 3K emails/month)
+2. Create an API key → set as `RESEND_API_KEY` Worker secret
+3. (Optional) Verify a domain so emails come from `noreply@yourdomain.com` instead of Resend's default
+
+If `RESEND_API_KEY` is unset, the password-reset code logs the link to the Worker console (`wrangler tail`) instead of emailing — a fallback for dev.
+
+### 6 · Local smoke test
 
 ```bash
 cd next-app
 cp .env.example .env.local
-# Fill in:
-#   DATABASE_URL=postgresql://...@*-pooler...neon.tech/...
-#   DATABASE_URL_DIRECT=postgresql://...@<host without pooler>...neon.tech/...
-#   NEXT_PUBLIC_SUPABASE_URL + NEXT_PUBLIC_SUPABASE_ANON_KEY (still Supabase, until Phase 5)
+# Fill in: DATABASE_URL, DATABASE_URL_DIRECT, BETTER_AUTH_SECRET, NEXT_PUBLIC_APP_URL=http://localhost:3000
 
-pnpm install
-pnpm typecheck && pnpm test                # should be clean
-pnpm dev                                   # smoke-test login → dashboard
+pnpm dev
 ```
 
-### 5 · Merge
+Visit <http://localhost:3000/register> → create the first admin account → finish onboarding → confirm dashboard loads.
 
-When the smoke test passes locally **and** the production Neon branch
-contains the migrated data **and** the Worker secrets are updated, open
-a PR from `feat/neon-migration` → `main`. CI will:
-1. Spin up a `pr-<n>` Neon branch
+After registration, you'll have a row in `users` and a row in `members` (created by the onboarding flow). Promote yourself to admin by running this in `psql`:
+
+```sql
+UPDATE members SET role = 'admin', status = 'approved' WHERE id = (
+  SELECT id FROM members ORDER BY created_at LIMIT 1
+);
+```
+
+### 7 · Merge
+
+Open a PR from `feat/neon-migration` → `main`. CI will:
+1. Spin up a `pr-<n>` Neon branch via `neon-pr-branch.yml`
 2. Apply migrations to it
-3. Run typecheck + lint + test against the PR branch's DB
+3. Run typecheck + lint + test against it
 
-When CI is green, merge. Cloudflare Workers redeploys via the existing
-`deploy.yml` workflow.
-
----
-
-## Phases 5 + 6 (later, separate streams)
-
-**Do not bundle these with the DB migration.** Each is its own PR cycle:
-
-- **Phase 5 — Auth.** Replace Supabase Auth with Better-Auth. See
-  [`MIGRATING_TO_NEON.md` §5](next-app/docs/MIGRATING_TO_NEON.md). Plan ~3
-  days. Forces all users to re-authenticate on next login.
-- **Phase 6 — Storage.** Replace Supabase Storage with Cloudflare R2.
-  See [`MIGRATING_TO_NEON.md` §6](next-app/docs/MIGRATING_TO_NEON.md).
-  Plan ~2 days. Migrate avatar URLs in `members.photo_url`.
-
----
-
-## Rollback if something goes wrong
-
-If the merge causes problems:
-
-1. Revert the merge commit on `main` (`git revert -m 1 <merge-sha>`).
-2. Push the revert. CI redeploys the previous (Supabase-backed) version.
-3. Worker secrets still have `DATABASE_URL` pointing at Neon — flip them
-   back to the Supabase URL via `wrangler secret put DATABASE_URL`.
-
-The Supabase project should stay alive for **30 days minimum** after
-cutover as a hot rollback target. Per the doc:
-
-> Phase 7.7 (delete Supabase project) — only after a 30-day grace
-> window of no incidents.
+When CI is green, merge. The `deploy.yml` workflow then auto-deploys to `barakahhub.bakerabi91.workers.dev`.
 
 ---
 
 ## What this branch does NOT do
 
-- Does not migrate Supabase Auth → Better-Auth (Phase 5)
-- Does not migrate Supabase Storage → R2 (Phase 6)
-- Does not delete the Supabase project (Phase 7.7)
-- Does not refactor the four server actions with transaction-gap risk
+- **Phase 6 (R2 storage)** — avatar upload is stubbed in
+  `app/(app)/settings/profile-form.tsx` with a TODO. Members can paste
+  public image URLs as a workaround until R2 is wired in a follow-up PR.
+- **Email-based password reset in production** — works in dev (logs link
+  to console). For real email, set `RESEND_API_KEY` (step 5 above).
+- **Account deletion / admin re-create flow** — Better-Auth has admin
+  APIs but no UI is wired yet.
+- **Refactoring the four server actions with `neon-http` transaction-gap risk**
   (`castVote`, `recordRepayment`, `approveMember`, `broadcastNotification`).
-  Those work fine with `neon-http` for our scale; if the failure modes in
-  the doc bother you, refactor in a follow-up PR.
+  They work fine for our scale; if the failure modes in
+  [`MIGRATING_TO_NEON.md`](next-app/docs/MIGRATING_TO_NEON.md) bite,
+  refactor in a follow-up.
 
-The boilerplate and CI in this branch should be enough that all the
-above can land as separate, reviewable PRs whenever you're ready.
+---
+
+## Rollback if the merge causes problems
+
+You burned the bridge — Supabase is gone. If post-merge breaks:
+
+1. Revert the merge commit on `main` (`git revert -m 1 <merge-sha>`).
+2. The Neon DB still has data from the test run, but the deployed app
+   reverts to the pre-merge state — which still uses Supabase Auth that
+   no longer exists, so the app will be broken either way.
+3. Practically: fix forward instead of reverting. Whatever broke,
+   diagnose via `wrangler tail`, push a fix commit, redeploy.
+
+This is why the initial migration doc said *don't bundle phases*. The
+constraint is gone; we're committed.
+
+---
+
+## Cheat sheet
+
+```bash
+# Apply migrations to current Neon branch
+pnpm db:migrate
+
+# See what's in the DB
+pnpm db:studio                       # GUI at https://local.drizzle.studio
+
+# Tail production logs
+pnpm exec wrangler tail
+
+# Force a redeploy without code change
+git commit --allow-empty -m "chore: redeploy" && git push
+
+# Set a Worker secret (interactive paste — never leaks to shell history)
+pnpm exec wrangler secret put DATABASE_URL
+```

@@ -1,7 +1,6 @@
-import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { eq, and, or, desc, ilike, sql } from 'drizzle-orm';
-import { createClient } from '@/lib/supabase/server';
+import { getMeOrRedirect } from '@/lib/auth-server';
 import { db } from '@/lib/db';
 import { members, payments, cases, loans } from '@/lib/db/schema';
 import { Card, CardHeader, CardTitle, CardBody } from '@/components/ui/card';
@@ -13,11 +12,7 @@ export const metadata = { title: 'Search · Barakah Hub' };
 interface Props { searchParams: Promise<{ q?: string }> }
 
 export default async function SearchPage({ searchParams }: Props) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect('/login');
-  const [me] = await db.select().from(members).where(eq(members.authId, user.id)).limit(1);
-  if (!me) redirect('/onboarding');
+  const me = await getMeOrRedirect();
 
   const { q } = await searchParams;
   const term = (q ?? '').trim().slice(0, 80);

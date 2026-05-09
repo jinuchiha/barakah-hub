@@ -44,11 +44,30 @@ export function makeDbMock(opts: {
   };
 }
 
-/** Mock of `createClient` from `@/lib/supabase/server`. */
-export function makeSupabaseMock(user: { id: string; email?: string } | null) {
+/**
+ * Mock of `getSession` from `@/lib/auth-server`. Returns a Better-Auth-shaped
+ * session or null when unauthenticated.
+ */
+export function makeSessionMock(user: { id: string; email?: string } | null) {
+  if (!user) return null;
   return {
-    auth: {
-      getUser: vi.fn(async () => ({ data: { user }, error: null })),
+    user: {
+      id: user.id,
+      email: user.email ?? `${user.id}@example.com`,
+      emailVerified: true,
+      name: 'Test User',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+    session: {
+      id: 'session-1',
+      userId: user.id,
+      token: 'tok-1',
+      expiresAt: new Date(Date.now() + 86_400_000),
+      ipAddress: null,
+      userAgent: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
     },
   };
 }

@@ -1,6 +1,5 @@
-import { redirect } from 'next/navigation';
 import { eq, and, sql, desc } from 'drizzle-orm';
-import { createClient } from '@/lib/supabase/server';
+import { getMeOrRedirect } from '@/lib/auth-server';
 import { db } from '@/lib/db';
 import { members, payments, cases, loans, config as configTbl } from '@/lib/db/schema';
 import { StatCard } from '@/components/stat-card';
@@ -9,11 +8,7 @@ import { Card, CardHeader, CardTitle, CardBody } from '@/components/ui/card';
 import { fmtRs } from '@/lib/i18n/dict';
 
 export default async function DashboardPage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect('/login');
-  const [me] = await db.select().from(members).where(eq(members.authId, user.id)).limit(1);
-  if (!me) redirect('/onboarding');
+  const me = await getMeOrRedirect();
   const isAdmin = me.role === 'admin';
 
   // ─── Aggregates (verified-only)

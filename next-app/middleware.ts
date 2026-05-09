@@ -1,21 +1,41 @@
-import { type NextRequest } from 'next/server';
-import { updateSession } from '@/lib/supabase/middleware';
+import { NextResponse, type NextRequest } from 'next/server';
+import { getSessionCookie } from 'better-auth/cookies';
 
 /**
- * Why `middleware.ts` and not the Next 16 `proxy.ts` convention?
+ * Edge middleware — gates auth-required routes behind a Better-Auth session.
  *
- * Next 16's `proxy.ts` is locked to the Node.js runtime, but
- * @opennextjs/cloudflare deploys to Workers (V8 isolates) and does not
- * yet support Node middleware. `middleware.ts` is deprecated in Next 16
- * but still functional, and crucially it still allows the Edge runtime,
- * which is what Workers actually run.
+ * Uses `getSessionCookie` (just reads the cookie value, no DB call) for
+ * fast edge-level redirects. The actual session validation happens in
+ * server components / actions where they need it.
  *
- * Switch back to proxy.ts when OpenNext ships Node-runtime support.
+ * Why `middleware.ts` and not Next 16's `proxy.ts`?
+ *  - Next 16's proxy.ts is locked to the Node.js runtime.
+ *  - @opennextjs/cloudflare deploys to Workers (V8 isolates) which do
+ *    not yet support Node middleware. middleware.ts is deprecated but
+ *    still functional and still permits Edge runtime — what Workers run.
+ *  - Switch back to proxy.ts when OpenNext ships Node-runtime support.
  */
 export const runtime = 'experimental-edge';
 
-export async function middleware(request: NextRequest) {
-  return await updateSession(request);
+const PUBLIC_ROUTES = ['/login', '/forgot-password', '/reset-password', '/api/auth'];
+
+export function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+
+  // Don't gate public routes or static assets — matcher handles assets.
+  if (PUBLIC_ROUTES.some((p) => pathname.startsWith(p)) || pathname === '/') {
+    return NextResponse.next();
+  }
+
+  const sessionCookie = getSessionCookie(request);
+  if (!sessionCookie) {
+    const url = request.nextUrl.clone();
+    url.pathname = '/login';
+    url.searchParams.set('next', pathname);
+    return NextResponse.redirect(url);
+  }
+
+  return NextResponse.next();
 }
 
 export const config = {

@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
-import { eq, asc } from 'drizzle-orm';
-import { createClient } from '@/lib/supabase/server';
+import { asc } from 'drizzle-orm';
+import { getMeOrRedirect } from '@/lib/auth-server';
 import { db } from '@/lib/db';
 import { members } from '@/lib/db/schema';
 import { Card, CardHeader, CardTitle, CardBody } from '@/components/ui/card';
@@ -11,11 +11,7 @@ import ApproveButton from './approve-button';
 export const metadata = { title: 'Members · Barakah Hub' };
 
 export default async function MembersPage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect('/login');
-  const [me] = await db.select().from(members).where(eq(members.authId, user.id)).limit(1);
-  if (!me) redirect('/onboarding');
+  const me = await getMeOrRedirect();
   if (me.role !== 'admin') redirect('/dashboard');
 
   const all = await db.select().from(members).orderBy(asc(members.nameEn));

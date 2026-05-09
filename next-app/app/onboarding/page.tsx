@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 import { eq } from 'drizzle-orm';
-import { createClient } from '@/lib/supabase/server';
+import { getUser } from '@/lib/auth-server';
 import { db } from '@/lib/db';
 import { members } from '@/lib/db/schema';
 import { Card, CardBody } from '@/components/ui/card';
@@ -13,8 +13,7 @@ export const metadata = { title: 'Welcome · Barakah Hub' };
  * OR who were imported from legacy data and need to claim their account.
  */
 export default async function OnboardingPage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = await getUser();
   if (!user) redirect('/login');
 
   // If they already have a members row linked, send them to dashboard

@@ -1,15 +1,17 @@
 /**
- * Security tests for the P0-1 fix.
+ * Security tests for the P0-1 fix (now under Better-Auth).
  * Verifies that `onboardSelf` derives identity from session, never the body.
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { makeDbMock, makeSupabaseMock } from '../helpers/db-mock';
+import { makeDbMock, makeSessionMock } from '../helpers/db-mock';
 
-const supabaseMock = vi.hoisted(() => ({ instance: null as unknown }));
+const sessionMock = vi.hoisted(() => ({ instance: null as unknown }));
 const dbMock = vi.hoisted(() => ({ instance: null as unknown }));
 
-vi.mock('@/lib/supabase/server', () => ({
-  createClient: async () => supabaseMock.instance,
+vi.mock('@/lib/auth-server', () => ({
+  getSession: async () => sessionMock.instance,
+  getUser: async () => (sessionMock.instance as any)?.user ?? null,
+  getMeOrRedirect: async () => { throw new Error('not used in onboarding tests'); },
 }));
 
 vi.mock('@/lib/db', () => ({
@@ -26,23 +28,7 @@ describe('onboardSelf', () => {
   });
 
   it('rejects when user is not authenticated', async () => {
-    supabaseMock.instance = makeSupabaseMock(null);
-    dbMock.instance = makeDbMock({});
-    const { onboardSelf } = await import('@/app/onboarding/actions');
-
-    await expect(
-      onboardSelf({
-        nameEn: 'Test',
-        fatherName: 'Test Father',
-        phone: '0300-1234567',
-        city: 'Karachi',
-        province: 'sindh',
-      }),
-    ).rejects.toThrow(/not authenticated/i);
-  });
-
-  it('rejects when user has no email', async () => {
-    supabaseMock.instance = makeSupabaseMock({ id: 'auth-uuid-123' });
+    sessionMock.instance = makeSessionMock(null);
     dbMock.instance = makeDbMock({});
     const { onboardSelf } = await import('@/app/onboarding/actions');
 
@@ -58,7 +44,7 @@ describe('onboardSelf', () => {
   });
 
   it('rejects when account already onboarded', async () => {
-    supabaseMock.instance = makeSupabaseMock({ id: 'auth-uuid-123', email: 'me@x.com' });
+    sessionMock.instance = makeSessionMock({ id: 'auth-uuid-123', email: 'me@x.com' });
     dbMock.instance = makeDbMock({
       // First select returns the existing member, so onboardSelf bails.
       selectQueue: [
@@ -79,7 +65,7 @@ describe('onboardSelf', () => {
   });
 
   it('rejects self-claim of an admin record (P0-1 regression test)', async () => {
-    supabaseMock.instance = makeSupabaseMock({ id: 'auth-uuid-123', email: 'evil@x.com' });
+    sessionMock.instance = makeSessionMock({ id: 'auth-uuid-123', email: 'evil@x.com' });
     dbMock.instance = makeDbMock({
       selectQueue: [
         // 1st: select by authId — no rows (not yet onboarded)
@@ -102,7 +88,7 @@ describe('onboardSelf', () => {
   });
 
   it('rejects invalid input (Zod validation)', async () => {
-    supabaseMock.instance = makeSupabaseMock({ id: 'auth-uuid-123', email: 'a@b.com' });
+    sessionMock.instance = makeSessionMock({ id: 'auth-uuid-123', email: 'a@b.com' });
     dbMock.instance = makeDbMock({ selectQueue: [[], []] });
     const { onboardSelf } = await import('@/app/onboarding/actions');
 

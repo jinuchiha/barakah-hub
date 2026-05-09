@@ -3,13 +3,15 @@
  * Confirms role/status gates fire before any side-effect.
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { makeDbMock, makeSupabaseMock } from '../helpers/db-mock';
+import { makeDbMock, makeSessionMock } from '../helpers/db-mock';
 
-const supabaseMock = vi.hoisted(() => ({ instance: null as unknown }));
+const sessionMock = vi.hoisted(() => ({ instance: null as unknown }));
 const dbMock = vi.hoisted(() => ({ instance: null as unknown }));
 
-vi.mock('@/lib/supabase/server', () => ({
-  createClient: async () => supabaseMock.instance,
+vi.mock('@/lib/auth-server', () => ({
+  getSession: async () => sessionMock.instance,
+  getUser: async () => (sessionMock.instance as any)?.user ?? null,
+  getMeOrRedirect: async () => { throw new Error('not used in action tests'); },
 }));
 vi.mock('@/lib/db', () => ({
   get db() { return dbMock.instance; },
@@ -36,7 +38,7 @@ describe('approveMember', () => {
   beforeEach(() => vi.resetModules());
 
   it('rejects when caller is not admin', async () => {
-    supabaseMock.instance = makeSupabaseMock({ id: 'auth-1' });
+    sessionMock.instance = makeSessionMock({ id: 'auth-1' });
     dbMock.instance = makeDbMock({ selectQueue: [[memberRow]] });
     const { approveMember } = await import('@/app/actions');
 
@@ -45,7 +47,7 @@ describe('approveMember', () => {
   });
 
   it('rejects malformed UUID input', async () => {
-    supabaseMock.instance = makeSupabaseMock({ id: 'auth-admin' });
+    sessionMock.instance = makeSessionMock({ id: 'auth-admin' });
     dbMock.instance = makeDbMock({ selectQueue: [[adminRow]] });
     const { approveMember } = await import('@/app/actions');
 
@@ -53,7 +55,7 @@ describe('approveMember', () => {
   });
 
   it('rejects when caller has no member record', async () => {
-    supabaseMock.instance = makeSupabaseMock({ id: 'auth-orphan' });
+    sessionMock.instance = makeSessionMock({ id: 'auth-orphan' });
     dbMock.instance = makeDbMock({ selectQueue: [[]] });
     const { approveMember } = await import('@/app/actions');
 
@@ -66,7 +68,7 @@ describe('castVote', () => {
   beforeEach(() => vi.resetModules());
 
   it('rejects when not authenticated', async () => {
-    supabaseMock.instance = makeSupabaseMock(null);
+    sessionMock.instance = makeSessionMock(null);
     dbMock.instance = makeDbMock({});
     const { castVote } = await import('@/app/actions');
 
@@ -75,7 +77,7 @@ describe('castVote', () => {
   });
 
   it('rejects when status is not approved', async () => {
-    supabaseMock.instance = makeSupabaseMock({ id: 'auth-1' });
+    sessionMock.instance = makeSessionMock({ id: 'auth-1' });
     dbMock.instance = makeDbMock({
       selectQueue: [[{ ...memberRow, status: 'pending' as const }]],
     });
@@ -86,7 +88,7 @@ describe('castVote', () => {
   });
 
   it('rejects when caller is deceased', async () => {
-    supabaseMock.instance = makeSupabaseMock({ id: 'auth-1' });
+    sessionMock.instance = makeSessionMock({ id: 'auth-1' });
     dbMock.instance = makeDbMock({
       selectQueue: [[{ ...memberRow, deceased: true }]],
     });
@@ -97,7 +99,7 @@ describe('castVote', () => {
   });
 
   it('rejects voting on own case', async () => {
-    supabaseMock.instance = makeSupabaseMock({ id: 'auth-1' });
+    sessionMock.instance = makeSessionMock({ id: 'auth-1' });
     dbMock.instance = makeDbMock({
       selectQueue: [
         [memberRow], // meOrThrow
@@ -111,7 +113,7 @@ describe('castVote', () => {
   });
 
   it('rejects when voting is closed', async () => {
-    supabaseMock.instance = makeSupabaseMock({ id: 'auth-1' });
+    sessionMock.instance = makeSessionMock({ id: 'auth-1' });
     dbMock.instance = makeDbMock({
       selectQueue: [
         [memberRow],
@@ -125,7 +127,7 @@ describe('castVote', () => {
   });
 
   it('rejects malformed UUID', async () => {
-    supabaseMock.instance = makeSupabaseMock({ id: 'auth-1' });
+    sessionMock.instance = makeSessionMock({ id: 'auth-1' });
     dbMock.instance = makeDbMock({});
     const { castVote } = await import('@/app/actions');
 
@@ -137,7 +139,7 @@ describe('recordRepayment', () => {
   beforeEach(() => vi.resetModules());
 
   it('rejects non-admin caller', async () => {
-    supabaseMock.instance = makeSupabaseMock({ id: 'auth-1' });
+    sessionMock.instance = makeSessionMock({ id: 'auth-1' });
     dbMock.instance = makeDbMock({ selectQueue: [[memberRow]] });
     const { recordRepayment } = await import('@/app/actions');
 
@@ -150,7 +152,7 @@ describe('recordRepayment', () => {
   });
 
   it('rejects amount exceeding remaining balance', async () => {
-    supabaseMock.instance = makeSupabaseMock({ id: 'auth-admin' });
+    sessionMock.instance = makeSessionMock({ id: 'auth-admin' });
     dbMock.instance = makeDbMock({
       selectQueue: [
         [adminRow],
@@ -168,7 +170,7 @@ describe('recordRepayment', () => {
   });
 
   it('rejects repayment on settled loan', async () => {
-    supabaseMock.instance = makeSupabaseMock({ id: 'auth-admin' });
+    sessionMock.instance = makeSessionMock({ id: 'auth-admin' });
     dbMock.instance = makeDbMock({
       selectQueue: [
         [adminRow],
@@ -190,7 +192,7 @@ describe('editMember', () => {
   beforeEach(() => vi.resetModules());
 
   it('rejects self-demotion', async () => {
-    supabaseMock.instance = makeSupabaseMock({ id: 'auth-admin' });
+    sessionMock.instance = makeSessionMock({ id: 'auth-admin' });
     dbMock.instance = makeDbMock({ selectQueue: [[adminRow]] });
     const { editMember } = await import('@/app/actions');
 

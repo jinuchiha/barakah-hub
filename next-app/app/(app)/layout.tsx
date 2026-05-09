@@ -1,20 +1,14 @@
-import { redirect } from 'next/navigation';
 import { eq, and } from 'drizzle-orm';
-import { createClient } from '@/lib/supabase/server';
+import { getMeOrRedirect } from '@/lib/auth-server';
 import { db } from '@/lib/db';
-import { members, notifications } from '@/lib/db/schema';
+import { notifications } from '@/lib/db/schema';
 import { Sidebar } from '@/components/sidebar';
 import { Topbar } from '@/components/topbar';
 import { VerseBar } from '@/components/verse-bar';
 import { TooltipProvider } from '@/components/ui/tooltip';
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect('/login');
-
-  const [me] = await db.select().from(members).where(eq(members.authId, user.id)).limit(1);
-  if (!me) redirect('/onboarding');
+  const me = await getMeOrRedirect();
 
   const unreadCount = await db.$count(
     notifications,

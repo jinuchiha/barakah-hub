@@ -1,11 +1,10 @@
 import { redirect } from 'next/navigation';
-import { createClient } from '@/lib/supabase/server';
+import { getUser } from '@/lib/auth-server';
 import { Crescent as CrescentMark } from '@/components/icons/crescent';
 import LoginForm from './login-form';
 
 export default async function LoginPage({ searchParams }: { searchParams: Promise<{ next?: string }> }) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = await getUser();
   if (user) redirect('/dashboard');
   const { next } = await searchParams;
 

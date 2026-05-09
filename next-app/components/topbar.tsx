@@ -4,7 +4,7 @@ import { useEffect, useState, useSyncExternalStore } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import type { Route } from 'next';
-import { createClient } from '@/lib/supabase/client';
+import { signOut } from '@/lib/auth-client';
 import { Crescent as CrescentMark } from '@/components/icons/crescent';
 import {
   DropdownMenu,
@@ -47,8 +47,9 @@ export function Topbar({ user, unreadCount = 0 }: TopbarProps) {
   }, [mode]);
 
   async function logout() {
-    await createClient().auth.signOut();
+    await signOut();
     router.push('/login');
+    router.refresh();
   }
 
   function toggleMode() {

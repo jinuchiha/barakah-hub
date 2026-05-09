@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
-import { eq, desc, inArray } from 'drizzle-orm';
-import { createClient } from '@/lib/supabase/server';
+import { desc, inArray } from 'drizzle-orm';
+import { getMeOrRedirect } from '@/lib/auth-server';
 import { db } from '@/lib/db';
 import { members, auditLog } from '@/lib/db/schema';
 import { Card, CardHeader, CardTitle, CardBody } from '@/components/ui/card';
@@ -20,11 +20,7 @@ const ICONS: Record<string, string> = {
 };
 
 export default async function AuditPage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect('/login');
-  const [me] = await db.select().from(members).where(eq(members.authId, user.id)).limit(1);
-  if (!me) redirect('/onboarding');
+  const me = await getMeOrRedirect();
   if (me.role !== 'admin') redirect('/dashboard');
 
   const entries = await db.select().from(auditLog).orderBy(desc(auditLog.createdAt)).limit(300);

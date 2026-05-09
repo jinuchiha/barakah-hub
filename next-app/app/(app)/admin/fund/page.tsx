@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
-import { eq, desc, and, sql } from 'drizzle-orm';
-import { createClient } from '@/lib/supabase/server';
+import { eq, desc, sql } from 'drizzle-orm';
+import { getMeOrRedirect } from '@/lib/auth-server';
 import { db } from '@/lib/db';
 import { members, payments } from '@/lib/db/schema';
 import { Card, CardHeader, CardTitle, CardBody } from '@/components/ui/card';
@@ -12,11 +12,7 @@ import VerifyButtons from './verify-buttons';
 export const metadata = { title: 'Fund Register · Barakah Hub' };
 
 export default async function FundPage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect('/login');
-  const [me] = await db.select().from(members).where(eq(members.authId, user.id)).limit(1);
-  if (!me) redirect('/onboarding');
+  const me = await getMeOrRedirect();
   if (me.role !== 'admin') redirect('/dashboard');
 
   const [allMembers, history, pending] = await Promise.all([

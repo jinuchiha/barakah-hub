@@ -1,19 +1,14 @@
-import { redirect } from 'next/navigation';
 import { eq, desc } from 'drizzle-orm';
-import { createClient } from '@/lib/supabase/server';
+import { getMeOrRedirect } from '@/lib/auth-server';
 import { db } from '@/lib/db';
-import { members, payments } from '@/lib/db/schema';
+import { payments } from '@/lib/db/schema';
 import { Card, CardHeader, CardTitle, CardBody } from '@/components/ui/card';
 import { fmtRs } from '@/lib/i18n/dict';
 import { ini } from '@/lib/utils';
 import DonationForm from './donation-form';
 
 export default async function MyAccountPage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect('/login');
-  const [me] = await db.select().from(members).where(eq(members.authId, user.id)).limit(1);
-  if (!me) redirect('/onboarding');
+  const me = await getMeOrRedirect();
 
   const myPayments = await db
     .select()

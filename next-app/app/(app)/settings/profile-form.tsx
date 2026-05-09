@@ -3,7 +3,6 @@ import { useState, useTransition, useRef } from 'react';
 import { toast } from 'sonner';
 import { Camera } from 'lucide-react';
 import { updateProfile } from '@/app/actions';
-import { createClient } from '@/lib/supabase/client';
 import { Input, Label } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { ini } from '@/lib/utils';
@@ -31,16 +30,11 @@ export default function ProfileForm({ member }: { member: Member }) {
   async function uploadPhoto(file: File) {
     if (file.size > 2 * 1024 * 1024) { toast.error('Image too large (>2MB)'); return; }
     if (!file.type.startsWith('image/')) { toast.error('Image files only'); return; }
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) { toast.error('Session expired'); return; }
-    const ext = (file.name.split('.').pop() || 'png').replace(/[^a-z0-9]/gi, '').slice(0, 4);
-    const path = `${user.id}/avatar-${Date.now()}.${ext}`;
-    const { error } = await supabase.storage.from('avatars').upload(path, file, { upsert: true });
-    if (error) { toast.error(error.message); return; }
-    const { data } = supabase.storage.from('avatars').getPublicUrl(path);
-    set('photoUrl', data.publicUrl);
-    toast.success('Photo uploaded');
+    // TODO(Phase 6): wire to Cloudflare R2 via signed URL. For now, allow
+    // pasting a URL into the photoUrl field manually as a stop-gap until
+    // the storage migration lands.
+    toast.message('Photo upload disabled — pending R2 storage migration. Paste a public image URL into the photoUrl field instead.');
+    void file;
   }
 
   function save(e: React.FormEvent) {
