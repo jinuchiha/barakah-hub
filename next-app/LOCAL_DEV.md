@@ -198,7 +198,7 @@ You don't need to refactor anything; just verify the inputs.
 
 ### 3.1 What "Cloudflare-ready" means here (already done)
 
-- ✅ [`wrangler.toml`](wrangler.toml) declares the Worker `barakahhub` + nodejs_compat flag
+- ✅ [`wrangler.toml`](wrangler.toml) declares the Worker `barakah-hub` + nodejs_compat flag
 - ✅ [`open-next.config.ts`](open-next.config.ts) — OpenNext adapter config
 - ✅ [`middleware.ts`](middleware.ts) on Edge runtime (Workers requirement)
 - ✅ [`lib/db/index.ts`](lib/db/index.ts) uses `drizzle-orm/neon-http` (fetch-based, fits V8 isolates)
@@ -212,7 +212,7 @@ You don't need to refactor anything; just verify the inputs.
 |---|---|---|
 | `DATABASE_URL` / `DATABASE_URL_DIRECT` | `.env.local` (gitignored) | `wrangler secret put` on the Worker |
 | `BETTER_AUTH_SECRET` | `.env.local` | `wrangler secret put` |
-| `NEXT_PUBLIC_APP_URL` | `.env.local` (`http://localhost:3000`) | `wrangler.toml [vars]` (`https://barakahhub.bakerabi91.workers.dev`) |
+| `NEXT_PUBLIC_APP_URL` | `.env.local` (`http://localhost:3000`) | `wrangler.toml [vars]` (`https://barakah-hub.bakerabi91.workers.dev`) |
 | Resend, Sentry, etc. | `.env.local` | `wrangler secret put` |
 
 The same code reads the same env-var names from both — no per-env code
@@ -258,7 +258,7 @@ recommended. The merge to `main` triggers
 [`.github/workflows/deploy.yml`](../.github/workflows/deploy.yml) which
 runs `pnpm build:cf` on a Linux runner and deploys via
 `cloudflare/wrangler-action@v3`. ~3 minutes from merge to live at
-<https://barakahhub.bakerabi91.workers.dev>.
+<https://barakah-hub.bakerabi91.workers.dev>.
 
 ---
 

@@ -1,7 +1,7 @@
 # Cloudflare Workers config — Barakah Hub
 # Phase 3 Next.js app deployed via @opennextjs/cloudflare adapter.
 #
-# Live URL: https://barakahhub.bakerabi91.workers.dev
+# Live URL: https://barakah-hub.bakerabi91.workers.dev
 # (Worker subdomain = `name` below; account = bakerabi91)
 #
 # To deploy:
@@ -14,7 +14,7 @@
 #   wrangler secret put RESEND_API_KEY                    # optional, for password-reset email
 #   pnpm deploy:cf
 
-name = "barakahhub"
+name = "barakah-hub"
 main = ".open-next/worker.js"
 compatibility_date = "2026-05-08"
 compatibility_flags = ["nodejs_compat", "global_fetch_strictly_public"]
@@ -29,7 +29,7 @@ run_worker_first = false
 # Build-time / public env vars. These end up in the client bundle, so
 # they are NOT secret. Real secrets go via `wrangler secret put`.
 [vars]
-NEXT_PUBLIC_APP_URL = "https://barakahhub.bakerabi91.workers.dev"
+NEXT_PUBLIC_APP_URL = "https://barakah-hub.bakerabi91.workers.dev"
 
 # Observability — free tier; ships logs to the Cloudflare dashboard.
 [observability]

@@ -84,7 +84,7 @@ pnpm exec wrangler secret put RESEND_API_KEY        # optional, for password-res
 Update [`next-app/wrangler.toml`](next-app/wrangler.toml) if needed:
 ```toml
 [vars]
-NEXT_PUBLIC_APP_URL = "https://barakahhub.bakerabi91.workers.dev"
+NEXT_PUBLIC_APP_URL = "https://barakah-hub.bakerabi91.workers.dev"
 ```
 
 **Remove old Supabase secrets** (no longer used):
@@ -143,7 +143,7 @@ Open a PR from `feat/neon-migration` → `main`. CI will:
 2. Apply migrations to it
 3. Run typecheck + lint + test against it
 
-When CI is green, merge. The `deploy.yml` workflow then auto-deploys to `barakahhub.bakerabi91.workers.dev`.
+When CI is green, merge. The `deploy.yml` workflow then auto-deploys to `barakah-hub.bakerabi91.workers.dev`.
 
 ---
 

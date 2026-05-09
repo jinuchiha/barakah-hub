@@ -135,7 +135,7 @@ Visit http://localhost:3000/login and sign in with the email/password from step 
 
 ## Part 3 — Deploy to Cloudflare Workers
 
-We deploy to **Cloudflare Workers** (not Pages) via [`@opennextjs/cloudflare`](https://opennext.js.org/cloudflare). The live URL is `https://barakahhub.bakerabi91.workers.dev`.
+We deploy to **Cloudflare Workers** (not Pages) via [`@opennextjs/cloudflare`](https://opennext.js.org/cloudflare). The live URL is `https://barakah-hub.bakerabi91.workers.dev`.
 
 > **Why Workers, not Pages?** Cloudflare is consolidating around Workers + Static Assets. The legacy `@cloudflare/next-on-pages` adapter doesn't support Next.js 16, while OpenNext does. Pages isn't going away, but new projects should target Workers.
 
@@ -186,7 +186,7 @@ pnpm deploy:cf                               # wrangler deploy
 
 ## Part 4 — Test deployment
 
-1. Open `https://barakahhub.bakerabi91.workers.dev` (or your custom Worker URL)
+1. Open `https://barakah-hub.bakerabi91.workers.dev` (or your custom Worker URL)
 2. Visit `/login`
 3. Sign in with your admin email/password
 4. ✓ Should land on the dashboard
@@ -201,7 +201,7 @@ pnpm exec wrangler tail
 Common pitfalls:
 - `nodejs_compat` flag missing → `wrangler.toml` has it at the top, but verify it's also enabled in the dashboard for the live deployment
 - Secrets not set → `wrangler secret list` to confirm `DATABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` are present
-- Supabase Auth redirect URL → Supabase → Authentication → URL Configuration → add `https://barakahhub.bakerabi91.workers.dev` to **Site URL** + **Redirect URLs**
+- Supabase Auth redirect URL → Supabase → Authentication → URL Configuration → add `https://barakah-hub.bakerabi91.workers.dev` to **Site URL** + **Redirect URLs**
 
 ---
 

@@ -177,7 +177,7 @@ These get baked into the deployed Worker even though the app no longer imports `
 
 ```toml
 [vars]
-NEXT_PUBLIC_APP_URL = "https://barakahhub.bakerabi91.workers.dev"
+NEXT_PUBLIC_APP_URL = "https://barakah-hub.bakerabi91.workers.dev"
 ```
 
 #### P2-RA-8 · `next.config.mjs` whitelists Supabase as image host

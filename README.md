@@ -26,7 +26,7 @@ Better-Auth · Tailwind v4 · Vitest · Cloudflare Workers (OpenNext)**.
 | **Tests** | 47 in [`next-app/test/`](next-app/test/) — `pnpm test` |
 | **CI** | [`.github/workflows/ci.yml`](.github/workflows/ci.yml) — typecheck → lint → test → build |
 | **Deploy target** | Cloudflare Workers via [`@opennextjs/cloudflare`](https://opennext.js.org/cloudflare) — auto-deploy on merge to `main` |
-| **Live URL** | <https://barakahhub.bakerabi91.workers.dev> |
+| **Live URL** | <https://barakah-hub.bakerabi91.workers.dev> |
 | **Audit history** | [`next-app/AUDIT_PHASE3.md`](next-app/AUDIT_PHASE3.md) — every P0/P1/P2 finding with status |
 | **Migration history** | [`next-app/docs/MIGRATING_TO_NEON.md`](next-app/docs/MIGRATING_TO_NEON.md) — Supabase → Neon + Better-Auth playbook |
 
@@ -210,7 +210,7 @@ The cleanup workflow deletes the branch when the PR closes.
 
 **Production deploy** ([`.github/workflows/deploy.yml`](.github/workflows/deploy.yml))
 — on push to `main`, OpenNext bundles the app and `cloudflare/wrangler-action`
-deploys to the `barakahhub` Worker. Gated by GitHub's `production`
+deploys to the `barakah-hub` Worker. Gated by GitHub's `production`
 environment so deploys can require manual approval.
 
 ---
