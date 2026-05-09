@@ -17,7 +17,7 @@ import { getSessionCookie } from 'better-auth/cookies';
  */
 export const runtime = 'experimental-edge';
 
-const PUBLIC_ROUTES = ['/login', '/forgot-password', '/reset-password', '/api/auth'];
+const PUBLIC_ROUTES = ['/login', '/register', '/forgot-password', '/reset-password', '/api/auth'];
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;

@@ -14,7 +14,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
       <div className="relative z-10 grid min-h-screen place-items-center p-5">
         <div className="w-[420px] max-w-full">
           <Ornament />
-          <div className="relative overflow-hidden rounded-[var(--radius-r-lg)] border border-[var(--border-2)] bg-gradient-to-br from-[#141410] to-[#0e0e0a] shadow-[0_24px_60px_rgba(0,0,0,0.45),0_4px_12px_rgba(0,0,0,0.25)]">
+          <div className="relative overflow-hidden rounded-[var(--radius-r-lg)] border border-[var(--border-2)] bg-gradient-to-br from-[#1d2127] to-[#14171c] shadow-[0_24px_60px_rgba(0,0,0,0.45),0_4px_12px_rgba(0,0,0,0.25)]">
             <div className="absolute left-0 right-0 top-0 h-0.5 bg-gradient-to-r from-transparent via-[var(--color-gold)] to-transparent" />
             <div className="border-b border-[var(--border)] bg-gradient-to-b from-[rgba(214,210,199,0.06)] to-transparent px-8 pb-6 pt-8 text-center">
               <Crescent />
