@@ -23,28 +23,44 @@ const NAV: { href: string; label: string; labelUr: string; icon: React.Component
   { href: '/admin/audit',     label: 'Audit Log',       labelUr: 'آڈٹ لاگ',        icon: ScrollText, admin: true },
 ];
 
-export function Sidebar({ isAdmin = false, locale = 'en' }: { isAdmin?: boolean; locale?: 'ur' | 'en' }) {
+interface NavProps {
+  isAdmin?: boolean;
+  locale?: 'ur' | 'en';
+  /** Called after a nav link is activated. Used by the mobile drawer to close itself. */
+  onNavigate?: () => void;
+  /** Distinct layoutId per render context so motion.span animations don't collide between desktop + drawer. */
+  layoutIdSuffix?: string;
+}
+
+/** Inner nav list — shared between desktop `<Sidebar>` and the mobile drawer. */
+export function SidebarNav({ isAdmin = false, locale = 'en', onNavigate, layoutIdSuffix = 'desktop' }: NavProps) {
   const pathname = usePathname();
   const items = NAV.filter((n) => !n.admin || isAdmin);
   const adminStart = items.findIndex((n) => n.admin);
 
   return (
-    <aside className="flex w-56 shrink-0 flex-col border-r border-[var(--border)] bg-gradient-to-b from-[#0d0d09] to-[#080806]">
-      <nav className="flex-1 overflow-y-auto py-3" aria-label="Main">
-        <SectionLabel label={locale === 'ur' ? 'مینو' : 'MAIN'} />
-        {items.map((n, i) => {
-          const isActive = pathname === n.href || pathname.startsWith(n.href + '/');
-          if (n.admin && i === adminStart) {
-            return (
-              <div key={n.href}>
-                <SectionLabel label={locale === 'ur' ? 'ایڈمن' : 'ADMIN'} />
-                <NavItem n={n} isActive={isActive} locale={locale} />
-              </div>
-            );
-          }
-          return <NavItem key={n.href} n={n} isActive={isActive} locale={locale} />;
-        })}
-      </nav>
+    <nav className="flex-1 overflow-y-auto py-3" aria-label="Main">
+      <SectionLabel label={locale === 'ur' ? 'مینو' : 'MAIN'} />
+      {items.map((n, i) => {
+        const isActive = pathname === n.href || pathname.startsWith(n.href + '/');
+        if (n.admin && i === adminStart) {
+          return (
+            <div key={n.href}>
+              <SectionLabel label={locale === 'ur' ? 'ایڈمن' : 'ADMIN'} />
+              <NavItem n={n} isActive={isActive} locale={locale} onNavigate={onNavigate} layoutIdSuffix={layoutIdSuffix} />
+            </div>
+          );
+        }
+        return <NavItem key={n.href} n={n} isActive={isActive} locale={locale} onNavigate={onNavigate} layoutIdSuffix={layoutIdSuffix} />;
+      })}
+    </nav>
+  );
+}
+
+export function Sidebar({ isAdmin = false, locale = 'en' }: { isAdmin?: boolean; locale?: 'ur' | 'en' }) {
+  return (
+    <aside className="hidden w-56 shrink-0 flex-col border-r border-[var(--border)] bg-gradient-to-b from-[#0d0d09] to-[#080806] md:flex">
+      <SidebarNav isAdmin={isAdmin} locale={locale} layoutIdSuffix="desktop" />
       <div className="border-t border-[var(--border)] p-3 text-center text-[10px] uppercase tracking-[1px] text-[var(--color-gold-4)] opacity-60">
         v3.0 · Barakah Hub
       </div>
@@ -56,11 +72,24 @@ function SectionLabel({ label }: { label: string }) {
   return <div className="px-4 pt-4 pb-1.5 font-[var(--font-display)] text-[9px] font-bold uppercase tracking-[3px] text-[var(--color-gold-4)] opacity-70">{label}</div>;
 }
 
-function NavItem({ n, isActive, locale }: { n: typeof NAV[number]; isActive: boolean; locale: 'ur' | 'en' }) {
+function NavItem({
+  n,
+  isActive,
+  locale,
+  onNavigate,
+  layoutIdSuffix,
+}: {
+  n: typeof NAV[number];
+  isActive: boolean;
+  locale: 'ur' | 'en';
+  onNavigate?: () => void;
+  layoutIdSuffix: string;
+}) {
   const Icon = n.icon;
   return (
     <Link
       href={n.href as any}
+      onClick={onNavigate}
       className={cn(
         'group relative mx-2 my-0.5 flex items-center gap-3 rounded-md border border-transparent px-3 py-2.5 text-sm transition-colors',
         isActive
@@ -71,7 +100,7 @@ function NavItem({ n, isActive, locale }: { n: typeof NAV[number]; isActive: boo
     >
       {isActive && (
         <motion.span
-          layoutId="sidebar-active-indicator"
+          layoutId={`sidebar-active-indicator-${layoutIdSuffix}`}
           aria-hidden="true"
           className="absolute left-0 top-[20%] h-[60%] w-0.5 rounded-r-sm bg-[var(--color-gold)]"
           transition={{ type: 'spring', stiffness: 380, damping: 32 }}

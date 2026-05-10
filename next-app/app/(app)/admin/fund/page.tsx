@@ -8,6 +8,8 @@ import { fmtRs } from '@/lib/i18n/dict';
 import { ini } from '@/lib/utils';
 import RecordPaymentForm from './record-payment-form';
 import VerifyButtons from './verify-buttons';
+import { ExportLink } from '@/components/export-link';
+import { MonthlyFundChart, type MonthBucket } from '@/components/monthly-fund-chart';
 
 export const metadata = { title: 'Fund Register · Barakah Hub' };
 
@@ -37,11 +39,39 @@ export default async function FundPage() {
     qarz: pools.find((p) => p.pool === 'qarz')?.total ?? 0,
   };
 
+  // Last-12-month series, grouped by month_start × pool, oldest first.
+  const monthly = await db
+    .select({
+      monthStart: payments.monthStart,
+      monthLabel: payments.monthLabel,
+      pool: payments.pool,
+      total: sql<number>`SUM(${payments.amount})::int`,
+    })
+    .from(payments)
+    .where(eq(payments.pendingVerify, false))
+    .groupBy(payments.monthStart, payments.monthLabel, payments.pool)
+    .orderBy(desc(payments.monthStart));
+
+  const bucketMap = new Map<string, MonthBucket>();
+  for (const r of monthly) {
+    const key = String(r.monthStart);
+    let b = bucketMap.get(key);
+    if (!b) {
+      b = { monthStart: key, monthLabel: r.monthLabel, sadaqah: 0, zakat: 0, qarz: 0 };
+      bucketMap.set(key, b);
+    }
+    b[r.pool] = Number(r.total);
+  }
+  const chartBuckets = [...bucketMap.values()].slice(0, 12).reverse();
+
   return (
     <div>
-      <header className="mb-6 border-b border-[var(--border)] pb-4">
-        <h1 className="font-[var(--font-arabic)] text-3xl text-[var(--color-gold-2)]">فنڈ رجسٹر</h1>
-        <p className="mt-1 font-[var(--font-en)] text-sm italic text-[var(--color-gold-4)]">Multi-pool ledger · sadaqah / zakat / qarz</p>
+      <header className="mb-6 flex flex-wrap items-start justify-between gap-3 border-b border-[var(--border)] pb-4">
+        <div>
+          <h1 className="font-[var(--font-arabic)] text-3xl text-[var(--color-gold-2)]">فنڈ رجسٹر</h1>
+          <p className="mt-1 font-[var(--font-en)] text-sm italic text-[var(--color-gold-4)]">Multi-pool ledger · sadaqah / zakat / qarz</p>
+        </div>
+        <ExportLink href={'/api/exports/fund' as any}>Export CSV</ExportLink>
       </header>
 
       <div className="mb-4 grid gap-3 md:grid-cols-3">
@@ -49,6 +79,13 @@ export default async function FundPage() {
         <Card><CardBody><div className="text-xs text-[var(--color-gold-4)]">Zakat Pool</div><div className="font-[var(--font-display)] text-2xl text-[var(--color-gold)]">{fmtRs(Number(poolTotals.zakat))}</div></CardBody></Card>
         <Card><CardBody><div className="text-xs text-[var(--color-gold-4)]">Qarz Pool</div><div className="font-[var(--font-display)] text-2xl text-blue-400">{fmtRs(Number(poolTotals.qarz))}</div></CardBody></Card>
       </div>
+
+      <Card className="mb-4">
+        <CardHeader><CardTitle>Monthly Inflow · Last {chartBuckets.length} Months</CardTitle></CardHeader>
+        <CardBody>
+          <MonthlyFundChart buckets={chartBuckets} />
+        </CardBody>
+      </Card>
 
       {pending.length > 0 && (
         <Card className="mb-4 border-[var(--color-gold)]/40 ring-1 ring-[var(--color-gold)]/20">

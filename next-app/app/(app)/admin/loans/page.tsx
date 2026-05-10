@@ -7,6 +7,7 @@ import { Card, CardHeader, CardTitle, CardBody } from '@/components/ui/card';
 import { fmtRs } from '@/lib/i18n/dict';
 import IssueLoanForm from './issue-loan-form';
 import RepayForm from './repay-form';
+import { ExportLink } from '@/components/export-link';
 
 export const metadata = { title: 'Qarz-e-Hasana · Barakah Hub' };
 
@@ -30,9 +31,12 @@ export default async function LoansPage() {
 
   return (
     <div>
-      <header className="mb-6 border-b border-[var(--border)] pb-4">
-        <h1 className="font-[var(--font-arabic)] text-3xl text-[var(--color-gold-2)]">قرض حسنہ</h1>
-        <p className="mt-1 font-[var(--font-en)] text-sm italic text-[var(--color-gold-4)]">Interest-free loans · {active.length} active · {fmtRs(outstanding)} outstanding</p>
+      <header className="mb-6 flex flex-wrap items-start justify-between gap-3 border-b border-[var(--border)] pb-4">
+        <div>
+          <h1 className="font-[var(--font-arabic)] text-3xl text-[var(--color-gold-2)]">قرض حسنہ</h1>
+          <p className="mt-1 font-[var(--font-en)] text-sm italic text-[var(--color-gold-4)]">Interest-free loans · {active.length} active · {fmtRs(outstanding)} outstanding</p>
+        </div>
+        <ExportLink href={'/api/exports/loans' as any}>Export CSV</ExportLink>
       </header>
 
       <Card className="mb-4">

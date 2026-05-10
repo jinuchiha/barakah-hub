@@ -7,6 +7,7 @@ import { Card, CardHeader, CardTitle, CardBody } from '@/components/ui/card';
 import { ini } from '@/lib/utils';
 import MembersTable from './members-table';
 import ApproveButton from './approve-button';
+import { ExportLink } from '@/components/export-link';
 
 export const metadata = { title: 'Members · Barakah Hub' };
 
@@ -24,6 +25,7 @@ export default async function MembersPage() {
           <h1 className="font-[var(--font-arabic)] text-3xl text-[var(--color-gold-2)]">اراکین خاندان</h1>
           <p className="mt-1 font-[var(--font-en)] text-sm italic text-[var(--color-gold-4)]">Family Members</p>
         </div>
+        <ExportLink href={'/api/exports/members' as any}>Export CSV</ExportLink>
       </header>
 
       {pending.length > 0 && (

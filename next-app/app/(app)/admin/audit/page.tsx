@@ -5,6 +5,7 @@ import { db } from '@/lib/db';
 import { members, auditLog } from '@/lib/db/schema';
 import { Card, CardHeader, CardTitle, CardBody } from '@/components/ui/card';
 import { ini } from '@/lib/utils';
+import { ExportLink } from '@/components/export-link';
 
 export const metadata = { title: 'Audit Log · Barakah Hub' };
 
@@ -40,7 +41,10 @@ export default async function AuditPage() {
           <h1 className="font-[var(--font-arabic)] text-3xl text-[var(--color-gold-2)]">آڈٹ لاگ</h1>
           <p className="mt-1 font-[var(--font-en)] text-sm italic text-[var(--color-gold-4)]">Tamper-evident activity journal · INSERT-only at DB layer</p>
         </div>
-        <div className="text-xs text-[var(--color-gold-4)]">Showing latest {entries.length} entries</div>
+        <div className="flex items-center gap-3">
+          <div className="text-xs text-[var(--color-gold-4)]">Latest {entries.length} entries</div>
+          <ExportLink href={'/api/exports/audit' as any}>Export CSV</ExportLink>
+        </div>
       </header>
 
       <Card>
