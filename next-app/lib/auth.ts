@@ -1,6 +1,7 @@
 import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import { db } from '@/lib/db';
+import { users, sessions, accounts, verifications } from '@/lib/db/schema';
 
 /**
  * Better-Auth server instance for Barakah Hub.
@@ -31,6 +32,14 @@ export const auth = betterAuth({
 
   database: drizzleAdapter(db, {
     provider: 'pg',
+    // Our tables are plural (users, sessions, ...) — Better-Auth's default
+    // convention is singular. Map them explicitly.
+    schema: {
+      user: users,
+      session: sessions,
+      account: accounts,
+      verification: verifications,
+    },
   }),
 
   emailAndPassword: {
