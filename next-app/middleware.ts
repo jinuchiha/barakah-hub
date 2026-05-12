@@ -2,22 +2,16 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { getSessionCookie } from 'better-auth/cookies';
 
 /**
- * Edge middleware — gates auth-required routes behind a Better-Auth session.
+ * Middleware — gates auth-required routes behind a Better-Auth session.
  *
  * Uses `getSessionCookie` (just reads the cookie value, no DB call) for
- * fast edge-level redirects. The actual session validation happens in
- * server components / actions where they need it.
+ * fast redirects. The actual session validation happens in server
+ * components / actions where they need it.
  *
- * Why `middleware.ts` and not Next 16's `proxy.ts`?
- *  - Next 16's proxy.ts is locked to the Node.js runtime.
- *  - @opennextjs/cloudflare deploys to Workers (V8 isolates) which do
- *    not yet support Node middleware. middleware.ts is deprecated but
- *    still functional and still permits Edge runtime — what Workers run.
- *  - Switch back to proxy.ts when OpenNext ships Node-runtime support.
+ * Runs on Vercel's Edge runtime by default — no explicit runtime export
+ * needed. Next 16 will warn about the deprecated `middleware.ts` filename;
+ * switch to `proxy.ts` when convenient.
  */
-// Next 16 rejects 'edge' on middleware ("currently experimental"); keep
-// 'experimental-edge' until that warning is gone in a later release.
-export const runtime = 'experimental-edge';
 
 const PUBLIC_ROUTES = ['/login', '/register', '/forgot-password', '/reset-password', '/api/auth', '/pending', '/rejected'];
 

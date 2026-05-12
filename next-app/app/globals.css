@@ -16,7 +16,7 @@
    ═══════════════════════════════════════════════════════════════════ */
 @theme {
   --font-display: 'Cinzel', serif;
-  --font-arabic: 'Amiri', serif;
+  --font-arabic: 'Noto Nastaliq Urdu', 'Amiri', serif;
   --font-body: 'Tajawal', sans-serif;
   --font-en: 'Cormorant Garamond', serif;
 
