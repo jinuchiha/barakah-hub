@@ -55,7 +55,7 @@ export default async function LoansPage() {
           {active.map((l) => {
             const m = memById.get(l.memberId);
             const remaining = l.amount - l.paid;
-            const pct = Math.round((l.paid / l.amount) * 100);
+            const pct = l.amount > 0 ? Math.round((l.paid / l.amount) * 100) : 0;
             return (
               <div key={l.id} className="border-b border-[rgba(214,210,199,0.06)] p-4">
                 <div className="mb-2 flex items-start justify-between gap-3">

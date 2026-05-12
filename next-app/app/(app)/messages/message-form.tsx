@@ -9,7 +9,7 @@ interface Recipient { id: string; nameEn: string; nameUr: string }
 
 export default function MessageForm({ recipients }: { recipients: Recipient[] }) {
   const [pending, start] = useTransition();
-  const [toId, setToId] = useState(recipients[0]?.id || '');
+  const [toId, setToId] = useState(recipients[0]?.id ?? '');
   const [subject, setSubject] = useState('');
   const [body, setBody] = useState('');
 
@@ -23,6 +23,10 @@ export default function MessageForm({ recipients }: { recipients: Recipient[] })
         setSubject(''); setBody('');
       } catch (e: any) { toast.error(e.message); }
     });
+  }
+
+  if (recipients.length === 0) {
+    return <p className="text-sm italic text-[var(--txt-3)]">No admins available to contact.</p>;
   }
 
   return (

@@ -3,9 +3,8 @@ const MONTH_NAMES = [
   'july', 'august', 'september', 'october', 'november', 'december',
 ];
 
-/** Convert a display label like "May 2026" to a sortable ISO date "2026-05-01".
- *  Returns first-of-current-month if the label can't be parsed. */
-export function monthStartFromLabel(label: string, now: Date = new Date()): string {
+/** Convert a display label like "May 2026" to a sortable ISO date "2026-05-01". */
+export function monthStartFromLabel(label: string): string {
   const match = label.trim().toLowerCase().match(/^(\w+)\s+(\d{4})$/);
   if (match) {
     const m = MONTH_NAMES.indexOf(match[1]);
@@ -15,5 +14,5 @@ export function monthStartFromLabel(label: string, now: Date = new Date()): stri
       return `${yyyy}-${mm}-01`;
     }
   }
-  return `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, '0')}-01`;
+  throw new Error(`Invalid month label "${label}" — expected format "Month YYYY" e.g. "May 2026"`);
 }

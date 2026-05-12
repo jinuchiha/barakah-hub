@@ -133,6 +133,7 @@ const submitDonationSchema = z.object({
 
 export async function submitDonation(input: z.infer<typeof submitDonationSchema>) {
   const me = await meOrThrow();
+  if (me.status !== 'approved') throw new Error('Account not approved');
   if (me.deceased) throw new Error('Account inactive');
   const data = submitDonationSchema.parse(input);
   const [created] = await db
@@ -201,7 +202,7 @@ export async function castVote(caseId: string, yes: boolean) {
   );
   const eligible = Math.max(0, eligibleCount - 1); // exclude applicant
   const [cfg] = await db.select().from(configTbl).where(eq(configTbl.id, 1)).limit(1);
-  const need = Math.ceil(eligible * (cfg.voteThresholdPct / 100));
+  const need = Math.ceil(eligible * ((cfg?.voteThresholdPct ?? 50) / 100));
 
   if (yesCount >= need) {
     await db.update(cases).set({ status: 'approved', resolvedAt: new Date() }).where(eq(cases.id, caseId));
@@ -318,6 +319,15 @@ export async function hardDeleteMember(memberId: string) {
   const me = await meOrThrow();
   if (me.role !== 'admin') throw new Error('Admin only');
   if (memberId === me.id) throw new Error('Cannot delete yourself');
+
+  const [target] = await db.select().from(members).where(eq(members.id, memberId)).limit(1);
+  if (!target) throw new Error('Member not found');
+
+  if (target.role === 'admin') {
+    const adminCount = await db.$count(members, and(eq(members.role, 'admin'), eq(members.deceased, false)));
+    if (adminCount <= 1) throw new Error('Cannot delete the last admin — promote another member first');
+  }
+
   // Re-parent any children to the admin
   await db.update(members).set({ parentId: me.id }).where(eq(members.parentId, memberId));
   await db.delete(members).where(eq(members.id, memberId));
@@ -373,6 +383,8 @@ export async function issueLoan(input: z.infer<typeof issueLoanSchema>) {
 
   const [borrower] = await db.select().from(members).where(eq(members.id, data.memberId)).limit(1);
   if (!borrower) throw new Error('Member not found');
+  if (borrower.deceased) throw new Error('Cannot issue loan to a deceased member');
+  if (borrower.status !== 'approved') throw new Error('Member must be approved to receive a loan');
 
   const [created] = await db
     .insert(loans)
@@ -463,11 +475,38 @@ export async function disburseCase(caseId: string) {
   if (!/^[0-9a-f-]{36}$/i.test(caseId)) throw new Error('Invalid case id');
   const me = await meOrThrow();
   if (me.role !== 'admin') throw new Error('Admin only');
-  const [c] = await db.select().from(cases).where(eq(cases.id, caseId)).limit(1);
-  if (!c) throw new Error('Case not found');
-  if (c.status !== 'approved') throw new Error('Case must be approved before disbursement');
-  await db.update(cases).set({ status: 'disbursed', resolvedAt: new Date() }).where(eq(cases.id, caseId));
-  await audit(me.id, 'emergency-approved', `Disbursed ${c.amount} for ${c.beneficiaryName}`, c.applicantId);
+
+  // Atomic: only updates when status is still 'approved' — prevents TOCTOU double-disburse
+  const updated = await db
+    .update(cases)
+    .set({ status: 'disbursed', resolvedAt: new Date() })
+    .where(and(eq(cases.id, caseId), eq(cases.status, 'approved')))
+    .returning();
+
+  if (updated.length === 0) {
+    const [c] = await db.select().from(cases).where(eq(cases.id, caseId)).limit(1);
+    if (!c) throw new Error('Case not found');
+    throw new Error(`Cannot disburse — case is currently "${c.status}"`);
+  }
+
+  const c = updated[0];
+  await audit(me.id, 'case-disbursed', `Disbursed ${c.amount} for ${c.beneficiaryName}`, c.applicantId);
+
+  // For qarz cases, auto-create the loan record so repayments can be tracked
+  if (c.caseType === 'qarz') {
+    await db.insert(loans).values({
+      memberId: c.applicantId,
+      amount: c.amount,
+      purpose: c.reasonEn,
+      pool: 'qarz',
+      city: c.city,
+      caseId: c.id,
+      paid: 0,
+      active: true,
+    });
+    revalidatePath('/admin/loans');
+  }
+
   revalidatePath('/cases');
   revalidatePath('/dashboard');
 }
@@ -496,6 +535,11 @@ const sendMessageSchema = z.object({
 export async function sendMessage(input: z.infer<typeof sendMessageSchema>) {
   const me = await meOrThrow();
   const data = sendMessageSchema.parse(input);
+
+  const [recipient] = await db.select().from(members).where(eq(members.id, data.toId)).limit(1);
+  if (!recipient) throw new Error('Recipient not found');
+  if (recipient.deceased) throw new Error('Cannot message a deceased member');
+
   await db.insert(messages).values({ ...data, fromId: me.id });
   // Also drop a notification on the recipient so they see the badge
   await db.insert(notifications).values({

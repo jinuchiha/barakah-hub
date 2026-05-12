@@ -42,5 +42,8 @@ export async function getMeOrRedirect(): Promise<Member> {
     .limit(1);
 
   if (!me) redirect('/onboarding');
+  // Unapproved members must not reach protected app routes
+  if (me.status === 'pending') redirect('/pending' as any);
+  if (me.status === 'rejected') redirect('/rejected' as any);
   return me;
 }

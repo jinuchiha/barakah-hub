@@ -16,10 +16,9 @@ describe('monthStartFromLabel', () => {
     expect(monthStartFromLabel('January 2026')).toBe('2026-01-01');
     expect(monthStartFromLabel('September 2026')).toBe('2026-09-01');
   });
-  it('falls back to first-of-current-month for unparsable labels', () => {
-    const fixedNow = new Date(Date.UTC(2026, 6, 15)); // 2026-07-15
-    expect(monthStartFromLabel('not a month', fixedNow)).toBe('2026-07-01');
-    expect(monthStartFromLabel('', fixedNow)).toBe('2026-07-01');
+  it('throws on unparsable labels instead of silently returning current month', () => {
+    expect(() => monthStartFromLabel('not a month')).toThrow('Invalid month label');
+    expect(() => monthStartFromLabel('')).toThrow('Invalid month label');
   });
   it('produces lexicographically sortable strings (the bug we fixed)', () => {
     // The original bug was sorting "April 2026" < "August 2026" < "December 2026" < "February 2026" …

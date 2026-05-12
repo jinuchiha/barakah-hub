@@ -9,7 +9,7 @@ const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 
 
 export default function RecordPaymentForm({ members }: { members: { id: string; nameEn: string }[] }) {
   const [pending, start] = useTransition();
-  const [memberId, setMemberId] = useState(members[0]?.id || '');
+  const [memberId, setMemberId] = useState(members[0]?.id ?? '');
   const [amount, setAmount] = useState(0);
   const [pool, setPool] = useState<'sadaqah' | 'zakat' | 'qarz'>('sadaqah');
   const [month, setMonth] = useState(`${MONTHS[new Date().getMonth()]} ${new Date().getFullYear()}`);
@@ -25,6 +25,10 @@ export default function RecordPaymentForm({ members }: { members: { id: string; 
         setAmount(0); setNote('');
       } catch (e: any) { toast.error(e.message); }
     });
+  }
+
+  if (members.length === 0) {
+    return <p className="text-sm italic text-[var(--txt-3)]">No approved members yet — approve a member first.</p>;
   }
 
   return (
