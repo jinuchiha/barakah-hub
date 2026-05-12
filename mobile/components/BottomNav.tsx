@@ -12,13 +12,13 @@ import * as Haptics from 'expo-haptics';
 import { useTheme } from '@/lib/useTheme';
 import { radius, spacing } from '@/lib/theme';
 
-export type TabRoute = 'index' | 'payments' | 'cases' | 'loans' | 'profile';
+export type TabRoute = 'index' | 'payments' | 'cases' | 'loans' | 'analytics' | 'profile';
 
 interface TabDef {
   name: TabRoute;
   icon: keyof typeof MaterialCommunityIcons.glyphMap;
   label: string;
-  badgeKey?: string;
+  adminOnly?: boolean;
 }
 
 const TABS: TabDef[] = [
@@ -26,6 +26,7 @@ const TABS: TabDef[] = [
   { name: 'payments', icon: 'cash-multiple', label: 'Payments' },
   { name: 'cases', icon: 'alert-circle-outline', label: 'Cases' },
   { name: 'loans', icon: 'handshake-outline', label: 'Loans' },
+  { name: 'analytics', icon: 'chart-line', label: 'Analytics', adminOnly: true },
   { name: 'profile', icon: 'account-circle-outline', label: 'Profile' },
 ];
 
@@ -82,12 +83,14 @@ interface BottomNavProps {
   activeTab: TabRoute;
   onTabPress: (tab: TabRoute) => void;
   notificationCount?: number;
+  isAdmin?: boolean;
 }
 
-export function BottomNav({ activeTab, onTabPress, notificationCount = 0 }: BottomNavProps) {
+export function BottomNav({ activeTab, onTabPress, notificationCount = 0, isAdmin = false }: BottomNavProps) {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const bottomPad = Math.max(insets.bottom, 8);
+  const visibleTabs = TABS.filter((t) => !t.adminOnly || isAdmin);
 
   return (
     <View style={[styles.container, { paddingBottom: bottomPad }]}>
@@ -98,7 +101,7 @@ export function BottomNav({ activeTab, onTabPress, notificationCount = 0 }: Bott
       )}
       <View style={[styles.border, { backgroundColor: colors.glassBorder }]} />
       <View style={styles.row}>
-        {TABS.map((tab) => (
+        {visibleTabs.map((tab) => (
           <TabItem
             key={tab.name}
             tab={tab}

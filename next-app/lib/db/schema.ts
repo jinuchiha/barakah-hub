@@ -121,6 +121,7 @@ export const payments = pgTable('payments', {
   monthStart: date('month_start').notNull(),  // first-of-month — sortable
   paidOn: date('paid_on').notNull().defaultNow(),
   note: text('note'),
+  receiptUrl: text('receipt_url'),
   pendingVerify: boolean('pending_verify').notNull().default(false),
   verifiedById: uuid('verified_by_id').references(() => members.id),
   verifiedAt: timestamp('verified_at', { withTimezone: true }),

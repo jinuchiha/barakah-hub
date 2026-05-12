@@ -1,12 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Switch,
+  // Switch retained for biometric/screenshot/pin toggles below
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Animated, { FadeInDown } from 'react-native-reanimated';
-import { Avatar } from '@/components/ui/Avatar';
+import { AvatarUpload } from '@/components/AvatarUpload';
 import { Badge } from '@/components/ui/Badge';
 import { StatCard } from '@/components/ui/StatCard';
 import { Button } from '@/components/ui/Button';
@@ -14,9 +15,13 @@ import { GlassCard } from '@/components/ui/GlassCard';
 import { useAuth } from '@/hooks/useAuth';
 import { useMyPayments } from '@/hooks/usePayments';
 import { useMyLoans } from '@/hooks/useLoans';
+import { useBiometric } from '@/hooks/useBiometric';
 import { useTheme } from '@/lib/useTheme';
 import { formatDate } from '@/lib/format';
 import { spacing, radius } from '@/lib/theme';
+import { isScreenshotProtectionEnabled, setScreenshotProtection } from '@/lib/security';
+import { isPinEnabled } from '@/lib/pin';
+import { getCacheSize } from '@/lib/query-persist';
 
 interface SettingsRowProps {
   icon: string;
@@ -71,10 +76,20 @@ function SettingsGroup({ title, children }: { title: string; children: React.Rea
 function ProfileScreen() {
   const router = useRouter();
   const { user, logout, language, switchLanguage } = useAuth();
-  const { colors, mode, toggleTheme } = useTheme();
+  const { colors } = useTheme();
   const { data: payments } = useMyPayments();
   const { data: loans } = useMyLoans();
+  const { enabled: biometricEnabled, label: biometricLabel, enable: enableBiometric, disable: disableBiometric } = useBiometric();
   const [loggingOut, setLoggingOut] = useState(false);
+  const [screenshotProtected, setScreenshotProtected] = useState(false);
+  const [pinEnabled, setPinEnabled] = useState(false);
+  const [cacheSize, setCacheSize] = useState(0);
+
+  useEffect(() => {
+    void isScreenshotProtectionEnabled().then(setScreenshotProtected);
+    void isPinEnabled().then(setPinEnabled);
+    setCacheSize(getCacheSize());
+  }, []);
 
   const totalDonated = payments?.filter((p) => !p.pendingVerify && p.verifiedAt).reduce((s, p) => s + p.amount, 0) ?? 0;
   const activeLoans = loans?.filter((l) => l.active).length ?? 0;
@@ -94,13 +109,30 @@ function ProfileScreen() {
     ]);
   };
 
+  const handleScreenshotToggle = async (val: boolean) => {
+    await setScreenshotProtection(val);
+    setScreenshotProtected(val);
+  };
+
+  const handleBiometricToggle = async (val: boolean) => {
+    if (val) {
+      await enableBiometric();
+    } else {
+      await disableBiometric();
+    }
+  };
+
   if (!user) return null;
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.bg1 }]} edges={['top']}>
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         <Animated.View entering={FadeInDown.duration(400)} style={styles.profileHeader}>
-          <Avatar name={user.nameEn || user.nameUr} size="xxl" color={user.color} />
+          <AvatarUpload
+            name={user.nameEn || user.nameUr}
+            color={user.color}
+            currentUrl={user.photoUrl}
+          />
           <Text style={[styles.profileName, { color: colors.text1 }]}>{user.nameEn}</Text>
           {user.nameUr ? <Text style={[styles.profileNameUr, { color: colors.text3 }]}>{user.nameUr}</Text> : null}
           <View style={styles.badgeRow}>
@@ -120,41 +152,68 @@ function ProfileScreen() {
         <SettingsGroup title="ACCOUNT">
           <SettingsRow icon="account-edit-outline" label="Edit Profile" onPress={() => {}} />
           <SettingsRow icon="lock-reset" label="Change Password" onPress={() => {}} />
-          <SettingsRow icon="family-tree" label="Family Tree" onPress={() => router.push('/members/')} />
+          <SettingsRow icon="family-tree" label="Family Tree" onPress={() => router.push('/family-tree')} />
+          <SettingsRow icon="trophy-outline" label="Achievements" onPress={() => router.push('/achievements')} />
+          <SettingsRow icon="qrcode-scan" label="My QR Code" onPress={() => router.push('/qr-pay')} />
+          <SettingsRow icon="tools" label="Islamic Tools" onPress={() => router.push('/tools/index')} />
+          <SettingsRow icon="robot-outline" label="AI Assistant" onPress={() => router.push('/ai-assistant')} />
         </SettingsGroup>
 
         <SettingsGroup title="PREFERENCES">
           <SettingsRow
             icon="translate"
             label="Language"
-            rightNode={
-              <View style={styles.langSwitch}>
-                <Text style={[styles.langLabel, { color: language === 'en' ? colors.primary : colors.text4 }]}>EN</Text>
-                <Switch
-                  value={language === 'ur'}
-                  onValueChange={async () => { await switchLanguage(language === 'en' ? 'ur' : 'en'); }}
-                  trackColor={{ false: colors.bg4, true: colors.primaryDim }}
-                  thumbColor={colors.primary}
-                />
-                <Text style={[styles.langLabel, { color: language === 'ur' ? colors.primary : colors.text4 }]}>اردو</Text>
-              </View>
-            }
-            chevron={false}
+            value={language?.toUpperCase() ?? 'EN'}
+            onPress={() => router.push('/settings/language')}
           />
           <SettingsRow
-            icon="theme-light-dark"
-            label="Dark Mode"
+            icon="palette-outline"
+            label="Appearance"
+            onPress={() => router.push('/settings/theme')}
+          />
+          <SettingsRow icon="bell-outline" label="Notifications" onPress={() => router.push('/notifications')} />
+          <SettingsRow icon="alarm" label="Reminders" onPress={() => router.push('/settings/reminders')} />
+        </SettingsGroup>
+
+        <SettingsGroup title="SECURITY">
+          <SettingsRow
+            icon="fingerprint"
+            label={`${biometricLabel} Lock`}
             rightNode={
               <Switch
-                value={mode === 'dark'}
-                onValueChange={toggleTheme}
+                value={biometricEnabled}
+                onValueChange={handleBiometricToggle}
                 trackColor={{ false: colors.bg4, true: colors.primaryDim }}
                 thumbColor={colors.primary}
               />
             }
             chevron={false}
           />
-          <SettingsRow icon="bell-outline" label="Notifications" onPress={() => router.push('/notifications')} />
+          <SettingsRow
+            icon="dialpad"
+            label="PIN Lock"
+            value={pinEnabled ? 'Enabled' : 'Disabled'}
+            onPress={() => router.push('/(auth)/pin-setup')}
+          />
+          <SettingsRow
+            icon="camera-off"
+            label="Screenshot Protection"
+            rightNode={
+              <Switch
+                value={screenshotProtected}
+                onValueChange={handleScreenshotToggle}
+                trackColor={{ false: colors.bg4, true: colors.primaryDim }}
+                thumbColor={colors.primary}
+              />
+            }
+            chevron={false}
+          />
+          <SettingsRow
+            icon="database-outline"
+            label="Offline Cache"
+            value={`${(cacheSize / 1024).toFixed(0)} KB`}
+            chevron={false}
+          />
         </SettingsGroup>
 
         {user.role === 'admin' ? (

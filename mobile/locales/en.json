@@ -179,5 +179,60 @@
     "invalidEmail": "Invalid email address",
     "passwordTooShort": "Password must be at least 8 characters",
     "passwordMismatch": "Passwords do not match"
+  },
+  "islamic": {
+    "sadaqah": "Sadaqah",
+    "zakat": "Zakat",
+    "qarzHasana": "Qarz-e-Hasana",
+    "inshallah": "Insha'Allah",
+    "mashallah": "Mashallah",
+    "barakallah": "Barakallah",
+    "alhamdulillah": "Alhamdulillah"
+  },
+  "ai": {
+    "title": "Barakah Assistant",
+    "placeholder": "Ask about donations, Zakat, loans...",
+    "thinking": "Thinking...",
+    "suggestions": {
+      "zakat": "What is my Zakat for this month?",
+      "qarz": "How does Qarz-e-Hasana work?",
+      "contributions": "Show my contributions"
+    }
+  },
+  "language": {
+    "select": "Select Language",
+    "arabic": "العربية",
+    "urdu": "اردو",
+    "english": "English",
+    "hindi": "हिन्दी",
+    "pashto": "پښتو",
+    "sindhi": "سنڌي",
+    "saved": "Language saved"
+  },
+  "themes": {
+    "title": "Appearance",
+    "dark": "Dark",
+    "light": "Light",
+    "amoled": "AMOLED",
+    "cyberpunk": "Cyberpunk",
+    "desert": "Desert"
+  },
+  "achievements": {
+    "title": "Achievements",
+    "firstDonation": "First Donation",
+    "consistentGiver": "Consistent Giver",
+    "voter": "Voter",
+    "helper": "Helper",
+    "familyBuilder": "Family Tree Builder",
+    "loanRepayer": "Loan Repayer",
+    "generousHeart": "Generous Heart",
+    "unlocked": "Achievement Unlocked!"
+  },
+  "tools": {
+    "title": "Islamic Tools",
+    "prayerTimes": "Prayer Times",
+    "qibla": "Qibla Direction",
+    "hijriDate": "Hijri Date",
+    "zakatCalc": "Zakat Calculator"
   }
 }

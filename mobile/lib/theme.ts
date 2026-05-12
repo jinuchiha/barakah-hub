@@ -68,9 +68,126 @@ export const lightColors = {
   info: '#3b82f6',
 } as const;
 
-export type ColorScheme = {
-  [K in keyof typeof darkColors]: string;
+export const amoledColors = {
+  bg0: '#000000',
+  bg1: '#000000',
+  bg2: '#0a0a0a',
+  bg3: '#111111',
+  bg4: '#1a1a1a',
+  glass1: 'rgba(255,255,255,0.03)',
+  glass2: 'rgba(255,255,255,0.06)',
+  glass3: 'rgba(255,255,255,0.10)',
+  glassBorder: 'rgba(255,255,255,0.08)',
+  primary: '#00e676',
+  primaryMuted: '#00c853',
+  primaryDim: 'rgba(0,230,118,0.12)',
+  primaryGlow: 'rgba(0,230,118,0.25)',
+  gold: '#ffd740',
+  goldMuted: '#ffab00',
+  goldDim: 'rgba(255,215,64,0.12)',
+  accent: '#448aff',
+  accentDim: 'rgba(68,138,255,0.12)',
+  danger: '#ff5252',
+  dangerDim: 'rgba(255,82,82,0.12)',
+  text1: '#ffffff',
+  text2: 'rgba(255,255,255,0.80)',
+  text3: 'rgba(255,255,255,0.45)',
+  text4: 'rgba(255,255,255,0.22)',
+  border1: 'rgba(255,255,255,0.06)',
+  border2: 'rgba(255,255,255,0.12)',
+  shadowGreen: 'rgba(0,230,118,0.20)',
+  shadowBlue: 'rgba(68,138,255,0.20)',
+  shadowGold: 'rgba(255,215,64,0.20)',
+  success: '#00e676',
+  warning: '#ffd740',
+  info: '#448aff',
+} as const;
+
+export const cyberpunkColors = {
+  bg0: '#0d0015',
+  bg1: '#130020',
+  bg2: '#1a0030',
+  bg3: '#220040',
+  bg4: '#2c0055',
+  glass1: 'rgba(255,0,255,0.04)',
+  glass2: 'rgba(255,0,255,0.08)',
+  glass3: 'rgba(255,0,255,0.13)',
+  glassBorder: 'rgba(255,0,255,0.18)',
+  primary: '#00ffcc',
+  primaryMuted: '#00ddb3',
+  primaryDim: 'rgba(0,255,204,0.15)',
+  primaryGlow: 'rgba(0,255,204,0.35)',
+  gold: '#ff00ff',
+  goldMuted: '#cc00cc',
+  goldDim: 'rgba(255,0,255,0.18)',
+  accent: '#ff2d78',
+  accentDim: 'rgba(255,45,120,0.18)',
+  danger: '#ff3333',
+  dangerDim: 'rgba(255,51,51,0.15)',
+  text1: '#f0e8ff',
+  text2: 'rgba(240,232,255,0.80)',
+  text3: 'rgba(240,232,255,0.50)',
+  text4: 'rgba(240,232,255,0.28)',
+  border1: 'rgba(255,0,255,0.12)',
+  border2: 'rgba(255,0,255,0.22)',
+  shadowGreen: 'rgba(0,255,204,0.30)',
+  shadowBlue: 'rgba(255,45,120,0.25)',
+  shadowGold: 'rgba(255,0,255,0.28)',
+  success: '#00ffcc',
+  warning: '#ff00ff',
+  info: '#ff2d78',
+} as const;
+
+export const desertColors = {
+  bg0: '#1a1208',
+  bg1: '#221a0c',
+  bg2: '#2d2210',
+  bg3: '#382b14',
+  bg4: '#44341a',
+  glass1: 'rgba(255,220,130,0.04)',
+  glass2: 'rgba(255,220,130,0.08)',
+  glass3: 'rgba(255,220,130,0.13)',
+  glassBorder: 'rgba(255,220,130,0.16)',
+  primary: '#2ed573',
+  primaryMuted: '#26c065',
+  primaryDim: 'rgba(46,213,115,0.15)',
+  primaryGlow: 'rgba(46,213,115,0.30)',
+  gold: '#f5c842',
+  goldMuted: '#d4a831',
+  goldDim: 'rgba(245,200,66,0.18)',
+  accent: '#4dabf7',
+  accentDim: 'rgba(77,171,247,0.15)',
+  danger: '#ff6b6b',
+  dangerDim: 'rgba(255,107,107,0.15)',
+  text1: '#fef3dc',
+  text2: 'rgba(254,243,220,0.80)',
+  text3: 'rgba(254,243,220,0.50)',
+  text4: 'rgba(254,243,220,0.30)',
+  border1: 'rgba(255,220,130,0.10)',
+  border2: 'rgba(255,220,130,0.18)',
+  shadowGreen: 'rgba(46,213,115,0.25)',
+  shadowBlue: 'rgba(77,171,247,0.20)',
+  shadowGold: 'rgba(245,200,66,0.28)',
+  success: '#2ed573',
+  warning: '#f5c842',
+  info: '#4dabf7',
+} as const;
+
+export type ColorScheme = { [K in keyof typeof darkColors]: string };
+
+export type ThemeName = 'dark' | 'light' | 'amoled' | 'cyberpunk' | 'desert';
+
+export const ALL_THEMES: Record<ThemeName, ColorScheme> = {
+  dark: darkColors,
+  light: lightColors,
+  amoled: amoledColors,
+  cyberpunk: cyberpunkColors,
+  desert: desertColors,
 };
+
+export function getThemeColors(theme: ThemeName): ColorScheme {
+  return ALL_THEMES[theme];
+}
 
 export const spacing = {
   xs: 4,
@@ -92,7 +209,7 @@ export const radius = {
   full: 9999,
 } as const;
 
-// Legacy aliases kept for backward compat while migration completes
+// Legacy aliases
 export const colors = darkColors;
 export const typography = {
   h1: { fontSize: 28, fontWeight: '700' as const },

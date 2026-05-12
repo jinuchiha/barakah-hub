@@ -179,5 +179,60 @@
     "invalidEmail": "غلط ای میل پتہ",
     "passwordTooShort": "پاسورڈ کم از کم 8 حروف کا ہونا چاہیے",
     "passwordMismatch": "پاسورڈ مماثل نہیں"
+  },
+  "islamic": {
+    "sadaqah": "صدقہ",
+    "zakat": "زکات",
+    "qarzHasana": "قرض حسنہ",
+    "inshallah": "ان شاء اللہ",
+    "mashallah": "ماشاء اللہ",
+    "barakallah": "بارک اللہ",
+    "alhamdulillah": "الحمد للہ"
+  },
+  "ai": {
+    "title": "برکت اسسٹنٹ",
+    "placeholder": "عطیات، زکات، قرض کے بارے میں پوچھیں...",
+    "thinking": "سوچ رہا ہے...",
+    "suggestions": {
+      "zakat": "اس مہینے میری زکات کیا ہے؟",
+      "qarz": "قرض حسنہ کیسے کام کرتا ہے؟",
+      "contributions": "میری حصہ داریاں دکھائیں"
+    }
+  },
+  "language": {
+    "select": "زبان منتخب کریں",
+    "arabic": "العربية",
+    "urdu": "اردو",
+    "english": "English",
+    "hindi": "हिन्दी",
+    "pashto": "پښتو",
+    "sindhi": "سنڌي",
+    "saved": "زبان محفوظ ہوئی"
+  },
+  "themes": {
+    "title": "ظاہری شکل",
+    "dark": "سیاہ",
+    "light": "روشن",
+    "amoled": "AMOLED",
+    "cyberpunk": "سائبرپنک",
+    "desert": "ریگستان"
+  },
+  "achievements": {
+    "title": "کامیابیاں",
+    "firstDonation": "پہلا عطیہ",
+    "consistentGiver": "مستقل دینے والا",
+    "voter": "ووٹر",
+    "helper": "مددگار",
+    "familyBuilder": "خاندانی درخت بنانے والا",
+    "loanRepayer": "قرض واپس کرنے والا",
+    "generousHeart": "سخی دل",
+    "unlocked": "کامیابی حاصل ہوئی!"
+  },
+  "tools": {
+    "title": "اسلامی ابزار",
+    "prayerTimes": "نماز کے اوقات",
+    "qibla": "قبلہ سمت",
+    "hijriDate": "ہجری تاریخ",
+    "zakatCalc": "زکات کیلکولیٹر"
   }
 }

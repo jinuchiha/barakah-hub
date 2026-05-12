@@ -1,8 +1,9 @@
 import '../global.css';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClient } from '@tanstack/react-query';
+import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { I18nextProvider } from 'react-i18next';
@@ -14,13 +15,20 @@ import {
 } from '@expo-google-fonts/inter';
 import { SpaceMono_400Regular } from '@expo-google-fonts/space-mono';
 import * as SplashScreen from 'expo-splash-screen';
+import * as SecureStore from 'expo-secure-store';
 import i18n, { initI18n } from '@/lib/i18n';
 import { useAuth } from '@/hooks/useAuth';
 import { LoadingScreen } from '@/components/ui/LoadingScreen';
-import { darkColors, lightColors } from '@/lib/theme';
-import { ThemeContext, type ThemeMode } from '@/lib/useTheme';
+import { ALL_THEMES, type ThemeName } from '@/lib/theme';
+import { ThemeContext, themeNameToMode } from '@/lib/useTheme';
+import { OfflineBanner } from '@/components/OfflineBanner';
+import { startNetworkListener } from '@/lib/offline';
+import { setupDeepLinkListener, handleInitialURL } from '@/lib/deep-link';
+import { queryPersister } from '@/lib/query-persist';
 
 SplashScreen.preventAutoHideAsync().catch(() => undefined);
+
+const THEME_KEY = 'bh_theme';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -33,6 +41,10 @@ function AuthInitializer({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     initI18n().then(() => refreshSession());
+    startNetworkListener();
+    const cleanupDeepLink = setupDeepLinkListener();
+    void handleInitialURL();
+    return cleanupDeepLink;
   }, [refreshSession]);
 
   if (isLoading) return <LoadingScreen />;
@@ -40,13 +52,33 @@ function AuthInitializer({ children }: { children: React.ReactNode }) {
 }
 
 function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [mode, setMode] = useState<ThemeMode>('dark');
+  const [themeName, setThemeName] = useState<ThemeName>('dark');
 
-  const toggleTheme = () => setMode((m) => (m === 'dark' ? 'light' : 'dark'));
-  const themeColors = mode === 'dark' ? darkColors : lightColors;
+  useEffect(() => {
+    SecureStore.getItemAsync(THEME_KEY)
+      .then((stored) => {
+        const valid: ThemeName[] = ['dark', 'light', 'amoled', 'cyberpunk', 'desert'];
+        if (stored && valid.includes(stored as ThemeName)) {
+          setThemeName(stored as ThemeName);
+        }
+      })
+      .catch(() => undefined);
+  }, []);
+
+  const setTheme = useCallback(async (name: ThemeName) => {
+    setThemeName(name);
+    await SecureStore.setItemAsync(THEME_KEY, name).catch(() => undefined);
+  }, []);
+
+  const toggleTheme = useCallback(() => {
+    setTheme(themeName === 'dark' ? 'light' : 'dark');
+  }, [themeName, setTheme]);
+
+  const themeColors = ALL_THEMES[themeName];
+  const mode = themeNameToMode(themeName);
 
   return (
-    <ThemeContext.Provider value={{ mode, colors: themeColors, toggleTheme }}>
+    <ThemeContext.Provider value={{ mode, themeName, colors: themeColors, toggleTheme, setTheme }}>
       {children}
     </ThemeContext.Provider>
   );
@@ -69,7 +101,10 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
-        <QueryClientProvider client={queryClient}>
+        <PersistQueryClientProvider
+          client={queryClient}
+          persistOptions={{ persister: queryPersister }}
+        >
           <I18nextProvider i18n={i18n}>
             <ThemeProvider>
               <AuthInitializer>
@@ -79,12 +114,23 @@ export default function RootLayout() {
                   <Stack.Screen name="members" />
                   <Stack.Screen name="admin" />
                   <Stack.Screen name="notifications" />
+                  <Stack.Screen name="onboarding" />
+                  <Stack.Screen name="lock" options={{ animation: 'fade' }} />
+                  <Stack.Screen name="ai-assistant" options={{ animation: 'slide_from_bottom', presentation: 'modal' }} />
+                  <Stack.Screen name="achievements" options={{ animation: 'slide_from_right' }} />
+                  <Stack.Screen name="family-tree" options={{ animation: 'slide_from_right' }} />
+                  <Stack.Screen name="qr-pay" options={{ animation: 'slide_from_bottom', presentation: 'modal' }} />
+                  <Stack.Screen name="settings/language" options={{ animation: 'slide_from_right' }} />
+                  <Stack.Screen name="settings/theme" options={{ animation: 'slide_from_right' }} />
+                  <Stack.Screen name="settings/reminders" options={{ animation: 'slide_from_right' }} />
+                  <Stack.Screen name="tools/index" options={{ animation: 'slide_from_right' }} />
                 </Stack>
+                <OfflineBanner />
               </AuthInitializer>
               <StatusBar style="light" translucent />
             </ThemeProvider>
           </I18nextProvider>
-        </QueryClientProvider>
+        </PersistQueryClientProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );

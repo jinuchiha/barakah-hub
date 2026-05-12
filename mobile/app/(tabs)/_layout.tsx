@@ -11,11 +11,13 @@ function CustomTabBar() {
   const router = useRouter();
   const pathname = usePathname();
   const { notificationCount } = useAppStore();
+  const { user } = useAuthStore();
 
   const getActiveTab = (): TabRoute => {
     if (pathname.includes('/payments')) return 'payments';
     if (pathname.includes('/cases')) return 'cases';
     if (pathname.includes('/loans')) return 'loans';
+    if (pathname.includes('/analytics')) return 'analytics';
     if (pathname.includes('/profile')) return 'profile';
     return 'index';
   };
@@ -30,6 +32,7 @@ function CustomTabBar() {
       activeTab={getActiveTab()}
       onTabPress={handleTabPress}
       notificationCount={notificationCount}
+      isAdmin={user?.role === 'admin'}
     />
   );
 }
@@ -50,6 +53,7 @@ export default function TabsLayout() {
         <Tabs.Screen name="payments" />
         <Tabs.Screen name="cases" />
         <Tabs.Screen name="loans" />
+        <Tabs.Screen name="analytics" />
         <Tabs.Screen name="profile" />
       </Tabs>
     </View>

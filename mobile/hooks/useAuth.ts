@@ -2,7 +2,7 @@ import { useCallback } from 'react';
 import { useAuthStore } from '@/stores/auth.store';
 import { signIn, signOut, signUp, forgotPassword, getSession, fetchMyMember } from '@/lib/auth';
 import { saveLanguage } from '@/lib/storage';
-import { changeLanguage } from '@/lib/i18n';
+import { changeLanguage, type SupportedLanguage } from '@/lib/i18n';
 import type { SignInInput, SignUpInput, ForgotPasswordInput } from '@/lib/auth';
 
 export function useAuth() {
@@ -42,9 +42,9 @@ export function useAuth() {
     }
   }, [setUser, setLoading]);
 
-  const switchLanguage = useCallback(async (lang: 'en' | 'ur') => {
+  const switchLanguage = useCallback(async (lang: SupportedLanguage) => {
     changeLanguage(lang);
-    setLanguage(lang);
+    setLanguage(lang as 'en' | 'ur');
     await saveLanguage(lang);
   }, [setLanguage]);
 

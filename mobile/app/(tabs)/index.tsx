@@ -1,11 +1,15 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import Animated, { FadeInDown } from 'react-native-reanimated';
+import Animated, {
+  FadeInDown, useSharedValue, useAnimatedStyle,
+  withRepeat, withTiming, withSequence,
+} from 'react-native-reanimated';
+import * as Haptics from 'expo-haptics';
 import { useAuthStore } from '@/stores/auth.store';
 import { useAppStore } from '@/stores/app.store';
 import { useDashboard } from '@/hooks/useDashboard';
@@ -17,14 +21,17 @@ import { Badge } from '@/components/ui/Badge';
 import { Avatar } from '@/components/ui/Avatar';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Button } from '@/components/ui/Button';
+import { DailyVerseCard } from '@/components/DailyVerseCard';
+import { GlobalSearch } from '@/components/GlobalSearch';
 import { useTheme } from '@/lib/useTheme';
 import { spacing } from '@/lib/theme';
 import { format } from 'date-fns';
 
-function DashboardHeader({ displayName, notificationCount, onBell }: {
+function DashboardHeader({ displayName, notificationCount, onBell, onSearch }: {
   displayName: string;
   notificationCount: number;
   onBell: () => void;
+  onSearch: () => void;
 }) {
   const { colors } = useTheme();
   const today = format(new Date(), 'EEEE, d MMM yyyy');
@@ -36,14 +43,19 @@ function DashboardHeader({ displayName, notificationCount, onBell }: {
         <Text style={[styles.name, { color: colors.text1 }]}>{displayName}</Text>
         <Text style={[styles.dateLabel, { color: colors.text4 }]}>{today}</Text>
       </View>
-      <TouchableOpacity style={[styles.bellBtn, { backgroundColor: colors.glass2, borderColor: colors.border1 }]} onPress={onBell}>
-        <MaterialCommunityIcons name="bell-outline" size={22} color={colors.text2} />
-        {notificationCount > 0 ? (
-          <View style={[styles.bellBadge, { backgroundColor: colors.danger }]}>
-            <Text style={styles.bellBadgeText}>{notificationCount > 9 ? '9+' : notificationCount}</Text>
-          </View>
-        ) : null}
-      </TouchableOpacity>
+      <View style={styles.headerRight}>
+        <TouchableOpacity style={[styles.bellBtn, { backgroundColor: colors.glass2, borderColor: colors.border1 }]} onPress={onSearch}>
+          <MaterialCommunityIcons name="magnify" size={20} color={colors.text2} />
+        </TouchableOpacity>
+        <TouchableOpacity style={[styles.bellBtn, { backgroundColor: colors.glass2, borderColor: colors.border1 }]} onPress={onBell}>
+          <MaterialCommunityIcons name="bell-outline" size={22} color={colors.text2} />
+          {notificationCount > 0 ? (
+            <View style={[styles.bellBadge, { backgroundColor: colors.danger }]}>
+              <Text style={styles.bellBadgeText}>{notificationCount > 9 ? '9+' : notificationCount}</Text>
+            </View>
+          ) : null}
+        </TouchableOpacity>
+      </View>
     </Animated.View>
   );
 }
@@ -111,12 +123,47 @@ function QuickActions({ isAdmin, onAction }: {
   );
 }
 
+function AIFab() {
+  const router = useRouter();
+  const { colors } = useTheme();
+  const pulse = useSharedValue(1);
+
+  useEffect(() => {
+    pulse.value = withRepeat(
+      withSequence(withTiming(1.12, { duration: 900 }), withTiming(1, { duration: 900 })),
+      -1,
+      false,
+    );
+  }, [pulse]);
+
+  const pulseStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: pulse.value }],
+    opacity: 0.35 + (pulse.value - 1) * 2,
+  }));
+
+  const handlePress = () => {
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    router.push('/ai-assistant');
+  };
+
+  return (
+    <TouchableOpacity style={styles.fab} onPress={handlePress} activeOpacity={0.85}>
+      <Animated.View
+        style={[StyleSheet.absoluteFillObject, styles.fabGlow, { backgroundColor: colors.primaryGlow }, pulseStyle]}
+        pointerEvents="none"
+      />
+      <MaterialCommunityIcons name="robot-outline" size={24} color="#000" />
+    </TouchableOpacity>
+  );
+}
+
 function DashboardScreen() {
   const router = useRouter();
   const { user } = useAuthStore();
   const { notificationCount } = useAppStore();
   const { colors } = useTheme();
   const { data, isLoading, error, refetch, isRefetching } = useDashboard();
+  const [searchVisible, setSearchVisible] = useState(false);
 
   if (!isLoading && error) {
     return <EmptyState icon="wifi-off" title="Could not load dashboard" subtitle={error.message} actionLabel="Retry" onAction={() => refetch()} />;
@@ -134,6 +181,11 @@ function DashboardScreen() {
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.bg1 }]} edges={['top']}>
+      <GlobalSearch
+        visible={searchVisible}
+        onClose={() => setSearchVisible(false)}
+      />
+      <AIFab />
       <ScrollView
         contentContainerStyle={styles.scroll}
         refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={colors.primary} />}
@@ -143,7 +195,10 @@ function DashboardScreen() {
           displayName={displayName}
           notificationCount={notificationCount}
           onBell={() => router.push('/notifications')}
+          onSearch={() => setSearchVisible(true)}
         />
+
+        <DailyVerseCard />
 
         <Animated.View entering={FadeInDown.duration(400).delay(100)}>
           <Text style={[styles.sectionLabel, { color: colors.text4 }]}>FUND OVERVIEW</Text>
@@ -199,6 +254,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
   },
   headerLeft: { flex: 1 },
+  headerRight: { flexDirection: 'row', gap: 8, alignItems: 'center' },
   greeting: { fontSize: 12, fontFamily: 'Inter_600SemiBold', letterSpacing: 0.5 },
   name: { fontSize: 22, fontFamily: 'Inter_700Bold', marginTop: 2 },
   dateLabel: { fontSize: 12, fontFamily: 'Inter_400Regular', marginTop: 2 },
@@ -260,4 +316,25 @@ const styles = StyleSheet.create({
   },
   actionLabel: { fontSize: 11, fontFamily: 'Inter_600SemiBold' },
   activityCard: { padding: spacing.md },
+  fab: {
+    position: 'absolute',
+    bottom: 96,
+    right: spacing.lg,
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: '#00e676',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 100,
+    shadowColor: '#00e676',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.5,
+    shadowRadius: 12,
+    elevation: 8,
+    overflow: 'visible',
+  },
+  fabGlow: {
+    borderRadius: 26,
+  },
 });

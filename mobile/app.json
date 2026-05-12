@@ -18,10 +18,12 @@
       "supportsTablet": false,
       "bundleIdentifier": "com.barakah.hub",
       "infoPlist": {
-        "NSCameraUsageDescription": "Upload payment screenshots and scan receipts",
+        "NSCameraUsageDescription": "Upload payment screenshots, scan receipts, and scan QR codes",
         "NSPhotoLibraryUsageDescription": "Select payment proof from gallery",
         "NSFaceIDUsageDescription": "Use Face ID to unlock Barakah Hub",
-        "NSPhotoLibraryAddUsageDescription": "Save receipts to your photo library"
+        "NSPhotoLibraryAddUsageDescription": "Save receipts to your photo library",
+        "NSMicrophoneUsageDescription": "Record voice notes for cases and use voice input in the AI assistant",
+        "NSLocationWhenInUseUsageDescription": "Calculate Qibla direction for your current location"
       }
     },
     "android": {
@@ -40,7 +42,10 @@
         "android.permission.ACCESS_NETWORK_STATE",
         "android.permission.RECEIVE_BOOT_COMPLETED",
         "android.permission.VIBRATE",
-        "android.permission.POST_NOTIFICATIONS"
+        "android.permission.POST_NOTIFICATIONS",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION"
       ],
       "softwareKeyboardLayoutMode": "pan",
       "edgeToEdgeEnabled": true,
@@ -65,14 +70,22 @@
               "pathPrefix": "/notifications"
             }
           ],
-          "category": ["BROWSABLE", "DEFAULT"]
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
         },
         {
           "action": "VIEW",
           "data": [
-            { "scheme": "barakah" }
+            {
+              "scheme": "barakah"
+            }
           ],
-          "category": ["BROWSABLE", "DEFAULT"]
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
         }
       ]
     },
@@ -84,6 +97,7 @@
       "expo-router",
       "expo-secure-store",
       "expo-font",
+      "expo-localization",
       [
         "expo-notifications",
         {
@@ -115,6 +129,15 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "ceabffff-add9-4ae7-b7b3-b08b9b691b21"
+      }
+    },
+    "owner": "jinuchiha"
   }
 }
