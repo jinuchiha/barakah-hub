@@ -22,7 +22,7 @@ export default function AdminConfigForm({ config }: { config: Config }) {
         await updateAdminConfig({ voteThresholdPct: thresh, defaultMonthlyPledge: defaultMonthly });
         await updateGoal({ goalAmount, goalLabelEn, goalLabelUr, goalDeadline: goalDeadline || null });
         toast.success('Configuration saved ✓');
-      } catch (e: any) { toast.error(e.message); }
+      } catch (e: unknown) { toast.error(e instanceof Error ? e.message : 'Failed'); }
     });
   }
 

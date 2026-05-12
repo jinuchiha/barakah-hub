@@ -10,7 +10,7 @@ export default function VerifyButtons({ paymentId }: { paymentId: string }) {
       try {
         if (verify) { await verifyPayment(paymentId); toast.success('Verified ✓'); }
         else { await rejectPayment(paymentId); toast('Rejected'); }
-      } catch (e: any) { toast.error(e.message); }
+      } catch (e: unknown) { toast.error(e instanceof Error ? e.message : 'Action failed'); }
     });
   }
   return (

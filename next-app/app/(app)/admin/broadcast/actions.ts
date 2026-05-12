@@ -2,7 +2,7 @@
 import { revalidatePath } from 'next/cache';
 import { eq } from 'drizzle-orm';
 import { z } from 'zod';
-import { getSession } from '@/lib/auth-server';
+import { meOrThrow } from '@/lib/auth-server';
 import { db } from '@/lib/db';
 import { members, notifications, auditLog } from '@/lib/db/schema';
 
@@ -15,10 +15,8 @@ const schema = z.object({
 });
 
 export async function broadcastNotification(input: z.infer<typeof schema>) {
-  const session = await getSession();
-  if (!session?.user) throw new Error('Not authenticated');
-  const [me] = await db.select().from(members).where(eq(members.authId, session.user.id)).limit(1);
-  if (!me || me.role !== 'admin') throw new Error('Admin only');
+  const me = await meOrThrow();
+  if (me.role !== 'admin') throw new Error('Admin only');
   const data = schema.parse(input);
 
   const recipients = await db.select({ id: members.id }).from(members).where(eq(members.deceased, false));

@@ -25,20 +25,12 @@
 import { revalidatePath } from 'next/cache';
 import { eq, and, sql } from 'drizzle-orm';
 import { z } from 'zod';
-import { getSession } from '@/lib/auth-server';
+import { meOrThrow } from '@/lib/auth-server';
 import { db } from '@/lib/db';
 import { members, payments, cases, votes, loans, repayments, auditLog, notifications, messages, config as configTbl } from '@/lib/db/schema';
 import { monthStartFromLabel } from '@/lib/month';
 
 /* ─── helpers */
-async function meOrThrow() {
-  const session = await getSession();
-  if (!session?.user) throw new Error('Not authenticated');
-  const [m] = await db.select().from(members).where(eq(members.authId, session.user.id)).limit(1);
-  if (!m) throw new Error('Member record not found');
-  return m;
-}
-
 async function audit(actorId: string, action: string, detail: string, targetId?: string) {
   await db.insert(auditLog).values({ actorId, targetId, action, detail });
 }
@@ -242,7 +234,7 @@ const profileSchema = z.object({
   city: z.string().max(60).optional().nullable(),
   province: z.string().max(40).optional().nullable(),
   color: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional(),
-  photoUrl: z.string().url().nullable().optional(),
+  photoUrl: z.string().url().startsWith('https://').nullable().optional(),
 });
 
 export async function updateProfile(input: z.infer<typeof profileSchema>) {
@@ -307,6 +299,7 @@ export async function editMember(input: z.infer<typeof editMemberSchema>) {
 
 /* ─── delete member (admin) — soft via deceased=false→true OR hard delete */
 export async function softDeleteMember(memberId: string) {
+  if (!/^[0-9a-f-]{36}$/i.test(memberId)) throw new Error('Invalid id');
   const me = await meOrThrow();
   if (me.role !== 'admin') throw new Error('Admin only');
   await db.update(members).set({ deceased: true }).where(eq(members.id, memberId));
@@ -534,6 +527,7 @@ const sendMessageSchema = z.object({
 
 export async function sendMessage(input: z.infer<typeof sendMessageSchema>) {
   const me = await meOrThrow();
+  if (me.status !== 'approved') throw new Error('Account not approved');
   const data = sendMessageSchema.parse(input);
 
   const [recipient] = await db.select().from(members).where(eq(members.id, data.toId)).limit(1);

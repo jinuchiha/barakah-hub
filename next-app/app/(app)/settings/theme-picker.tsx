@@ -40,7 +40,7 @@ export default function ThemePicker({ initial, canSave }: { initial: string; can
     if (!canSave) { toast('Theme applied locally — admin can persist for everyone'); return; }
     start(async () => {
       try { await updateAdminConfig({ themePalette: active }); toast.success('Theme persisted for all members'); }
-      catch (e: any) { toast.error(e.message); }
+      catch (e: unknown) { toast.error(e instanceof Error ? e.message : 'Failed'); }
     });
   }
 

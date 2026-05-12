@@ -65,12 +65,19 @@ export async function onboardSelf(input: z.infer<typeof schema>) {
     return;
   }
 
-  // Brand-new user — first signup
+  // Brand-new user — ensure username is unique (email prefix can collide)
+  let finalUsername = username;
+  const [existing] = await db.select({ id: members.id }).from(members).where(eq(members.username, username)).limit(1);
+  if (existing) {
+    // Append last 4 chars of auth id to break the collision deterministically
+    finalUsername = `${username}_${user.id.slice(-4)}`;
+  }
+
   const [created] = await db
     .insert(members)
     .values({
       authId: user.id,
-      username,
+      username: finalUsername,
       nameEn: data.nameEn,
       nameUr: data.nameUr || data.nameEn,
       fatherName: data.fatherName,

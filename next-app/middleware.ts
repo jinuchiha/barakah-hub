@@ -19,7 +19,7 @@ import { getSessionCookie } from 'better-auth/cookies';
 // 'experimental-edge' until that warning is gone in a later release.
 export const runtime = 'experimental-edge';
 
-const PUBLIC_ROUTES = ['/login', '/register', '/forgot-password', '/reset-password', '/api/auth'];
+const PUBLIC_ROUTES = ['/login', '/register', '/forgot-password', '/reset-password', '/api/auth', '/pending', '/rejected'];
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;

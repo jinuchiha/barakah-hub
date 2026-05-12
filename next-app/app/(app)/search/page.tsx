@@ -33,12 +33,13 @@ export default async function SearchPage({ searchParams }: Props) {
 
   const like = `%${term.replace(/[%_\\]/g, (c) => `\\${c}`)}%`;
 
-  // Members are visible to everyone (approved-only for non-admin)
+  // Members: exclude deceased; non-admins see approved only
   const memberQuery = db
     .select()
     .from(members)
     .where(
       and(
+        eq(members.deceased, false),
         isAdmin ? sql`TRUE` : eq(members.status, 'approved'),
         or(
           ilike(members.nameEn, like),

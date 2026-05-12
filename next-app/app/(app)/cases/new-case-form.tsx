@@ -31,7 +31,7 @@ export default function NewCaseForm() {
         toast.success('Submitted — voting open');
         setForm({ ...form, beneficiaryName: '', relation: '', city: '', amount: 0, reasonUr: '', reasonEn: '', emergency: false });
         setOpen(false);
-      } catch (e: any) { toast.error(e.message || 'Submission failed'); }
+      } catch (e: unknown) { toast.error(e instanceof Error ? e.message : 'Submission failed'); }
     });
   }
 

@@ -20,7 +20,7 @@ export default function ProfileForm({ member }: { member: Member }) {
     city: member.city || '',
     province: member.province || '',
     color: member.color,
-    photoUrl: member.photoUrl || '',
+    photoUrl: member.photoUrl ?? null,
   });
   const [showColors, setShowColors] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -40,8 +40,8 @@ export default function ProfileForm({ member }: { member: Member }) {
   function save(e: React.FormEvent) {
     e.preventDefault();
     start(async () => {
-      try { await updateProfile(form as any); toast.success('Profile saved ✓'); }
-      catch (e: any) { toast.error(e.message); }
+      try { await updateProfile(form); toast.success('Profile saved ✓'); }
+      catch (e: unknown) { toast.error(e instanceof Error ? e.message : 'Failed'); }
     });
   }
 
@@ -63,7 +63,7 @@ export default function ProfileForm({ member }: { member: Member }) {
           <div className="mt-2 flex gap-2">
             <button type="button" onClick={() => setShowColors((s) => !s)} className="rounded-md border border-[var(--border)] px-3 py-1 text-xs">🎨 Color</button>
             <button type="button" onClick={() => fileRef.current?.click()} className="rounded-md border border-[var(--border)] px-3 py-1 text-xs">📷 Photo</button>
-            {form.photoUrl && <button type="button" onClick={() => set('photoUrl', '')} className="rounded-md border border-red-500/40 px-3 py-1 text-xs text-red-400">✕ Remove</button>}
+            {form.photoUrl && <button type="button" onClick={() => set('photoUrl', null)} className="rounded-md border border-red-500/40 px-3 py-1 text-xs text-red-400">✕ Remove</button>}
           </div>
         </div>
       </div>

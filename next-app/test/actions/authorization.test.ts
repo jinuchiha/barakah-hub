@@ -12,6 +12,16 @@ vi.mock('@/lib/auth-server', () => ({
   getSession: async () => sessionMock.instance,
   getUser: async () => (sessionMock.instance as any)?.user ?? null,
   getMeOrRedirect: async () => { throw new Error('not used in action tests'); },
+  // Mirrors the real meOrThrow but uses hoisted mocks so no real auth module loads
+  meOrThrow: async () => {
+    const session = sessionMock.instance as any;
+    if (!session?.user) throw new Error('Not authenticated');
+    const db = (dbMock.instance as any);
+    const result = await db.select().from({}).where({}).limit(1);
+    const m = Array.isArray(result) ? result[0] : result;
+    if (!m) throw new Error('Member record not found');
+    return m;
+  },
 }));
 vi.mock('@/lib/db', () => ({
   get db() { return dbMock.instance; },

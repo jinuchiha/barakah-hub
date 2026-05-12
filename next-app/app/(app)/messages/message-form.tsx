@@ -21,7 +21,7 @@ export default function MessageForm({ recipients }: { recipients: Recipient[] })
         await sendMessage({ toId, subject, body });
         toast.success('Message sent');
         setSubject(''); setBody('');
-      } catch (e: any) { toast.error(e.message); }
+      } catch (e: unknown) { toast.error(e instanceof Error ? e.message : 'Failed'); }
     });
   }
 

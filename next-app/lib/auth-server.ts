@@ -47,3 +47,16 @@ export async function getMeOrRedirect(): Promise<Member> {
   if (me.status === 'rejected') redirect('/rejected' as any);
   return me;
 }
+
+/**
+ * Shared action helper — validates session and returns the member record.
+ * Throws (not redirects) so it's safe to call inside server actions.
+ * Used by app/actions.ts, broadcast/actions.ts, and any future action file.
+ */
+export async function meOrThrow(): Promise<Member> {
+  const session = await getSession();
+  if (!session?.user) throw new Error('Not authenticated');
+  const [m] = await db.select().from(members).where(eq(members.authId, session.user.id)).limit(1);
+  if (!m) throw new Error('Member record not found');
+  return m;
+}

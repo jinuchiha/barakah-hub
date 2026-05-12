@@ -8,7 +8,7 @@ export default function VoteButtons({ caseId, alreadyVoted }: { caseId: string; 
   function vote(yes: boolean) {
     start(async () => {
       try { await castVote(caseId, yes); toast.success(yes ? '✓ Vote recorded — جزاکم اللہ' : '✗ No vote recorded'); }
-      catch (e: any) { toast.error(e.message || 'Vote failed'); }
+      catch (e: unknown) { toast.error(e instanceof Error ? e.message : 'Vote failed'); }
     });
   }
   if (alreadyVoted) return <div className="text-xs italic text-[var(--color-emerald-2)]">✓ You have voted</div>;

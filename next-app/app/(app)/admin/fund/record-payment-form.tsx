@@ -23,7 +23,7 @@ export default function RecordPaymentForm({ members }: { members: { id: string; 
         await recordPayment({ memberId, amount, pool, monthLabel: month, note });
         toast.success(`Payment recorded`);
         setAmount(0); setNote('');
-      } catch (e: any) { toast.error(e.message); }
+      } catch (e: unknown) { toast.error(e instanceof Error ? e.message : 'Failed'); }
     });
   }
 

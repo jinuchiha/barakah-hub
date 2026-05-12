@@ -8,7 +8,7 @@ export default function DisburseButton({ caseId }: { caseId: string }) {
   function handle() {
     start(async () => {
       try { await disburseCase(caseId); toast.success('Disbursed — funds marked as distributed'); }
-      catch (e: any) { toast.error(e.message || 'Failed'); }
+      catch (e: unknown) { toast.error(e instanceof Error ? e.message : 'Failed'); }
     });
   }
   return (

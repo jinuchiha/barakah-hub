@@ -68,7 +68,7 @@ export default function MembersTable({ initial }: Props) {
     if (!confirm(`Delete ${m.nameEn || m.nameUr}? Children will be re-parented to admin.`)) return;
     startTransition(async () => {
       try { await hardDeleteMember(m.id); toast.success('Deleted'); }
-      catch (e: any) { toast.error(e.message || 'Failed'); }
+      catch (e: unknown) { toast.error(e instanceof Error ? e.message : 'Failed'); }
     });
   }
 
