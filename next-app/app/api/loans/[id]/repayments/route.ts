@@ -9,14 +9,15 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(
   _req: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     await meOrThrow();
+    const { id } = await params;
     const rows = await db
       .select()
       .from(repayments)
-      .where(eq(repayments.loanId, params.id))
+      .where(eq(repayments.loanId, id))
       .orderBy(desc(repayments.paidOn));
     return NextResponse.json(rows);
   } catch {

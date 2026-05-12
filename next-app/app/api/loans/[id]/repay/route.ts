@@ -15,7 +15,7 @@ const schema = z.object({
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const me = await meOrThrow();
@@ -23,7 +23,7 @@ export async function POST(
 
     const body = await req.json();
     const { amount, note } = schema.parse(body);
-    const loanId = params.id;
+    const { id: loanId } = await params;
 
     const updated = await db
       .update(loans)

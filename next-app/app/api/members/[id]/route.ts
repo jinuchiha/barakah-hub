@@ -9,11 +9,12 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(
   _req: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const me = await meOrThrow();
-    const [member] = await db.select().from(members).where(eq(members.id, params.id)).limit(1);
+    const { id } = await params;
+    const [member] = await db.select().from(members).where(eq(members.id, id)).limit(1);
     if (!member) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
     // Non-admins can only view approved members, with reduced data

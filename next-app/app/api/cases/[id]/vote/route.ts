@@ -12,11 +12,11 @@ const schema = z.object({ yes: z.boolean() });
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const me = await meOrThrow();
-    const { id: caseId } = params;
+    const { id: caseId } = await params;
 
     if (!/^[0-9a-f-]{36}$/i.test(caseId)) {
       return NextResponse.json({ error: 'Invalid case id' }, { status: 400 });

@@ -9,13 +9,13 @@ export const dynamic = 'force-dynamic';
 
 export async function POST(
   _req: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const me = await meOrThrow();
     if (me.role !== 'admin') return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
-    const memberId = params.id;
+    const { id: memberId } = await params;
     const [m] = await db.select().from(members).where(eq(members.id, memberId)).limit(1);
     if (!m) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
