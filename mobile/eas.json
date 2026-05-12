@@ -21,7 +21,7 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://barakah-hub.bakerabi91.workers.dev"
+        "EXPO_PUBLIC_API_URL": "https://app.barakah-hub.workers.dev"
       }
     },
     "production": {
@@ -29,7 +29,7 @@
         "buildType": "app-bundle"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://barakah-hub.bakerabi91.workers.dev"
+        "EXPO_PUBLIC_API_URL": "https://app.barakah-hub.workers.dev"
       }
     }
   },

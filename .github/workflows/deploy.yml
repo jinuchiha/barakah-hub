@@ -23,7 +23,7 @@ jobs:
     # Configure under: Settings → Environments → production
     environment:
       name: production
-      url: https://barakah-hub.bakerabi91.workers.dev
+      url: https://app.barakah-hub.workers.dev
 
     steps:
       - uses: actions/checkout@v4
@@ -51,7 +51,7 @@ jobs:
           # bundle. Server-only secrets (DATABASE_URL, BETTER_AUTH_SECRET,
           # RESEND_API_KEY) are set on the Worker via `wrangler secret put`
           # — they don't need to be available at build time.
-          NEXT_PUBLIC_APP_URL: https://barakah-hub.bakerabi91.workers.dev
+          NEXT_PUBLIC_APP_URL: https://app.barakah-hub.workers.dev
           # DATABASE_URL is needed at build because lib/db/index.ts now
           # throws at module-load if it's missing. Use a placeholder URL
           # here; the real one comes from Worker secrets at runtime.

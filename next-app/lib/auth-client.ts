@@ -7,7 +7,7 @@ import { createAuthClient } from 'better-auth/react';
  *
  * baseURL falls back to the deployed origin in browser context, so the
  * same code works in dev (http://localhost:3000) and production
- * (https://barakah-hub.bakerabi91.workers.dev) without env-var swizzling.
+ * (https://app.barakah-hub.workers.dev) without env-var swizzling.
  *
  * Usage:
  *   import { authClient } from '@/lib/auth-client';

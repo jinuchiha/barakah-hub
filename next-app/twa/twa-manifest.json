@@ -1,6 +1,6 @@
 {
   "packageId": "app.barakahhub.twa",
-  "host": "barakah-hub.bakerabi91.workers.dev",
+  "host": "app.barakah-hub.workers.dev",
   "name": "Barakah Hub",
   "launcherName": "Barakah Hub",
   "display": "standalone",
@@ -12,25 +12,25 @@
   "backgroundColor": "#14171c",
   "enableNotifications": true,
   "startUrl": "/",
-  "iconUrl": "https://barakah-hub.bakerabi91.workers.dev/icon-512.png",
-  "maskableIconUrl": "https://barakah-hub.bakerabi91.workers.dev/icon-maskable-512.png",
-  "monochromeIconUrl": "https://barakah-hub.bakerabi91.workers.dev/icon-512.png",
+  "iconUrl": "https://app.barakah-hub.workers.dev/icon-512.png",
+  "maskableIconUrl": "https://app.barakah-hub.workers.dev/icon-maskable-512.png",
+  "monochromeIconUrl": "https://app.barakah-hub.workers.dev/icon-512.png",
   "shortcuts": [
     {
       "name": "Dashboard",
       "short_name": "Dashboard",
       "url": "/dashboard",
-      "chosenIconUrl": "https://barakah-hub.bakerabi91.workers.dev/icon-192.png"
+      "chosenIconUrl": "https://app.barakah-hub.workers.dev/icon-192.png"
     },
     {
       "name": "Emergency Cases",
       "short_name": "Cases",
       "url": "/cases",
-      "chosenIconUrl": "https://barakah-hub.bakerabi91.workers.dev/icon-192.png"
+      "chosenIconUrl": "https://app.barakah-hub.workers.dev/icon-192.png"
     }
   ],
   "generatorApp": "bubblewrap-cli",
-  "webManifestUrl": "https://barakah-hub.bakerabi91.workers.dev/manifest.webmanifest",
+  "webManifestUrl": "https://app.barakah-hub.workers.dev/manifest.webmanifest",
   "fallbackType": "customtabs",
   "features": {
     "locationDelegation": { "enabled": false },
@@ -40,7 +40,7 @@
   "enableSiteSettingsShortcut": true,
   "isChromeOSOnly": false,
   "isMetaQuest": false,
-  "fullScopeUrl": "https://barakah-hub.bakerabi91.workers.dev/",
+  "fullScopeUrl": "https://app.barakah-hub.workers.dev/",
   "minSdkVersion": 23,
   "orientation": "default",
   "fingerprints": []
