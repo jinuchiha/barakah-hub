@@ -1,10 +1,23 @@
 'use client';
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
+import type { Route } from 'next';
 import { toast } from 'sonner';
-import { createClient } from '@/lib/supabase/client';
+import { signIn } from '@/lib/auth-client';
 import { Input, Label } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+
+/**
+ * Restrict the post-login redirect to same-origin absolute paths so
+ * a crafted ?next=//evil.com URL can't redirect users off-site.
+ * Must start with '/' but NOT '//' (protocol-relative URL).
+ */
+function safeNext(next?: string): string {
+  if (!next || !next.startsWith('/') || next.startsWith('//') || next.startsWith('/\\')) {
+    return '/dashboard';
+  }
+  return next;
+}
 
 export default function LoginForm({ next }: { next?: string }) {
   const [email, setEmail] = useState('');
@@ -15,14 +28,14 @@ export default function LoginForm({ next }: { next?: string }) {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     startTransition(async () => {
-      const supabase = createClient();
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      const { error } = await signIn.email({ email, password });
       if (error) {
-        toast.error(error.message || 'Login failed');
+        toast.error(error.message ?? 'Login failed');
         return;
       }
       toast.success('السلام علیکم — Welcome back');
-      router.replace((next as any) || '/dashboard');
+      router.replace(safeNext(next) as Route);
+      router.refresh();
     });
   }
 
@@ -56,10 +69,13 @@ export default function LoginForm({ next }: { next?: string }) {
       <Button type="submit" variant="gold" className="w-full" disabled={pending}>
         {pending ? 'Signing in…' : 'Enter — داخل ہوں'}
       </Button>
-      <div className="mt-4 text-center">
-        <a href="/forgot-password" className="text-xs text-[var(--color-gold)] underline-offset-2 hover:underline">
+      <div className="mt-4 flex flex-col items-center gap-2 text-xs">
+        <a href="/forgot-password" className="text-[var(--color-gold)] underline-offset-2 hover:underline">
           Forgot password? — پاس ورڈ بھول گئے؟
         </a>
+        <span className="text-[var(--color-gold-4)]">
+          New here? <a href="/register" className="text-[var(--color-gold)] underline-offset-2 hover:underline">Create an account</a>
+        </span>
       </div>
     </form>
   );

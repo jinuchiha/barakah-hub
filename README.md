@@ -9,8 +9,8 @@ communities to pool monthly donations, issue interest-free loans
 (*qarz-e-hasana*), and approve emergency cases by majority vote — with the
 *sadqa* principle of donor-name privacy enforced at the data layer.
 
-Stack: **Next.js 16 · React 19 · TypeScript · Drizzle ORM · Postgres
-(Supabase) · Tailwind v4 · Vitest · Cloudflare Pages**.
+Stack: **Next.js 16 · React 19 · TypeScript · Drizzle ORM · Neon Postgres ·
+Better-Auth · Tailwind v4 · Vitest · Cloudflare Workers (OpenNext)**.
 
 ---
 
@@ -20,11 +20,15 @@ Stack: **Next.js 16 · React 19 · TypeScript · Drizzle ORM · Postgres
 |---|---|
 | **Active codebase** | [`next-app/`](next-app/) — Next.js 16 App Router |
 | **Legacy predecessor** | [`index.html`](index.html) — single-HTML PWA (frozen, kept for data-import reference) |
-| **Migrations** | [`next-app/supabase/migrations/`](next-app/supabase/migrations/) — applied in order |
-| **Tests** | 48 in [`next-app/test/`](next-app/test/) — `pnpm test` |
+| **Database** | Neon Postgres (serverless, branch-per-PR via [`@neondatabase/serverless`](https://neon.tech)) |
+| **Auth** | [Better-Auth](https://www.better-auth.com) — email + password, sessions, password-reset via Resend |
+| **Migrations** | [`next-app/supabase/migrations/`](next-app/supabase/migrations/) — `0001` → `0004`, applied in order |
+| **Tests** | 47 in [`next-app/test/`](next-app/test/) — `pnpm test` |
 | **CI** | [`.github/workflows/ci.yml`](.github/workflows/ci.yml) — typecheck → lint → test → build |
-| **Deploy target** | Cloudflare Pages (free tier covers family-scale usage) |
+| **Deploy target** | Cloudflare Workers via [`@opennextjs/cloudflare`](https://opennext.js.org/cloudflare) — auto-deploy on merge to `main` |
+| **Live URL** | <https://barakah-hub.bakerabi91.workers.dev> |
 | **Audit history** | [`next-app/AUDIT_PHASE3.md`](next-app/AUDIT_PHASE3.md) — every P0/P1/P2 finding with status |
+| **Migration history** | [`next-app/docs/MIGRATING_TO_NEON.md`](next-app/docs/MIGRATING_TO_NEON.md) — Supabase → Neon + Better-Auth playbook |
 
 ---
 
@@ -39,17 +43,29 @@ cd barakah-hub/next-app
 pnpm install
 
 # 3 · Environment
-cp .env.example .env.local        # then fill in Supabase + DATABASE_URL
+cp .env.example .env.local
+# Fill in:
+#   DATABASE_URL          — Neon pooled URL (ends in -pooler...neon.tech)
+#   DATABASE_URL_DIRECT   — Neon direct URL (no pooler — for migrations)
+#   BETTER_AUTH_SECRET    — `openssl rand -base64 32`
+#   NEXT_PUBLIC_APP_URL   — http://localhost:3000 in dev
 
-# 4 · Run
+# 4 · Apply migrations to your Neon branch
+pnpm db:migrate
+
+# 5 · Run
 pnpm dev                          # http://localhost:3000
+# Visit /register to create the first admin account
+# Promote to admin (one-off):
+#   psql "$DATABASE_URL_DIRECT" -c "UPDATE members SET role='admin', status='approved' WHERE id=(SELECT id FROM members ORDER BY created_at LIMIT 1)"
 ```
 
-Database setup (one-off, in the Supabase SQL editor — apply in order):
+Migrations (run via `pnpm db:migrate`):
 
-1. `supabase/migrations/0001_initial_schema.sql` — tables, indexes, RLS, storage bucket
-2. `supabase/migrations/0002_security_fixes.sql` — avatar policy, `month_start`, audit-log triggers, notification titles
-3. `supabase/migrations/0003_rename_to_barakah_hub.sql` — config defaults
+1. `0001_initial_schema.sql` — domain tables, indexes, RLS policies (RLS bypassed by app — see security model)
+2. `0002_security_fixes.sql` — avatar policy, `month_start`, audit-log triggers, notification titles
+3. `0003_rename_to_barakah_hub.sql` — config defaults
+4. `0004_better_auth_tables.sql` — `users`, `sessions`, `accounts`, `verifications` for Better-Auth
 
 Full deploy guide: [`next-app/DEPLOY.md`](next-app/DEPLOY.md).
 
@@ -70,10 +86,11 @@ Full deploy guide: [`next-app/DEPLOY.md`](next-app/DEPLOY.md).
 **Privacy / security posture**
 - *Sadqa* privacy enforced server-side: non-admin members never see other
   members' totals (verified by [`test/actions/onboarding.test.ts`](next-app/test/actions/onboarding.test.ts))
-- Onboarding identity derived from session cookie, not request body
-- Avatar storage scoped to `auth.uid()` folder
-- Audit log immutable at the DB layer (UPDATE/DELETE triggers)
+- Onboarding identity derived from Better-Auth session cookie, not request body
+- Sessions: 30-day sliding window, httpOnly cookies, edge-validated via `getSessionCookie`
+- Audit log immutable at the DB layer (UPDATE/DELETE triggers in migration 0002)
 - Every server action passes through Zod input validation
+- Avatar storage migration to R2 pending (Phase 6) — uploads currently disabled
 
 See [`next-app/README.md#-security-model`](next-app/README.md) for the full table.
 
@@ -84,21 +101,43 @@ See [`next-app/README.md#-security-model`](next-app/README.md) for the full tabl
 ```
 barakah-hub/
 ├── README.md                     ← this file (project entry point)
+├── NEON_TODO.md                  Operational checklist for Neon + Better-Auth migration
 ├── .gitignore
 ├── .github/
 │   └── workflows/
-│       └── ci.yml                ← typecheck · lint · test · build on every PR
+│       ├── ci.yml                typecheck · lint · test · build on every PR
+│       ├── deploy.yml            wrangler deploy on push to main
+│       ├── neon-pr-branch.yml    Branch-per-PR Neon DB
+│       └── neon-cleanup.yml      Delete PR-branch on close
 │
-├── next-app/                     ← active Next.js 16 codebase
-│   ├── app/                      App Router (pages + server actions)
-│   ├── components/               Shared UI primitives
-│   ├── lib/                      DB client, schema, utils, i18n
-│   ├── supabase/migrations/      Numbered SQL migrations
-│   ├── test/                     Vitest + RTL — 48 tests
+├── next-app/                     active Next.js 16 codebase
+│   ├── app/
+│   │   ├── api/auth/[...all]/    Better-Auth catch-all handler
+│   │   ├── login/ register/      Auth UI
+│   │   ├── forgot-password/      Reset request
+│   │   ├── reset-password/       Reset completion (token-based)
+│   │   ├── onboarding/           Member-record claim flow
+│   │   ├── (app)/                Auth-required app shell
+│   │   └── actions.ts            Server actions (Zod-validated)
+│   ├── components/               UI (Shadcn primitives + custom)
+│   ├── lib/
+│   │   ├── auth.ts               Better-Auth server config
+│   │   ├── auth-client.ts        Better-Auth React client
+│   │   ├── auth-server.ts        getSession / getMeOrRedirect helpers
+│   │   ├── db/                   Drizzle + Neon HTTP driver
+│   │   └── ...
+│   ├── supabase/migrations/      Numbered SQL migrations 0001-0004
+│   │                             (folder kept for naming continuity; targets Neon)
+│   ├── test/                     Vitest + RTL — 47 tests
+│   ├── docs/
+│   │   ├── BACKEND_ALTERNATIVES.md
+│   │   └── MIGRATING_TO_NEON.md
 │   ├── scripts/                  Legacy-data importer
-│   ├── proxy.ts                  Next 16 proxy (Supabase session refresh)
+│   ├── middleware.ts             Edge-runtime auth gate (Workers requirement)
+│   ├── wrangler.toml             Cloudflare Workers config
+│   ├── open-next.config.ts       OpenNext adapter config
 │   ├── README.md                 Stack decisions, security, status
-│   ├── DEPLOY.md                 Cloudflare Pages + Supabase deploy guide
+│   ├── DEPLOY.md                 Cloudflare Workers + Neon deploy guide
 │   ├── AUDIT_PHASE3.md           Audit + remediation history
 │   └── CONTRIBUTING.md           Branching, commits, review etiquette
 │
@@ -152,23 +191,27 @@ Detail in [`next-app/CONTRIBUTING.md`](next-app/CONTRIBUTING.md).
 
 ## DevOps workflow
 
-CI/CD pipeline (defined in [`.github/workflows/ci.yml`](.github/workflows/ci.yml)):
+**CI** ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) — runs on every PR:
 
 ```
 push / PR → checkout → setup-node + pnpm cache
         → pnpm install --frozen-lockfile
         → pnpm typecheck
         → pnpm lint
-        → pnpm test          (48 unit / component / action tests)
+        → pnpm test          (47 unit / component / action tests)
         → pnpm build         (production Next.js build w/ placeholder env)
         → ✅ ready to merge / deploy
 ```
 
-Cloudflare Pages auto-deploys on push to `main` once CI passes (project
-`barakah-hub`; configure under **Settings → Builds & deployments**).
+**Per-PR Neon database** ([`.github/workflows/neon-pr-branch.yml`](.github/workflows/neon-pr-branch.yml))
+— each PR spins up an isolated Neon branch via copy-on-write, applies
+migrations, and posts the connection URL as a sticky comment on the PR.
+The cleanup workflow deletes the branch when the PR closes.
 
-Per-PR preview deployments come for free on Cloudflare Pages — every PR
-gets a `https://<pr-id>.barakah-hub.pages.dev` URL for review.
+**Production deploy** ([`.github/workflows/deploy.yml`](.github/workflows/deploy.yml))
+— on push to `main`, OpenNext bundles the app and `cloudflare/wrangler-action`
+deploys to the `barakah-hub` Worker. Gated by GitHub's `production`
+environment so deploys can require manual approval.
 
 ---
 
@@ -322,17 +365,24 @@ pass CI. The npm-style script equivalents are in [`next-app/package.json`](next-
 
 ## Status
 
-Phase 3 audit + remediation complete (5 P0 + 11 P1 + 9 P2 fixes), 48 tests
-green, CI configured, project renamed to **Barakah Hub**, ready for
-collaborative development.
+Phase 3 audit + remediation complete (5 P0 + 11 P1 + 9 P2 fixes).
+**Phases 3 + 4 + 5 of the Neon migration shipped on `feat/neon-migration`**:
+DB swapped from Supabase Postgres → Neon, Auth swapped from Supabase Auth →
+Better-Auth, deploy target migrated from Cloudflare Pages → Workers via
+OpenNext. 47 tests green, CI runs typecheck/lint/test/build, branch-per-PR
+Neon DBs, project renamed **Barakah Hub**.
 
-Open backlog (P3 — explicit follow-ups, see
-[`next-app/AUDIT_PHASE3.md`](next-app/AUDIT_PHASE3.md)):
+Open backlog (P3 / Phase 6, see
+[`next-app/AUDIT_PHASE3.md`](next-app/AUDIT_PHASE3.md) +
+[`NEON_TODO.md`](NEON_TODO.md)):
 
-- Wider integration test coverage against an ephemeral Postgres
+- **Phase 6 — R2 storage** for avatars (currently stubbed in profile-form.tsx;
+  members can paste public image URLs as a workaround)
+- Resend domain verification so password-reset emails deliver
+- Wider integration test coverage against an ephemeral Neon branch
 - Missing legacy features: leaderboard, branch analytics, donut chart,
-  province distribution, streak counter, bulk WhatsApp, JSON
-  backup/restore, audit filter+CSV
+  province distribution, streak counter, bulk WhatsApp, JSON backup/restore,
+  audit filter+CSV
 - Observability (Sentry, PostHog)
 - Multi-tenant scaffolding (deferred — current scope is single-tenant)
 

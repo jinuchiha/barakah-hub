@@ -12,8 +12,8 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: '(prefers-color-scheme: dark)', color: '#0a0a08' },
-    { media: '(prefers-color-scheme: light)', color: '#faf8f4' },
+    { media: '(prefers-color-scheme: dark)', color: '#14171c' },
+    { media: '(prefers-color-scheme: light)', color: '#f5f3ed' },
   ],
   width: 'device-width',
   initialScale: 1,
@@ -38,9 +38,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           theme="dark"
           toastOptions={{
             style: {
-              background: 'linear-gradient(135deg,#1f4e3a,#2d8364)',
-              color: '#fff',
-              border: '1px solid rgba(255,255,255,0.1)',
+              background: '#1d2127',
+              color: '#ebe7dd',
+              border: '1px solid rgba(214,210,199,0.18)',
             },
           }}
         />

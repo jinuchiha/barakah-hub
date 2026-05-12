@@ -14,7 +14,7 @@ export default function Icon() {
         style={{
           width: '100%',
           height: '100%',
-          background: '#0a0a08',
+          background: '#14171c',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -29,7 +29,7 @@ export default function Icon() {
               <circle cx="84.4" cy="56.5" r="42" fill="black" />
             </mask>
           </defs>
-          <circle cx="64" cy="64" r="48" fill="#c9a84c" mask="url(#cr)" />
+          <circle cx="64" cy="64" r="48" fill="#ebe7dd" mask="url(#cr)" />
         </svg>
       </div>
     ),

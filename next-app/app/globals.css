@@ -1,36 +1,52 @@
 @import "tailwindcss";
 
-/* ─────────────────────────────────────────
-   THEME TOKENS — Tailwind v4 @theme directive
-   ───────────────────────────────────────── */
+/* ═══════════════════════════════════════════════════════════════════
+   THEME TOKENS — Brutalist Islamic palette (charcoal / navy / off-white)
+   ───────────────────────────────────────────────────────────────────
+   Variable names from the legacy gold palette are preserved so that
+   every component continues to consume `--color-gold` / `--color-emerald`
+   without code edits. The values are remapped:
+
+     --color-gold-*    →  off-white / bone / pale concrete (primary accent)
+     --color-emerald-* →  deep navy (secondary accent)
+     --color-ink-*     →  charcoal (background)
+     --color-cream-*   →  off-white (text)
+
+   No gold, silver, chrome, or shiny metallics. Matte surfaces only.
+   ═══════════════════════════════════════════════════════════════════ */
 @theme {
   --font-display: 'Cinzel', serif;
   --font-arabic: 'Amiri', serif;
   --font-body: 'Tajawal', sans-serif;
   --font-en: 'Cormorant Garamond', serif;
 
-  /* Default Royal Gold palette — overridden via .theme-* class on <html> */
-  --color-gold: #c9a84c;
-  --color-gold-2: #e8c96a;
-  --color-gold-3: #f5e6b8;
-  --color-gold-4: #7a5c1e;
+  /* Primary accent (was: gold) — now off-white / bone */
+  --color-gold:   #d6d2c7;   /* bone */
+  --color-gold-2: #ebe7dd;   /* off-white */
+  --color-gold-3: #f5f3ed;   /* paper */
+  --color-gold-4: #6f7480;   /* slate (muted text accent) */
 
-  --color-emerald-1: #1b6b45;
-  --color-emerald-2: #24925e;
-  --color-emerald-3: #0d4a2f;
+  /* Secondary accent (was: emerald) — now deep navy */
+  --color-emerald-1: #1e2a4a; /* deep navy */
+  --color-emerald-2: #2d3f6e; /* mid navy */
+  --color-emerald-3: #0f1828; /* navy ink */
 
-  --color-ink: #0a0a08;
-  --color-ink-2: #1a1a14;
-  --color-ink-3: #2a2a20;
-  --color-cream: #f8f4ec;
-  --color-cream-2: #ede8da;
+  /* Surface (was: ink) — charcoal / concrete */
+  --color-ink:   #14171c;     /* page background — concrete dark */
+  --color-ink-2: #1d2127;     /* card raised */
+  --color-ink-3: #262a32;     /* elevated panel */
+
+  /* Body text (was: cream) — off-white */
+  --color-cream:   #ebe7dd;
+  --color-cream-2: #c4c0b5;
 
   --radius-r: 14px;
   --radius-r-sm: 8px;
   --radius-r-lg: 20px;
 
-  --shadow-card: 0 1px 3px rgba(0,0,0,0.12), 0 4px 16px rgba(0,0,0,0.06);
-  --shadow-hover: 0 8px 28px rgba(201,168,76,0.22), 0 2px 6px rgba(0,0,0,0.12);
+  /* Matte shadows — minimal, flat */
+  --shadow-card: 0 1px 2px rgba(0,0,0,0.18), 0 6px 18px rgba(0,0,0,0.22);
+  --shadow-hover: 0 6px 24px rgba(15,24,40,0.45), 0 2px 6px rgba(0,0,0,0.18);
 }
 
 /* ─────────────────────────────────────────
@@ -38,50 +54,54 @@
    These swap on .light / .dark — used in inline styles and components
    ───────────────────────────────────────── */
 :root {
-  --txt-1: #f8f4ec;
-  --txt-2: rgba(255,255,255,0.7);
-  --txt-3: rgba(255,255,255,0.45);
-  --txt-4: rgba(255,255,255,0.25);
-  --surf-1: #141410;
-  --surf-2: #0e0e0a;
+  --txt-1: #ebe7dd;
+  --txt-2: rgba(235,231,221,0.78);
+  --txt-3: rgba(235,231,221,0.5);
+  --txt-4: rgba(235,231,221,0.28);
+  --surf-1: #1d2127;
+  --surf-2: #14171c;
   --surf-3: rgba(255,255,255,0.04);
-  --border: rgba(201,168,76,0.25);
-  --border-2: rgba(201,168,76,0.5);
+  --border: rgba(214,210,199,0.1);
+  --border-2: rgba(214,210,199,0.2);
 }
 
 .light {
-  --txt-1: #1a1a14;
-  --txt-2: rgba(0,0,0,0.72);
-  --txt-3: rgba(0,0,0,0.55);
-  --txt-4: rgba(0,0,0,0.35);
+  --txt-1: #14171c;
+  --txt-2: rgba(20,23,28,0.78);
+  --txt-3: rgba(20,23,28,0.55);
+  --txt-4: rgba(20,23,28,0.32);
   --surf-1: #ffffff;
-  --surf-2: #faf6ec;
-  --surf-3: rgba(0,0,0,0.04);
-  --border: rgba(0,0,0,0.12);
-  --border-2: rgba(0,0,0,0.25);
-  --color-gold: #6d4f17;
-  --color-gold-2: #7a5c1e;
-  --color-gold-4: #3a2810;
-  --color-cream: #1a1a14;
-  --color-ink: #faf8f4;
-  --color-ink-2: #f0ece4;
+  --surf-2: #f5f3ed;
+  --surf-3: rgba(20,23,28,0.04);
+  --border: rgba(20,23,28,0.12);
+  --border-2: rgba(20,23,28,0.22);
+  --color-gold:   #2d3f6e;   /* navy accent reads on light */
+  --color-gold-2: #1e2a4a;
+  --color-gold-4: #4a5266;
+  --color-cream:  #14171c;
+  --color-ink:    #f5f3ed;
+  --color-ink-2:  #ebe7dd;
 }
 
 /* ─────────────────────────────────────────
-   THEME PALETTE OVERRIDES (11 palettes)
-   Apply via `<html class="theme-emerald">`
+   THEME PALETTE OVERRIDES (legacy)
+   The default palette IS Brutalist now — these classes are no-ops by
+   design. Kept so existing `<html class="theme-gold">` markup doesn't
+   break; remove in a future cleanup pass.
    ───────────────────────────────────────── */
-.theme-gold     { --color-gold: #b8902f; --color-gold-2: #d4af3f; --color-gold-4: #5a4010; --color-emerald-1: #1f4e3a; --color-emerald-2: #2d8364; --color-emerald-3: #0d2e22; }
-.theme-emerald  { --color-gold: #1f6e4a; --color-gold-2: #2d8364; --color-gold-4: #0d3a26; --color-emerald-1: #b8902f; --color-emerald-2: #d4af3f; --color-emerald-3: #5a4010; }
-.theme-sapphire { --color-gold: #2d5a8c; --color-gold-2: #4a7fc1; --color-gold-4: #1a3a5f; --color-emerald-1: #b8902f; --color-emerald-2: #d4af3f; --color-emerald-3: #5a4010; }
-.theme-ruby     { --color-gold: #a83254; --color-gold-2: #c44d72; --color-gold-4: #651832; }
-.theme-amethyst { --color-gold: #5e4691; --color-gold-2: #7a5fb8; --color-gold-4: #3a2c5a; }
-.theme-bronze   { --color-gold: #a0671e; --color-gold-2: #c0833a; --color-gold-4: #5a3a10; --color-emerald-1: #1f4e3a; --color-emerald-2: #2d8364; --color-emerald-3: #0d2e22; }
-.theme-forest   { --color-gold: #2d6a4f; --color-gold-2: #48916c; --color-gold-4: #1a3d2e; }
-.theme-midnight { --color-gold: #3a4a7a; --color-gold-2: #5a6e9e; --color-gold-4: #1f2842; }
-.theme-copper   { --color-gold: #b85a2e; --color-gold-2: #d27447; --color-gold-4: #5a2810; --color-emerald-1: #1f4e3a; --color-emerald-2: #2d8364; --color-emerald-3: #0d2e22; }
-.theme-slate    { --color-gold: #475569; --color-gold-2: #64748b; --color-gold-4: #1e293b; }
-.theme-charcoal { --color-gold: #3a3a2a; --color-gold-2: #5a5a3a; --color-gold-4: #1a1a14; }
+.theme-gold,
+.theme-emerald,
+.theme-sapphire,
+.theme-ruby,
+.theme-amethyst,
+.theme-bronze,
+.theme-forest,
+.theme-midnight,
+.theme-copper,
+.theme-slate,
+.theme-charcoal {
+  /* Intentionally empty — root tokens already define the palette. */
+}
 
 /* ─────────────────────────────────────────
    GLOBAL RESETS
@@ -110,7 +130,7 @@ button:focus-visible,
 a:focus-visible {
   outline: 2px solid var(--color-gold);
   outline-offset: 3px;
-  box-shadow: 0 0 0 4px rgba(201,168,76,0.18);
+  box-shadow: 0 0 0 4px rgba(214,210,199,0.18);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -128,16 +148,24 @@ a:focus-visible {
   overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0;
 }
 
-/* Refined gradient stat-card variants */
-.sc-grad-emerald  { background: linear-gradient(135deg,#1f4e3a,#2d8364 60%,#3aa380); }
-.sc-grad-gold     { background: linear-gradient(135deg,#a7741a,#c89b3c 60%,#e2bd6a); }
-.sc-grad-ruby     { background: linear-gradient(135deg,#7a1d3a,#a83254 60%,#d04d72); }
-.sc-grad-sapphire { background: linear-gradient(135deg,#1e3a5f,#2d5a8c 60%,#4a7fc1); }
-.sc-grad-violet   { background: linear-gradient(135deg,#3d2c5e,#5e4691 60%,#7a5fb8); }
-.sc-grad-ocean    { background: linear-gradient(135deg,#0a2942,#163e5e 60%,#1f5a7a); }
+/* ─────────────────────────────────────────
+   STAT-CARD GRADIENTS — Brutalist matte
+   Low-contrast gradients (concrete / navy / slate variations) so cards
+   read as flat panels with subtle depth, not vibrant blocks.
+   ───────────────────────────────────────── */
+.sc-grad-emerald  { background: linear-gradient(135deg,#1e2a4a,#2d3f6e 60%,#3a4f80); }
+.sc-grad-gold     { background: linear-gradient(135deg,#262a32,#353a42 60%,#454a55); color: var(--color-cream); }
+.sc-grad-ruby     { background: linear-gradient(135deg,#3d1f2a,#52283a 60%,#683548); }
+.sc-grad-sapphire { background: linear-gradient(135deg,#0f1828,#1e2a4a 60%,#2d3f6e); }
+.sc-grad-violet   { background: linear-gradient(135deg,#1f1d2e,#2c2840 60%,#3d3858); }
+.sc-grad-ocean    { background: linear-gradient(135deg,#0a1825,#142840 60%,#1f3a5a); }
 
-/* Subtle scroll-bar */
+/* ─────────────────────────────────────────
+   SCROLLBAR — thin, slate
+   ───────────────────────────────────────── */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--color-gold-4); border-radius: 3px; }
-.light ::-webkit-scrollbar-thumb { background: rgba(122,92,30,0.4); }
+::-webkit-scrollbar-thumb { background: rgba(214,210,199,0.18); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(214,210,199,0.32); }
+.light ::-webkit-scrollbar-thumb { background: rgba(20,23,28,0.18); }
+.light ::-webkit-scrollbar-thumb:hover { background: rgba(20,23,28,0.32); }

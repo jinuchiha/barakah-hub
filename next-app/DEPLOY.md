@@ -133,68 +133,75 @@ Visit http://localhost:3000/login and sign in with the email/password from step 
 
 ---
 
-## Part 3 — Deploy to Cloudflare Pages
+## Part 3 — Deploy to Cloudflare Workers
 
-You already have project [`barakah-hub`](https://dash.cloudflare.com/<cf-account-id>/pages/view/barakah-hub) created. Two paths:
+We deploy to **Cloudflare Workers** (not Pages) via [`@opennextjs/cloudflare`](https://opennext.js.org/cloudflare). The live URL is `https://barakah-hub.bakerabi91.workers.dev`.
+
+> **Why Workers, not Pages?** Cloudflare is consolidating around Workers + Static Assets. The legacy `@cloudflare/next-on-pages` adapter doesn't support Next.js 16, while OpenNext does. Pages isn't going away, but new projects should target Workers.
+
+> **Why `middleware.ts` and not `proxy.ts`?** Next 16's new `proxy.ts` convention is locked to Node.js runtime, but OpenNext on Workers runs in V8 isolates and only supports Edge middleware. We keep `middleware.ts` (still functional, edge-compatible) until OpenNext adds Node support.
 
 ### Path A — Auto-deploy from GitHub (recommended, set once)
 
-1. Go to https://dash.cloudflare.com/<cf-account-id>/pages/view/barakah-hub/settings
-2. **Build settings**:
-   - **Framework preset:** `Next.js`
-   - **Build command:** `npx @cloudflare/next-on-pages`
-   - **Build output directory:** `.vercel/output/static`
-   - **Root directory (advanced):** `next-app`
-   - **Node version:** `20` or `22` (env var: `NODE_VERSION=20`)
+CI is wired in [`.github/workflows/deploy.yml`](../.github/workflows/deploy.yml) — every push to `main` builds via OpenNext and deploys via the official `cloudflare/wrangler-action`.
 
-3. **Environment variables** → **Production** + **Preview** (set in BOTH):
+**One-time GitHub setup** — Settings → Environments → New environment → `production`:
 
-   | Variable name | Value |
-   |---|---|
-   | `NEXT_PUBLIC_SUPABASE_URL` | `https://<your-project>.supabase.co` |
-   | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | (anon key from Supabase API settings) |
-   | `SUPABASE_SERVICE_ROLE_KEY` | (service role key — type=`Secret` to encrypt) |
-   | `DATABASE_URL` | (Postgres URI from step 1.3 — type=`Secret`) |
-   | `NODE_VERSION` | `20` |
+| Secret | Value |
+|---|---|
+| `CLOUDFLARE_API_TOKEN` | Cloudflare dashboard → My Profile → API Tokens → Create Token → "Edit Cloudflare Workers" template |
+| `CLOUDFLARE_ACCOUNT_ID` | Cloudflare dashboard → right sidebar → Account ID |
+| `NEXT_PUBLIC_SUPABASE_URL` | `https://<your-project>.supabase.co` |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase → Settings → API → anon key |
+| `DATABASE_URL` | Postgres URI from Supabase → Settings → Database → Transaction pooler |
 
-4. **Functions** tab → **Compatibility flags**:
-   - Production: `nodejs_compat`
-   - Preview: `nodejs_compat`
+Optional: enable **Required reviewers** on the `production` environment so deploys need manual approval before they go live.
 
-5. **Functions** → **Compatibility date**: `2026-05-07` or later
+**One-time Worker setup** — secrets that must be on the Worker itself (not GitHub) so server actions can read them at runtime:
 
-6. **Deploys** tab → click **Create deployment** → it'll pull from GitHub `main`, run `npx @cloudflare/next-on-pages` in `next-app/`, and ship.
-
-After 2–3 minutes, your app is live at:
-**https://barakah-hub.pages.dev**
-
-### Path B — Manual deploy from your machine (one-shot)
-
-```powershell
-cd "<repo-root>/next-app"
-
-# 1. Authenticate Wrangler with Cloudflare (browser opens once)
-npx wrangler login
-
-# 2. Build the Cloudflare-compatible bundle
-pnpm build:cf
-
-# 3. Deploy to your Pages project
-pnpm deploy:cf
+```bash
+cd next-app
+wrangler login                               # browser auth
+wrangler secret put DATABASE_URL             # paste Postgres URL
+wrangler secret put SUPABASE_SERVICE_ROLE_KEY # paste service-role key
 ```
 
-This pushes directly without needing GitHub. Use this for a quick test.
+After those two, every push to `main` deploys automatically.
+
+### Path B — Manual deploy from your machine
+
+```bash
+cd <repo-root>/next-app
+
+# Linux / macOS / WSL:
+pnpm install
+pnpm exec wrangler login                     # one-off browser auth
+pnpm build:cf                                # OpenNext build → .open-next/
+pnpm deploy:cf                               # wrangler deploy
+```
+
+> **Windows note:** OpenNext's traced-files copy step uses symlinks, which Windows blocks unless you enable Developer Mode (Settings → For developers → Developer Mode) **or** run the terminal as Administrator. The CI deploy on Linux runners (Path A) avoids this entirely — recommended for Windows users.
 
 ---
 
 ## Part 4 — Test deployment
 
-1. Open `https://barakah-hub.pages.dev`
-2. Click `/login`
+1. Open `https://barakah-hub.bakerabi91.workers.dev` (or your custom Worker URL)
+2. Visit `/login`
 3. Sign in with your admin email/password
 4. ✓ Should land on the dashboard
 
-If you see "Unauthorized" or something blank — check the Cloudflare deployment logs (https://dash.cloudflare.com/<cf-account-id>/pages/view/barakah-hub) and verify env vars are set in BOTH Production + Preview environments.
+If you see "Unauthorized" or a blank page — check `wrangler tail` for runtime logs:
+
+```bash
+cd next-app
+pnpm exec wrangler tail
+```
+
+Common pitfalls:
+- `nodejs_compat` flag missing → `wrangler.toml` has it at the top, but verify it's also enabled in the dashboard for the live deployment
+- Secrets not set → `wrangler secret list` to confirm `DATABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` are present
+- Supabase Auth redirect URL → Supabase → Authentication → URL Configuration → add `https://barakah-hub.bakerabi91.workers.dev` to **Site URL** + **Redirect URLs**
 
 ---
 

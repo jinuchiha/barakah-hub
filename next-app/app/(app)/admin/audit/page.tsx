@@ -1,10 +1,11 @@
 import { redirect } from 'next/navigation';
-import { eq, desc, inArray } from 'drizzle-orm';
-import { createClient } from '@/lib/supabase/server';
+import { desc, inArray } from 'drizzle-orm';
+import { getMeOrRedirect } from '@/lib/auth-server';
 import { db } from '@/lib/db';
 import { members, auditLog } from '@/lib/db/schema';
 import { Card, CardHeader, CardTitle, CardBody } from '@/components/ui/card';
 import { ini } from '@/lib/utils';
+import { ExportLink } from '@/components/export-link';
 
 export const metadata = { title: 'Audit Log · Barakah Hub' };
 
@@ -20,11 +21,7 @@ const ICONS: Record<string, string> = {
 };
 
 export default async function AuditPage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect('/login');
-  const [me] = await db.select().from(members).where(eq(members.authId, user.id)).limit(1);
-  if (!me) redirect('/onboarding');
+  const me = await getMeOrRedirect();
   if (me.role !== 'admin') redirect('/dashboard');
 
   const entries = await db.select().from(auditLog).orderBy(desc(auditLog.createdAt)).limit(300);
@@ -44,7 +41,10 @@ export default async function AuditPage() {
           <h1 className="font-[var(--font-arabic)] text-3xl text-[var(--color-gold-2)]">آڈٹ لاگ</h1>
           <p className="mt-1 font-[var(--font-en)] text-sm italic text-[var(--color-gold-4)]">Tamper-evident activity journal · INSERT-only at DB layer</p>
         </div>
-        <div className="text-xs text-[var(--color-gold-4)]">Showing latest {entries.length} entries</div>
+        <div className="flex items-center gap-3">
+          <div className="text-xs text-[var(--color-gold-4)]">Latest {entries.length} entries</div>
+          <ExportLink href={'/api/exports/audit' as any}>Export CSV</ExportLink>
+        </div>
       </header>
 
       <Card>
@@ -59,7 +59,7 @@ export default async function AuditPage() {
             const icon = ICONS[e.action] || '•';
             const dt = new Date(e.createdAt);
             return (
-              <div key={e.id} className="flex items-center gap-3 border-b border-[rgba(201,168,76,0.06)] px-4 py-3">
+              <div key={e.id} className="flex items-center gap-3 border-b border-[rgba(214,210,199,0.06)] px-4 py-3">
                 <div className="grid size-8 shrink-0 place-items-center rounded-full text-xs font-bold text-white" style={{ background: actor?.color || '#888' }}>
                   {actor ? ini(actor.nameEn || actor.nameUr) : '·'}
                 </div>

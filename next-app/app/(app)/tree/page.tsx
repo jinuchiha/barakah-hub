@@ -1,6 +1,5 @@
-import { redirect } from 'next/navigation';
 import { eq, and, asc } from 'drizzle-orm';
-import { createClient } from '@/lib/supabase/server';
+import { getMeOrRedirect } from '@/lib/auth-server';
 import { db } from '@/lib/db';
 import { members, payments } from '@/lib/db/schema';
 import { Card, CardHeader, CardTitle, CardBody } from '@/components/ui/card';
@@ -9,11 +8,7 @@ import TreeView from './tree-view';
 export const metadata = { title: 'Family Tree · Barakah Hub' };
 
 export default async function TreePage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect('/login');
-  const [me] = await db.select().from(members).where(eq(members.authId, user.id)).limit(1);
-  if (!me) redirect('/onboarding');
+  const me = await getMeOrRedirect();
 
   const all = await db.select().from(members).orderBy(asc(members.nameEn));
   const isAdmin = me.role === 'admin';

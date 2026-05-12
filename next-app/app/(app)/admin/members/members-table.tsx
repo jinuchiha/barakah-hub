@@ -99,7 +99,7 @@ export default function MembersTable({ initial }: Props) {
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-[var(--border)] bg-[rgba(201,168,76,0.06)] text-left text-[10px] uppercase tracking-[1px] text-[var(--color-gold-4)]">
+              <tr className="border-b border-[var(--border)] bg-[rgba(214,210,199,0.06)] text-left text-[10px] uppercase tracking-[1px] text-[var(--color-gold-4)]">
                 <th className="px-4 py-2.5 w-12">#</th>
                 <th className="px-4 py-2.5">Member</th>
                 <th className="px-4 py-2.5">Father</th>
@@ -111,7 +111,7 @@ export default function MembersTable({ initial }: Props) {
             </thead>
             <tbody>
               {filtered.map((m, i) => (
-                <tr key={m.id} className="border-b border-[rgba(201,168,76,0.06)] hover:bg-[rgba(201,168,76,0.03)]">
+                <tr key={m.id} className="border-b border-[rgba(214,210,199,0.06)] hover:bg-[rgba(214,210,199,0.03)]">
                   <td className="px-4 py-2 font-[var(--font-en)] text-xs text-[var(--color-gold-4)]">{i + 1}</td>
                   <td className="px-4 py-2">
                     <div className="flex items-center gap-2.5">
@@ -128,7 +128,7 @@ export default function MembersTable({ initial }: Props) {
                   <td className="px-4 py-2 text-xs text-[var(--txt-3)]">{m.city || '—'}{m.province ? <><br /><span className="opacity-70">{m.province}</span></> : null}</td>
                   <td className="px-4 py-2 text-right font-[var(--font-display)] text-[var(--color-gold)]">{fmtRs(m.monthlyPledge)}</td>
                   <td className="px-4 py-2">
-                    <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${m.role === 'admin' ? 'bg-[rgba(201,168,76,0.15)] text-[var(--color-gold)]' : m.status === 'approved' ? 'bg-[rgba(31,110,74,0.15)] text-[var(--color-emerald-2)]' : 'bg-[rgba(201,168,76,0.1)] text-[var(--color-gold-2)]'}`}>
+                    <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${m.role === 'admin' ? 'bg-[rgba(214,210,199,0.15)] text-[var(--color-gold)]' : m.status === 'approved' ? 'bg-[rgba(30,42,74,0.15)] text-[var(--color-emerald-2)]' : 'bg-[rgba(214,210,199,0.1)] text-[var(--color-gold-2)]'}`}>
                       {m.deceased ? 'Deceased' : m.role === 'admin' ? 'Admin' : m.status === 'approved' ? 'Active' : 'Pending'}
                     </span>
                   </td>
@@ -139,7 +139,7 @@ export default function MembersTable({ initial }: Props) {
                         title="Edit"
                         aria-label={`Edit ${m.nameEn || m.nameUr}`}
                         onClick={() => setDialog({ kind: 'edit', member: m })}
-                        className="rounded p-1.5 hover:bg-[rgba(201,168,76,0.1)]"
+                        className="rounded p-1.5 hover:bg-[rgba(214,210,199,0.1)]"
                       >
                         <Pencil className="size-3.5 text-[var(--txt-2)]" />
                       </button>

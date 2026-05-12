@@ -1,37 +1,39 @@
-import { redirect } from 'next/navigation';
 import { eq, and } from 'drizzle-orm';
-import { createClient } from '@/lib/supabase/server';
+import { getMeOrRedirect } from '@/lib/auth-server';
 import { db } from '@/lib/db';
-import { members, notifications } from '@/lib/db/schema';
+import { notifications, members, payments } from '@/lib/db/schema';
 import { Sidebar } from '@/components/sidebar';
 import { Topbar } from '@/components/topbar';
 import { VerseBar } from '@/components/verse-bar';
 import { TooltipProvider } from '@/components/ui/tooltip';
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect('/login');
+  const me = await getMeOrRedirect();
+  const isAdmin = me.role === 'admin';
 
-  const [me] = await db.select().from(members).where(eq(members.authId, user.id)).limit(1);
-  if (!me) redirect('/onboarding');
+  const [unreadCount, pendingMembers, pendingPayments] = await Promise.all([
+    db.$count(notifications, and(eq(notifications.recipientId, me.id), eq(notifications.read, false))),
+    isAdmin ? db.$count(members, eq(members.status, 'pending')) : Promise.resolve(0),
+    isAdmin ? db.$count(payments, eq(payments.pendingVerify, true)) : Promise.resolve(0),
+  ]);
 
-  const unreadCount = await db.$count(
-    notifications,
-    and(eq(notifications.recipientId, me.id), eq(notifications.read, false)),
-  );
+  const adminBadges: Record<string, number> = {};
+  if (pendingMembers > 0) adminBadges['/admin/members'] = pendingMembers;
+  if (pendingPayments > 0) adminBadges['/admin/fund'] = pendingPayments;
 
   return (
     <TooltipProvider delayDuration={200}>
       <div className="flex h-screen flex-col">
         <Topbar
-          user={{ name: me.nameEn || me.nameUr, role: me.role === 'admin' ? 'Admin' : 'Member', color: me.color, photoUrl: me.photoUrl }}
+          user={{ name: me.nameEn || me.nameUr, role: isAdmin ? 'Admin' : 'Member', color: me.color, photoUrl: me.photoUrl }}
           unreadCount={unreadCount}
+          isAdmin={isAdmin}
+          badges={adminBadges}
         />
         <VerseBar />
         <div className="flex flex-1 overflow-hidden">
-          <Sidebar isAdmin={me.role === 'admin'} />
-          <main className="flex-1 overflow-y-auto p-6">{children}</main>
+          <Sidebar isAdmin={isAdmin} badges={adminBadges} />
+          <main className="flex-1 overflow-y-auto p-4 md:p-6">{children}</main>
         </div>
       </div>
     </TooltipProvider>

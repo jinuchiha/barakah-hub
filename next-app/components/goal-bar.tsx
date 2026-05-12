@@ -29,7 +29,7 @@ export function GoalBar({ config, totalFund, locale = 'en', daysRemaining = null
   else cheer = locale === 'ur' ? '🤲 ہم سب مل کر کر سکتے ہیں' : '🤲 Together we can';
 
   return (
-    <div className="mb-4 rounded-[var(--radius-r)] border border-[var(--border-2)]" style={{ background: 'linear-gradient(135deg, rgba(201,168,76,0.12), rgba(27,107,69,0.06))' }}>
+    <div className="mb-4 rounded-[var(--radius-r)] border border-[var(--border-2)]" style={{ background: 'linear-gradient(135deg, rgba(214,210,199,0.12), rgba(30,42,74,0.06))' }}>
       <div className="px-6 py-5">
         <div className="mb-2.5 flex flex-wrap items-center justify-between gap-2.5">
           <div>
@@ -47,7 +47,7 @@ export function GoalBar({ config, totalFund, locale = 'en', daysRemaining = null
         </div>
         <div className="relative h-2.5 overflow-hidden rounded-md bg-black/20 shadow-[inset_0_1px_2px_rgba(0,0,0,0.2)]">
           <div
-            className="relative h-full rounded-md bg-gradient-to-r from-[var(--color-emerald-2)] to-[var(--color-gold)] shadow-[0_0_12px_rgba(201,168,76,0.4)] transition-[width] duration-700"
+            className="relative h-full rounded-md bg-gradient-to-r from-[var(--color-emerald-2)] to-[var(--color-gold)] shadow-[0_0_12px_rgba(214,210,199,0.4)] transition-[width] duration-700"
             style={{ width: `${pct}%` }}
           >
             {pct > 0 && pct < 100 && (

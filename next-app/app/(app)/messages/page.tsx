@@ -1,6 +1,5 @@
-import { redirect } from 'next/navigation';
 import { eq, desc, asc } from 'drizzle-orm';
-import { createClient } from '@/lib/supabase/server';
+import { getMeOrRedirect } from '@/lib/auth-server';
 import { db } from '@/lib/db';
 import { members, messages } from '@/lib/db/schema';
 import { Card, CardHeader, CardTitle, CardBody } from '@/components/ui/card';
@@ -10,11 +9,7 @@ import MarkAllRead from './mark-all-read';
 export const metadata = { title: 'Messages · Barakah Hub' };
 
 export default async function MessagesPage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect('/login');
-  const [me] = await db.select().from(members).where(eq(members.authId, user.id)).limit(1);
-  if (!me) redirect('/onboarding');
+  const me = await getMeOrRedirect();
 
   const [inbox, allMembers] = await Promise.all([
     db.select().from(messages).where(eq(messages.toId, me.id)).orderBy(desc(messages.createdAt)).limit(50),
@@ -47,7 +42,7 @@ export default async function MessagesPage() {
           {inbox.map((m) => {
             const sender = memById.get(m.fromId);
             return (
-              <div key={m.id} className={`border-b border-[rgba(201,168,76,0.06)] p-3 ${m.read ? '' : 'bg-[rgba(31,110,74,0.05)]'}`}>
+              <div key={m.id} className={`border-b border-[rgba(214,210,199,0.06)] p-3 ${m.read ? '' : 'bg-[rgba(30,42,74,0.05)]'}`}>
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-semibold text-[var(--color-cream)]">{sender?.nameEn || sender?.nameUr || '?'}</span>
                   <span className="text-[10px] text-[var(--color-gold-4)]">{new Date(m.createdAt).toLocaleDateString('en-GB')}</span>

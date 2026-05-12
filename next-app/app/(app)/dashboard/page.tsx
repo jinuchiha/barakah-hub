@@ -1,22 +1,18 @@
-import { redirect } from 'next/navigation';
-import { eq, and, sql, desc } from 'drizzle-orm';
-import { createClient } from '@/lib/supabase/server';
+import { eq, and, sql, desc, inArray } from 'drizzle-orm';
+import Link from 'next/link';
+import { getMeOrRedirect } from '@/lib/auth-server';
 import { db } from '@/lib/db';
-import { members, payments, cases, loans, config as configTbl } from '@/lib/db/schema';
+import { members, payments, cases, votes, loans, config as configTbl, auditLog } from '@/lib/db/schema';
 import { StatCard } from '@/components/stat-card';
 import { GoalBar } from '@/components/goal-bar';
 import { Card, CardHeader, CardTitle, CardBody } from '@/components/ui/card';
 import { fmtRs } from '@/lib/i18n/dict';
+import { ini } from '@/lib/utils';
 
 export default async function DashboardPage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect('/login');
-  const [me] = await db.select().from(members).where(eq(members.authId, user.id)).limit(1);
-  if (!me) redirect('/onboarding');
+  const me = await getMeOrRedirect();
   const isAdmin = me.role === 'admin';
 
-  // ─── Aggregates (verified-only)
   const [totalRow] = await db
     .select({ total: sql<number>`COALESCE(SUM(${payments.amount}),0)::int` })
     .from(payments)
@@ -34,23 +30,32 @@ export default async function DashboardPage() {
     .where(eq(loans.active, true));
 
   const pendingVotes = await db.$count(cases, eq(cases.status, 'voting'));
-
   const [cfg] = await db.select().from(configTbl).where(eq(configTbl.id, 1)).limit(1);
-
   const daysRemaining = computeDaysRemaining(cfg?.goalDeadline ?? null);
 
-  // ─── Last-6-month series for sparklines (chronological by month_start)
   const series = await db
-    .select({
-      monthStart: payments.monthStart,
-      total: sql<number>`SUM(${payments.amount})::int`,
-    })
+    .select({ monthStart: payments.monthStart, total: sql<number>`SUM(${payments.amount})::int` })
     .from(payments)
     .where(eq(payments.pendingVerify, false))
     .groupBy(payments.monthStart)
     .orderBy(desc(payments.monthStart))
     .limit(6);
   const sparkValues = series.map((s) => Number(s.total)).reverse();
+
+  // Open cases + vote tallies for the votes panel
+  const openCases = await db
+    .select()
+    .from(cases)
+    .where(eq(cases.status, 'voting'))
+    .orderBy(desc(cases.createdAt))
+    .limit(5);
+  const openCaseIds = openCases.map((c) => c.id);
+  const openVotes = openCaseIds.length
+    ? await db.select().from(votes).where(inArray(votes.caseId, openCaseIds))
+    : [];
+
+  const eligibleCount = Math.max(0, (await db.$count(members, and(eq(members.deceased, false), eq(members.status, 'approved')))) - 1);
+  const need = Math.ceil(eligibleCount * ((cfg?.voteThresholdPct ?? 50) / 100));
 
   return (
     <div>
@@ -63,7 +68,6 @@ export default async function DashboardPage() {
 
       <GoalBar config={cfg} totalFund={totalFund} daysRemaining={daysRemaining} />
 
-      {/* ─── Stat cards (admin sees all; member sees personal-only equivalents) */}
       <div className="mb-6 grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
         {isAdmin ? (
           <>
@@ -77,7 +81,6 @@ export default async function DashboardPage() {
         )}
       </div>
 
-      {/* ─── Privacy notice for members (sadqa anonymity reminder) */}
       {!isAdmin && (
         <Card className="mb-6 border-[var(--color-emerald-2)]/30">
           <CardBody className="text-center">
@@ -96,16 +99,50 @@ export default async function DashboardPage() {
           <CardHeader>
             <CardTitle>{isAdmin ? 'Recent Activity' : 'My Recent Activity'}</CardTitle>
           </CardHeader>
-          <CardBody>
-            <p className="text-sm text-[var(--txt-3)]">Activity feed loaded server-side via Drizzle • RLS protects sensitive rows</p>
+          <CardBody className="p-0">
+            {isAdmin
+              ? <AdminRecentActivity />
+              : <MemberRecentActivity memberId={me.id} />}
           </CardBody>
         </Card>
+
         <Card>
           <CardHeader>
             <CardTitle>Active Emergency Votes</CardTitle>
+            {pendingVotes > 0 && (
+              <Link href="/cases" className="text-xs text-[var(--color-gold-4)] underline-offset-2 hover:underline">
+                View all →
+              </Link>
+            )}
           </CardHeader>
-          <CardBody>
-            <p className="text-sm text-[var(--txt-3)]">{pendingVotes} open • cast your vote in the Cases tab</p>
+          <CardBody className="p-0">
+            {openCases.length === 0 ? (
+              <div className="py-10 text-center text-sm italic text-[var(--txt-3)]">
+                الحمدللہ · No open votes right now
+              </div>
+            ) : (
+              openCases.map((c) => {
+                const yes = openVotes.filter((v) => v.caseId === c.id && v.vote).length;
+                const pct = eligibleCount > 0 ? Math.round((yes / eligibleCount) * 100) : 0;
+                return (
+                  <div key={c.id} className="flex items-center gap-3 border-b border-[rgba(214,210,199,0.06)] px-3 py-2.5">
+                    <div className="flex-1 min-w-0">
+                      <div className="truncate text-sm font-semibold text-[var(--color-cream)]">{c.beneficiaryName}</div>
+                      <div className="text-[10px] text-[var(--color-gold-4)]">{c.category} · {fmtRs(c.amount)}</div>
+                      <div className="mt-1 flex items-center gap-2">
+                        <div className="h-1 flex-1 overflow-hidden rounded-full bg-black/20">
+                          <div className="h-full bg-gradient-to-r from-[var(--color-emerald-2)] to-[var(--color-gold)]" style={{ width: `${pct}%` }} />
+                        </div>
+                        <span className="text-[10px] text-[var(--color-gold-4)]">{yes}/{need} needed</span>
+                      </div>
+                    </div>
+                    <Link href="/cases" className="shrink-0 rounded-md border border-[rgba(30,42,74,0.4)] bg-[rgba(30,42,74,0.15)] px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-[var(--color-emerald-2)] hover:bg-[rgba(30,42,74,0.25)]">
+                      Vote
+                    </Link>
+                  </div>
+                );
+              })
+            )}
           </CardBody>
         </Card>
       </div>
@@ -132,24 +169,94 @@ async function MemberStats({ memberId, totalFund }: { memberId: string; totalFun
   const months = await db
     .selectDistinct({ m: payments.monthStart })
     .from(payments)
-    .where(
-      and(
-        eq(payments.memberId, memberId),
-        eq(payments.pendingVerify, false),
-        sql`${payments.monthStart} >= ${yearStart}::date`,
-      ),
-    );
+    .where(and(eq(payments.memberId, memberId), eq(payments.pendingVerify, false), sql`${payments.monthStart} >= ${yearStart}::date`));
 
   return (
     <>
       <StatCard label="My Total Paid" value={fmtRs(my)} hint="🤲 جزاک اللہ خیر" tone="emerald" />
-      <StatCard
-        label="My Months Paid"
-        value={`${months.length}/${monthsThisYearSoFar}`}
-        hint={`📅 ${Math.round((months.length / monthsThisYearSoFar) * 100)}% of year so far`}
-        tone="gold"
-      />
+      <StatCard label="My Months Paid" value={`${months.length}/${monthsThisYearSoFar}`} hint={`📅 ${Math.round((months.length / monthsThisYearSoFar) * 100)}% of year so far`} tone="gold" />
       <StatCard label="Family Fund" value={fmtRs(totalFund)} hint="👥 collective trust" tone="sapphire" />
+    </>
+  );
+}
+
+const AUDIT_ICONS: Record<string, string> = {
+  login: '🔓', logout: '🔒', 'member-approved': '✅', 'member-added': '➕',
+  'payment-record': '💰', 'payment-verified': '✓', 'payment-self-submit': '🤲',
+  'vote-cast': '🗳', 'emergency-create': '🚨', 'emergency-approved': '✓',
+  'loan-issue': '📤', 'loan-repay': '↩', 'message-sent': '✉',
+};
+
+async function AdminRecentActivity() {
+  const entries = await db.select().from(auditLog).orderBy(desc(auditLog.createdAt)).limit(6);
+  const actorIds = [...new Set(entries.map((e) => e.actorId).filter((v): v is string => !!v))];
+  const actors = actorIds.length
+    ? await db.select({ id: members.id, nameEn: members.nameEn, nameUr: members.nameUr, color: members.color }).from(members).where(inArray(members.id, actorIds))
+    : [];
+  const actorMap = new Map(actors.map((a) => [a.id, a]));
+
+  if (entries.length === 0) {
+    return <div className="py-10 text-center text-sm italic text-[var(--txt-3)]">No activity yet</div>;
+  }
+  return (
+    <>
+      {entries.map((e) => {
+        const actor = e.actorId ? actorMap.get(e.actorId) : null;
+        const icon = AUDIT_ICONS[e.action] ?? '•';
+        return (
+          <div key={e.id} className="flex items-center gap-3 border-b border-[rgba(214,210,199,0.06)] px-3 py-2.5">
+            <div className="grid size-7 shrink-0 place-items-center rounded-full text-[10px] font-bold text-white" style={{ background: actor?.color || '#555' }}>
+              {actor ? ini(actor.nameEn || actor.nameUr) : '·'}
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-sm text-[var(--color-cream)]">
+                {icon} {e.action.replace(/-/g, ' ')}
+              </div>
+              <div className="text-[10px] text-[var(--color-gold-4)]">{actor?.nameEn || actor?.nameUr || 'system'}</div>
+            </div>
+            <div className="shrink-0 text-[10px] text-[var(--color-gold-4)]">
+              {new Date(e.createdAt).toLocaleDateString('en-GB')}
+            </div>
+          </div>
+        );
+      })}
+      <div className="border-t border-[rgba(214,210,199,0.06)] px-3 py-2 text-center">
+        <Link href="/admin/audit" className="text-xs text-[var(--color-gold-4)] hover:text-[var(--color-gold)]">Full audit log →</Link>
+      </div>
+    </>
+  );
+}
+
+async function MemberRecentActivity({ memberId }: { memberId: string }) {
+  const myPayments = await db
+    .select()
+    .from(payments)
+    .where(eq(payments.memberId, memberId))
+    .orderBy(desc(payments.createdAt))
+    .limit(5);
+
+  if (myPayments.length === 0) {
+    return <div className="py-10 text-center text-sm italic text-[var(--txt-3)]">No contributions yet — submit your first donation</div>;
+  }
+  return (
+    <>
+      {myPayments.map((p) => (
+        <div key={p.id} className="flex items-center justify-between border-b border-[rgba(214,210,199,0.06)] px-3 py-2.5">
+          <div>
+            <div className="text-sm text-[var(--color-cream)]">{p.monthLabel} · <span className="capitalize">{p.pool}</span></div>
+            <div className="text-[10px] text-[var(--color-gold-4)]">{new Date(p.paidOn).toLocaleDateString('en-GB')}</div>
+          </div>
+          <div className="text-right">
+            <div className="font-bold text-[var(--color-gold)]">{fmtRs(p.amount)}</div>
+            {p.pendingVerify
+              ? <div className="text-[10px] text-yellow-400">⏳ Pending</div>
+              : <div className="text-[10px] text-emerald-400">✓ Verified</div>}
+          </div>
+        </div>
+      ))}
+      <div className="border-t border-[rgba(214,210,199,0.06)] px-3 py-2 text-center">
+        <Link href="/myaccount" className="text-xs text-[var(--color-gold-4)] hover:text-[var(--color-gold)]">Full history →</Link>
+      </div>
     </>
   );
 }

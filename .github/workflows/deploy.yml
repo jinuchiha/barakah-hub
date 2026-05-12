@@ -1,0 +1,71 @@
+name: Deploy to Cloudflare Workers
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false   # never cancel a deploy in progress
+
+defaults:
+  run:
+    working-directory: next-app
+
+jobs:
+  deploy:
+    name: OpenNext build + wrangler deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    # GitHub Environment for production secrets + manual approval gate.
+    # Configure under: Settings → Environments → production
+    environment:
+      name: production
+      url: https://barakah-hub.bakerabi91.workers.dev
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+          run_install: false
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: next-app/pnpm-lock.yaml
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Build (OpenNext)
+        run: pnpm build:cf
+        env:
+          # Build-time env vars — only NEXT_PUBLIC_* end up in the client
+          # bundle. Server-only secrets (DATABASE_URL, BETTER_AUTH_SECRET,
+          # RESEND_API_KEY) are set on the Worker via `wrangler secret put`
+          # — they don't need to be available at build time.
+          NEXT_PUBLIC_APP_URL: https://barakah-hub.bakerabi91.workers.dev
+          # DATABASE_URL is needed at build because lib/db/index.ts now
+          # throws at module-load if it's missing. Use a placeholder URL
+          # here; the real one comes from Worker secrets at runtime.
+          DATABASE_URL: postgresql://placeholder:placeholder@placeholder-pooler.aws.neon.tech/db?sslmode=require
+          # Same reason as above — lib/auth.ts throws at module-load if
+          # BETTER_AUTH_SECRET isn't set or is too short.
+          BETTER_AUTH_SECRET: ${{ secrets.BETTER_AUTH_SECRET }}
+
+      - name: Deploy
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: next-app
+          command: deploy
+          # wrangler.toml in next-app/ describes the Worker; secrets are
+          # already set on the Worker via `wrangler secret put` (one-off).

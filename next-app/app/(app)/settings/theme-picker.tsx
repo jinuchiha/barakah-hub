@@ -56,7 +56,7 @@ export default function ThemePicker({ initial, canSave }: { initial: string; can
             type="button"
             onClick={() => setActive(k)}
             aria-pressed={active === k}
-            className={`flex w-20 flex-col items-center gap-2 rounded-md p-2 transition-all hover:-translate-y-0.5 ${active === k ? 'bg-[rgba(201,168,76,0.12)] ring-2 ring-[var(--color-gold)]' : 'border border-[var(--border)] hover:bg-[var(--surf-3)]'}`}
+            className={`flex w-20 flex-col items-center gap-2 rounded-md p-2 transition-all hover:-translate-y-0.5 ${active === k ? 'bg-[rgba(214,210,199,0.12)] ring-2 ring-[var(--color-gold)]' : 'border border-[var(--border)] hover:bg-[var(--surf-3)]'}`}
           >
             <div className="flex gap-0.5">
               {SWATCHES[k].map((c, i) => <span key={i} className="size-3 rounded-full" style={{ background: c }} />)}

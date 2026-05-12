@@ -1,19 +1,14 @@
-import { redirect } from 'next/navigation';
 import { eq, desc } from 'drizzle-orm';
-import { createClient } from '@/lib/supabase/server';
+import { getMeOrRedirect } from '@/lib/auth-server';
 import { db } from '@/lib/db';
-import { members, notifications } from '@/lib/db/schema';
+import { notifications } from '@/lib/db/schema';
 import { Card, CardHeader, CardTitle, CardBody } from '@/components/ui/card';
 import MarkAllReadButton from './mark-all-read';
 
 export const metadata = { title: 'Notifications · Barakah Hub' };
 
 export default async function NotificationsPage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect('/login');
-  const [me] = await db.select().from(members).where(eq(members.authId, user.id)).limit(1);
-  if (!me) redirect('/onboarding');
+  const me = await getMeOrRedirect();
 
   const list = await db
     .select()
@@ -40,7 +35,7 @@ export default async function NotificationsPage() {
             <div className="py-12 text-center text-sm italic text-[var(--txt-3)]">All caught up · کوئی اطلاع نہیں</div>
           )}
           {list.map((n) => (
-            <div key={n.id} className={`flex gap-3 border-b border-[rgba(201,168,76,0.06)] p-3 ${n.read ? '' : 'bg-[rgba(31,110,74,0.05)]'}`}>
+            <div key={n.id} className={`flex gap-3 border-b border-[rgba(214,210,199,0.06)] p-3 ${n.read ? '' : 'bg-[rgba(30,42,74,0.05)]'}`}>
               <div className={`mt-1.5 size-2 shrink-0 rounded-full ${n.read ? 'border border-[var(--border)]' : 'bg-[var(--color-emerald-2)]'}`} />
               <div className="flex-1">
                 {(n.titleUr || n.titleEn) && (

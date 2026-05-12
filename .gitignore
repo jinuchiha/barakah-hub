@@ -33,6 +33,7 @@ node_modules/
 out/
 .vercel/
 .wrangler/
+.open-next/
 *.tsbuildinfo
 next-env.d.ts
 
@@ -63,6 +64,9 @@ barakah-hub-*.json
 
 # ── Drizzle generated
 drizzle/
+
+# ── Neon CLI context cache (per-machine, holds orgId not secrets)
+.neon
 
 # ── Local instructions / scratch files
 LOGO-INSTRUCTIONS.txt

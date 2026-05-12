@@ -19,7 +19,7 @@ export default function ApproveButton({ memberId }: { memberId: string }) {
           }
         })
       }
-      className="rounded-md bg-[rgba(31,110,74,0.15)] px-3 py-1 text-xs font-bold text-[var(--color-emerald-2)] disabled:opacity-50 hover:bg-[rgba(31,110,74,0.25)]"
+      className="rounded-md bg-[rgba(30,42,74,0.15)] px-3 py-1 text-xs font-bold text-[var(--color-emerald-2)] disabled:opacity-50 hover:bg-[rgba(30,42,74,0.25)]"
     >
       {pending ? 'Approving…' : '✓ Approve'}
     </button>

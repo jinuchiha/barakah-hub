@@ -1,7 +1,6 @@
-import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { eq, and, or, desc, ilike, sql } from 'drizzle-orm';
-import { createClient } from '@/lib/supabase/server';
+import { getMeOrRedirect } from '@/lib/auth-server';
 import { db } from '@/lib/db';
 import { members, payments, cases, loans } from '@/lib/db/schema';
 import { Card, CardHeader, CardTitle, CardBody } from '@/components/ui/card';
@@ -13,11 +12,7 @@ export const metadata = { title: 'Search · Barakah Hub' };
 interface Props { searchParams: Promise<{ q?: string }> }
 
 export default async function SearchPage({ searchParams }: Props) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect('/login');
-  const [me] = await db.select().from(members).where(eq(members.authId, user.id)).limit(1);
-  if (!me) redirect('/onboarding');
+  const me = await getMeOrRedirect();
 
   const { q } = await searchParams;
   const term = (q ?? '').trim().slice(0, 80);
@@ -102,7 +97,7 @@ export default async function SearchPage({ searchParams }: Props) {
           <CardHeader><CardTitle>👥 Members ({memberHits.length})</CardTitle></CardHeader>
           <CardBody className="p-0">
             {memberHits.map((m) => (
-              <Link key={m.id} href={`/tree?focus=${m.id}`} className="flex items-center gap-3 border-b border-[rgba(201,168,76,0.06)] px-3 py-2.5 hover:bg-[rgba(201,168,76,0.04)]">
+              <Link key={m.id} href={`/tree?focus=${m.id}`} className="flex items-center gap-3 border-b border-[rgba(214,210,199,0.06)] px-3 py-2.5 hover:bg-[rgba(214,210,199,0.04)]">
                 <div className="grid size-8 place-items-center rounded-full text-xs font-bold text-white" style={{ background: m.color }}>{ini(m.nameEn || m.nameUr)}</div>
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-semibold text-[var(--color-cream)]">{m.nameEn || m.nameUr}</div>
@@ -120,7 +115,7 @@ export default async function SearchPage({ searchParams }: Props) {
           <CardHeader><CardTitle>🚨 Cases ({caseHits.length})</CardTitle></CardHeader>
           <CardBody className="p-0">
             {caseHits.map((c) => (
-              <div key={c.id} className="border-b border-[rgba(201,168,76,0.06)] px-3 py-2.5">
+              <div key={c.id} className="border-b border-[rgba(214,210,199,0.06)] px-3 py-2.5">
                 <div className="text-sm font-semibold text-[var(--color-cream)]">{c.beneficiaryName} · {fmtRs(c.amount)}</div>
                 <div className="text-[11px] text-[var(--txt-3)]">{c.reasonEn}</div>
               </div>
@@ -134,7 +129,7 @@ export default async function SearchPage({ searchParams }: Props) {
           <CardHeader><CardTitle>💰 Payments ({paymentHits.length})</CardTitle></CardHeader>
           <CardBody className="p-0">
             {paymentHits.map((p) => (
-              <div key={p.id} className="border-b border-[rgba(201,168,76,0.06)] px-3 py-2.5">
+              <div key={p.id} className="border-b border-[rgba(214,210,199,0.06)] px-3 py-2.5">
                 <div className="text-sm text-[var(--color-cream)]">{memMap.get(p.memberId)?.nameEn ?? '—'} · {fmtRs(p.amount)}</div>
                 <div className="text-[11px] text-[var(--txt-3)]">{p.monthLabel}{p.note ? ` · ${p.note}` : ''}</div>
               </div>
@@ -148,7 +143,7 @@ export default async function SearchPage({ searchParams }: Props) {
           <CardHeader><CardTitle>📋 Loans ({loanHits.length})</CardTitle></CardHeader>
           <CardBody className="p-0">
             {loanHits.map((l) => (
-              <div key={l.id} className="border-b border-[rgba(201,168,76,0.06)] px-3 py-2.5">
+              <div key={l.id} className="border-b border-[rgba(214,210,199,0.06)] px-3 py-2.5">
                 <div className="text-sm text-[var(--color-cream)]">{l.purpose} · {fmtRs(l.amount)}</div>
                 <div className="text-[11px] text-[var(--txt-3)]">Paid {fmtRs(l.paid)} of {fmtRs(l.amount)}</div>
               </div>

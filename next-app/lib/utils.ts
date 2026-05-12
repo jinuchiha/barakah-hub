@@ -15,7 +15,12 @@ export function ini(name?: string | null): string {
 
 /** Random hex color from a curated palette (deterministic if seed provided). */
 export function pickColor(seed?: string): string {
-  const palette = ['#c9a84c', '#1f6e4a', '#2d5a8c', '#a83254', '#5e4691', '#a0671e', '#2d6a4f', '#3a4a7a', '#b85a2e', '#475569'];
+  // Brutalist Islamic palette — muted navy / slate / charcoal tones
+  // for member avatars. No saturated chromas, no gold/silver.
+  const palette = [
+    '#1e2a4a', '#2d3f6e', '#3a4a66', '#4a5266', '#3d4250',
+    '#525866', '#6f7480', '#5a4655', '#4a4f3e', '#3a4042',
+  ];
   if (!seed) return palette[Math.floor(Math.random() * palette.length)];
   let h = 0;
   for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) | 0;

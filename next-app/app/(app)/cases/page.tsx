@@ -1,21 +1,18 @@
-import { redirect } from 'next/navigation';
 import { eq, desc, inArray } from 'drizzle-orm';
-import { createClient } from '@/lib/supabase/server';
+import { getMeOrRedirect } from '@/lib/auth-server';
 import { db } from '@/lib/db';
 import { members, cases, votes, config as configTbl } from '@/lib/db/schema';
 import { Card, CardHeader, CardTitle, CardBody } from '@/components/ui/card';
 import { fmtRs } from '@/lib/i18n/dict';
 import VoteButtons from './vote-buttons';
+import DisburseButton from './disburse-button';
 import NewCaseForm from './new-case-form';
 
 export const metadata = { title: 'Emergency Cases · Barakah Hub' };
 
 export default async function CasesPage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect('/login');
-  const [me] = await db.select().from(members).where(eq(members.authId, user.id)).limit(1);
-  if (!me) redirect('/onboarding');
+  const me = await getMeOrRedirect();
+  const isAdmin = me.role === 'admin';
 
   const [allCases, allMembers, [cfg]] = await Promise.all([
     db.select().from(cases).orderBy(desc(cases.createdAt)).limit(50),
@@ -65,8 +62,8 @@ export default async function CasesPage() {
                 <div className="mb-3 flex items-start justify-between gap-3">
                   <div>
                     <div className="mb-1 flex flex-wrap items-center gap-2">
-                      <span className="rounded-full bg-[rgba(201,168,76,0.15)] px-2 py-0.5 text-[10px] font-bold uppercase text-[var(--color-gold)]">{c.caseType}</span>
-                      <span className="rounded-full bg-[rgba(31,110,74,0.12)] px-2 py-0.5 text-[10px] uppercase text-[var(--color-emerald-2)]">{c.pool}</span>
+                      <span className="rounded-full bg-[rgba(214,210,199,0.15)] px-2 py-0.5 text-[10px] font-bold uppercase text-[var(--color-gold)]">{c.caseType}</span>
+                      <span className="rounded-full bg-[rgba(30,42,74,0.12)] px-2 py-0.5 text-[10px] uppercase text-[var(--color-emerald-2)]">{c.pool}</span>
                       <span className="rounded-full border border-[var(--border)] px-2 py-0.5 text-[10px] uppercase text-[var(--txt-2)]">{c.category}</span>
                       {c.emergency && <span className="rounded-full bg-red-500/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-red-400">EMERGENCY</span>}
                     </div>
@@ -78,7 +75,7 @@ export default async function CasesPage() {
                   <div className="text-right">
                     <div className="font-[var(--font-display)] text-xl font-bold text-[var(--color-gold)]">{fmtRs(c.amount)}</div>
                     <span className={`mt-1 inline-block rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${
-                      c.status === 'approved' ? 'bg-[rgba(31,110,74,0.2)] text-[var(--color-emerald-2)]'
+                      c.status === 'approved' ? 'bg-[rgba(30,42,74,0.2)] text-[var(--color-emerald-2)]'
                       : c.status === 'rejected' ? 'bg-red-500/15 text-red-400'
                       : 'bg-[rgba(59,130,246,0.15)] text-blue-400'
                     }`}>{c.status === 'voting' ? 'Voting Open' : c.status}</span>
@@ -99,6 +96,11 @@ export default async function CasesPage() {
                     )}
                     {c.applicantId === me.id && <div className="text-xs italic text-[var(--txt-3)]">Your own request — cannot self-vote.</div>}
                   </>
+                )}
+                {c.status === 'approved' && isAdmin && (
+                  <div className="mt-2">
+                    <DisburseButton caseId={c.id} />
+                  </div>
                 )}
               </CardBody>
             </Card>

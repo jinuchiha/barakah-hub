@@ -21,8 +21,8 @@
  */
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
-import postgres from 'postgres';
-import { drizzle } from 'drizzle-orm/postgres-js';
+import { drizzle } from 'drizzle-orm/neon-serverless';
+import { Pool } from '@neondatabase/serverless';
 import { eq } from 'drizzle-orm';
 import * as schema from '../lib/db/schema';
 
@@ -52,8 +52,12 @@ async function main() {
     console.error('DATABASE_URL not set. Add it to .env.local and source it before running.');
     process.exit(1);
   }
-  const sql = postgres(process.env.DATABASE_URL, { prepare: false, max: 1 });
-  const db = drizzle(sql, { schema });
+  // Use the WebSocket-backed Neon driver here (not the HTTP one we use
+  // at runtime) so the bulk insert can run inside a single transaction.
+  // DATABASE_URL_DIRECT preferred — DDL/transactional flows are happier
+  // bypassing the pooler.
+  const pool = new Pool({ connectionString: process.env.DATABASE_URL_DIRECT ?? process.env.DATABASE_URL });
+  const db = drizzle(pool, { schema });
 
   console.log('🌐 Connected to Postgres. Beginning migration...');
 
@@ -180,7 +184,7 @@ async function main() {
   }
 
   console.log('\n✅ Migration complete. Inspect with: pnpm db:studio');
-  await sql.end();
+  await pool.end();
 }
 
 main().catch((e) => {

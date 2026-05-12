@@ -1,21 +1,18 @@
 import { redirect } from 'next/navigation';
 import { eq, desc, asc } from 'drizzle-orm';
-import { createClient } from '@/lib/supabase/server';
+import { getMeOrRedirect } from '@/lib/auth-server';
 import { db } from '@/lib/db';
 import { members, loans } from '@/lib/db/schema';
 import { Card, CardHeader, CardTitle, CardBody } from '@/components/ui/card';
 import { fmtRs } from '@/lib/i18n/dict';
 import IssueLoanForm from './issue-loan-form';
 import RepayForm from './repay-form';
+import { ExportLink } from '@/components/export-link';
 
 export const metadata = { title: 'Qarz-e-Hasana · Barakah Hub' };
 
 export default async function LoansPage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect('/login');
-  const [me] = await db.select().from(members).where(eq(members.authId, user.id)).limit(1);
-  if (!me) redirect('/onboarding');
+  const me = await getMeOrRedirect();
   if (me.role !== 'admin') redirect('/dashboard');
 
   const [all, allMembers] = await Promise.all([
@@ -34,9 +31,12 @@ export default async function LoansPage() {
 
   return (
     <div>
-      <header className="mb-6 border-b border-[var(--border)] pb-4">
-        <h1 className="font-[var(--font-arabic)] text-3xl text-[var(--color-gold-2)]">قرض حسنہ</h1>
-        <p className="mt-1 font-[var(--font-en)] text-sm italic text-[var(--color-gold-4)]">Interest-free loans · {active.length} active · {fmtRs(outstanding)} outstanding</p>
+      <header className="mb-6 flex flex-wrap items-start justify-between gap-3 border-b border-[var(--border)] pb-4">
+        <div>
+          <h1 className="font-[var(--font-arabic)] text-3xl text-[var(--color-gold-2)]">قرض حسنہ</h1>
+          <p className="mt-1 font-[var(--font-en)] text-sm italic text-[var(--color-gold-4)]">Interest-free loans · {active.length} active · {fmtRs(outstanding)} outstanding</p>
+        </div>
+        <ExportLink href={'/api/exports/loans' as any}>Export CSV</ExportLink>
       </header>
 
       <Card className="mb-4">
@@ -57,7 +57,7 @@ export default async function LoansPage() {
             const remaining = l.amount - l.paid;
             const pct = Math.round((l.paid / l.amount) * 100);
             return (
-              <div key={l.id} className="border-b border-[rgba(201,168,76,0.06)] p-4">
+              <div key={l.id} className="border-b border-[rgba(214,210,199,0.06)] p-4">
                 <div className="mb-2 flex items-start justify-between gap-3">
                   <div>
                     <div className="text-sm font-semibold text-[var(--color-cream)]">{m?.nameEn || m?.nameUr}</div>
@@ -92,7 +92,7 @@ export default async function LoansPage() {
             {repaid.map((l) => {
               const m = memById.get(l.memberId);
               return (
-                <div key={l.id} className="flex items-center justify-between border-b border-[rgba(201,168,76,0.06)] px-4 py-2.5">
+                <div key={l.id} className="flex items-center justify-between border-b border-[rgba(214,210,199,0.06)] px-4 py-2.5">
                   <span className="text-sm text-[var(--txt-2)]">{m?.nameEn || m?.nameUr} · {l.purpose}</span>
                   <span className="font-[var(--font-display)] text-sm text-[var(--color-emerald-2)]">{fmtRs(l.amount)} ✓</span>
                 </div>

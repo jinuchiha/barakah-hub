@@ -19,7 +19,7 @@ const DropdownMenuSubTrigger = React.forwardRef<
     ref={ref}
     className={cn(
       'flex cursor-default select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none',
-      'focus:bg-[rgba(201,168,76,0.12)] data-[state=open]:bg-[rgba(201,168,76,0.12)]',
+      'focus:bg-[rgba(214,210,199,0.12)] data-[state=open]:bg-[rgba(214,210,199,0.12)]',
       inset && 'pl-8',
       className,
     )}
@@ -75,7 +75,7 @@ const DropdownMenuItem = React.forwardRef<
     ref={ref}
     className={cn(
       'relative flex cursor-default select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none transition-colors',
-      'focus:bg-[rgba(201,168,76,0.12)] focus:text-[var(--color-gold-2)]',
+      'focus:bg-[rgba(214,210,199,0.12)] focus:text-[var(--color-gold-2)]',
       'data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
       inset && 'pl-8',
       className,
@@ -93,7 +93,7 @@ const DropdownMenuCheckboxItem = React.forwardRef<
     ref={ref}
     className={cn(
       'relative flex cursor-default select-none items-center gap-2 rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none transition-colors',
-      'focus:bg-[rgba(201,168,76,0.12)] data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
+      'focus:bg-[rgba(214,210,199,0.12)] data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
       className,
     )}
     checked={checked}
@@ -117,7 +117,7 @@ const DropdownMenuRadioItem = React.forwardRef<
     ref={ref}
     className={cn(
       'relative flex cursor-default select-none items-center gap-2 rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none transition-colors',
-      'focus:bg-[rgba(201,168,76,0.12)] data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
+      'focus:bg-[rgba(214,210,199,0.12)] data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
       className,
     )}
     {...props}

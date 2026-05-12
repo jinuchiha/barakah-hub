@@ -2,7 +2,7 @@
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { createClient } from '@/lib/supabase/client';
+import { authClient } from '@/lib/auth-client';
 import { Input, Label } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 
@@ -14,11 +14,11 @@ export default function ForgotForm() {
   function submit(e: React.FormEvent) {
     e.preventDefault();
     start(async () => {
-      const supabase = createClient();
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/login`,
+      const { error } = await authClient.requestPasswordReset({
+        email,
+        redirectTo: `${window.location.origin}/reset-password`,
       });
-      if (error) { toast.error(error.message); return; }
+      if (error) { toast.error(error.message ?? 'Reset failed'); return; }
       toast.success('Reset email sent — check your inbox');
       setTimeout(() => router.push('/login'), 1800);
     });

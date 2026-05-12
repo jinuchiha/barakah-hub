@@ -1,198 +1,140 @@
-# BalochSath · Next.js Phase 3
+# Barakah Hub — `next-app/`
 
-> Modern rebuild of the single-HTML BalochSath app.
-> **Next.js 16 (App Router) + TypeScript + Tailwind v4 + Drizzle ORM + Supabase (Postgres + Auth + Realtime + Storage).**
-
-This is a parallel implementation. The original `index.html` at the repo root keeps working — this folder is the path forward when:
-
-- Multi-device sync is needed
-- Real auth (vs plaintext localStorage passwords) is required
-- Cloud photo storage is required
-- 100+ users need to log in concurrently
-- Server-side audit immutability matters
+The active Next.js 16 codebase. For project overview, branching, and the
+GitHub setup runbook see the [root README](../README.md). This file is
+the dev-facing reference: stack decisions, security model, common commands.
 
 ---
 
-## ⚙️ Setup (one-time)
+## Stack
 
-### 1. Create Supabase project
+**Next.js 16** (App Router, RSC) · **React 19** · **TypeScript 5.6 (strict)** ·
+**Tailwind v4** (CSS `@theme` tokens) · **Drizzle ORM 0.45** ·
+**Neon Postgres** (HTTP driver) · **Better-Auth 1.6** (email + password) ·
+**Resend** (password-reset email) · **Vitest 4 + RTL** ·
+**Cloudflare Workers** (deployed via [`@opennextjs/cloudflare`](https://opennext.js.org/cloudflare)).
 
-1. Sign up at https://supabase.com (free)
-2. Create a project — pick a region close to your family
-3. Wait ~2 minutes for it to provision
+UI primitives: hand-rolled [Shadcn](https://ui.shadcn.com)-style components
+backed by Radix (Dialog, DropdownMenu, Tooltip) plus our own card / button /
+input. Motion via the modern `motion` package (Framer Motion's successor).
 
-### 2. Run the SQL migration
+Observability hooks (Sentry / PostHog) are stubbed in `.env.example` —
+not wired yet.
+
+---
+
+## Common commands
 
 ```bash
-# Open Supabase Dashboard → SQL Editor → New Query
-# Paste the contents of supabase/migrations/0001_initial_schema.sql
-# Click Run
+# Dev
+pnpm dev                          # http://localhost:3000 (Turbopack)
+
+# Quality gates (same as CI)
+pnpm typecheck                    # tsc --noEmit
+pnpm lint                         # eslint . (flat config)
+pnpm test                         # vitest run — 47 tests
+pnpm build                        # next build (production)
+
+# Database
+pnpm db:generate                  # drizzle-kit generate (after schema edit)
+pnpm db:migrate                   # apply pending migrations to current branch
+pnpm db:push                      # push schema directly (dev only)
+pnpm db:studio                    # GUI at https://local.drizzle.studio
+
+# Cloudflare Workers
+pnpm build:cf                     # OpenNext build → .open-next/
+pnpm deploy:cf                    # wrangler deploy
+pnpm preview:cf                   # local Worker preview
+
+# Legacy data import (one-shot)
+pnpm import:legacy ./<exported>.json
 ```
-
-This creates all tables, indexes, enums, and **Row Level Security** policies.
-The RLS policies enforce *sadqa privacy at the database layer* — even a malicious client cannot read other members' donation amounts.
-
-### 3. Get your credentials
-
-Supabase Dashboard → **Project Settings** → **API**:
-- `NEXT_PUBLIC_SUPABASE_URL` — Project URL
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY` — anon public key
-- `SUPABASE_SERVICE_ROLE_KEY` — **service_role** secret (keep server-only!)
-
-Supabase Dashboard → **Settings** → **Database** → **Connection String** → **Transaction** mode (port 6543):
-- `DATABASE_URL`
-
-### 4. Local env
-
-```bash
-cd next-app
-cp .env.example .env.local
-# fill in values from above
-```
-
-### 5. Install + run
-
-```bash
-# We recommend pnpm but npm/yarn/bun all work
-pnpm install
-pnpm dev
-```
-
-App boots at http://localhost:3000
-
-### 6. Create your first admin
-
-In Supabase Dashboard → **Authentication** → **Users** → **Add User**:
-- Email: your email
-- Password: choose one
-- Auto-confirm: ✓
-
-Then in **SQL Editor** run this once to link your auth user → members row:
-
-```sql
-INSERT INTO members (auth_id, username, name_ur, name_en, father_name, role, status, needs_setup)
-VALUES (
-  'YOUR-AUTH-USER-UUID-FROM-AUTH.USERS-TABLE',
-  'admin',
-  'منتظم',
-  'Admin',
-  'Setup',
-  'admin',
-  'approved',
-  true
-);
-```
-
-Login at http://localhost:3000/login. The first-login wizard takes over.
 
 ---
 
-## 📦 Migrating data from the single-HTML app
-
-If you already have data in the old `index.html`:
-
-1. Open the old app → **Settings → Danger Zone → ⬇ Export**
-2. Save the JSON file (e.g. `balochsath-2026-05-07.json`)
-3. From `next-app/`:
-
-   ```bash
-   pnpm import:legacy ./path/to/balochsath-2026-05-07.json
-   ```
-
-The script:
-- Inserts members, preserving usernames + father names + parent links
-- Imports payments with verified/pending flags intact
-- Imports loans, repayments, audit log entries
-- Restores config (vote threshold, goal, theme)
-
-It's idempotent on `username` — safe to re-run.
-
-> Note: Members imported via this script have `auth_id = null` until each member signs up via Supabase Auth. The wizard prompts them to claim their account using their `username`.
-
----
-
-## 🚀 Deploy
-
-### Vercel + Supabase (free)
-
-1. Push this folder as a project root to Vercel
-2. Set env vars in Vercel project settings (same as `.env.local`)
-3. Vercel auto-deploys on push to `main`
-
-URL: `https://your-project.vercel.app`
-
-### Costs at family scale (50–200 users)
-- Vercel: **$0** (Hobby tier covers this easily)
-- Supabase: **$0** (free tier: 500MB DB, 1GB storage, 50K MAU)
-
-Total: $0/month until you hit 1000+ active users.
-
----
-
-## 🗂 Architecture
+## Architecture
 
 ```
 next-app/
-├── app/                                # Next.js 16 App Router
-│   ├── layout.tsx                      # Root layout (fonts, manifest, theme)
-│   ├── page.tsx                        # Redirect: → /dashboard or /login
-│   ├── globals.css                     # Tailwind v4 @theme + 11 palettes
-│   ├── login/                          # Public route
-│   │   ├── page.tsx
-│   │   └── login-form.tsx
-│   ├── (app)/                          # Protected route group
-│   │   ├── layout.tsx                  # Auth gate + sidebar + topbar shell
-│   │   ├── dashboard/page.tsx
-│   │   ├── myaccount/page.tsx
-│   │   ├── members/                    # admin
+├── app/
+│   ├── api/auth/[...all]/        Better-Auth catch-all handler
+│   ├── login/                    /login + login-form (client)
+│   ├── register/                 /register + register-form (client)
+│   ├── forgot-password/          /forgot-password
+│   ├── reset-password/           /reset-password (token from email)
+│   ├── onboarding/               Profile-claim flow after first sign-in
+│   ├── (app)/                    Auth-required app shell + every page
+│   │   ├── layout.tsx            Topbar + Sidebar + TooltipProvider
+│   │   ├── dashboard/
+│   │   ├── myaccount/
 │   │   ├── tree/
+│   │   ├── cases/                Emergency votes
+│   │   ├── search/
 │   │   ├── settings/
-│   │   └── ...
-│   └── actions.ts                      # Server actions (mutations)
+│   │   ├── notifications/
+│   │   ├── messages/
+│   │   └── admin/                /admin/{audit,broadcast,fund,loans,members}
+│   ├── actions.ts                Server actions (Zod-validated)
+│   ├── manifest.ts               PWA manifest (dynamic)
+│   ├── icon.tsx                  Dynamic favicon (Concept A geometric crescent)
+│   ├── globals.css               Tailwind v4 @theme tokens + 11 palettes
+│   └── layout.tsx                Root layout (fonts, manifest, Toaster)
 │
 ├── components/
-│   ├── ui/                             # Primitive components (button, card, input)
-│   ├── stat-card.tsx                   # Adminty-style gradient card
-│   ├── sidebar.tsx
-│   ├── topbar.tsx
-│   ├── verse-bar.tsx                   # Quran ticker
-│   └── goal-bar.tsx
+│   ├── ui/                       button, card, input, dialog, dropdown-menu, tooltip
+│   ├── icons/crescent.tsx        Shared brand mark (Concept A)
+│   ├── stat-card.tsx             Motion-enabled gradient stat card
+│   ├── sidebar.tsx               layoutId active-indicator animation
+│   ├── topbar.tsx                Search + theme toggle + user dropdown
+│   ├── verse-bar.tsx             Quran ticker
+│   └── goal-bar.tsx              Family goal progress
 │
 ├── lib/
+│   ├── auth.ts                   Better-Auth server config
+│   ├── auth-client.ts            Better-Auth React client
+│   ├── auth-server.ts            getSession / getUser / getMeOrRedirect
 │   ├── db/
-│   │   ├── schema.ts                   # Drizzle table definitions
-│   │   └── index.ts                    # Drizzle client (postgres-js)
-│   ├── supabase/
-│   │   ├── client.ts                   # Browser client
-│   │   ├── server.ts                   # Server client (per-request)
-│   │   └── middleware.ts               # Session refresh + auth gate
-│   ├── i18n/
-│   │   ├── dict.ts                     # UR/EN strings
-│   │   └── verses.ts                   # Quran verse rotation
-│   ├── themes.ts                       # 11 palette keys
-│   └── utils.ts                        # cn(), ini(), normalizePkPhone()
+│   │   ├── schema.ts             Drizzle schema (all 14 tables)
+│   │   └── index.ts              Neon HTTP driver
+│   ├── i18n/{dict,verses}.ts
+│   ├── month.ts                  monthStartFromLabel() — pure, tested
+│   ├── themes.ts                 11 palette keys
+│   ├── utils.ts                  cn(), ini(), normalizePkPhone(), pickColor()
+│   └── whatsapp.ts               Bilingual templates + phone normalization
 │
-├── supabase/
-│   └── migrations/
-│       ├── 0001_initial_schema.sql     # Tables + indexes + RLS policies
-│       └── 0002_security_fixes.sql     # Avatar policy + month_start + audit triggers
+├── supabase/migrations/          Numbered SQL migrations (folder name kept
+│   ├── 0001_initial_schema.sql   for naming continuity; targets Neon now)
+│   ├── 0002_security_fixes.sql
+│   ├── 0003_rename_to_barakah_hub.sql
+│   └── 0004_better_auth_tables.sql
 │
-├── scripts/
-│   └── migrate-localstorage.ts         # Legacy JSON → Postgres importer
-│
-├── test/                               # Vitest + RTL — 48 tests
+├── test/                         Vitest + RTL — 47 tests
+│   ├── setup.ts
 │   ├── utils.test.ts
 │   ├── month.test.ts
-│   ├── components/
-│   ├── actions/                        # Security-critical action tests
-│   ├── helpers/db-mock.ts
-│   └── setup.ts
+│   ├── components/{stat-card,goal-bar}.test.tsx
+│   ├── actions/{onboarding,authorization}.test.ts
+│   └── helpers/db-mock.ts        Chainable Drizzle + session mock
 │
-├── proxy.ts                            # Next 16 proxy (was: middleware.ts) — Supabase session refresh
-├── next.config.mjs
-├── tailwind.config.ts                  # (none needed — using v4 @theme)
-├── tsconfig.json
-├── drizzle.config.ts
+├── docs/
+│   ├── BACKEND_ALTERNATIVES.md   Appwrite / PocketBase / Nhost / Turso vs Supabase
+│   └── MIGRATING_TO_NEON.md      7-phase Supabase → Neon + Better-Auth playbook
+│
+├── scripts/
+│   └── migrate-localstorage.ts   Legacy single-HTML JSON → Postgres importer
+│
+├── public/
+│   ├── icon.svg                  PWA primary icon (full-bleed crescent)
+│   ├── icon-maskable.svg         Adaptive icon (safe-zone padded)
+│   └── brand/                    Logo concept proposals (A/B/C) + preview.html
+│
+├── middleware.ts                 Edge-runtime auth gate (fast, no DB call)
+├── wrangler.toml                 Cloudflare Workers config
+├── open-next.config.ts           OpenNext adapter config
+├── components.json               Shadcn CLI config (style: new-york)
+├── DEPLOY.md                     Workers + Neon deploy guide
+├── AUDIT_PHASE3.md               Audit + remediation history
+├── CONTRIBUTING.md               Branching, commits, review etiquette
 └── package.json
 ```
 
@@ -200,126 +142,117 @@ next-app/
 
 ## 🛡 Security model
 
-The app connects to Postgres via `lib/db/index.ts` using `DATABASE_URL`,
-which authenticates as a privileged role and **bypasses** the RLS policies
-in the migration. The RLS policies are documentation of intent + protection
-for any future direct-REST access via `supabase.from(...)` — they do not
-cover the Drizzle code path. **Authorization happens in [app/actions.ts](app/actions.ts)**,
-which every mutation goes through.
+The app connects to Neon via `lib/db/index.ts` using the HTTP driver,
+which authenticates as a privileged role. **Authorization happens in
+[`app/actions.ts`](app/actions.ts)** — every mutation passes through a
+Zod schema and a `meOrThrow()` / `getMeOrRedirect()` gate that derives
+identity from the Better-Auth session cookie.
 
 | Concern | Mitigation |
 |---|---|
-| Sadqa privacy (members not seeing each other's donations) | Server actions filter by `me.id` for non-admins; tree/dashboard strip foreign totals before crossing the network |
-| Plaintext passwords (was: localStorage) | Supabase Auth — bcrypt-hashed, never seen by app code |
-| Onboarding identity hijack | `onboardSelf` derives `authId`/`email` from the session cookie, never the request body. Admin records cannot be self-claimed. |
-| Audit log tampering | DB triggers reject UPDATE/DELETE on `audit_log` regardless of role (migration 0002) |
-| Avatar bucket overwrite | Storage policy restricts insert/update to `(storage.foldername(name))[1] = auth.uid()::text` (migration 0002) |
+| Sadqa privacy (members not seeing each other's donations) | Server actions filter by `me.id` for non-admins; tree + dashboard strip foreign totals before crossing the network |
+| Plaintext passwords (was: localStorage in legacy app) | Better-Auth — bcrypt-hashed at rest, password column on `accounts` table |
+| Session hijack | httpOnly cookies, 30-day sliding expiry, IP + UA captured in `sessions.ip_address` / `user_agent` |
+| Onboarding identity hijack | `onboardSelf` derives `userId` + `email` from the session, never the request body. Admin records cannot be self-claimed. |
+| Audit log tampering | DB triggers reject `UPDATE`/`DELETE` on `audit_log` regardless of role (migration 0002) |
+| Avatar bucket overwrite | Storage migration to R2 pending (Phase 6) — uploads currently disabled |
 | SQL injection | Drizzle ORM — parameterized everywhere |
 | XSS | React auto-escapes; `dangerouslySetInnerHTML` not used |
-| CSRF | All mutations go through Next.js server actions (origin-checked); approve flow no longer uses an open form-POST route |
+| CSRF | All mutations go through Next.js server actions (origin-checked); no open form-POST routes |
 | Input validation | Every action parses through a Zod schema before any DB write |
 
 ---
 
-## 🔑 Stack decisions explained
+## Stack decisions explained
 
-**Why PERN over MERN?**
-Family data is highly relational (parent → children, member → payments → verifications, case → votes). Postgres handles this naturally with foreign keys, while MongoDB would force denormalized embedding or join-emulation. Postgres also gives us RLS for free.
+**Why Neon over Supabase Postgres?**
+Branch-per-PR DBs (copy-on-write, instant), HTTP driver fits Cloudflare Workers cleanly, Postgres semantics preserved. We landed on Neon after the Supabase project was deleted; see [`docs/MIGRATING_TO_NEON.md`](docs/MIGRATING_TO_NEON.md) for the trade-off table.
+
+**Why Better-Auth over Auth.js (NextAuth) / Clerk / Lucia?**
+Open-source + Drizzle-native + TypeScript-first + active development. Auth.js is more battle-tested but heavier; Clerk is hosted with vendor lock-in; Lucia is a library, not a service (more code to own). Better-Auth was the best fit for our stack.
 
 **Why Drizzle over Prisma?**
-Drizzle is type-safer (the schema *is* the types), has zero runtime overhead, generates raw SQL we can audit, and works without a code-generation step. Prisma is fine; Drizzle is faster to iterate.
-
-**Why Supabase over self-hosted Postgres?**
-We get auth + storage + realtime channels + dashboard + RLS-aware APIs in one product. For a family-scale tool, the free tier covers everything indefinitely.
+The schema *is* the types. Zero runtime overhead. Generates raw SQL we audit. No code-generation step. We pay for it with a smaller ecosystem; trade-off worth it at our scale.
 
 **Why Tailwind v4 (no config file)?**
-v4 introduces the `@theme` directive in CSS. Tokens live with the styles. No JavaScript config to maintain.
+v4 introduces the `@theme` directive in CSS — tokens live with the styles. No JavaScript config to maintain.
+
+**Why Cloudflare Workers (OpenNext) over Pages?**
+Cloudflare is consolidating around Workers + Static Assets. The legacy `@cloudflare/next-on-pages` adapter doesn't support Next 16; OpenNext does. New projects should target Workers.
 
 **Why server actions over API routes?**
-Less boilerplate. Type-safe end-to-end. Automatic CSRF protection. Revalidation built in.
+Less boilerplate. Type-safe end-to-end. Built-in origin check (CSRF). Revalidation built in.
+
+**Why `middleware.ts` and not Next 16's `proxy.ts`?**
+`proxy.ts` is locked to the Node.js runtime. OpenNext on Workers runs in V8 isolates and only supports Edge middleware. Switch back when OpenNext ships Node-runtime support.
 
 ---
 
 ## 🧪 Quality gates
 
-The same four checks CI runs (see [`.github/workflows/ci.yml`](../.github/workflows/ci.yml)):
+Same four checks CI runs (see [`.github/workflows/ci.yml`](../.github/workflows/ci.yml)):
 
 ```bash
 pnpm typecheck   # tsc --noEmit
 pnpm lint        # eslint . (flat config)
-pnpm test        # vitest run — 48 tests across utils, components, security-critical actions
-pnpm build       # next build (production)
-pnpm db:studio   # open Drizzle Studio at https://local.drizzle.studio
+pnpm test        # vitest run — 47 tests
+pnpm build       # next build (production w/ placeholder env)
 ```
 
 Test layout:
-- `test/utils.test.ts`, `test/month.test.ts` — pure utilities
+- `test/utils.test.ts` + `test/month.test.ts` — pure utilities
 - `test/components/*.test.tsx` — RTL renders for `GoalBar`, `StatCard`
 - `test/actions/*.test.ts` — security gates on `onboardSelf`, `castVote`,
-  `approveMember`, `recordRepayment`, `editMember`. Each test mocks `@/lib/db`
-  and `@/lib/supabase/server` via `test/helpers/db-mock.ts` so no live DB is
-  needed.
+  `approveMember`, `recordRepayment`, `editMember`. Each test mocks
+  `@/lib/db` and `@/lib/auth-server` via [`test/helpers/db-mock.ts`](test/helpers/db-mock.ts) so no live DB is needed.
 
 ---
 
 ## 📍 Status
 
-**Phase 3 ships complete (60+ files, ~6,000 lines), audited and remediated:**
-
-The audit + fix history is in [`AUDIT_PHASE3.md`](AUDIT_PHASE3.md) — it covers:
-- 5 P0 (security) findings, all fixed
-- 11 P1 (functionality) gaps, all fixed
-- 10 P2 (perf/correctness) drifts, all fixed
-
-Open backlog (P3 — explicit follow-ups):
-- Tests cover security gates + utilities + a couple of components; broader UI
-  coverage and an integration suite against a test Postgres are next steps.
-- AUDIT.md feature gaps still open: leaderboard, branch analytics, donut
-  chart, province distribution, streak counter, bulk WhatsApp, JSON
-  backup/restore, audit filter+CSV.
-- Observability (Sentry/PostHog) and multi-tenant scaffolding deferred.
-
-
+Phase 3 audit + remediation complete (5 P0 + 11 P1 + 9 P2 fixes). Phases
+3 + 4 + 5 of [`docs/MIGRATING_TO_NEON.md`](docs/MIGRATING_TO_NEON.md)
+landed on `feat/neon-migration`. Migration to production happens via the
+checklist in [`../NEON_TODO.md`](../NEON_TODO.md).
 
 ### Pages
-- ✅ `/login` — Supabase email/password
-- ✅ `/forgot-password` — magic-link reset
-- ✅ `/onboarding` — 2-step wizard for new + claimed accounts (session-derived identity)
+- ✅ `/login` — Better-Auth email + password
+- ✅ `/register` — self-signup
+- ✅ `/forgot-password` — request reset email
+- ✅ `/reset-password` — complete reset (token from email)
+- ✅ `/onboarding` — 2-step wizard for new + claimed accounts
 - ✅ `/dashboard` — stat cards (chronological sparklines), goal bar, sadqa privacy banner
-- ✅ `/myaccount` — verified vs pending payment history + member donation form
-- ✅ `/tree` — interactive SVG family tree, server-filtered totals (admins see all, members see own only)
+- ✅ `/myaccount` — verified vs pending payment history + donation form
+- ✅ `/tree` — interactive SVG family tree, server-filtered totals
 - ✅ `/cases` — emergency cases + voting + new-case form
 - ✅ `/search` — global search across members + cases (+ payments + loans for admins)
 - ✅ `/notifications` — inbox with bilingual titles + mark-all-read
 - ✅ `/messages` — send to admin + inbox + mark-all-read
-- ✅ `/settings` — profile form, photo upload, 11-palette picker, admin config
-- ✅ `/admin/members` — full CRUD via dialog (add + edit + approve + soft/hard delete) with city/province/status filters
-- ✅ `/admin/fund` — pool totals, pending verifications, recent history, record form
-- ✅ `/admin/loans` — issue qarz form, active loans with progress + per-row repayment, repaid history
-- ✅ `/admin/broadcast` — bilingual title/body to all members
-- ✅ `/admin/audit` — append-only activity journal (DB triggers enforce immutability)
+- ✅ `/settings` — profile (photo upload TODO), 11-palette picker, admin config
+- ✅ `/admin/{members,fund,loans,broadcast,audit}` — full CRUD
 
 ### Backend
-- ✅ Database schema + RLS policies (Postgres, sadqa privacy enforced at DB layer)
-- ✅ Auth (Supabase SSR + middleware session refresh)
-- ✅ 19 server actions (typed via Zod): `approveMember`, `addMember`,
+- ✅ Schema + 4 migrations (0001-0004)
+- ✅ Better-Auth (email + password, sessions, password-reset)
+- ✅ ~21 server actions (Zod-validated): `approveMember`, `addMember`,
   `editMember`, `recordPayment`, `submitDonation`, `verifyPayment`,
   `rejectPayment`, `castVote`, `createCase`, `issueLoan`, `recordRepayment`,
   `updateGoal`, `updateProfile`, `updateAdminConfig`, `softDeleteMember`,
   `hardDeleteMember`, `markAllNotificationsRead`, `markAllMessagesRead`,
   `sendMessage`, `broadcastNotification`, `onboardSelf`
-- ✅ Legacy data migration script (`scripts/migrate-localstorage.ts`)
 
-### Infrastructure
-- ✅ PWA: `app/manifest.ts` + dynamic `app/icon.tsx`
-- ✅ WhatsApp helpers (`lib/whatsapp.ts`) — phone normalization + Urdu templates
-- ✅ 11 theme palettes ported as CSS layers
-- ✅ Sonner toast notifications
-- ✅ Lucide-react icons
-- ✅ TanStack Query ready (caching layer for client interactions)
-- ✅ Tailwind v4 with @theme tokens
-- ✅ TypeScript strict mode end-to-end
+### Open backlog
+- **Phase 6 (R2 storage)** for avatar upload — currently stubbed
+- Resend domain verification for password-reset deliverability
+- Wider integration tests against an ephemeral Neon branch
+- Missing legacy features: leaderboard, branch analytics, donut chart,
+  province distribution, streak counter, bulk WhatsApp, JSON
+  backup/restore, audit filter+CSV
+- Observability (Sentry, PostHog)
+- Multi-tenant scaffolding (deferred)
 
 ---
+
+> *وَأَنفِقُوا۟ مِن مَّا رَزَقْنَـٰكُم* — *And spend from what We have provided you* — Al-Munafiqun 63:10
 
 **JazakAllah Khair.**
