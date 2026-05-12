@@ -53,8 +53,5 @@ jobs:
       - name: Build
         run: pnpm build
         env:
-          # Placeholder values are sufficient for `next build` — runtime
-          # secrets are injected by Cloudflare Pages / Vercel at deploy time.
-          DATABASE_URL: postgres://ci:ci@localhost:5432/ci
-          NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: placeholder
+          DATABASE_URL: postgresql://ci:ci@localhost/ci?sslmode=require
+          BETTER_AUTH_SECRET: ci-placeholder-secret-long-enough-for-better-auth

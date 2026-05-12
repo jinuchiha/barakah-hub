@@ -20,6 +20,7 @@ interface TopbarProps {
   user: { name: string; role: string; color?: string; photoUrl?: string | null };
   unreadCount?: number;
   isAdmin?: boolean;
+  badges?: Record<string, number>;
 }
 
 const THEME_KEY = 'barakah_theme';
@@ -37,7 +38,7 @@ const themeStore = {
   getServerSnapshot: (): 'dark' | 'light' => 'dark',
 };
 
-export function Topbar({ user, unreadCount = 0, isAdmin = false }: TopbarProps) {
+export function Topbar({ user, unreadCount = 0, isAdmin = false, badges = {} }: TopbarProps) {
   const [q, setQ] = useState('');
   const mode = useSyncExternalStore(themeStore.subscribe, themeStore.getSnapshot, themeStore.getServerSnapshot);
   const router = useRouter();
@@ -73,7 +74,7 @@ export function Topbar({ user, unreadCount = 0, isAdmin = false }: TopbarProps) 
   return (
     <header className="relative flex h-14 shrink-0 items-center justify-between gap-2 border-b border-[var(--border)] bg-gradient-to-r from-[var(--color-ink)] via-[#111108] to-[var(--color-ink)] px-3 md:px-6">
       <div className="flex items-center gap-2 md:gap-3">
-        <MobileNav isAdmin={isAdmin} />
+        <MobileNav isAdmin={isAdmin} badges={badges} />
         <div className="grid size-9 shrink-0 place-items-center rounded-full bg-gradient-to-br from-[var(--color-gold-4)] to-[var(--color-gold)] shadow-[0_0_12px_rgba(214,210,199,0.35)]">
           <Crescent />
         </div>

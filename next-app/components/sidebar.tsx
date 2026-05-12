@@ -30,10 +30,12 @@ interface NavProps {
   onNavigate?: () => void;
   /** Distinct layoutId per render context so motion.span animations don't collide between desktop + drawer. */
   layoutIdSuffix?: string;
+  /** href → badge count (e.g. pending members, pending payments). 0 or undefined = no badge. */
+  badges?: Record<string, number>;
 }
 
 /** Inner nav list — shared between desktop `<Sidebar>` and the mobile drawer. */
-export function SidebarNav({ isAdmin = false, locale = 'en', onNavigate, layoutIdSuffix = 'desktop' }: NavProps) {
+export function SidebarNav({ isAdmin = false, locale = 'en', onNavigate, layoutIdSuffix = 'desktop', badges = {} }: NavProps) {
   const pathname = usePathname();
   const items = NAV.filter((n) => !n.admin || isAdmin);
   const adminStart = items.findIndex((n) => n.admin);
@@ -47,20 +49,20 @@ export function SidebarNav({ isAdmin = false, locale = 'en', onNavigate, layoutI
           return (
             <div key={n.href}>
               <SectionLabel label={locale === 'ur' ? 'ایڈمن' : 'ADMIN'} />
-              <NavItem n={n} isActive={isActive} locale={locale} onNavigate={onNavigate} layoutIdSuffix={layoutIdSuffix} />
+              <NavItem n={n} isActive={isActive} locale={locale} onNavigate={onNavigate} layoutIdSuffix={layoutIdSuffix} badge={badges[n.href]} />
             </div>
           );
         }
-        return <NavItem key={n.href} n={n} isActive={isActive} locale={locale} onNavigate={onNavigate} layoutIdSuffix={layoutIdSuffix} />;
+        return <NavItem key={n.href} n={n} isActive={isActive} locale={locale} onNavigate={onNavigate} layoutIdSuffix={layoutIdSuffix} badge={badges[n.href]} />;
       })}
     </nav>
   );
 }
 
-export function Sidebar({ isAdmin = false, locale = 'en' }: { isAdmin?: boolean; locale?: 'ur' | 'en' }) {
+export function Sidebar({ isAdmin = false, locale = 'en', badges = {} }: { isAdmin?: boolean; locale?: 'ur' | 'en'; badges?: Record<string, number> }) {
   return (
     <aside className="hidden w-56 shrink-0 flex-col border-r border-[var(--border)] bg-gradient-to-b from-[#0d0d09] to-[#080806] md:flex">
-      <SidebarNav isAdmin={isAdmin} locale={locale} layoutIdSuffix="desktop" />
+      <SidebarNav isAdmin={isAdmin} locale={locale} layoutIdSuffix="desktop" badges={badges} />
       <div className="border-t border-[var(--border)] p-3 text-center text-[10px] uppercase tracking-[1px] text-[var(--color-gold-4)] opacity-60">
         v3.0 · Barakah Hub
       </div>
@@ -78,12 +80,14 @@ function NavItem({
   locale,
   onNavigate,
   layoutIdSuffix,
+  badge,
 }: {
   n: typeof NAV[number];
   isActive: boolean;
   locale: 'ur' | 'en';
   onNavigate?: () => void;
   layoutIdSuffix: string;
+  badge?: number;
 }) {
   const Icon = n.icon;
   return (
@@ -107,7 +111,12 @@ function NavItem({
         />
       )}
       <Icon className="size-4 shrink-0 text-[var(--color-gold)]" />
-      <span>{locale === 'ur' ? n.labelUr : n.label}</span>
+      <span className="flex-1">{locale === 'ur' ? n.labelUr : n.label}</span>
+      {!!badge && badge > 0 && (
+        <span className="ml-auto grid min-w-[18px] place-items-center rounded-full bg-red-600 px-1 text-[9px] font-bold text-white">
+          {badge > 99 ? '99+' : badge}
+        </span>
+      )}
     </Link>
   );
 }

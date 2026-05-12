@@ -9,7 +9,7 @@ import { SidebarNav } from '@/components/sidebar';
  * nav items the desktop sidebar uses. Closes itself on link click via
  * `onNavigate`, since route changes don't auto-close Radix dialogs.
  */
-export function MobileNav({ isAdmin = false }: { isAdmin?: boolean }) {
+export function MobileNav({ isAdmin = false, badges = {} }: { isAdmin?: boolean; badges?: Record<string, number> }) {
   const [open, setOpen] = useState(false);
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -27,7 +27,7 @@ export function MobileNav({ isAdmin = false }: { isAdmin?: boolean }) {
           بَرَكَة ہب
         </SheetTitle>
         <SheetDescription className="sr-only">Main navigation</SheetDescription>
-        <SidebarNav isAdmin={isAdmin} layoutIdSuffix="mobile" onNavigate={() => setOpen(false)} />
+        <SidebarNav isAdmin={isAdmin} layoutIdSuffix="mobile" onNavigate={() => setOpen(false)} badges={badges} />
         <div className="border-t border-[var(--border)] p-3 text-center text-[10px] uppercase tracking-[1px] text-[var(--color-gold-4)] opacity-60">
           v3.0 · Barakah Hub
         </div>

@@ -5,12 +5,14 @@ import { members, cases, votes, config as configTbl } from '@/lib/db/schema';
 import { Card, CardHeader, CardTitle, CardBody } from '@/components/ui/card';
 import { fmtRs } from '@/lib/i18n/dict';
 import VoteButtons from './vote-buttons';
+import DisburseButton from './disburse-button';
 import NewCaseForm from './new-case-form';
 
 export const metadata = { title: 'Emergency Cases · Barakah Hub' };
 
 export default async function CasesPage() {
   const me = await getMeOrRedirect();
+  const isAdmin = me.role === 'admin';
 
   const [allCases, allMembers, [cfg]] = await Promise.all([
     db.select().from(cases).orderBy(desc(cases.createdAt)).limit(50),
@@ -94,6 +96,11 @@ export default async function CasesPage() {
                     )}
                     {c.applicantId === me.id && <div className="text-xs italic text-[var(--txt-3)]">Your own request — cannot self-vote.</div>}
                   </>
+                )}
+                {c.status === 'approved' && isAdmin && (
+                  <div className="mt-2">
+                    <DisburseButton caseId={c.id} />
+                  </div>
                 )}
               </CardBody>
             </Card>

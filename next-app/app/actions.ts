@@ -458,6 +458,20 @@ export async function recordRepayment(input: z.infer<typeof repaySchema>) {
   revalidatePath('/dashboard');
 }
 
+/* ─── disburse an approved case (admin) */
+export async function disburseCase(caseId: string) {
+  if (!/^[0-9a-f-]{36}$/i.test(caseId)) throw new Error('Invalid case id');
+  const me = await meOrThrow();
+  if (me.role !== 'admin') throw new Error('Admin only');
+  const [c] = await db.select().from(cases).where(eq(cases.id, caseId)).limit(1);
+  if (!c) throw new Error('Case not found');
+  if (c.status !== 'approved') throw new Error('Case must be approved before disbursement');
+  await db.update(cases).set({ status: 'disbursed', resolvedAt: new Date() }).where(eq(cases.id, caseId));
+  await audit(me.id, 'emergency-approved', `Disbursed ${c.amount} for ${c.beneficiaryName}`, c.applicantId);
+  revalidatePath('/cases');
+  revalidatePath('/dashboard');
+}
+
 /* ─── notifications: mark read */
 export async function markAllNotificationsRead() {
   const me = await meOrThrow();
