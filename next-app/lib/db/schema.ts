@@ -220,6 +220,18 @@ export const messages = pgTable('messages', {
   toIdx: index('messages_to_idx').on(t.toId),
 }));
 
+/* ─── PUSH TOKENS (mobile APK) ─── */
+export const pushTokens = pgTable('push_tokens', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  memberId: uuid('member_id').notNull().references(() => members.id, { onDelete: 'cascade' }),
+  token: text('token').notNull().unique(),
+  platform: text('platform').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+}, (t) => ({
+  memberIdx: index('push_tokens_member_idx').on(t.memberId),
+}));
+
 /* ─── AUDIT LOG (append-only) ─── */
 export const auditLog = pgTable('audit_log', {
   id: uuid('id').primaryKey().defaultRandom(),

@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, type ViewStyle } from 'react-native';
+import { Image } from 'expo-image';
 import { getInitials } from '@/lib/format';
 import { darkColors } from '@/lib/theme';
 
@@ -23,6 +24,7 @@ interface AvatarProps {
   name: string;
   size?: AvatarSize | number;
   color?: string;
+  imageUrl?: string | null;
   showStatus?: 'online' | 'offline';
   style?: ViewStyle;
 }
@@ -46,12 +48,13 @@ function StatusDot({ status, size }: { status: 'online' | 'offline'; size: numbe
   );
 }
 
-export function Avatar({ name, size = 'md', color, showStatus, style }: AvatarProps) {
+export function Avatar({ name, size = 'md', color, imageUrl, showStatus, style }: AvatarProps) {
   const numericSize = typeof size === 'number' ? size : SIZE_MAP[size];
   const ringColor = color ?? RING_COLORS[hashIndex(name)] ?? '#00e676';
   const initials = getInitials(name);
   const fontSize = Math.floor(numericSize * 0.35);
   const ringWidth = Math.max(2, numericSize * 0.055);
+  const innerSize = numericSize - ringWidth * 2 - 2;
 
   return (
     <View style={[styles.wrapper, style]}>
@@ -75,14 +78,24 @@ export function Avatar({ name, size = 'md', color, showStatus, style }: AvatarPr
           style={[
             styles.inner,
             {
-              width: numericSize - ringWidth * 2 - 2,
-              height: numericSize - ringWidth * 2 - 2,
-              borderRadius: (numericSize - ringWidth * 2 - 2) / 2,
+              width: innerSize,
+              height: innerSize,
+              borderRadius: innerSize / 2,
               backgroundColor: `${ringColor}25`,
+              overflow: 'hidden',
             },
           ]}
         >
-          <Text style={[styles.initials, { fontSize, color: ringColor }]}>{initials}</Text>
+          {imageUrl ? (
+            <Image
+              source={{ uri: imageUrl }}
+              style={{ width: innerSize, height: innerSize }}
+              contentFit="cover"
+              transition={150}
+            />
+          ) : (
+            <Text style={[styles.initials, { fontSize, color: ringColor }]}>{initials}</Text>
+          )}
         </View>
       </View>
       {showStatus ? <StatusDot status={showStatus} size={numericSize} /> : null}
