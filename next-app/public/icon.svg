@@ -1,16 +1,31 @@
-<!--
-  Barakah Hub — primary app icon (Concept A geometric crescent).
-  Brutalist Islamic palette: off-white silhouette on charcoal.
-  No gold, no metallic accents — flat matte vector.
--->
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Barakah Hub">
-  <defs>
-    <mask id="cr">
-      <rect width="512" height="512" fill="black"/>
-      <circle cx="256" cy="256" r="170" fill="white"/>
-      <circle cx="328.4" cy="229" r="148.75" fill="black"/>
-    </mask>
-  </defs>
-  <rect width="512" height="512" rx="80" fill="#14171c"/>
-  <circle cx="256" cy="256" r="170" fill="#ebe7dd" mask="url(#cr)"/>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+    <defs>
+      <radialGradient id="bg" cx="50%" cy="40%" r="65%">
+        <stop offset="0%" stop-color="#1a1d24"/>
+        <stop offset="100%" stop-color="#14171c"/>
+      </radialGradient>
+      <linearGradient id="cr" x1="20%" y1="20%" x2="80%" y2="80%">
+        <stop offset="0%" stop-color="#ebe7dd"/>
+        <stop offset="55%" stop-color="#d6d2c7"/>
+        <stop offset="100%" stop-color="#9c9588"/>
+      </linearGradient>
+      <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+        <stop offset="60%" stop-color="rgba(214,210,199,0.18)" stop-opacity="0"/>
+        <stop offset="100%" stop-color="rgba(214,210,199,0.18)" stop-opacity="0.45"/>
+      </radialGradient>
+    </defs>
+    <rect width="128" height="128" fill="url(#bg)"/>
+    <circle cx="64" cy="64" r="41.475" fill="url(#glow)"/>
+    <g transform="translate(24.5 24.5)">
+      <svg width="79" height="79" viewBox="0 0 128 128">
+        <defs>
+          <mask id="crmask">
+            <rect width="128" height="128" fill="black"/>
+            <circle cx="60" cy="64" r="50" fill="white"/>
+            <circle cx="82" cy="56" r="44" fill="black"/>
+          </mask>
+        </defs>
+        <circle cx="60" cy="64" r="50" fill="url(#cr)" mask="url(#crmask)"/>
+      </svg>
+    </g>
+  </svg>
