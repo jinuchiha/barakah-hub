@@ -16,3 +16,9 @@ export function monthStartFromLabel(label: string): string {
   }
   throw new Error(`Invalid month label "${label}" — expected format "Month YYYY" e.g. "May 2026"`);
 }
+
+/** Returns current month label e.g. "May 2026" */
+export function currentMonthLabel(): string {
+  const now = new Date();
+  return now.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+}

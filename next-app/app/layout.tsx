@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { Toaster } from 'sonner';
+import { ServiceWorkerRegister } from '@/components/sw-register';
 
 export const metadata: Metadata = {
   title: 'Barakah Hub — Islamic Family Fund',
@@ -32,6 +33,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body>
+        <ServiceWorkerRegister />
         {children}
         <Toaster
           position="bottom-right"
