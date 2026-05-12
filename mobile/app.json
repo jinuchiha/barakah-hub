@@ -84,7 +84,6 @@
       "expo-router",
       "expo-secure-store",
       "expo-font",
-      ["react-native-reanimated"],
       [
         "expo-notifications",
         {
