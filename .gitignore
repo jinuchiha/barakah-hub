@@ -37,6 +37,10 @@ out/
 *.tsbuildinfo
 next-env.d.ts
 
+# ── EAS CLI sometimes drops a stub here when run from the wrong cwd
+next-app/app.json
+next-app/eas.json
+
 # ── Test + coverage
 coverage/
 .nyc_output/
