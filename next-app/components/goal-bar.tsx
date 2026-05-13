@@ -1,3 +1,4 @@
+import { Target } from 'lucide-react';
 import { fmtRs } from '@/lib/i18n/dict';
 import type { Config } from '@/lib/db/schema';
 
@@ -5,7 +6,6 @@ interface GoalBarProps {
   config: Pick<Config, 'goalAmount' | 'goalLabelUr' | 'goalLabelEn' | 'goalDeadline'>;
   totalFund: number;
   locale?: 'ur' | 'en';
-  /** Days remaining until deadline. Computed on the server to keep this component pure. */
   daysRemaining?: number | null;
 }
 
@@ -15,53 +15,71 @@ export function GoalBar({ config, totalFund, locale = 'en', daysRemaining = null
   const remaining = Math.max(0, config.goalAmount - totalFund);
   const labelUr = config.goalLabelUr || 'خاندانی ہدف';
   const labelEn = config.goalLabelEn || 'Family Goal';
+
   let daysLeft = '';
   if (daysRemaining !== null) {
     daysLeft = daysRemaining > 0
-      ? ` · ${daysRemaining} ${locale === 'ur' ? 'دن باقی' : 'days left'}`
-      : (locale === 'ur' ? ' · ہدف کی تاریخ گزر گئی' : ' · deadline passed');
+      ? `${daysRemaining} ${locale === 'ur' ? 'دن باقی' : 'days left'}`
+      : (locale === 'ur' ? 'ہدف کی تاریخ گزر گئی' : 'Deadline passed');
   }
-  let cheer = '';
-  if (pct >= 100) cheer = locale === 'ur' ? '🎉 الحمدللہ! ہدف مکمل' : '🎉 Alhamdulillah! Goal achieved';
-  else if (pct >= 75) cheer = locale === 'ur' ? '🔥 شاندار! بس تھوڑا اور' : '🔥 So close — keep going';
-  else if (pct >= 50) cheer = locale === 'ur' ? '💪 آدھے سے زیادہ ہو گیا' : '💪 Past halfway';
-  else if (pct >= 25) cheer = locale === 'ur' ? '🌱 آغاز ہو چکا' : '🌱 Off to a strong start';
-  else cheer = locale === 'ur' ? '🤲 ہم سب مل کر کر سکتے ہیں' : '🤲 Together we can';
+
+  const milestone = (() => {
+    if (pct >= 100) return { en: 'Goal achieved',  ur: 'الحمدللہ! ہدف مکمل',   tone: 'pill-success' as const };
+    if (pct >= 75)  return { en: 'Almost there',   ur: 'بس تھوڑا اور',          tone: 'pill-warn'    as const };
+    if (pct >= 50)  return { en: 'Past halfway',   ur: 'آدھے سے زیادہ',         tone: 'pill-info'    as const };
+    if (pct >= 25)  return { en: 'Off to a start', ur: 'آغاز ہو چکا',           tone: 'pill-info'    as const };
+    return            { en: 'Together we can', ur: 'ہم سب مل کر',          tone: 'pill-muted'   as const };
+  })();
 
   return (
-    <div className="mb-4 rounded-[var(--radius-r)] border border-[var(--border-2)]" style={{ background: 'linear-gradient(135deg, rgba(214,210,199,0.12), rgba(30,42,74,0.06))' }}>
+    <section
+      className="mb-6 overflow-hidden rounded-[var(--radius-r-lg)] border border-[var(--border)] bg-[var(--surf-1)]"
+      aria-label={locale === 'ur' ? 'خاندانی ہدف' : 'Family Goal'}
+    >
       <div className="px-6 py-5">
-        <div className="mb-2.5 flex flex-wrap items-center justify-between gap-2.5">
-          <div>
-            <div className="font-[var(--font-display)] text-[11px] uppercase tracking-[2px] text-[var(--color-gold-4)]">🎯 {locale === 'ur' ? 'ہدف' : 'Goal'}</div>
-            <div className="mt-0.5 font-[var(--font-arabic)] text-lg font-semibold text-[var(--color-cream)]">
-              {locale === 'ur' ? labelUr : labelEn}
+        <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="grid size-9 place-items-center rounded-md bg-[rgba(200,155,60,0.10)] text-[var(--color-gold)]">
+              <Target className="size-4" />
+            </div>
+            <div>
+              <div className="text-[10px] font-semibold uppercase tracking-[1.6px] text-[var(--txt-3)]">
+                {locale === 'ur' ? 'ہدف' : 'Goal'}
+              </div>
+              <div className="mt-0.5 text-[15px] font-semibold text-[var(--color-cream)]">
+                {locale === 'ur' ? labelUr : labelEn}
+              </div>
             </div>
           </div>
           <div className="text-right">
-            <div className="font-[var(--font-display)] text-2xl font-bold text-[var(--color-gold)]">
-              {fmtRs(totalFund)} <span className="text-sm text-[var(--color-gold-4)]">/ {fmtRs(config.goalAmount)}</span>
+            <div className="num-display text-2xl text-[var(--color-cream)]">
+              {fmtRs(totalFund)}
+              <span className="ml-1.5 text-sm font-normal text-[var(--txt-3)]">/ {fmtRs(config.goalAmount)}</span>
             </div>
-            <div className="font-[var(--font-en)] text-[10px] text-[var(--color-gold-4)]">{pct}%{daysLeft}</div>
+            <div className="tabular mt-0.5 text-[11px] text-[var(--txt-3)]">
+              {pct}%{daysLeft ? ` · ${daysLeft}` : ''}
+            </div>
           </div>
         </div>
-        <div className="relative h-2.5 overflow-hidden rounded-md bg-black/20 shadow-[inset_0_1px_2px_rgba(0,0,0,0.2)]">
+
+        <div className="relative h-1.5 overflow-hidden rounded-full bg-[rgba(255,255,255,0.04)]">
           <div
-            className="relative h-full rounded-md bg-gradient-to-r from-[var(--color-emerald-2)] to-[var(--color-gold)] shadow-[0_0_12px_rgba(214,210,199,0.4)] transition-[width] duration-700"
+            className="h-full rounded-full bg-gradient-to-r from-[#2d8a5f] via-[#c89b3c] to-[#e8c563] transition-[width] duration-700 ease-out"
             style={{ width: `${pct}%` }}
-          >
-            {pct > 0 && pct < 100 && (
-              <div className="absolute right-0 top-0 h-full w-[3px] bg-white shadow-[0_0_8px_rgba(255,255,255,0.6)]" />
-            )}
-          </div>
+          />
         </div>
-        <div className="mt-2.5 flex flex-wrap items-center justify-between gap-2 text-xs">
-          <span className="font-semibold text-[var(--color-emerald-2)]">{cheer}</span>
+
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+          <span className={`pill ${milestone.tone}`}>
+            {locale === 'ur' ? milestone.ur : milestone.en}
+          </span>
           {remaining > 0 && (
-            <span className="font-[var(--font-en)] italic text-[var(--color-gold-4)]">{fmtRs(remaining)} {locale === 'ur' ? 'باقی' : 'to go'}</span>
+            <span className="tabular text-[11px] text-[var(--txt-3)]">
+              <span className="num">{fmtRs(remaining)}</span> {locale === 'ur' ? 'باقی' : 'to go'}
+            </span>
           )}
         </div>
       </div>
-    </div>
+    </section>
   );
 }

@@ -27,8 +27,8 @@ export function SpendingDonut({ title, slices, size = 200 }: Props) {
   if (total === 0 || visible.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center gap-2 py-10 text-center">
-        <div className="text-3xl opacity-30">⊘</div>
-        <p className="text-xs italic text-[var(--txt-3)]">No spending data yet</p>
+        <div className="size-12 rounded-full border-2 border-dashed border-[var(--border-2)]" />
+        <p className="text-[11.5px] text-[var(--txt-3)]">No data yet</p>
       </div>
     );
   }
@@ -48,12 +48,10 @@ export function SpendingDonut({ title, slices, size = 200 }: Props) {
   });
 
   return (
-    <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-start sm:justify-center sm:gap-8">
+    <div className="flex flex-col items-center gap-5 sm:flex-row sm:items-center sm:gap-6">
       <div className="relative" style={{ width: size, height: size }}>
         <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} role="img" aria-label={title}>
-          {/* Background ring */}
-          <circle cx={cx} cy={cy} r={r} fill="none" stroke="rgba(200,155,60,0.06)" strokeWidth={20} />
-          {/* Slices — rotated -90° so we start at 12 o'clock */}
+          <circle cx={cx} cy={cy} r={r} fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth={16} />
           <g transform={`rotate(-90 ${cx} ${cy})`}>
             {arcs.map((a) => (
               <circle
@@ -63,7 +61,7 @@ export function SpendingDonut({ title, slices, size = 200 }: Props) {
                 r={r}
                 fill="none"
                 stroke={a.color}
-                strokeWidth={20}
+                strokeWidth={16}
                 strokeDasharray={a.dasharray}
                 strokeDashoffset={a.dashoffset}
                 strokeLinecap="butt"
@@ -72,18 +70,18 @@ export function SpendingDonut({ title, slices, size = 200 }: Props) {
           </g>
         </svg>
         <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-          <span className="font-[var(--font-display)] text-[10px] uppercase tracking-[2px] text-[var(--color-gold-4)]">Total</span>
-          <span className="mt-1 text-lg font-bold text-[var(--color-gold-2)]">{fmtRs(total)}</span>
+          <span className="text-[9.5px] font-semibold uppercase tracking-[1.6px] text-[var(--txt-3)]">Total</span>
+          <span className="num-display mt-1 text-[15px] text-[var(--color-cream)]">{fmtRs(total)}</span>
         </div>
       </div>
 
       <ul className="flex w-full max-w-xs flex-col gap-2">
         {arcs.map((a) => (
-          <li key={a.key} className="flex items-center gap-3 text-sm">
-            <span className="size-3 rounded-full" style={{ background: a.color }} aria-hidden="true" />
-            <span className="flex-1 text-[var(--color-cream)]">{a.label}</span>
-            <span className="font-[var(--font-en)] text-xs text-[var(--color-gold-4)]">{a.percent}%</span>
-            <span className="font-bold text-[var(--color-gold-2)]">{fmtRs(a.value)}</span>
+          <li key={a.key} className="flex items-center gap-2.5 text-[12.5px]">
+            <span className="size-2 shrink-0 rounded-full" style={{ background: a.color }} aria-hidden="true" />
+            <span className="flex-1 truncate text-[var(--color-cream)]">{a.label}</span>
+            <span className="tabular shrink-0 text-[10.5px] text-[var(--txt-3)]">{a.percent}%</span>
+            <span className="num shrink-0 font-semibold text-[var(--color-cream)]">{fmtRs(a.value)}</span>
           </li>
         ))}
       </ul>

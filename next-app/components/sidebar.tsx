@@ -63,9 +63,9 @@ export function SidebarNav({ isAdmin = false, locale = 'en', onNavigate, layoutI
 
 export function Sidebar({ isAdmin = false, locale = 'en', badges = {} }: { isAdmin?: boolean; locale?: 'ur' | 'en'; badges?: Record<string, number> }) {
   return (
-    <aside className="hidden w-56 shrink-0 flex-col border-r border-[var(--border)] bg-gradient-to-b from-[#0d0d09] to-[#080806] md:flex">
+    <aside className="hidden w-60 shrink-0 flex-col border-r border-[var(--border)] bg-[var(--surf-2)] md:flex">
       <SidebarNav isAdmin={isAdmin} locale={locale} layoutIdSuffix="desktop" badges={badges} />
-      <div className="border-t border-[var(--border)] p-3 text-center text-[10px] uppercase tracking-[1px] text-[var(--color-gold-4)] opacity-60">
+      <div className="border-t border-[var(--border)] px-4 py-3 text-[10px] uppercase tracking-[2px] text-[var(--txt-4)]">
         v3.0 · Barakah Hub
       </div>
     </aside>
@@ -73,7 +73,7 @@ export function Sidebar({ isAdmin = false, locale = 'en', badges = {} }: { isAdm
 }
 
 function SectionLabel({ label }: { label: string }) {
-  return <div className="px-4 pt-4 pb-1.5 font-[var(--font-display)] text-[9px] font-bold uppercase tracking-[3px] text-[var(--color-gold-4)] opacity-70">{label}</div>;
+  return <div className="px-4 pb-1.5 pt-5 text-[10px] font-semibold uppercase tracking-[2px] text-[var(--txt-4)]">{label}</div>;
 }
 
 function NavItem({
@@ -97,10 +97,10 @@ function NavItem({
       href={n.href as any}
       onClick={onNavigate}
       className={cn(
-        'group relative mx-2 my-0.5 flex items-center gap-3 rounded-md border border-transparent px-3 py-2.5 text-sm transition-colors',
+        'group relative mx-2 my-0.5 flex items-center gap-3 rounded-[10px] px-3 py-2 text-[13px] transition-colors',
         isActive
-          ? 'border-[var(--border)] bg-[rgba(214,210,199,0.1)] text-[var(--color-gold-2)]'
-          : 'text-[var(--txt-3)] hover:border-[var(--border)] hover:bg-[rgba(214,210,199,0.06)] hover:text-[var(--txt-1)]',
+          ? 'bg-[rgba(200,155,60,0.10)] font-medium text-[var(--color-cream)]'
+          : 'text-[var(--txt-2)] hover:bg-[rgba(255,255,255,0.04)] hover:text-[var(--txt-1)]',
       )}
       aria-current={isActive ? 'page' : undefined}
     >
@@ -108,14 +108,14 @@ function NavItem({
         <motion.span
           layoutId={`sidebar-active-indicator-${layoutIdSuffix}`}
           aria-hidden="true"
-          className="absolute left-0 top-[20%] h-[60%] w-0.5 rounded-r-sm bg-[var(--color-gold)]"
+          className="absolute left-0 top-[18%] h-[64%] w-[2px] rounded-r-full bg-[var(--color-gold)]"
           transition={{ type: 'spring', stiffness: 380, damping: 32 }}
         />
       )}
-      <Icon className="size-4 shrink-0 text-[var(--color-gold)]" />
-      <span className="flex-1">{locale === 'ur' ? n.labelUr : n.label}</span>
+      <Icon className={cn('size-[15px] shrink-0', isActive ? 'text-[var(--color-gold)]' : 'text-[var(--txt-3)]')} />
+      <span className="flex-1 truncate">{locale === 'ur' ? n.labelUr : n.label}</span>
       {!!badge && badge > 0 && (
-        <span className="ml-auto grid min-w-[18px] place-items-center rounded-full bg-red-600 px-1 text-[9px] font-bold text-white">
+        <span className="num ml-auto grid min-w-[20px] place-items-center rounded-full bg-[var(--color-gold)] px-1.5 text-[10px] font-semibold text-[var(--color-ink)]">
           {badge > 99 ? '99+' : badge}
         </span>
       )}

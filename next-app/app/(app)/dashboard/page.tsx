@@ -1,5 +1,10 @@
 import { eq, and, sql, desc, inArray } from 'drizzle-orm';
 import Link from 'next/link';
+import {
+  Wallet, Users, FileText, Vote, PieChart as PieIcon, Target,
+  HandCoins, AlertTriangle, ArrowDownToLine, LogIn, LogOut, UserPlus, CheckCircle2, Mail,
+  Activity,
+} from 'lucide-react';
 import { getMeOrRedirect } from '@/lib/auth-server';
 import { db } from '@/lib/db';
 import { members, payments, cases, votes, loans, config as configTbl, auditLog } from '@/lib/db/schema';
@@ -43,7 +48,6 @@ export default async function DashboardPage() {
     .limit(6);
   const sparkValues = series.map((s) => Number(s.total)).reverse();
 
-  // Open cases + vote tallies for the votes panel
   const openCases = await db
     .select()
     .from(cases)
@@ -58,7 +62,6 @@ export default async function DashboardPage() {
   const eligibleCount = Math.max(0, (await db.$count(members, and(eq(members.deceased, false), eq(members.status, 'approved')))) - 1);
   const need = Math.ceil(eligibleCount * ((cfg?.voteThresholdPct ?? 50) / 100));
 
-  // Pool-level totals for the spending breakdown donut (admin-only)
   const poolBreakdown = isAdmin
     ? await db
         .select({ pool: payments.pool, total: sql<number>`SUM(${payments.amount})::int` })
@@ -67,18 +70,17 @@ export default async function DashboardPage() {
         .groupBy(payments.pool)
     : [];
   const POOL_META: Record<string, { label: string; color: string }> = {
-    sadaqah: { label: 'Sadaqah · صدقہ', color: '#c89b3c' },
-    zakat:   { label: 'Zakat · زکوٰۃ',   color: '#2d6a4f' },
-    qarz:    { label: 'Qarz pool',       color: '#7a5fb8' },
+    sadaqah: { label: 'Sadaqah',  color: '#c89b3c' },
+    zakat:   { label: 'Zakat',    color: '#2d8a5f' },
+    qarz:    { label: 'Qarz pool', color: '#8b6ec9' },
   };
   const poolSlices: DonutSlice[] = poolBreakdown.map((p) => ({
     key: p.pool,
     label: POOL_META[p.pool]?.label ?? p.pool,
     value: Number(p.total),
-    color: POOL_META[p.pool]?.color ?? '#8a8579',
+    color: POOL_META[p.pool]?.color ?? '#7d7768',
   }));
 
-  // Case-category disbursement breakdown (admin-only)
   const caseBreakdown = isAdmin
     ? await db
         .select({ category: cases.category, total: sql<number>`SUM(${cases.amount})::int` })
@@ -86,9 +88,7 @@ export default async function DashboardPage() {
         .where(eq(cases.status, 'disbursed'))
         .groupBy(cases.category)
     : [];
-  // Cycle through tasteful palette for case categories — we don't know
-  // in advance what categories admin will use.
-  const CATEGORY_PALETTE = ['#c89b3c', '#2d6a4f', '#7a5fb8', '#a83254', '#3a4a7a', '#a0671e', '#475569'];
+  const CATEGORY_PALETTE = ['#c89b3c', '#2d8a5f', '#8b6ec9', '#b9556a', '#608dd7', '#4ab8d6', '#7d7768'];
   const caseSlices: DonutSlice[] = caseBreakdown.map((c, i) => ({
     key: c.category,
     label: c.category,
@@ -97,23 +97,33 @@ export default async function DashboardPage() {
   }));
 
   return (
-    <div>
-      <header className="mb-6 border-b border-[var(--border)] pb-4">
-        <h1 className="font-[var(--font-arabic)] text-3xl text-[var(--color-gold-2)]">
-          خوش آمدید — {me.nameUr || me.nameEn}
-        </h1>
-        <p className="mt-1 font-[var(--font-en)] text-sm italic text-[var(--color-gold-4)]">Welcome to the Family Fund</p>
+    <div className="mx-auto max-w-[1400px]">
+      <header className="mb-7 flex flex-wrap items-end justify-between gap-3 border-b border-[var(--border)] pb-5">
+        <div>
+          <div className="text-[11px] font-semibold uppercase tracking-[2px] text-[var(--txt-3)]">
+            {isAdmin ? 'Administrator' : 'Member'} · Dashboard
+          </div>
+          <h1 className="mt-1.5 text-[26px] font-semibold leading-tight text-[var(--color-cream)]">
+            Welcome back, {me.nameEn || me.nameUr}
+          </h1>
+          <p className="font-[var(--font-arabic)] mt-1 text-[15px] text-[var(--color-gold-2)]">
+            خوش آمدید
+          </p>
+        </div>
+        <div className="text-right text-[11px] text-[var(--txt-3)]">
+          <div className="tabular">{new Date().toLocaleDateString('en-GB', { weekday: 'long', day: '2-digit', month: 'short', year: 'numeric' })}</div>
+        </div>
       </header>
 
       <GoalBar config={cfg} totalFund={totalFund} daysRemaining={daysRemaining} />
 
-      <div className="mb-6 grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
+      <div className="mb-6 grid gap-3" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
         {isAdmin ? (
           <>
-            <StatCard label="Total Fund" value={fmtRs(totalFund)} hint={`👥 ${memberCount.c} members`} tone="emerald" spark={sparkValues} />
-            <StatCard label="Members" value={memberCount.c} hint="✓ Active family" tone="gold" />
-            <StatCard label="Outstanding Loans" value={fmtRs(Number(outstandingLoans[0]?.owed ?? 0))} hint="📋 Active qarz" tone="ruby" />
-            <StatCard label="Pending Votes" value={pendingVotes} hint="⚡ Needs attention" tone="sapphire" />
+            <StatCard label="Total Fund"         icon={Wallet}        value={fmtRs(totalFund)}                                       hint={`${memberCount.c} members`} tone="emerald" spark={sparkValues} />
+            <StatCard label="Active Members"     icon={Users}         value={memberCount.c}                                          hint="Approved family" tone="gold" />
+            <StatCard label="Outstanding Loans"  icon={FileText}      value={fmtRs(Number(outstandingLoans[0]?.owed ?? 0))}          hint="Active qarz" tone="ruby" />
+            <StatCard label="Pending Votes"      icon={Vote}          value={pendingVotes}                                           hint={pendingVotes ? 'Needs review' : 'All resolved'} tone="sapphire" />
           </>
         ) : (
           <MemberStats memberId={me.id} totalFund={totalFund} />
@@ -121,11 +131,14 @@ export default async function DashboardPage() {
       </div>
 
       {isAdmin && (poolSlices.length > 0 || caseSlices.length > 0) && (
-        <div className="mb-6 grid gap-4 md:grid-cols-2">
+        <div className="mb-6 grid gap-3 md:grid-cols-2">
           <Card>
             <CardHeader>
-              <CardTitle>💰 Fund Composition</CardTitle>
-              <span className="text-[10px] uppercase tracking-widest text-[var(--color-gold-4)]">By pool</span>
+              <div className="flex items-center gap-2.5">
+                <PieIcon className="size-4 text-[var(--color-gold)]" />
+                <CardTitle>Fund Composition</CardTitle>
+              </div>
+              <span className="text-[10px] uppercase tracking-[1.5px] text-[var(--txt-3)]">By pool</span>
             </CardHeader>
             <CardBody>
               <SpendingDonut title="Fund composition" slices={poolSlices} />
@@ -133,8 +146,11 @@ export default async function DashboardPage() {
           </Card>
           <Card>
             <CardHeader>
-              <CardTitle>🎯 Disbursements</CardTitle>
-              <span className="text-[10px] uppercase tracking-widest text-[var(--color-gold-4)]">Approved cases</span>
+              <div className="flex items-center gap-2.5">
+                <Target className="size-4 text-[var(--color-gold)]" />
+                <CardTitle>Disbursements</CardTitle>
+              </div>
+              <span className="text-[10px] uppercase tracking-[1.5px] text-[var(--txt-3)]">Approved cases</span>
             </CardHeader>
             <CardBody>
               <SpendingDonut title="Disbursements by category" slices={caseSlices} />
@@ -144,22 +160,30 @@ export default async function DashboardPage() {
       )}
 
       {!isAdmin && (
-        <Card className="mb-6 border-[var(--color-emerald-2)]/30">
-          <CardBody className="text-center">
-            <div className="mb-2 font-[var(--font-arabic)] text-sm text-[var(--color-emerald-2)]">
-              🤲 خاندانی سرگرمی (سدقہ — گمنام)
+        <Card className="mb-6">
+          <CardBody className="flex items-start gap-3">
+            <div className="grid size-9 shrink-0 place-items-center rounded-md bg-[rgba(45,138,95,0.10)] text-[#4ec38d]">
+              <HandCoins className="size-4" />
             </div>
-            <p className="text-sm text-[var(--txt-2)]">
-              Total family contributions are visible. Individual donor names and amounts remain private — true spirit of sadqa.
-            </p>
+            <div>
+              <div className="font-[var(--font-arabic)] text-[13px] text-[var(--color-cream)]">
+                خاندانی سرگرمی — سدقہ گمنام
+              </div>
+              <p className="mt-1 text-[12.5px] leading-relaxed text-[var(--txt-2)]">
+                Total family contributions are visible. Individual donor names and amounts remain private — true spirit of sadqa.
+              </p>
+            </div>
           </CardBody>
         </Card>
       )}
 
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid gap-3 lg:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>{isAdmin ? 'Recent Activity' : 'My Recent Activity'}</CardTitle>
+            <div className="flex items-center gap-2.5">
+              <Activity className="size-4 text-[var(--color-gold)]" />
+              <CardTitle>{isAdmin ? 'Recent Activity' : 'My Recent Activity'}</CardTitle>
+            </div>
           </CardHeader>
           <CardBody className="p-0">
             {isAdmin
@@ -170,47 +194,63 @@ export default async function DashboardPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>👥 Community Activity</CardTitle>
-            <span className="text-[10px] uppercase tracking-widest text-[var(--color-gold-4)]">
-              Sadaqah / Zakat anonymized
-            </span>
+            <div className="flex items-center gap-2.5">
+              <Users className="size-4 text-[var(--color-gold)]" />
+              <CardTitle>Community Activity</CardTitle>
+            </div>
+            <span className="text-[10px] uppercase tracking-[1.5px] text-[var(--txt-3)]">Anonymized</span>
           </CardHeader>
           <CardBody className="p-0">
             <CommunityActivity meId={me.id} isAdmin={isAdmin} />
           </CardBody>
         </Card>
 
-        <Card>
+        <Card className="lg:col-span-2">
           <CardHeader>
-            <CardTitle>Active Emergency Votes</CardTitle>
+            <div className="flex items-center gap-2.5">
+              <AlertTriangle className="size-4 text-[#f08585]" />
+              <CardTitle>Active Emergency Votes</CardTitle>
+            </div>
             {pendingVotes > 0 && (
-              <Link href="/cases" className="text-xs text-[var(--color-gold-4)] underline-offset-2 hover:underline">
+              <Link href="/cases" className="text-[11px] font-medium text-[var(--color-gold)] hover:underline">
                 View all →
               </Link>
             )}
           </CardHeader>
           <CardBody className="p-0">
             {openCases.length === 0 ? (
-              <div className="py-10 text-center text-sm italic text-[var(--txt-3)]">
-                الحمدللہ · No open votes right now
+              <div className="flex flex-col items-center gap-2 py-12 text-center">
+                <CheckCircle2 className="size-5 text-[#4ec38d] opacity-50" />
+                <div className="text-[12.5px] text-[var(--txt-3)]">No open votes right now</div>
+                <div className="font-[var(--font-arabic)] text-[11px] text-[var(--color-gold-4)]">الحمدللہ</div>
               </div>
             ) : (
               openCases.map((c) => {
                 const yes = openVotes.filter((v) => v.caseId === c.id && v.vote).length;
                 const pct = eligibleCount > 0 ? Math.round((yes / eligibleCount) * 100) : 0;
                 return (
-                  <div key={c.id} className="flex items-center gap-3 border-b border-[rgba(214,210,199,0.06)] px-3 py-2.5">
-                    <div className="flex-1 min-w-0">
-                      <div className="truncate text-sm font-semibold text-[var(--color-cream)]">{c.beneficiaryName}</div>
-                      <div className="text-[10px] text-[var(--color-gold-4)]">{c.category} · {fmtRs(c.amount)}</div>
-                      <div className="mt-1 flex items-center gap-2">
-                        <div className="h-1 flex-1 overflow-hidden rounded-full bg-black/20">
-                          <div className="h-full bg-gradient-to-r from-[var(--color-emerald-2)] to-[var(--color-gold)]" style={{ width: `${pct}%` }} />
+                  <div key={c.id} className="flex items-center gap-3 border-b border-[var(--border)] px-5 py-3 last:border-b-0 hover:bg-[var(--surf-3)]">
+                    <div className="grid size-8 shrink-0 place-items-center rounded-md bg-[rgba(220,82,82,0.10)] text-[#f08585]">
+                      <AlertTriangle className="size-4" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate text-[13px] font-medium text-[var(--color-cream)]">{c.beneficiaryName}</div>
+                      <div className="mt-0.5 text-[11px] text-[var(--txt-3)]">
+                        <span className="capitalize">{c.category}</span> · <span className="num">{fmtRs(c.amount)}</span>
+                      </div>
+                      <div className="mt-2 flex items-center gap-2">
+                        <div className="h-1 flex-1 overflow-hidden rounded-full bg-[rgba(255,255,255,0.04)]">
+                          <div className="h-full rounded-full bg-gradient-to-r from-[#2d8a5f] to-[var(--color-gold)] transition-[width]" style={{ width: `${pct}%` }} />
                         </div>
-                        <span className="text-[10px] text-[var(--color-gold-4)]">{yes}/{need} needed</span>
+                        <span className="tabular shrink-0 text-[10.5px] text-[var(--txt-3)]">
+                          <span className="font-semibold text-[var(--color-cream)]">{yes}</span>/{need}
+                        </span>
                       </div>
                     </div>
-                    <Link href="/cases" className="shrink-0 rounded-md border border-[rgba(30,42,74,0.4)] bg-[rgba(30,42,74,0.15)] px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-[var(--color-emerald-2)] hover:bg-[rgba(30,42,74,0.25)]">
+                    <Link
+                      href="/cases"
+                      className="shrink-0 rounded-md border border-[var(--border-accent)] bg-[rgba(200,155,60,0.08)] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-[var(--color-gold)] transition-colors hover:bg-[rgba(200,155,60,0.15)]"
+                    >
                       Vote
                     </Link>
                   </div>
@@ -245,20 +285,31 @@ async function MemberStats({ memberId, totalFund }: { memberId: string; totalFun
     .from(payments)
     .where(and(eq(payments.memberId, memberId), eq(payments.pendingVerify, false), sql`${payments.monthStart} >= ${yearStart}::date`));
 
+  const pct = Math.round((months.length / monthsThisYearSoFar) * 100);
+
   return (
     <>
-      <StatCard label="My Total Paid" value={fmtRs(my)} hint="🤲 جزاک اللہ خیر" tone="emerald" />
-      <StatCard label="My Months Paid" value={`${months.length}/${monthsThisYearSoFar}`} hint={`📅 ${Math.round((months.length / monthsThisYearSoFar) * 100)}% of year so far`} tone="gold" />
-      <StatCard label="Family Fund" value={fmtRs(totalFund)} hint="👥 collective trust" tone="sapphire" />
+      <StatCard label="My Total Paid"   icon={HandCoins} value={fmtRs(my)}                                       hint="جزاک اللہ خیر" tone="emerald" />
+      <StatCard label="My Months Paid"  icon={CheckCircle2} value={`${months.length}/${monthsThisYearSoFar}`}     hint={`${pct}% of year so far`} tone="gold" />
+      <StatCard label="Family Fund"     icon={Wallet} value={fmtRs(totalFund)}                                    hint="Collective trust" tone="sapphire" />
     </>
   );
 }
 
-const AUDIT_ICONS: Record<string, string> = {
-  login: '🔓', logout: '🔒', 'member-approved': '✅', 'member-added': '➕',
-  'payment-record': '💰', 'payment-verified': '✓', 'payment-self-submit': '🤲',
-  'vote-cast': '🗳', 'emergency-create': '🚨', 'emergency-approved': '✓',
-  'loan-issue': '📤', 'loan-repay': '↩', 'message-sent': '✉',
+const AUDIT_META: Record<string, { Icon: React.ComponentType<{ className?: string }>; tone: string }> = {
+  login:                 { Icon: LogIn,         tone: 'text-[#92b3df]' },
+  logout:                { Icon: LogOut,        tone: 'text-[var(--txt-3)]' },
+  'member-approved':     { Icon: CheckCircle2,  tone: 'text-[#4ec38d]' },
+  'member-added':        { Icon: UserPlus,      tone: 'text-[#4ec38d]' },
+  'payment-record':      { Icon: Wallet,        tone: 'text-[var(--color-gold)]' },
+  'payment-verified':    { Icon: CheckCircle2,  tone: 'text-[#4ec38d]' },
+  'payment-self-submit': { Icon: HandCoins,     tone: 'text-[var(--color-gold)]' },
+  'vote-cast':           { Icon: Vote,          tone: 'text-[#92b3df]' },
+  'emergency-create':    { Icon: AlertTriangle, tone: 'text-[#f08585]' },
+  'emergency-approved':  { Icon: CheckCircle2,  tone: 'text-[#4ec38d]' },
+  'loan-issue':          { Icon: ArrowDownToLine, tone: 'text-[#92b3df]' },
+  'loan-repay':          { Icon: ArrowDownToLine, tone: 'text-[#4ec38d]' },
+  'message-sent':        { Icon: Mail,          tone: 'text-[var(--txt-2)]' },
 };
 
 async function AdminRecentActivity() {
@@ -270,43 +321,44 @@ async function AdminRecentActivity() {
   const actorMap = new Map(actors.map((a) => [a.id, a]));
 
   if (entries.length === 0) {
-    return <div className="py-10 text-center text-sm italic text-[var(--txt-3)]">No activity yet</div>;
+    return <div className="py-10 text-center text-[12.5px] text-[var(--txt-3)]">No activity yet</div>;
   }
   return (
     <>
       {entries.map((e) => {
         const actor = e.actorId ? actorMap.get(e.actorId) : null;
-        const icon = AUDIT_ICONS[e.action] ?? '•';
+        const meta = AUDIT_META[e.action] ?? { Icon: Activity, tone: 'text-[var(--txt-3)]' };
+        const Icon = meta.Icon;
         return (
-          <div key={e.id} className="flex items-center gap-3 border-b border-[rgba(214,210,199,0.06)] px-3 py-2.5">
-            <div className="grid size-7 shrink-0 place-items-center rounded-full text-[10px] font-bold text-white" style={{ background: actor?.color || '#555' }}>
+          <div key={e.id} className="flex items-center gap-3 border-b border-[var(--border)] px-5 py-2.5 last:border-b-0 hover:bg-[var(--surf-3)]">
+            <div
+              className="grid size-7 shrink-0 place-items-center rounded-full text-[10px] font-semibold text-white"
+              style={{ background: actor?.color || '#475569' }}
+            >
               {actor ? ini(actor.nameEn || actor.nameUr) : '·'}
             </div>
-            <div className="flex-1 min-w-0">
-              <div className="text-sm text-[var(--color-cream)]">
-                {icon} {e.action.replace(/-/g, ' ')}
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-1.5 text-[12.5px] text-[var(--color-cream)]">
+                <Icon className={`size-3.5 ${meta.tone}`} />
+                <span className="capitalize">{e.action.replace(/-/g, ' ')}</span>
               </div>
-              <div className="text-[10px] text-[var(--color-gold-4)]">{actor?.nameEn || actor?.nameUr || 'system'}</div>
+              <div className="text-[10.5px] text-[var(--txt-3)]">{actor?.nameEn || actor?.nameUr || 'system'}</div>
             </div>
-            <div className="shrink-0 text-[10px] text-[var(--color-gold-4)]">
+            <div className="tabular shrink-0 text-[10.5px] text-[var(--txt-3)]">
               {new Date(e.createdAt).toLocaleDateString('en-GB')}
             </div>
           </div>
         );
       })}
-      <div className="border-t border-[rgba(214,210,199,0.06)] px-3 py-2 text-center">
-        <Link href="/admin/audit" className="text-xs text-[var(--color-gold-4)] hover:text-[var(--color-gold)]">Full audit log →</Link>
+      <div className="px-5 py-2.5 text-center">
+        <Link href="/admin/audit" className="text-[11px] font-medium text-[var(--color-gold)] hover:underline">
+          Full audit log →
+        </Link>
       </div>
     </>
   );
 }
 
-/**
- * Mixed community feed — donations + new cases + new loans across all
- * members. Sadaqah / Zakat donor identity is replaced with "ایک رکن"
- * for non-admin viewers (Islamic principle: charity given in secret).
- * Qarz + emergency cases ARE public — borrower / applicant is shown.
- */
 async function CommunityActivity({ meId, isAdmin }: { meId: string; isAdmin: boolean }) {
   const [recentPayments, recentCases, recentLoans] = await Promise.all([
     db.select().from(payments).where(eq(payments.pendingVerify, false)).orderBy(desc(payments.createdAt)).limit(8),
@@ -334,7 +386,6 @@ async function CommunityActivity({ meId, isAdmin }: { meId: string; isAdmin: boo
     return { nameEn: 'A member', nameUr: 'ایک رکن', color: '#475569' };
   }
 
-  // Build a merged, time-ordered feed
   type FeedItem =
     | { kind: 'payment'; id: string; ts: number; pool: string; amount: number; actor: { nameEn: string; nameUr?: string; color: string }; monthLabel: string; anon: boolean }
     | { kind: 'case'; id: string; ts: number; category: string; amount: number; beneficiary: string; status: string; emergency: boolean; applicant: { nameEn: string; color: string } }
@@ -377,7 +428,7 @@ async function CommunityActivity({ meId, isAdmin }: { meId: string; isAdmin: boo
   ].sort((a, b) => b.ts - a.ts).slice(0, 10);
 
   if (feed.length === 0) {
-    return <div className="py-10 text-center text-sm italic text-[var(--txt-3)]">No community activity yet</div>;
+    return <div className="py-10 text-center text-[12.5px] text-[var(--txt-3)]">No community activity yet</div>;
   }
 
   return (
@@ -385,40 +436,52 @@ async function CommunityActivity({ meId, isAdmin }: { meId: string; isAdmin: boo
       {feed.map((item) => {
         if (item.kind === 'payment') {
           return (
-            <div key={`p-${item.id}`} className="flex items-center gap-3 border-b border-[rgba(214,210,199,0.06)] px-3 py-2.5">
-              <div className="grid size-7 shrink-0 place-items-center rounded-full text-[10px] font-bold text-white" style={{ background: item.actor.color }}>
+            <div key={`p-${item.id}`} className="flex items-center gap-3 border-b border-[var(--border)] px-5 py-2.5 last:border-b-0 hover:bg-[var(--surf-3)]">
+              <div className="grid size-7 shrink-0 place-items-center rounded-full text-[10px] font-semibold text-white" style={{ background: item.actor.color }}>
                 {item.anon ? '·' : ini(item.actor.nameEn || (item.actor.nameUr ?? '?'))}
               </div>
-              <div className="flex-1 min-w-0">
-                <div className="text-sm text-[var(--color-cream)]">
-                  {item.anon ? '🤲 ' : '💰 '}{item.actor.nameEn} donated <span className="capitalize">{item.pool}</span>
+              <div className="min-w-0 flex-1">
+                <div className="text-[12.5px] text-[var(--color-cream)]">
+                  <span className="font-medium">{item.actor.nameEn}</span> donated <span className="capitalize text-[var(--txt-2)]">{item.pool}</span>
                 </div>
-                <div className="text-[10px] text-[var(--color-gold-4)]">{item.monthLabel}</div>
+                <div className="text-[10.5px] text-[var(--txt-3)]">{item.monthLabel}</div>
               </div>
-              <div className="shrink-0 font-bold text-[var(--color-gold)]">{fmtRs(item.amount)}</div>
+              <div className="num shrink-0 font-semibold text-[var(--color-cream)]">{fmtRs(item.amount)}</div>
             </div>
           );
         }
         if (item.kind === 'case') {
           return (
-            <div key={`c-${item.id}`} className="flex items-center gap-3 border-b border-[rgba(214,210,199,0.06)] px-3 py-2.5">
-              <div className="grid size-7 shrink-0 place-items-center rounded-full bg-red-500/15 text-xs text-red-400">{item.emergency ? '🚨' : '🆘'}</div>
-              <div className="flex-1 min-w-0">
-                <div className="truncate text-sm text-[var(--color-cream)]">{item.beneficiary} · {item.category}</div>
-                <div className="text-[10px] text-[var(--color-gold-4)]">by {item.applicant.nameEn} · {item.status}</div>
+            <div key={`c-${item.id}`} className="flex items-center gap-3 border-b border-[var(--border)] px-5 py-2.5 last:border-b-0 hover:bg-[var(--surf-3)]">
+              <div className="grid size-7 shrink-0 place-items-center rounded-full bg-[rgba(220,82,82,0.10)] text-[#f08585]">
+                <AlertTriangle className="size-3.5" />
               </div>
-              <div className="shrink-0 font-bold text-[var(--color-gold)]">{fmtRs(item.amount)}</div>
+              <div className="min-w-0 flex-1">
+                <div className="truncate text-[12.5px] text-[var(--color-cream)]">
+                  <span className="font-medium">{item.beneficiary}</span> · <span className="capitalize text-[var(--txt-2)]">{item.category}</span>
+                </div>
+                <div className="text-[10.5px] text-[var(--txt-3)]">
+                  by {item.applicant.nameEn} · <span className="capitalize">{item.status}</span>
+                </div>
+              </div>
+              <div className="num shrink-0 font-semibold text-[var(--color-cream)]">{fmtRs(item.amount)}</div>
             </div>
           );
         }
         return (
-          <div key={`l-${item.id}`} className="flex items-center gap-3 border-b border-[rgba(214,210,199,0.06)] px-3 py-2.5">
-            <div className="grid size-7 shrink-0 place-items-center rounded-full bg-blue-500/15 text-xs text-blue-400">📤</div>
-            <div className="flex-1 min-w-0">
-              <div className="truncate text-sm text-[var(--color-cream)]">{item.member.nameEn} · {item.purpose}</div>
-              <div className="text-[10px] text-[var(--color-gold-4)]">Paid {fmtRs(item.paid)} of {fmtRs(item.amount)}</div>
+          <div key={`l-${item.id}`} className="flex items-center gap-3 border-b border-[var(--border)] px-5 py-2.5 last:border-b-0 hover:bg-[var(--surf-3)]">
+            <div className="grid size-7 shrink-0 place-items-center rounded-full bg-[rgba(96,141,215,0.10)] text-[#92b3df]">
+              <ArrowDownToLine className="size-3.5" />
             </div>
-            <div className="shrink-0 font-bold text-[var(--color-gold)]">{fmtRs(item.amount - item.paid)} left</div>
+            <div className="min-w-0 flex-1">
+              <div className="truncate text-[12.5px] text-[var(--color-cream)]">
+                <span className="font-medium">{item.member.nameEn}</span> · <span className="text-[var(--txt-2)]">{item.purpose}</span>
+              </div>
+              <div className="tabular text-[10.5px] text-[var(--txt-3)]">
+                Paid {fmtRs(item.paid)} of {fmtRs(item.amount)}
+              </div>
+            </div>
+            <div className="num shrink-0 font-semibold text-[var(--color-cream)]">{fmtRs(item.amount - item.paid)} <span className="text-[10px] font-normal text-[var(--txt-3)]">left</span></div>
           </div>
         );
       })}
@@ -435,26 +498,30 @@ async function MemberRecentActivity({ memberId }: { memberId: string }) {
     .limit(5);
 
   if (myPayments.length === 0) {
-    return <div className="py-10 text-center text-sm italic text-[var(--txt-3)]">No contributions yet — submit your first donation</div>;
+    return <div className="py-10 text-center text-[12.5px] text-[var(--txt-3)]">No contributions yet — submit your first donation</div>;
   }
   return (
     <>
       {myPayments.map((p) => (
-        <div key={p.id} className="flex items-center justify-between border-b border-[rgba(214,210,199,0.06)] px-3 py-2.5">
+        <div key={p.id} className="flex items-center justify-between border-b border-[var(--border)] px-5 py-2.5 last:border-b-0 hover:bg-[var(--surf-3)]">
           <div>
-            <div className="text-sm text-[var(--color-cream)]">{p.monthLabel} · <span className="capitalize">{p.pool}</span></div>
-            <div className="text-[10px] text-[var(--color-gold-4)]">{new Date(p.paidOn).toLocaleDateString('en-GB')}</div>
+            <div className="text-[12.5px] text-[var(--color-cream)]">
+              <span className="font-medium">{p.monthLabel}</span> · <span className="capitalize text-[var(--txt-2)]">{p.pool}</span>
+            </div>
+            <div className="tabular text-[10.5px] text-[var(--txt-3)]">{new Date(p.paidOn).toLocaleDateString('en-GB')}</div>
           </div>
-          <div className="text-right">
-            <div className="font-bold text-[var(--color-gold)]">{fmtRs(p.amount)}</div>
+          <div className="flex items-center gap-2.5">
+            <div className="num text-right font-semibold text-[var(--color-cream)]">{fmtRs(p.amount)}</div>
             {p.pendingVerify
-              ? <div className="text-[10px] text-yellow-400">⏳ Pending</div>
-              : <div className="text-[10px] text-emerald-400">✓ Verified</div>}
+              ? <span className="pill pill-warn">Pending</span>
+              : <span className="pill pill-success">Verified</span>}
           </div>
         </div>
       ))}
-      <div className="border-t border-[rgba(214,210,199,0.06)] px-3 py-2 text-center">
-        <Link href="/myaccount" className="text-xs text-[var(--color-gold-4)] hover:text-[var(--color-gold)]">Full history →</Link>
+      <div className="px-5 py-2.5 text-center">
+        <Link href="/myaccount" className="text-[11px] font-medium text-[var(--color-gold)] hover:underline">
+          Full history →
+        </Link>
       </div>
     </>
   );

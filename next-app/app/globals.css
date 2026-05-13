@@ -1,89 +1,83 @@
 @import "tailwindcss";
 
 /* ═══════════════════════════════════════════════════════════════════
-   THEME TOKENS — Brutalist Islamic palette (charcoal / navy / off-white)
-   ───────────────────────────────────────────────────────────────────
-   Variable names from the legacy gold palette are preserved so that
-   every component continues to consume `--color-gold` / `--color-emerald`
-   without code edits. The values are remapped:
-
-     --color-gold-*    →  off-white / bone / pale concrete (primary accent)
-     --color-emerald-* →  deep navy (secondary accent)
-     --color-ink-*     →  charcoal (background)
-     --color-cream-*   →  off-white (text)
-
-   No gold, silver, chrome, or shiny metallics. Matte surfaces only.
+   THEME TOKENS — Modern fintech (Mercury / Linear / Stripe school)
+   Deep ink + restrained burnished gold. Used like Cartier marks, not
+   wall-to-wall paint. Accent surfaces are flat; depth comes from a
+   single hairline + a single, soft shadow.
    ═══════════════════════════════════════════════════════════════════ */
 @theme {
-  --font-display: 'Cinzel', serif;
+  /* One display family (Cormorant for poetic headings), one body
+     (Inter for UI numbers + copy), one Urdu/Arabic script. */
+  --font-display: 'Cormorant Garamond', 'Times New Roman', serif;
   --font-arabic: 'Noto Nastaliq Urdu', 'Amiri', serif;
-  --font-body: 'Tajawal', sans-serif;
-  --font-en: 'Cormorant Garamond', serif;
+  --font-body: 'Inter', 'Tajawal', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'SF Mono', ui-monospace, monospace;
+  --font-en: 'Cormorant Garamond', serif; /* legacy alias */
 
-  /* Premium private-bank palette — deep midnight navy + burnished gold +
-     warm cream. Inspired by Mercury, Aman Resorts, Coutts. Restrained,
-     professional, Islamic luxury. */
+  /* Accent — burnished gold. Only for primary CTAs, brand mark,
+     active rail, and headline numbers. Never on every border. */
+  --color-gold:   #c89b3c;
+  --color-gold-2: #d9b04c;
+  --color-gold-3: #e8c563;
+  --color-gold-4: #7d7768;   /* muted bronze — quiet captions */
 
-  /* Primary accent — burnished gold (banking-grade, not flashy) */
-  --color-gold:   #c89b3c;   /* burnished gold — buttons / links / icons */
-  --color-gold-2: #d9b04c;   /* warm gold hover */
-  --color-gold-3: #e8c563;   /* champagne highlight */
-  --color-gold-4: #8a8579;   /* muted bronze — captions / labels */
+  /* Success / money green */
+  --color-emerald-1: #1f4e3a;
+  --color-emerald-2: #2d8a5f;
+  --color-emerald-3: #143626;
 
-  /* Secondary — deep emerald for $ / success accents (used sparingly) */
-  --color-emerald-1: #1f4e3a; /* deep forest emerald — fund total */
-  --color-emerald-2: #2d6a4f; /* mid emerald — emphasis */
-  --color-emerald-3: #143626; /* almost-black emerald — pressed */
+  /* Surface — deep ink (page) → softer card → slightly raised */
+  --color-ink:   #0a0f1a;     /* page bg */
+  --color-ink-2: #0f1626;     /* card */
+  --color-ink-3: #18223a;     /* elevated / hover */
 
-  /* Surface — midnight navy (was: slate). Warmer, deeper, more premium */
-  --color-ink:   #0c1424;     /* page background — deep midnight navy */
-  --color-ink-2: #131c30;     /* card base — rich navy */
-  --color-ink-3: #1d2840;     /* elevated panel — slate navy */
+  /* Text — slightly cooler cream so it reads modern, not vintage */
+  --color-cream:   #ecebe6;
+  --color-cream-2: #a8a59a;
 
-  /* Body text — warm cream (not pure white — feels more refined) */
-  --color-cream:   #f5f3ed;   /* primary text — warm cream */
-  --color-cream-2: #c4c0b5;   /* secondary text — muted parchment */
+  --radius-r: 14px;
+  --radius-r-sm: 10px;
+  --radius-r-lg: 20px;
 
-  --radius-r: 12px;
-  --radius-r-sm: 8px;
-  --radius-r-lg: 18px;
-
-  /* Refined shadows — deeper, softer, with gold hint on hover */
-  --shadow-card: 0 1px 2px rgba(0,0,0,0.25), 0 10px 30px rgba(8,14,28,0.50);
-  --shadow-hover: 0 12px 40px rgba(200,155,60,0.14), 0 2px 8px rgba(0,0,0,0.30);
+  /* One quiet shadow. No glow, no gold halo. */
+  --shadow-card: 0 1px 0 rgba(255,255,255,0.02) inset, 0 8px 24px rgba(0,0,0,0.28);
+  --shadow-hover: 0 1px 0 rgba(255,255,255,0.04) inset, 0 12px 32px rgba(0,0,0,0.36);
 }
 
 /* ─────────────────────────────────────────
-   SEMANTIC SURFACE / TEXT TOKENS
-   These swap on .light / .dark — used in inline styles and components
+   SEMANTIC TOKENS — used by inline styles + components
+   Neutral hairlines (not gold) so accent gold reads as accent.
    ───────────────────────────────────────── */
 :root {
-  --txt-1: #f5f3ed;                       /* warm cream */
-  --txt-2: rgba(245,243,237,0.82);        /* secondary */
-  --txt-3: rgba(245,243,237,0.55);        /* muted */
-  --txt-4: rgba(245,243,237,0.32);        /* hint */
-  --surf-1: #131c30;                       /* card */
-  --surf-2: #0c1424;                       /* page */
-  --surf-3: rgba(200,155,60,0.05);         /* input bg — gold-tinted */
-  --border: rgba(200,155,60,0.14);         /* gold-tinted hairline */
-  --border-2: rgba(200,155,60,0.32);       /* emphasized */
+  --txt-1: #ecebe6;
+  --txt-2: rgba(236,235,230,0.78);
+  --txt-3: rgba(236,235,230,0.52);
+  --txt-4: rgba(236,235,230,0.32);
+  --surf-1: #0f1626;                                  /* card */
+  --surf-2: #0a0f1a;                                  /* page */
+  --surf-3: rgba(255,255,255,0.03);                   /* input bg — neutral */
+  --border: rgba(255,255,255,0.07);                   /* hairline */
+  --border-2: rgba(255,255,255,0.12);                 /* emphasized */
+  --border-accent: rgba(200,155,60,0.35);             /* used sparingly */
 }
 
 .light {
-  --txt-1: #1d2840;
-  --txt-2: rgba(29,40,64,0.82);
-  --txt-3: rgba(29,40,64,0.58);
-  --txt-4: rgba(29,40,64,0.36);
+  --txt-1: #0f1626;
+  --txt-2: rgba(15,22,38,0.78);
+  --txt-3: rgba(15,22,38,0.55);
+  --txt-4: rgba(15,22,38,0.32);
   --surf-1: #ffffff;
-  --surf-2: #faf7ee;                       /* warm parchment */
-  --surf-3: rgba(29,40,64,0.04);
-  --border: rgba(29,40,64,0.12);
-  --border-2: rgba(29,40,64,0.22);
-  --color-gold:   #9c7a2e;                 /* deeper bronze reads on light */
+  --surf-2: #f7f5f0;
+  --surf-3: rgba(15,22,38,0.03);
+  --border: rgba(15,22,38,0.08);
+  --border-2: rgba(15,22,38,0.16);
+  --border-accent: rgba(156,122,46,0.4);
+  --color-gold:   #9c7a2e;
   --color-gold-2: #c89b3c;
   --color-gold-4: #6b5a35;
-  --color-cream:  #1d2840;
-  --color-ink:    #faf7ee;
+  --color-cream:  #0f1626;
+  --color-ink:    #f7f5f0;
   --color-ink-2:  #ffffff;
 }
 
@@ -116,8 +110,17 @@ html, body {
   background: var(--color-ink);
   color: var(--color-cream);
   font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.55;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+  font-feature-settings: 'cv11', 'ss01', 'ss03';   /* Inter stylistic alternates */
+}
+
+/* Modern headline pairing — Cormorant for marketing/poetic, Inter for UI */
+h1, h2, h3, h4 {
+  letter-spacing: -0.015em;
 }
 
 /* Any element marked Urdu (lang=ur), Arabic (lang=ar), or RTL renders
@@ -183,16 +186,68 @@ a:focus-visible {
 }
 
 /* ─────────────────────────────────────────
-   STAT-CARD GRADIENTS — Brutalist matte
-   Low-contrast gradients (concrete / navy / slate variations) so cards
-   read as flat panels with subtle depth, not vibrant blocks.
+   NUMERIC TYPOGRAPHY
+   Tabular figures + mono for monetary stacks — numbers shouldn't wobble
+   in lists. Used on stat-card values, donut centers, balance rows.
    ───────────────────────────────────────── */
-.sc-grad-emerald  { background: linear-gradient(135deg,#1e2a4a,#2d3f6e 60%,#3a4f80); }
-.sc-grad-gold     { background: linear-gradient(135deg,#262a32,#353a42 60%,#454a55); color: var(--color-cream); }
-.sc-grad-ruby     { background: linear-gradient(135deg,#3d1f2a,#52283a 60%,#683548); }
-.sc-grad-sapphire { background: linear-gradient(135deg,#0f1828,#1e2a4a 60%,#2d3f6e); }
-.sc-grad-violet   { background: linear-gradient(135deg,#1f1d2e,#2c2840 60%,#3d3858); }
-.sc-grad-ocean    { background: linear-gradient(135deg,#0a1825,#142840 60%,#1f3a5a); }
+.num {
+  font-family: var(--font-mono);
+  font-feature-settings: 'tnum' 1, 'lnum' 1, 'zero' 1;
+  letter-spacing: -0.01em;
+}
+.num-display {
+  font-family: var(--font-mono);
+  font-feature-settings: 'tnum' 1, 'lnum' 1;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+/* Tabular figures on any text — keeps columns aligned */
+.tabular { font-variant-numeric: tabular-nums; }
+
+/* ─────────────────────────────────────────
+   STATUS PILLS — replace emoji indicators
+   ───────────────────────────────────────── */
+.pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 2px 8px 2px 7px;
+  border-radius: 999px;
+  font-size: 10.5px; font-weight: 600;
+  letter-spacing: 0.02em;
+  border: 1px solid transparent;
+  text-transform: none;
+  line-height: 1.5;
+}
+.pill::before {
+  content: '';
+  width: 6px; height: 6px; border-radius: 50%;
+  background: currentColor; flex-shrink: 0;
+}
+.pill-success { background: rgba(45,138,95,0.10);  color: #4ec38d; border-color: rgba(45,138,95,0.25); }
+.pill-warn    { background: rgba(217,176,76,0.10); color: #e8c563; border-color: rgba(217,176,76,0.30); }
+.pill-danger  { background: rgba(220,82,82,0.10);  color: #f08585; border-color: rgba(220,82,82,0.28); }
+.pill-info    { background: rgba(96,141,215,0.10); color: #92b3df; border-color: rgba(96,141,215,0.28); }
+.pill-muted   { background: rgba(255,255,255,0.04);color: var(--txt-3); border-color: var(--border); }
+
+/* ─────────────────────────────────────────
+   STAT TONES — flat surfaces with a single colored accent rail
+   (Linear / Mercury style — no more rainbow gradient blocks)
+   ───────────────────────────────────────── */
+.sc-base {
+  background: var(--surf-1);
+  border: 1px solid var(--border);
+}
+.sc-rail-gold     { box-shadow: inset 3px 0 0 0 #c89b3c; }
+.sc-rail-emerald  { box-shadow: inset 3px 0 0 0 #2d8a5f; }
+.sc-rail-ruby     { box-shadow: inset 3px 0 0 0 #b9556a; }
+.sc-rail-sapphire { box-shadow: inset 3px 0 0 0 #608dd7; }
+.sc-rail-violet   { box-shadow: inset 3px 0 0 0 #8b6ec9; }
+.sc-rail-ocean    { box-shadow: inset 3px 0 0 0 #4ab8d6; }
+
+/* Brand-mark gold radial — used behind logos / hero numbers */
+.gold-glow {
+  background: radial-gradient(ellipse at center, rgba(200,155,60,0.12), transparent 70%);
+}
 
 /* ─────────────────────────────────────────
    SCROLLBAR — thin, slate

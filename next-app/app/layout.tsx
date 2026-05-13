@@ -13,8 +13,8 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: '(prefers-color-scheme: dark)', color: '#14171c' },
-    { media: '(prefers-color-scheme: light)', color: '#f5f3ed' },
+    { media: '(prefers-color-scheme: dark)', color: '#0a0f1a' },
+    { media: '(prefers-color-scheme: light)', color: '#f7f5f0' },
   ],
   width: 'device-width',
   initialScale: 1,
@@ -28,7 +28,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
-          href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Cinzel:wght@400;500;600;700&family=Tajawal:wght@300;400;500;700&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Noto+Nastaliq+Urdu:wght@400;500;600;700&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Noto+Nastaliq+Urdu:wght@400;500;600;700&family=Amiri:wght@400;700&display=swap"
           rel="stylesheet"
         />
       </head>
@@ -40,9 +40,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           theme="dark"
           toastOptions={{
             style: {
-              background: '#1d2127',
-              color: '#ebe7dd',
-              border: '1px solid rgba(214,210,199,0.18)',
+              background: '#0f1626',
+              color: '#ecebe6',
+              border: '1px solid rgba(255,255,255,0.10)',
             },
           }}
         />
