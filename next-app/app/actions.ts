@@ -27,7 +27,7 @@ import { eq, and, sql } from 'drizzle-orm';
 import { z } from 'zod';
 import { meOrThrow } from '@/lib/auth-server';
 import { db } from '@/lib/db';
-import { members, payments, cases, votes, loans, repayments, auditLog, notifications, messages, config as configTbl } from '@/lib/db/schema';
+import { members, payments, cases, votes, loans, repayments, auditLog, notifications, messages, memberInvites, config as configTbl } from '@/lib/db/schema';
 import { monthStartFromLabel } from '@/lib/month';
 import { broadcastPush, sendPushToMembers } from '@/lib/push';
 
@@ -64,6 +64,65 @@ export async function approveMember(memberId: string) {
     channelId: 'admin',
   }).catch(() => {});
   revalidatePath('/admin/members');
+}
+
+/* ─── bulk import members from CSV (admin) */
+const bulkImportRowSchema = z.object({
+  username: z.string().min(2).max(40).regex(/^[a-z0-9_]+$/i),
+  nameEn: z.string().min(2).max(80),
+  nameUr: z.string().min(1).max(80),
+  fatherName: z.string().min(2).max(80),
+  relation: z.string().max(80).optional(),
+  phone: z.string().max(30).optional(),
+  city: z.string().max(60).optional(),
+  province: z.string().max(40).optional(),
+  monthlyPledge: z.number().int().min(0).max(1_000_000).default(1000),
+});
+
+const bulkImportSchema = z.object({
+  rows: z.array(bulkImportRowSchema).min(1).max(500),
+});
+
+export async function bulkImportMembers(input: z.infer<typeof bulkImportSchema>): Promise<{ imported: number; skipped: number; errors: string[] }> {
+  const me = await meOrThrow();
+  if (me.role !== 'admin') throw new Error('Admin only');
+  const data = bulkImportSchema.parse(input);
+
+  // Detect existing usernames so we skip duplicates cleanly instead of
+  // bombing the whole batch on the first conflict.
+  const usernames = data.rows.map((r) => r.username.toLowerCase());
+  const existing = await db
+    .select({ username: members.username })
+    .from(members)
+    .where(sql`LOWER(${members.username}) = ANY(${usernames})`);
+  const existingSet = new Set(existing.map((e) => e.username.toLowerCase()));
+
+  const errors: string[] = [];
+  let imported = 0;
+  let skipped = 0;
+
+  for (const row of data.rows) {
+    if (existingSet.has(row.username.toLowerCase())) {
+      skipped++;
+      errors.push(`Skipped "${row.username}": username already exists`);
+      continue;
+    }
+    try {
+      await db.insert(members).values({
+        ...row,
+        status: 'approved',
+        needsSetup: true,
+      });
+      imported++;
+    } catch (e: unknown) {
+      skipped++;
+      errors.push(`Failed "${row.username}": ${e instanceof Error ? e.message : 'insert failed'}`);
+    }
+  }
+
+  await audit(me.id, 'bulk-import', `Imported ${imported}, skipped ${skipped}`);
+  revalidatePath('/admin/members');
+  return { imported, skipped, errors };
 }
 
 /* ─── add member (admin) */
@@ -527,6 +586,47 @@ export async function disburseCase(caseId: string) {
 
   revalidatePath('/cases');
   revalidatePath('/dashboard');
+}
+
+/* ─── member invites (admin) */
+const createInviteSchema = z.object({
+  label: z.string().max(60).optional(),
+  maxUses: z.number().int().min(1).max(100).default(1),
+  expiresInDays: z.number().int().min(1).max(365).default(14),
+});
+
+export async function createInvite(input: z.infer<typeof createInviteSchema>) {
+  const me = await meOrThrow();
+  if (me.role !== 'admin') throw new Error('Admin only');
+  const data = createInviteSchema.parse(input);
+  const token = generateInviteToken();
+  const expiresAt = new Date(Date.now() + data.expiresInDays * 86_400_000);
+  const [created] = await db
+    .insert(memberInvites)
+    .values({ token, createdById: me.id, label: data.label, maxUses: data.maxUses, expiresAt })
+    .returning();
+  await audit(me.id, 'invite-created', `${data.label ?? 'Unnamed'} · uses=${data.maxUses} · expires=${expiresAt.toLocaleDateString('en-GB')}`);
+  revalidatePath('/admin/invites');
+  return created;
+}
+
+export async function revokeInvite(inviteId: string) {
+  if (!/^[0-9a-f-]{36}$/i.test(inviteId)) throw new Error('Invalid id');
+  const me = await meOrThrow();
+  if (me.role !== 'admin') throw new Error('Admin only');
+  await db.update(memberInvites).set({ revoked: true }).where(eq(memberInvites.id, inviteId));
+  await audit(me.id, 'invite-revoked', inviteId);
+  revalidatePath('/admin/invites');
+}
+
+function generateInviteToken(): string {
+  // 24 chars from URL-safe alphabet — collision-resistant for our scale.
+  const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
+  let out = '';
+  const arr = new Uint8Array(24);
+  crypto.getRandomValues(arr);
+  for (let i = 0; i < arr.length; i++) out += alphabet[arr[i] % alphabet.length];
+  return out;
 }
 
 /* ─── notifications: mark read */

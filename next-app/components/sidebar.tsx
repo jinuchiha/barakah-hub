@@ -5,7 +5,7 @@ import { motion } from 'motion/react';
 import { cn } from '@/lib/utils';
 import {
   LayoutDashboard, User, Users, GitBranch, Bell, Mail, Settings, Wallet,
-  AlertTriangle, FileText, Megaphone, ScrollText,
+  AlertTriangle, FileText, Megaphone, ScrollText, UserPlus,
 } from 'lucide-react';
 
 const NAV: { href: string; label: string; labelUr: string; icon: React.ComponentType<{ className?: string }>; admin?: boolean }[] = [
@@ -17,6 +17,7 @@ const NAV: { href: string; label: string; labelUr: string; icon: React.Component
   { href: '/messages',        label: 'Messages',        labelUr: 'پیغامات',        icon: Mail },
   { href: '/settings',        label: 'Settings',        labelUr: 'ترتیبات',        icon: Settings },
   { href: '/admin/members',   label: 'Members',         labelUr: 'اراکین',         icon: Users,    admin: true },
+  { href: '/admin/invites',   label: 'Invites',         labelUr: 'دعوت نامے',     icon: UserPlus, admin: true },
   { href: '/admin/fund',      label: 'Fund Register',   labelUr: 'فنڈ رجسٹر',      icon: Wallet,   admin: true },
   { href: '/admin/loans',     label: 'Qarz-e-Hasana',   labelUr: 'قرض حسنہ',       icon: FileText, admin: true },
   { href: '/admin/broadcast', label: 'Broadcast',       labelUr: 'اعلان',          icon: Megaphone, admin: true },

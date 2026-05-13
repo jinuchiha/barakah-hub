@@ -1,10 +1,10 @@
 'use server';
 import { revalidatePath } from 'next/cache';
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import { z } from 'zod';
 import { getSession } from '@/lib/auth-server';
 import { db } from '@/lib/db';
-import { members, auditLog } from '@/lib/db/schema';
+import { members, memberInvites, auditLog } from '@/lib/db/schema';
 
 const schema = z.object({
   nameEn: z.string().min(2).max(80),
@@ -14,6 +14,7 @@ const schema = z.object({
   phone: z.string().min(7).max(30),
   city: z.string().min(2).max(60),
   province: z.string().min(2).max(40),
+  inviteToken: z.string().max(40).optional(),
 });
 
 /**
@@ -79,6 +80,18 @@ export async function onboardSelf(input: z.infer<typeof schema>) {
   const adminCount = await db.$count(members, eq(members.role, 'admin'));
   const isFounder = adminCount === 0;
 
+  // Validate invite token (if provided) — only consume it on successful insert
+  let validInvite: { id: string; maxUses: number; usedCount: number } | null = null;
+  if (data.inviteToken) {
+    const [inv] = await db.select({ id: memberInvites.id, maxUses: memberInvites.maxUses, usedCount: memberInvites.usedCount, revoked: memberInvites.revoked, expiresAt: memberInvites.expiresAt })
+      .from(memberInvites)
+      .where(eq(memberInvites.token, data.inviteToken))
+      .limit(1);
+    if (inv && !inv.revoked && (!inv.expiresAt || inv.expiresAt > new Date()) && inv.usedCount < inv.maxUses) {
+      validInvite = { id: inv.id, maxUses: inv.maxUses, usedCount: inv.usedCount };
+    }
+  }
+
   const [created] = await db
     .insert(members)
     .values({
@@ -101,5 +114,14 @@ export async function onboardSelf(input: z.infer<typeof schema>) {
     action: 'setup-complete',
     detail: `Self-registered as ${username}`,
   });
+
+  // Atomically increment the invite usedCount (race-safe via WHERE clause).
+  if (validInvite) {
+    await db
+      .update(memberInvites)
+      .set({ usedCount: sql`${memberInvites.usedCount} + 1` })
+      .where(eq(memberInvites.id, validInvite.id));
+  }
+
   revalidatePath('/dashboard');
 }

@@ -1,4 +1,4 @@
-import { desc, inArray } from 'drizzle-orm';
+import { and, desc, eq, gte, lte, inArray, or, ilike, type SQL } from 'drizzle-orm';
 import { getMeOrRedirect } from '@/lib/auth-server';
 import { db } from '@/lib/db';
 import { auditLog, members } from '@/lib/db/schema';
@@ -7,11 +7,39 @@ import { csvResponse, toCsv } from '@/lib/csv';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
+export async function GET(req: Request) {
   const me = await getMeOrRedirect();
   if (me.role !== 'admin') return new Response('Forbidden', { status: 403 });
 
-  const entries = await db.select().from(auditLog).orderBy(desc(auditLog.createdAt)).limit(5000);
+  // Mirror the same filters as the audit log UI so admins can export the
+  // exact subset they're looking at.
+  const url = new URL(req.url);
+  const filterAction = url.searchParams.get('action') ?? '';
+  const filterMember = url.searchParams.get('member') ?? '';
+  const filterFrom = url.searchParams.get('from') ?? '';
+  const filterTo = url.searchParams.get('to') ?? '';
+  const filterQ = (url.searchParams.get('q') ?? '').trim();
+
+  const where: SQL[] = [];
+  if (filterAction) where.push(eq(auditLog.action, filterAction));
+  if (filterMember) {
+    const clause = or(eq(auditLog.actorId, filterMember), eq(auditLog.targetId, filterMember));
+    if (clause) where.push(clause);
+  }
+  if (filterFrom) where.push(gte(auditLog.createdAt, new Date(filterFrom)));
+  if (filterTo) {
+    const endDate = new Date(filterTo);
+    endDate.setHours(23, 59, 59, 999);
+    where.push(lte(auditLog.createdAt, endDate));
+  }
+  if (filterQ) where.push(ilike(auditLog.detail, `%${filterQ.replace(/[%_]/g, '\\$&')}%`));
+
+  const entries = await db
+    .select()
+    .from(auditLog)
+    .where(where.length ? and(...where) : undefined)
+    .orderBy(desc(auditLog.createdAt))
+    .limit(5000);
 
   const memberIds = [...new Set([
     ...entries.map((e) => e.actorId).filter((v): v is string => !!v),

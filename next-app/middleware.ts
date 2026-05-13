@@ -13,7 +13,7 @@ import { getSessionCookie } from 'better-auth/cookies';
  * switch to `proxy.ts` when convenient.
  */
 
-const PUBLIC_ROUTES = ['/login', '/register', '/forgot-password', '/reset-password', '/api/auth', '/pending', '/rejected'];
+const PUBLIC_ROUTES = ['/login', '/register', '/forgot-password', '/reset-password', '/api/auth', '/pending', '/rejected', '/join'];
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;

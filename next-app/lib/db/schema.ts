@@ -221,6 +221,24 @@ export const messages = pgTable('messages', {
   toIdx: index('messages_to_idx').on(t.toId),
 }));
 
+/* ─── MEMBER INVITES ─── */
+// Admin generates an invite token (with optional max-uses). The /join/<token>
+// page prefills the register form; on signup, onboardSelf consumes the token
+// and links the new member to the inviter.
+export const memberInvites = pgTable('member_invites', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  token: text('token').notNull().unique(),
+  createdById: uuid('created_by_id').notNull().references(() => members.id),
+  label: text('label'),
+  maxUses: integer('max_uses').notNull().default(1),
+  usedCount: integer('used_count').notNull().default(0),
+  expiresAt: timestamp('expires_at', { withTimezone: true }),
+  revoked: boolean('revoked').notNull().default(false),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+}, (t) => ({
+  tokenIdx: index('member_invites_token_idx').on(t.token),
+}));
+
 /* ─── PUSH TOKENS (mobile APK) ─── */
 export const pushTokens = pgTable('push_tokens', {
   id: uuid('id').primaryKey().defaultRandom(),
