@@ -28,7 +28,7 @@ export default async function DashboardPage() {
   const [memberCount] = await db
     .select({ c: sql<number>`COUNT(*)::int` })
     .from(members)
-    .where(eq(members.deceased, false));
+    .where(and(eq(members.deceased, false), eq(members.status, 'approved')));
 
   const outstandingLoans = await db
     .select({ owed: sql<number>`COALESCE(SUM(${loans.amount} - ${loans.paid}),0)::int` })

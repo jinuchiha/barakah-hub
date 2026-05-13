@@ -1,4 +1,4 @@
-import { eq, and, asc } from 'drizzle-orm';
+import { eq, and, asc, ne, or } from 'drizzle-orm';
 import { getMeOrRedirect } from '@/lib/auth-server';
 import { db } from '@/lib/db';
 import { members, payments } from '@/lib/db/schema';
@@ -10,8 +10,18 @@ export const metadata = { title: 'Family Tree · Barakah Hub' };
 export default async function TreePage() {
   const me = await getMeOrRedirect();
 
-  const all = await db.select().from(members).orderBy(asc(members.nameEn));
+  // Tree shows approved (living + deceased — deceased render as
+  // "Rahimahullah") but NEVER rejected. Pending shown to admin only
+  // so they can see the lineage of a new applicant during review.
   const isAdmin = me.role === 'admin';
+  const statusFilter = isAdmin
+    ? or(eq(members.status, 'approved'), eq(members.status, 'pending'))
+    : eq(members.status, 'approved');
+  const all = await db
+    .select()
+    .from(members)
+    .where(and(statusFilter, ne(members.status, 'rejected')))
+    .orderBy(asc(members.nameEn));
 
   // Aggregate paid amount per member — sadqa privacy: non-admins only get
   // their own total; the rest are stripped before crossing the network.

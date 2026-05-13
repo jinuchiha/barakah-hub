@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
-import { asc } from 'drizzle-orm';
+import { asc, ne } from 'drizzle-orm';
 import { getMeOrRedirect } from '@/lib/auth-server';
 import { db } from '@/lib/db';
 import { members } from '@/lib/db/schema';
@@ -12,11 +12,30 @@ import { ExportLink } from '@/components/export-link';
 
 export const metadata = { title: 'Members · Barakah Hub' };
 
-export default async function MembersPage() {
+/**
+ * Admin Members page.
+ *
+ * `?showRejected=1` opens the rejected-accounts view (separate query so
+ * the default page-load stays clean — admins reported rejected entries
+ * polluting the directory). Rejected rows are otherwise filtered out
+ * server-side so they never appear in tables, WhatsApp lookups, etc.
+ */
+export default async function MembersPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ showRejected?: string }>;
+}) {
   const me = await getMeOrRedirect();
   if (me.role !== 'admin') redirect('/dashboard');
 
-  const all = await db.select().from(members).orderBy(asc(members.nameEn));
+  const { showRejected } = await searchParams;
+  const includeRejected = showRejected === '1';
+
+  const all = await db
+    .select()
+    .from(members)
+    .where(includeRejected ? undefined : ne(members.status, 'rejected'))
+    .orderBy(asc(members.nameEn));
   const pending = all.filter((m) => m.status === 'pending');
 
   return (
@@ -27,6 +46,12 @@ export default async function MembersPage() {
           <p className="mt-1 font-[var(--font-en)] text-sm italic text-[var(--color-gold-4)]">Family Members</p>
         </div>
         <div className="flex items-center gap-2">
+          <a
+            href={includeRejected ? '/admin/members' : '/admin/members?showRejected=1'}
+            className="rounded-md border border-[var(--border)] bg-[var(--surf-3)] px-3 py-1.5 text-xs font-medium text-[var(--txt-2)] transition-colors hover:border-[var(--border-2)] hover:text-[var(--color-cream)]"
+          >
+            {includeRejected ? 'Hide rejected' : 'Show rejected'}
+          </a>
           <BulkImportDialog />
           <ExportLink href={'/api/exports/members' as any}>Export CSV</ExportLink>
         </div>
