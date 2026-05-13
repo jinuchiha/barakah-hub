@@ -35,11 +35,43 @@ export async function signIn(input: SignInInput): Promise<MemberWithSession> {
   return { ...member, email: data.user.email };
 }
 
+/**
+ * Sign up + auto-onboard.
+ *
+ * The signup flow has two halves:
+ *  1. Better-Auth /sign-up/email creates a `users` row with credentials.
+ *     With autoSignIn=true (set in lib/auth.ts), this also sets the
+ *     session cookie / returns a bearer token.
+ *  2. /api/onboarding/mobile creates the `members` row with
+ *     status='pending' so admins see the request in /admin/members.
+ *
+ * Without step 2, users got stuck as Better-Auth "orphans" — they had
+ * credentials but never appeared in the admin panel. Three real users
+ * hit this in May 2026 before we wired the auto-onboarding call.
+ *
+ * The onboarding call is best-effort: if it fails, we still return
+ * (the user has credentials and can retry via Edit Profile / a future
+ * onboarding screen). A toast in the caller surfaces the error.
+ */
 export async function signUp(input: SignUpInput): Promise<void> {
-  await api.post('/api/auth/sign-up/email', {
+  const { data } = await api.post<Session>('/api/auth/sign-up/email', {
     email: input.email,
     password: input.password,
     name: input.name,
+  });
+
+  // autoSignIn is enabled server-side — capture the token so the
+  // follow-up onboarding request is authenticated.
+  if (data?.session?.token) {
+    await saveSessionToken(data.session.token);
+  }
+
+  // Create the members row — idempotent server-side, safe to retry.
+  await api.post('/api/onboarding/mobile', {
+    nameEn: input.name,
+    nameUr: input.name,
+    phone: input.phone,
+    monthlyPledge: input.monthlyPledge,
   });
 }
 

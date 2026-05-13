@@ -224,8 +224,8 @@ function ProfileScreen() {
         ) : null}
 
         <SettingsGroup title="SUPPORT">
-          <SettingsRow icon="help-circle-outline" label="Help & FAQ" onPress={() => {}} />
-          <SettingsRow icon="message-outline" label="Contact Admin" onPress={() => {}} />
+          <SettingsRow icon="help-circle-outline" label="Help & FAQ" onPress={() => router.push('/settings/help')} />
+          <SettingsRow icon="message-outline" label="Contact Admin" onPress={() => router.push('/settings/contact-admin')} />
         </SettingsGroup>
 
         <View style={styles.dangerZone}>
