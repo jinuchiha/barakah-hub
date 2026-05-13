@@ -1,5 +1,5 @@
-import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, StyleSheet, Platform } from 'react-native';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
+import { View, Text, StyleSheet, Platform, Pressable } from 'react-native';
 import Animated, {
   useSharedValue, useAnimatedStyle, withTiming, Easing,
 } from 'react-native-reanimated';
@@ -12,7 +12,9 @@ import { spacing, radius } from '@/lib/theme';
 const KAABA_LAT = 21.4225;
 const KAABA_LON = 39.8262;
 
-function calcQiblaAngle(lat: number, lon: number): number {
+type PermissionState = 'unknown' | 'prompting' | 'granted' | 'denied';
+
+function calcQiblaBearing(lat: number, lon: number): number {
   const latR = (lat * Math.PI) / 180;
   const lonDiff = ((KAABA_LON - lon) * Math.PI) / 180;
   const kaabaR = (KAABA_LAT * Math.PI) / 180;
@@ -24,7 +26,7 @@ function calcQiblaAngle(lat: number, lon: number): number {
 
 interface Loc { latitude: number; longitude: number }
 
-async function requestLocation(): Promise<Loc | null> {
+async function getLocation(): Promise<Loc | null> {
   if (Platform.OS === 'web') {
     if (typeof navigator !== 'undefined' && navigator.geolocation) {
       return new Promise((resolve) => {
@@ -37,13 +39,9 @@ async function requestLocation(): Promise<Loc | null> {
     }
     return null;
   }
-
-  // Native (Android/iOS) — expo-location with explicit permission prompt.
   try {
-    const { status } = await Location.requestForegroundPermissionsAsync();
-    if (status !== 'granted') return null;
-    const pos = await Location.getLastKnownPositionAsync({ maxAge: 60_000 })
-      ?? await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+    const pos = (await Location.getLastKnownPositionAsync({ maxAge: 60_000 }))
+      ?? (await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced }));
     if (!pos) return null;
     return { latitude: pos.coords.latitude, longitude: pos.coords.longitude };
   } catch {
@@ -51,31 +49,127 @@ async function requestLocation(): Promise<Loc | null> {
   }
 }
 
+/**
+ * Live Qibla compass.
+ *
+ *  1. Computes the static bearing from current location to the Kaaba.
+ *  2. Subscribes to the device heading (magnetometer + sensor fusion via
+ *     expo-location's watchHeadingAsync) so the needle rotates as the
+ *     phone is rotated. Final needle angle = qiblaBearing - heading.
+ *
+ * Permission UX:
+ *  - Loads with state="unknown" and immediately probes the granted
+ *    status without prompting.
+ *  - If not yet granted, shows a "Use my location" button that triggers
+ *    the system prompt on tap (user-initiated → far better acceptance
+ *    rate than auto-prompting on dashboard).
+ *  - If denied, shows a "Try again" button that re-prompts (Android
+ *    re-shows the dialog; iOS instructs the user to enable in Settings).
+ */
 export function QiblaCompass() {
   const { colors } = useTheme();
-  const [qiblaAngle, setQiblaAngle] = useState<number | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [permission, setPermission] = useState<PermissionState>('unknown');
+  const [location, setLocation] = useState<Loc | null>(null);
+  const [qiblaBearing, setQiblaBearing] = useState<number | null>(null);
+  const [heading, setHeading] = useState<number | null>(null);
+  const [headingAccuracy, setHeadingAccuracy] = useState<number | null>(null);
+
   const rotation = useSharedValue(0);
   const mounted = useRef(true);
+  const headingSub = useRef<Location.LocationSubscription | null>(null);
 
-  useEffect(() => {
-    requestLocation().then((loc) => {
-      if (!mounted.current) return;
-      if (loc) {
-        const angle = calcQiblaAngle(loc.latitude, loc.longitude);
-        setQiblaAngle(angle);
-        rotation.value = withTiming(angle, { duration: 1200, easing: Easing.out(Easing.cubic) });
+  /** Probe permission status without prompting. Sets state accordingly. */
+  const probePermission = useCallback(async () => {
+    if (Platform.OS === 'web') {
+      setPermission('granted'); // web prompts on geolocation call itself
+      return 'granted' as const;
+    }
+    const perm = await Location.getForegroundPermissionsAsync();
+    const next: PermissionState = perm.status === 'granted'
+      ? 'granted'
+      : perm.canAskAgain ? 'unknown' : 'denied';
+    setPermission(next);
+    return next;
+  }, []);
+
+  /** Ask for permission (user-initiated). Sets state to granted/denied. */
+  const requestPermission = useCallback(async () => {
+    if (Platform.OS === 'web') {
+      setPermission('granted');
+      return 'granted' as const;
+    }
+    setPermission('prompting');
+    const perm = await Location.requestForegroundPermissionsAsync();
+    const next: PermissionState = perm.status === 'granted' ? 'granted' : 'denied';
+    setPermission(next);
+    return next;
+  }, []);
+
+  /** Once granted, fetch position + start heading watch. */
+  const startTracking = useCallback(async () => {
+    const loc = await getLocation();
+    if (!mounted.current || !loc) return;
+    setLocation(loc);
+    const bearing = calcQiblaBearing(loc.latitude, loc.longitude);
+    setQiblaBearing(bearing);
+
+    if (Platform.OS !== 'web') {
+      try {
+        headingSub.current = await Location.watchHeadingAsync((h) => {
+          if (!mounted.current) return;
+          // trueHeading is the compass-corrected angle (magneticHeading
+          // doesn't account for declination). Fall back to magneticHeading
+          // when trueHeading is -1 (unavailable indoors / no GPS lock).
+          const live = h.trueHeading >= 0 ? h.trueHeading : h.magHeading;
+          setHeading(live);
+          setHeadingAccuracy(h.accuracy ?? null);
+        });
+      } catch {
+        // Heading unavailable — needle stays at static qibla bearing.
       }
-      setLoading(false);
+    }
+  }, []);
+
+  /** Tap handler — wires everything up. */
+  const enable = useCallback(async () => {
+    const state = await requestPermission();
+    if (state === 'granted') startTracking();
+  }, [requestPermission, startTracking]);
+
+  // Bootstrap: probe permission, auto-start if granted, else wait for tap.
+  useEffect(() => {
+    let active = true;
+    probePermission().then((p) => {
+      if (active && p === 'granted') startTracking();
     });
-    return () => { mounted.current = false; };
-  }, [rotation]);
+    return () => {
+      active = false;
+      mounted.current = false;
+      headingSub.current?.remove();
+    };
+  }, [probePermission, startTracking]);
+
+  // Compute needle rotation = qiblaBearing - heading. When heading is
+  // null (no magnetometer / not yet sampled), needle points at the
+  // static bearing from north — still useful with a paper-compass.
+  useEffect(() => {
+    if (qiblaBearing === null) return;
+    const live = heading ?? 0;
+    const target = (qiblaBearing - live + 360) % 360;
+    // Take the short way around the circle to avoid 359°->1° spin.
+    let delta = target - rotation.value;
+    if (delta > 180) delta -= 360;
+    else if (delta < -180) delta += 360;
+    rotation.value = withTiming(rotation.value + delta, { duration: 180, easing: Easing.out(Easing.cubic) });
+  }, [qiblaBearing, heading, rotation]);
 
   const needleStyle = useAnimatedStyle(() => ({
     transform: [{ rotate: `${rotation.value}deg` }],
   }));
 
-  const angle = qiblaAngle !== null ? Math.round(qiblaAngle) : null;
+  const angle = qiblaBearing !== null ? Math.round(qiblaBearing) : null;
+  const isPointingNow = location && heading !== null && qiblaBearing !== null
+    && Math.abs(((qiblaBearing - heading + 540) % 360) - 180) < 6;
 
   return (
     <View style={[styles.card, { backgroundColor: colors.glass2, borderColor: colors.border1 }]}>
@@ -88,13 +182,13 @@ export function QiblaCompass() {
       </View>
 
       <View style={styles.compassWrap}>
-        <View style={[styles.compassRing, { borderColor: colors.border2 }]}>
-          {loading ? (
-            <MaterialCommunityIcons name="loading" size={24} color={colors.text4} />
-          ) : angle !== null ? (
+        <View style={[styles.compassRing, { borderColor: isPointingNow ? colors.primary : colors.border2 }]}>
+          {permission === 'granted' && qiblaBearing !== null ? (
             <Animated.View style={[styles.needle, needleStyle]}>
-              <MaterialCommunityIcons name="navigation" size={36} color={colors.primary} />
+              <MaterialCommunityIcons name="navigation" size={36} color={isPointingNow ? colors.primary : colors.gold} />
             </Animated.View>
+          ) : permission === 'prompting' ? (
+            <MaterialCommunityIcons name="loading" size={24} color={colors.text4} />
           ) : (
             <MaterialCommunityIcons name="map-marker-question" size={28} color={colors.text3} />
           )}
@@ -116,8 +210,26 @@ export function QiblaCompass() {
         ))}
       </View>
 
-      {!loading && angle === null ? (
-        <Text style={[styles.note, { color: colors.text4 }]}>Location unavailable</Text>
+      {permission !== 'granted' ? (
+        <Pressable
+          onPress={enable}
+          style={[styles.cta, { backgroundColor: colors.primaryDim, borderColor: colors.primary }]}
+        >
+          <MaterialCommunityIcons name="crosshairs-gps" size={14} color={colors.primary} />
+          <Text style={[styles.ctaText, { color: colors.primary }]}>
+            {permission === 'denied' ? 'Try again — Allow location' : 'Use my location'}
+          </Text>
+        </Pressable>
+      ) : heading === null && Platform.OS !== 'web' ? (
+        <Text style={[styles.note, { color: colors.text4 }]}>
+          Move the phone in a figure-8 to calibrate the compass
+        </Text>
+      ) : headingAccuracy !== null && headingAccuracy >= 3 ? (
+        <Text style={[styles.note, { color: colors.text4 }]}>
+          Low compass accuracy — move away from metal & magnets
+        </Text>
+      ) : isPointingNow ? (
+        <Text style={[styles.note, { color: colors.primary }]}>Facing Qibla — صحیح سمت</Text>
       ) : null}
     </View>
   );
@@ -166,5 +278,16 @@ const styles = StyleSheet.create({
   south: { bottom: 0, alignSelf: 'center' },
   east: { right: 0, top: '45%' },
   west: { left: 0, top: '45%' },
-  note: { fontSize: 11, fontFamily: 'Inter_400Regular', marginTop: spacing.sm },
+  note: { fontSize: 11, fontFamily: 'Inter_400Regular', marginTop: spacing.sm, textAlign: 'center' },
+  cta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: spacing.md,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: radius.full,
+    borderWidth: 1.5,
+  },
+  ctaText: { fontSize: 12, fontFamily: 'Inter_600SemiBold' },
 });
