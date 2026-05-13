@@ -29,6 +29,7 @@ import { meOrThrow } from '@/lib/auth-server';
 import { db } from '@/lib/db';
 import { members, payments, cases, votes, loans, repayments, auditLog, notifications, messages, config as configTbl } from '@/lib/db/schema';
 import { monthStartFromLabel } from '@/lib/month';
+import { broadcastPush, sendPushToMembers } from '@/lib/push';
 
 /* ─── helpers */
 async function audit(actorId: string, action: string, detail: string, targetId?: string) {
@@ -55,6 +56,13 @@ export async function approveMember(memberId: string) {
     en: 'Your account has been approved — you can now use the app',
     type: 'approved',
   });
+  // Push notification so they see it on lock screen
+  void sendPushToMembers([memberId], {
+    title: '🎉 Account approved',
+    body: 'Salaam — your Barakah Hub account has been approved. Welcome!',
+    data: { type: 'approved' },
+    channelId: 'admin',
+  }).catch(() => {});
   revalidatePath('/admin/members');
 }
 
@@ -153,6 +161,16 @@ export async function verifyPayment(paymentId: string) {
     .set({ pendingVerify: false, verifiedById: me.id, verifiedAt: new Date() })
     .where(eq(payments.id, paymentId));
   await audit(me.id, 'payment-verified', `Verified payment ${paymentId}`);
+  // Notify the donor that their payment was approved
+  const [p] = await db.select().from(payments).where(eq(payments.id, paymentId)).limit(1);
+  if (p) {
+    void sendPushToMembers([p.memberId], {
+      title: '✅ Donation verified',
+      body: `Your ${p.pool} contribution of Rs ${p.amount.toLocaleString('en-PK')} for ${p.monthLabel} has been verified.`,
+      data: { type: 'payment-verified', paymentId: p.id },
+      channelId: 'payments',
+    }).catch(() => {});
+  }
   revalidatePath('/admin/fund');
   revalidatePath('/myaccount');
 }
@@ -354,6 +372,13 @@ export async function createCase(input: z.infer<typeof caseSchema>) {
     .values({ ...data, applicantId: me.id, status: 'voting' })
     .returning();
   await audit(me.id, 'emergency-create', `${data.caseType} ${data.amount} for ${data.beneficiaryName}`);
+  // Broadcast push so every approved member sees the new case in time to vote
+  void broadcastPush(me.id, {
+    title: data.emergency ? '🚨 Emergency case opened' : '🆘 New case to vote on',
+    body: `${data.beneficiaryName} · ${data.category} · Rs ${data.amount.toLocaleString('en-PK')}`,
+    data: { type: 'case', caseId: created.id },
+    channelId: 'cases',
+  }).catch(() => {});
   revalidatePath('/cases');
   revalidatePath('/dashboard');
   return created;

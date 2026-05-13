@@ -108,6 +108,18 @@ export default async function DashboardPage() {
 
         <Card>
           <CardHeader>
+            <CardTitle>👥 Community Activity</CardTitle>
+            <span className="text-[10px] uppercase tracking-widest text-[var(--color-gold-4)]">
+              Sadaqah / Zakat anonymized
+            </span>
+          </CardHeader>
+          <CardBody className="p-0">
+            <CommunityActivity meId={me.id} isAdmin={isAdmin} />
+          </CardBody>
+        </Card>
+
+        <Card>
+          <CardHeader>
             <CardTitle>Active Emergency Votes</CardTitle>
             {pendingVotes > 0 && (
               <Link href="/cases" className="text-xs text-[var(--color-gold-4)] underline-offset-2 hover:underline">
@@ -223,6 +235,131 @@ async function AdminRecentActivity() {
       <div className="border-t border-[rgba(214,210,199,0.06)] px-3 py-2 text-center">
         <Link href="/admin/audit" className="text-xs text-[var(--color-gold-4)] hover:text-[var(--color-gold)]">Full audit log →</Link>
       </div>
+    </>
+  );
+}
+
+/**
+ * Mixed community feed — donations + new cases + new loans across all
+ * members. Sadaqah / Zakat donor identity is replaced with "ایک رکن"
+ * for non-admin viewers (Islamic principle: charity given in secret).
+ * Qarz + emergency cases ARE public — borrower / applicant is shown.
+ */
+async function CommunityActivity({ meId, isAdmin }: { meId: string; isAdmin: boolean }) {
+  const [recentPayments, recentCases, recentLoans] = await Promise.all([
+    db.select().from(payments).where(eq(payments.pendingVerify, false)).orderBy(desc(payments.createdAt)).limit(8),
+    db.select().from(cases).orderBy(desc(cases.createdAt)).limit(4),
+    db.select().from(loans).orderBy(desc(loans.issuedOn)).limit(4),
+  ]);
+
+  const memberIds = new Set<string>();
+  recentPayments.forEach((p) => memberIds.add(p.memberId));
+  recentCases.forEach((c) => memberIds.add(c.applicantId));
+  recentLoans.forEach((l) => memberIds.add(l.memberId));
+
+  const memberRows = memberIds.size
+    ? await db.select({ id: members.id, nameEn: members.nameEn, nameUr: members.nameUr, color: members.color })
+        .from(members).where(inArray(members.id, [...memberIds]))
+    : [];
+  const memMap = new Map(memberRows.map((m) => [m.id, m]));
+
+  function maskedActor(memberId: string, pool: string) {
+    const isPrivate = pool === 'sadaqah' || pool === 'zakat';
+    const isSelf = memberId === meId;
+    if (!isPrivate || isSelf || isAdmin) {
+      return memMap.get(memberId) ?? { nameEn: 'Member', color: '#475569' };
+    }
+    return { nameEn: 'A member', nameUr: 'ایک رکن', color: '#475569' };
+  }
+
+  // Build a merged, time-ordered feed
+  type FeedItem =
+    | { kind: 'payment'; id: string; ts: number; pool: string; amount: number; actor: { nameEn: string; nameUr?: string; color: string }; monthLabel: string; anon: boolean }
+    | { kind: 'case'; id: string; ts: number; category: string; amount: number; beneficiary: string; status: string; emergency: boolean; applicant: { nameEn: string; color: string } }
+    | { kind: 'loan'; id: string; ts: number; amount: number; paid: number; purpose: string; member: { nameEn: string; color: string } };
+
+  const feed: FeedItem[] = [
+    ...recentPayments.map((p) => {
+      const isPrivate = (p.pool === 'sadaqah' || p.pool === 'zakat') && p.memberId !== meId && !isAdmin;
+      return {
+        kind: 'payment' as const,
+        id: p.id,
+        ts: new Date(p.createdAt).getTime(),
+        pool: p.pool,
+        amount: p.amount,
+        actor: maskedActor(p.memberId, p.pool),
+        monthLabel: p.monthLabel,
+        anon: isPrivate,
+      };
+    }),
+    ...recentCases.map((c) => ({
+      kind: 'case' as const,
+      id: c.id,
+      ts: new Date(c.createdAt).getTime(),
+      category: c.category,
+      amount: c.amount,
+      beneficiary: c.beneficiaryName,
+      status: c.status,
+      emergency: c.emergency,
+      applicant: memMap.get(c.applicantId) ?? { nameEn: 'Member', color: '#475569' },
+    })),
+    ...recentLoans.map((l) => ({
+      kind: 'loan' as const,
+      id: l.id,
+      ts: new Date(l.issuedOn).getTime(),
+      amount: l.amount,
+      paid: l.paid,
+      purpose: l.purpose,
+      member: memMap.get(l.memberId) ?? { nameEn: 'Member', color: '#475569' },
+    })),
+  ].sort((a, b) => b.ts - a.ts).slice(0, 10);
+
+  if (feed.length === 0) {
+    return <div className="py-10 text-center text-sm italic text-[var(--txt-3)]">No community activity yet</div>;
+  }
+
+  return (
+    <>
+      {feed.map((item) => {
+        if (item.kind === 'payment') {
+          return (
+            <div key={`p-${item.id}`} className="flex items-center gap-3 border-b border-[rgba(214,210,199,0.06)] px-3 py-2.5">
+              <div className="grid size-7 shrink-0 place-items-center rounded-full text-[10px] font-bold text-white" style={{ background: item.actor.color }}>
+                {item.anon ? '·' : ini(item.actor.nameEn || (item.actor.nameUr ?? '?'))}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="text-sm text-[var(--color-cream)]">
+                  {item.anon ? '🤲 ' : '💰 '}{item.actor.nameEn} donated <span className="capitalize">{item.pool}</span>
+                </div>
+                <div className="text-[10px] text-[var(--color-gold-4)]">{item.monthLabel}</div>
+              </div>
+              <div className="shrink-0 font-bold text-[var(--color-gold)]">{fmtRs(item.amount)}</div>
+            </div>
+          );
+        }
+        if (item.kind === 'case') {
+          return (
+            <div key={`c-${item.id}`} className="flex items-center gap-3 border-b border-[rgba(214,210,199,0.06)] px-3 py-2.5">
+              <div className="grid size-7 shrink-0 place-items-center rounded-full bg-red-500/15 text-xs text-red-400">{item.emergency ? '🚨' : '🆘'}</div>
+              <div className="flex-1 min-w-0">
+                <div className="truncate text-sm text-[var(--color-cream)]">{item.beneficiary} · {item.category}</div>
+                <div className="text-[10px] text-[var(--color-gold-4)]">by {item.applicant.nameEn} · {item.status}</div>
+              </div>
+              <div className="shrink-0 font-bold text-[var(--color-gold)]">{fmtRs(item.amount)}</div>
+            </div>
+          );
+        }
+        return (
+          <div key={`l-${item.id}`} className="flex items-center gap-3 border-b border-[rgba(214,210,199,0.06)] px-3 py-2.5">
+            <div className="grid size-7 shrink-0 place-items-center rounded-full bg-blue-500/15 text-xs text-blue-400">📤</div>
+            <div className="flex-1 min-w-0">
+              <div className="truncate text-sm text-[var(--color-cream)]">{item.member.nameEn} · {item.purpose}</div>
+              <div className="text-[10px] text-[var(--color-gold-4)]">Paid {fmtRs(item.paid)} of {fmtRs(item.amount)}</div>
+            </div>
+            <div className="shrink-0 font-bold text-[var(--color-gold)]">{fmtRs(item.amount - item.paid)} left</div>
+          </div>
+        );
+      })}
     </>
   );
 }
