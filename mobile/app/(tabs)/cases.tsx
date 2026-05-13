@@ -18,18 +18,18 @@ import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { Badge } from '@/components/ui/Badge';
-import { useCases, useCastVote, useCreateCase } from '@/hooks/useCases';
+import { useCases, useCastVote, useCreateCase, useAdminResolveCase, useDeleteCase } from '@/hooks/useCases';
 import { useAuthStore } from '@/stores/auth.store';
 import { useTheme } from '@/lib/useTheme';
 import { spacing, radius } from '@/lib/theme';
 import type { EmergencyCase, CaseStatus } from '@/types';
 
+// One free-text "reason" field — user types in any language. Category
+// is assigned server-side as "general" by default; admin can reclassify.
 const caseSchema = z.object({
-  beneficiaryName: z.string().min(2, 'Required'),
-  category: z.string().min(1, 'Required'),
-  amount: z.coerce.number().int().positive('Must be positive'),
-  reasonEn: z.string().min(10, 'Minimum 10 characters'),
-  reasonUr: z.string().min(3, 'Required'),
+  beneficiaryName: z.string().min(2, 'Beneficiary name is required'),
+  amount: z.coerce.number().int().positive('Amount must be a positive number'),
+  reason: z.string().min(3, 'Please describe the need'),
   emergency: z.boolean().default(false),
   caseType: z.enum(['gift', 'qarz']),
   pool: z.enum(['sadaqah', 'zakat', 'qarz']),
@@ -82,7 +82,8 @@ function CreateCaseSheet({ visible, onClose }: { visible: boolean; onClose: () =
 
   const { control, handleSubmit, reset, formState: { errors } } = useForm<CaseFormData>({
     resolver: zodResolver(caseSchema),
-    defaultValues: { caseType: 'gift', pool: 'sadaqah', emergency: false },
+    mode: 'onTouched',
+    defaultValues: { caseType: 'gift', pool: 'sadaqah', emergency: false, reason: '' },
   });
 
   const onSubmit = async (data: CaseFormData) => {
@@ -91,11 +92,19 @@ function CreateCaseSheet({ visible, onClose }: { visible: boolean; onClose: () =
       await createMutation.mutateAsync(data);
       reset();
       onClose();
+      Alert.alert('Submitted', 'Your request is open for community voting. Jazak Allah khair.');
     } catch (err) {
       Alert.alert('Error', err instanceof Error ? err.message : 'Failed to create case');
     } finally {
       setCreating(false);
     }
+  };
+
+  // Show validation errors via Alert so users on Android with the
+  // keyboard up don't miss the inline red text.
+  const onInvalid = (formErrors: Record<string, { message?: string }>) => {
+    const first = Object.values(formErrors)[0];
+    Alert.alert('Form incomplete', first?.message ?? 'Please fill all required fields');
   };
 
   if (!visible) return null;
@@ -110,21 +119,32 @@ function CreateCaseSheet({ visible, onClose }: { visible: boolean; onClose: () =
             <Controller control={control} name="beneficiaryName"
               render={({ field: { onChange, value } }) => <Input label="Beneficiary Name" value={value} onChangeText={onChange} error={errors.beneficiaryName?.message} />}
             />
-            <Controller control={control} name="category"
-              render={({ field: { onChange, value } }) => <Input label="Category" value={value} onChangeText={onChange} error={errors.category?.message} />}
-            />
             <Controller control={control} name="amount"
               render={({ field: { onChange, value } }) => <Input label="Amount (PKR)" value={value?.toString() ?? ''} onChangeText={onChange} keyboardType="numeric" error={errors.amount?.message} />}
             />
-            <Controller control={control} name="reasonEn"
-              render={({ field: { onChange, value } }) => <Input label="Reason (English)" value={value} onChangeText={onChange} multiline numberOfLines={3} error={errors.reasonEn?.message} />}
-            />
-            <Controller control={control} name="reasonUr"
-              render={({ field: { onChange, value } }) => <Input label="وجہ (اردو)" value={value} onChangeText={onChange} multiline numberOfLines={2} error={errors.reasonUr?.message} />}
+            <Controller control={control} name="reason"
+              render={({ field: { onChange, value } }) => (
+                <Input
+                  label="Reason / وجہ"
+                  value={value}
+                  onChangeText={onChange}
+                  multiline
+                  numberOfLines={4}
+                  placeholder="Describe the need — in any language"
+                  error={errors.reason?.message}
+                />
+              )}
             />
             <View style={styles.sheetBtns}>
               <Button label="Cancel" onPress={onClose} variant="ghost" style={styles.halfBtn} />
-              <Button label="Submit Case" onPress={handleSubmit(onSubmit)} loading={creating} variant="solid" style={styles.halfBtn} />
+              <Button
+                label={creating ? 'Submitting…' : 'Submit Case'}
+                onPress={handleSubmit(onSubmit, onInvalid)}
+                loading={creating}
+                disabled={creating}
+                variant="solid"
+                style={styles.halfBtn}
+              />
             </View>
           </ScrollView>
         </GlassCard>
@@ -145,7 +165,54 @@ function CasesScreen() {
     statusFilter === 'all' ? {} : { status: statusFilter },
   );
   const voteMutation = useCastVote();
+  const adminResolveMutation = useAdminResolveCase();
+  const deleteMutation = useDeleteCase();
   const activeCaseCount = useMemo(() => data?.filter((c) => c.status === 'voting').length ?? 0, [data]);
+  const isAdmin = user?.role === 'admin';
+
+  const confirmAdminResolve = (caseId: string, decision: 'approved' | 'rejected', beneficiary: string) => {
+    Alert.alert(
+      decision === 'approved' ? 'Force Approve?' : 'Force Reject?',
+      `Override the community vote for ${beneficiary}?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: decision === 'approved' ? 'Approve' : 'Reject',
+          style: decision === 'approved' ? 'default' : 'destructive',
+          onPress: async () => {
+            try {
+              await adminResolveMutation.mutateAsync({ caseId, decision });
+              void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+            } catch (e) {
+              Alert.alert('Failed', e instanceof Error ? e.message : 'Action failed');
+            }
+          },
+        },
+      ],
+    );
+  };
+
+  const confirmDelete = (caseId: string, beneficiary: string) => {
+    Alert.alert(
+      'Delete case?',
+      `Permanently remove the request for ${beneficiary}. This cannot be undone.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await deleteMutation.mutateAsync(caseId);
+              void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+            } catch (e) {
+              Alert.alert('Failed', e instanceof Error ? e.message : 'Delete failed');
+            }
+          },
+        },
+      ],
+    );
+  };
 
   const handleVoteConfirm = async () => {
     if (!voteTarget || voteDir === null) return;
@@ -184,8 +251,12 @@ function CasesScreen() {
             <CaseCard
               emergencyCase={item}
               isOwn={item.applicantId === user?.id}
+              isAdmin={isAdmin}
               onVoteYes={() => { setVoteTarget(item); setVoteDir(true); }}
               onVoteNo={() => { setVoteTarget(item); setVoteDir(false); }}
+              onAdminApprove={isAdmin ? () => confirmAdminResolve(item.id, 'approved', item.beneficiaryName) : undefined}
+              onAdminReject={isAdmin ? () => confirmAdminResolve(item.id, 'rejected', item.beneficiaryName) : undefined}
+              onAdminDelete={isAdmin ? () => confirmDelete(item.id, item.beneficiaryName) : undefined}
             />
           )}
           estimatedItemSize={200}

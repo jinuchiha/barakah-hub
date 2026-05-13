@@ -2,16 +2,18 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import type { EmergencyCase, CaseStatus, CaseType, FundPool } from '@/types';
 
+/**
+ * New shape: one `reason` field. Server fans it into both legacy
+ * reasonEn / reasonUr columns and defaults category to "general".
+ */
 interface CreateCaseInput {
   caseType: CaseType;
   pool: FundPool;
-  category: string;
   beneficiaryName: string;
   relation?: string;
   city?: string;
   amount: number;
-  reasonUr: string;
-  reasonEn: string;
+  reason: string;
   emergency: boolean;
   returnDate?: string;
 }
@@ -35,6 +37,19 @@ async function createCase(input: CreateCaseInput): Promise<EmergencyCase> {
   return data;
 }
 
+async function adminResolveCase(input: { caseId: string; decision: 'approved' | 'rejected' }): Promise<void> {
+  await api.post(`/api/cases/${input.caseId}/resolve`, { decision: input.decision });
+}
+
+async function deleteCase(caseId: string): Promise<void> {
+  await api.delete(`/api/cases/${caseId}`);
+}
+
+function invalidateCaseQueries(qc: ReturnType<typeof useQueryClient>) {
+  qc.invalidateQueries({ queryKey: ['cases'] });
+  qc.invalidateQueries({ queryKey: ['dashboard'] });
+}
+
 export function useCases(filter: CasesFilter = {}) {
   return useQuery({
     queryKey: ['cases', filter.status ?? 'all'],
@@ -45,22 +60,20 @@ export function useCases(filter: CasesFilter = {}) {
 
 export function useCastVote() {
   const qc = useQueryClient();
-  return useMutation({
-    mutationFn: castVote,
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['cases'] });
-      qc.invalidateQueries({ queryKey: ['dashboard'] });
-    },
-  });
+  return useMutation({ mutationFn: castVote, onSuccess: () => invalidateCaseQueries(qc) });
 }
 
 export function useCreateCase() {
   const qc = useQueryClient();
-  return useMutation({
-    mutationFn: createCase,
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['cases'] });
-      qc.invalidateQueries({ queryKey: ['dashboard'] });
-    },
-  });
+  return useMutation({ mutationFn: createCase, onSuccess: () => invalidateCaseQueries(qc) });
+}
+
+export function useAdminResolveCase() {
+  const qc = useQueryClient();
+  return useMutation({ mutationFn: adminResolveCase, onSuccess: () => invalidateCaseQueries(qc) });
+}
+
+export function useDeleteCase() {
+  const qc = useQueryClient();
+  return useMutation({ mutationFn: deleteCase, onSuccess: () => invalidateCaseQueries(qc) });
 }

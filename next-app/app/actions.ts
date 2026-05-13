@@ -272,7 +272,13 @@ export async function rejectPayment(paymentId: string) {
   revalidatePath('/admin/fund');
 }
 
-/* ─── cast vote on a case */
+/* ─── cast vote on a case
+ *
+ * Self-vote is normally disallowed (conflict of interest), but admins
+ * are permitted to break the tie / unblock a stuck request — they're
+ * already trusted with veto + delete, so a self-vote is strictly less
+ * power than the veto path below.
+ */
 export async function castVote(caseId: string, yes: boolean) {
   if (!/^[0-9a-f-]{36}$/i.test(caseId)) throw new Error('Invalid case id');
   const me = await meOrThrow();
@@ -281,7 +287,9 @@ export async function castVote(caseId: string, yes: boolean) {
   const [c] = await db.select().from(cases).where(eq(cases.id, caseId)).limit(1);
   if (!c) throw new Error('Case not found');
   if (c.status !== 'voting') throw new Error('Voting closed');
-  if (c.applicantId === me.id) throw new Error('Cannot vote on your own request');
+  if (c.applicantId === me.id && me.role !== 'admin') {
+    throw new Error('Cannot vote on your own request');
+  }
 
   // Insert (ON CONFLICT — would fail naturally via PK; handle in caller)
   await db.insert(votes).values({ caseId, memberId: me.id, vote: yes }).onConflictDoNothing();
@@ -433,26 +441,57 @@ export async function hardDeleteMember(memberId: string) {
   revalidatePath('/tree');
 }
 
-/* ─── create case (any approved member) */
+/* ─── create case (any approved member)
+ *
+ * Form now collects ONE `reason` field (whatever language the user
+ * naturally types in) and an optional `category`. The DB still has
+ * reasonUr / reasonEn / category columns (legacy), so we fan the
+ * single reason into both and default category to "general" when
+ * the form doesn't provide one. Admins can re-categorise later.
+ */
 const caseSchema = z.object({
   caseType: z.enum(['gift', 'qarz']),
   pool: z.enum(['sadaqah', 'zakat', 'qarz']).default('sadaqah'),
-  category: z.string().min(1).max(40),
+  category: z.string().min(1).max(40).optional(),
   beneficiaryName: z.string().min(2).max(80),
   relation: z.string().max(40).optional(),
   city: z.string().max(60).optional(),
   amount: z.number().int().positive().max(10_000_000),
-  reasonUr: z.string().min(3).max(500),
-  reasonEn: z.string().min(3).max(500),
+  // Either provide a single `reason` OR the two legacy fields.
+  reason: z.string().min(3).max(500).optional(),
+  reasonUr: z.string().max(500).optional(),
+  reasonEn: z.string().max(500).optional(),
   emergency: z.boolean().default(false),
   doc: z.string().max(200).optional(),
   returnDate: z.string().nullable().optional(),
-});
+}).refine(
+  (v) => !!(v.reason || v.reasonEn || v.reasonUr),
+  { message: 'Reason is required', path: ['reason'] },
+);
 
 export async function createCase(input: z.infer<typeof caseSchema>) {
   const me = await meOrThrow();
   if (me.status !== 'approved') throw new Error('Account not approved');
-  const data = caseSchema.parse(input);
+  const parsed = caseSchema.parse(input);
+
+  // Normalise: a single `reason` fans out to both legacy columns; pick
+  // a sane category default; strip the helper field before insert.
+  const reasonText = (parsed.reason ?? parsed.reasonEn ?? parsed.reasonUr ?? '').trim();
+  const data = {
+    caseType: parsed.caseType,
+    pool: parsed.pool,
+    category: parsed.category?.trim() || 'general',
+    beneficiaryName: parsed.beneficiaryName,
+    relation: parsed.relation,
+    city: parsed.city,
+    amount: parsed.amount,
+    reasonEn: parsed.reasonEn?.trim() || reasonText,
+    reasonUr: parsed.reasonUr?.trim() || reasonText,
+    emergency: parsed.emergency,
+    doc: parsed.doc,
+    returnDate: parsed.returnDate ?? null,
+  };
+
   const [created] = await db
     .insert(cases)
     .values({ ...data, applicantId: me.id, status: 'voting' })
@@ -648,6 +687,69 @@ export async function disburseCase(caseId: string) {
 
   revalidatePath('/cases');
   revalidatePath('/dashboard');
+}
+
+/* ─── admin veto: force-resolve a case regardless of votes
+ *
+ * Used when the community is taking too long, the request is clearly
+ * urgent, or a stuck vote needs an admin call. Records as "veto" in
+ * the audit log so the action is traceable.
+ */
+export async function adminResolveCase(caseId: string, decision: 'approved' | 'rejected') {
+  if (!/^[0-9a-f-]{36}$/i.test(caseId)) throw new Error('Invalid case id');
+  if (decision !== 'approved' && decision !== 'rejected') throw new Error('Invalid decision');
+  const me = await meOrThrow();
+  if (me.role !== 'admin') throw new Error('Admin only');
+
+  const [c] = await db.select().from(cases).where(eq(cases.id, caseId)).limit(1);
+  if (!c) throw new Error('Case not found');
+  if (c.status !== 'voting') throw new Error(`Case already ${c.status}`);
+
+  await db
+    .update(cases)
+    .set({ status: decision, resolvedAt: new Date() })
+    .where(eq(cases.id, caseId));
+  await audit(
+    me.id,
+    decision === 'approved' ? 'emergency-approved' : 'emergency-rejected',
+    `Admin veto: ${decision} for ${c.beneficiaryName} (${c.amount})`,
+    c.applicantId,
+  );
+
+  revalidatePath('/cases');
+  revalidatePath('/dashboard');
+}
+
+/* ─── admin: delete a case (and its votes) entirely
+ *
+ * Use sparingly — disburse history is lost. Intended for duplicates,
+ * test entries, or cases created in error. Disbursed cases that have
+ * an associated loan are blocked to keep the loan ledger consistent.
+ */
+export async function adminDeleteCase(caseId: string) {
+  if (!/^[0-9a-f-]{36}$/i.test(caseId)) throw new Error('Invalid case id');
+  const me = await meOrThrow();
+  if (me.role !== 'admin') throw new Error('Admin only');
+
+  const [c] = await db.select().from(cases).where(eq(cases.id, caseId)).limit(1);
+  if (!c) throw new Error('Case not found');
+
+  // If a loan was created from this case, refuse — admin must settle/
+  // delete the loan first so the ledger stays consistent.
+  if (c.status === 'disbursed') {
+    const [linkedLoan] = await db.select({ id: loans.id }).from(loans).where(eq(loans.caseId, caseId)).limit(1);
+    if (linkedLoan) {
+      throw new Error('Case already disbursed and linked to an active loan — settle the loan first');
+    }
+  }
+
+  // Votes cascade-delete via FK (ON DELETE CASCADE on votes.caseId).
+  await db.delete(cases).where(eq(cases.id, caseId));
+  await audit(me.id, 'case-deleted', `Deleted case ${c.beneficiaryName} (${c.amount})`, c.applicantId);
+
+  revalidatePath('/cases');
+  revalidatePath('/dashboard');
+  revalidatePath('/admin/audit');
 }
 
 /* ─── member invites (admin) */

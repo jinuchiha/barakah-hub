@@ -7,6 +7,7 @@ import { fmtRs } from '@/lib/i18n/dict';
 import VoteButtons from './vote-buttons';
 import DisburseButton from './disburse-button';
 import NewCaseForm from './new-case-form';
+import { AdminCaseActions } from './admin-actions';
 
 export const metadata = { title: 'Emergency Cases · Barakah Hub' };
 
@@ -91,16 +92,28 @@ export default async function CasesPage() {
                       <span className="font-[var(--font-en)] text-xs text-[var(--color-gold-4)]">{pct}%</span>
                     </div>
                     <div className="mb-2 text-xs italic text-[var(--color-gold-4)]">Needed: {need} of {eligibleCount} ({voteThresh}%)</div>
-                    {c.applicantId !== me.id && (
+                    {/* Anyone other than the applicant can vote. Admins are
+                        ALSO allowed to vote on their own request (server
+                        action enforces this). */}
+                    {(c.applicantId !== me.id || isAdmin) && (
                       <VoteButtons caseId={c.id} alreadyVoted={!!myVote} />
                     )}
-                    {c.applicantId === me.id && <div className="text-xs italic text-[var(--txt-3)]">Your own request — cannot self-vote.</div>}
+                    {c.applicantId === me.id && !isAdmin && (
+                      <div className="text-xs italic text-[var(--txt-3)]">Your own request — cannot self-vote.</div>
+                    )}
                   </>
                 )}
                 {c.status === 'approved' && isAdmin && (
                   <div className="mt-2">
                     <DisburseButton caseId={c.id} />
                   </div>
+                )}
+                {isAdmin && c.status !== 'disbursed' && (
+                  <AdminCaseActions
+                    caseId={c.id}
+                    status={c.status}
+                    beneficiary={c.beneficiaryName}
+                  />
                 )}
               </CardBody>
             </Card>

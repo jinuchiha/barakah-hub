@@ -44,19 +44,29 @@ export async function GET(req: NextRequest) {
   }
 }
 
+/**
+ * Mobile-facing case-creation. Accepts either a single `reason` field
+ * (preferred — what the new mobile form sends) or the legacy split
+ * reasonEn/reasonUr fields. Category is optional and defaults to
+ * "general"; admins can recategorise after the fact.
+ */
 const caseSchema = z.object({
   caseType: z.enum(['gift', 'qarz']),
   pool: z.enum(['sadaqah', 'zakat', 'qarz']).default('sadaqah'),
-  category: z.string().min(1).max(40),
+  category: z.string().min(1).max(40).optional(),
   beneficiaryName: z.string().min(2).max(80),
   relation: z.string().max(40).optional(),
   city: z.string().max(60).optional(),
   amount: z.number().int().positive().max(10_000_000),
-  reasonUr: z.string().min(3).max(500),
-  reasonEn: z.string().min(3).max(500),
+  reason: z.string().min(3).max(500).optional(),
+  reasonUr: z.string().max(500).optional(),
+  reasonEn: z.string().max(500).optional(),
   emergency: z.boolean().default(false),
   returnDate: z.string().nullable().optional(),
-});
+}).refine(
+  (v) => !!(v.reason || v.reasonEn || v.reasonUr),
+  { message: 'Reason is required', path: ['reason'] },
+);
 
 export async function POST(req: NextRequest) {
   try {
@@ -65,7 +75,21 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Account not approved' }, { status: 403 });
     }
     const body = await req.json();
-    const data = caseSchema.parse(body);
+    const parsed = caseSchema.parse(body);
+    const reasonText = (parsed.reason ?? parsed.reasonEn ?? parsed.reasonUr ?? '').trim();
+    const data = {
+      caseType: parsed.caseType,
+      pool: parsed.pool,
+      category: parsed.category?.trim() || 'general',
+      beneficiaryName: parsed.beneficiaryName,
+      relation: parsed.relation,
+      city: parsed.city,
+      amount: parsed.amount,
+      reasonEn: parsed.reasonEn?.trim() || reasonText,
+      reasonUr: parsed.reasonUr?.trim() || reasonText,
+      emergency: parsed.emergency,
+      returnDate: parsed.returnDate ?? null,
+    };
 
     const [created] = await db
       .insert(cases)

@@ -20,6 +20,10 @@ interface CaseCardProps {
   onVoteYes?: () => void;
   onVoteNo?: () => void;
   isOwn?: boolean;
+  isAdmin?: boolean;
+  onAdminApprove?: () => void;
+  onAdminReject?: () => void;
+  onAdminDelete?: () => void;
 }
 
 const STATUS_VARIANT: Record<string, BadgeVariant> = {
@@ -83,7 +87,17 @@ function VoteProgress({
   );
 }
 
-export function CaseCard({ emergencyCase: c, onPress, onVoteYes, onVoteNo, isOwn = false }: CaseCardProps) {
+export function CaseCard({
+  emergencyCase: c,
+  onPress,
+  onVoteYes,
+  onVoteNo,
+  isOwn = false,
+  isAdmin = false,
+  onAdminApprove,
+  onAdminReject,
+  onAdminDelete,
+}: CaseCardProps) {
   const { colors } = useTheme();
   const scale = useSharedValue(1);
   const yes = c.yesVotes ?? 0;
@@ -128,7 +142,9 @@ export function CaseCard({ emergencyCase: c, onPress, onVoteYes, onVoteNo, isOwn
             <VoteProgress yes={yes} no={no} total={total} colors={colors} />
           ) : null}
 
-          {c.status === 'voting' && !isOwn && !hasVoted && onVoteYes && onVoteNo ? (
+          {/* Voting row — anyone other than the applicant can vote; admin
+              is also allowed to vote on their own case (server enforces). */}
+          {c.status === 'voting' && (!isOwn || isAdmin) && !hasVoted && onVoteYes && onVoteNo ? (
             <VoteButtons onVoteYes={onVoteYes} onVoteNo={onVoteNo} colors={colors} />
           ) : null}
 
@@ -138,6 +154,39 @@ export function CaseCard({ emergencyCase: c, onPress, onVoteYes, onVoteNo, isOwn
               <Text style={[styles.votedText, { color: colors.text3 }]}>
                 You voted: {c.myVote ? 'Approve' : 'Reject'}
               </Text>
+            </View>
+          ) : null}
+
+          {isAdmin && c.status !== 'disbursed' ? (
+            <View style={[styles.adminRow, { borderTopColor: colors.border1 }]}>
+              <Text style={[styles.adminLabel, { color: colors.text4 }]}>ADMIN</Text>
+              {c.status === 'voting' && onAdminApprove ? (
+                <Pressable
+                  style={[styles.adminBtn, { backgroundColor: colors.primaryDim, borderColor: colors.primary }]}
+                  onPress={() => { void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); onAdminApprove(); }}
+                >
+                  <MaterialCommunityIcons name="check-bold" size={12} color={colors.primary} />
+                  <Text style={[styles.adminBtnText, { color: colors.primary }]}>Force Approve</Text>
+                </Pressable>
+              ) : null}
+              {c.status === 'voting' && onAdminReject ? (
+                <Pressable
+                  style={[styles.adminBtn, { backgroundColor: colors.dangerDim, borderColor: colors.danger }]}
+                  onPress={() => { void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy); onAdminReject(); }}
+                >
+                  <MaterialCommunityIcons name="close-thick" size={12} color={colors.danger} />
+                  <Text style={[styles.adminBtnText, { color: colors.danger }]}>Force Reject</Text>
+                </Pressable>
+              ) : null}
+              {onAdminDelete ? (
+                <Pressable
+                  style={[styles.adminBtnGhost, { borderColor: colors.border2 }]}
+                  onPress={() => { void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy); onAdminDelete(); }}
+                >
+                  <MaterialCommunityIcons name="trash-can-outline" size={12} color={colors.text3} />
+                  <Text style={[styles.adminBtnText, { color: colors.text3 }]}>Delete</Text>
+                </Pressable>
+              ) : null}
             </View>
           ) : null}
         </GlassCard>
@@ -232,5 +281,42 @@ const styles = StyleSheet.create({
   votedText: {
     fontSize: 12,
     fontFamily: 'Inter_400Regular',
+  },
+  adminRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: spacing.sm,
+    paddingTop: spacing.sm,
+    borderTopWidth: 1,
+  },
+  adminLabel: {
+    fontSize: 9,
+    fontFamily: 'Inter_600SemiBold',
+    letterSpacing: 1.4,
+  },
+  adminBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: radius.sm,
+    borderWidth: 1,
+  },
+  adminBtnGhost: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: radius.sm,
+    borderWidth: 1,
+    marginLeft: 'auto',
+  },
+  adminBtnText: {
+    fontSize: 11,
+    fontFamily: 'Inter_600SemiBold',
   },
 });

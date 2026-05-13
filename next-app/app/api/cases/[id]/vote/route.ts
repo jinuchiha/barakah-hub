@@ -25,7 +25,11 @@ export async function POST(
     const [c] = await db.select().from(cases).where(eq(cases.id, caseId)).limit(1);
     if (!c) return NextResponse.json({ error: 'Case not found' }, { status: 404 });
     if (c.status !== 'voting') return NextResponse.json({ error: 'Voting closed' }, { status: 409 });
-    if (c.applicantId === me.id) return NextResponse.json({ error: 'Cannot vote on own case' }, { status: 403 });
+    // Self-vote: blocked for regular members, allowed for admin (who already
+    // has veto power, so a self-vote is strictly weaker).
+    if (c.applicantId === me.id && me.role !== 'admin') {
+      return NextResponse.json({ error: 'Cannot vote on own case' }, { status: 403 });
+    }
 
     const body = await req.json();
     const { yes } = schema.parse(body);
