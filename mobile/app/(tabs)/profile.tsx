@@ -150,8 +150,8 @@ function ProfileScreen() {
         </Animated.View>
 
         <SettingsGroup title="ACCOUNT">
-          <SettingsRow icon="account-edit-outline" label="Edit Profile" onPress={() => {}} />
-          <SettingsRow icon="lock-reset" label="Change Password" onPress={() => {}} />
+          <SettingsRow icon="account-edit-outline" label="Edit Profile" onPress={() => router.push('/settings/edit-profile')} />
+          <SettingsRow icon="lock-reset" label="Change Password" onPress={() => router.push('/settings/change-password')} />
           <SettingsRow icon="family-tree" label="Family Tree" onPress={() => router.push('/family-tree')} />
           <SettingsRow icon="trophy-outline" label="Achievements" onPress={() => router.push('/achievements')} />
           <SettingsRow icon="qrcode-scan" label="My QR Code" onPress={() => router.push('/qr-pay')} />

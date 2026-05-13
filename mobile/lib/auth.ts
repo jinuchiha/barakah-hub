@@ -73,3 +73,38 @@ export async function fetchMyMember(): Promise<MemberWithSession> {
   const { data } = await api.get<MemberWithSession>('/api/me');
   return data;
 }
+
+export interface UpdateProfileInput {
+  nameEn?: string;
+  nameUr?: string;
+  phone?: string | null;
+  city?: string | null;
+  province?: string | null;
+  color?: string;
+  photoUrl?: string | null;
+}
+
+export async function updateProfile(input: UpdateProfileInput): Promise<MemberWithSession> {
+  const { data } = await api.patch<MemberWithSession>('/api/me', input);
+  return data;
+}
+
+export interface ChangePasswordInput {
+  currentPassword: string;
+  newPassword: string;
+  revokeOtherSessions?: boolean;
+}
+
+/**
+ * Better-Auth's built-in change-password endpoint. Validates the current
+ * password server-side and bcrypt-hashes the new one. When
+ * revokeOtherSessions=true, all OTHER active sessions are invalidated
+ * (web sign-ins, other devices) but this device stays signed in.
+ */
+export async function changePassword(input: ChangePasswordInput): Promise<void> {
+  await api.post('/api/auth/change-password', {
+    currentPassword: input.currentPassword,
+    newPassword: input.newPassword,
+    revokeOtherSessions: input.revokeOtherSessions ?? false,
+  });
+}
