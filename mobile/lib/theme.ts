@@ -1,38 +1,38 @@
-// Brutalist Islamic palette — mirrors the web app's charcoal + bone-gold
-// scheme. NO neon green / saturated colours.
+// Premium Islamic-finance palette — mirrors the web app's deep midnight
+// navy + burnished gold + warm cream. Restrained, banking-grade, refined.
 export const darkColors = {
-  bg0: '#14171c',
-  bg1: '#1d2127',
-  bg2: '#262a32',
-  bg3: '#2f3340',
-  bg4: '#383d4c',
-  glass1: 'rgba(214,210,199,0.04)',
-  glass2: 'rgba(214,210,199,0.08)',
-  glass3: 'rgba(214,210,199,0.12)',
-  glassBorder: 'rgba(214,210,199,0.18)',
-  primary: '#d6d2c7',
-  primaryMuted: '#9c9588',
-  primaryDim: 'rgba(214,210,199,0.15)',
-  primaryGlow: 'rgba(214,210,199,0.30)',
-  gold: '#ebe7dd',
-  goldMuted: '#c4c0b5',
-  goldDim: 'rgba(235,231,221,0.15)',
-  accent: '#2d3f6e',
-  accentDim: 'rgba(45,63,110,0.15)',
+  bg0: '#0c1424',           // page — deep midnight navy
+  bg1: '#131c30',           // card base
+  bg2: '#1d2840',           // elevated panel
+  bg3: '#283353',           // higher elevation
+  bg4: '#324063',           // top elevation
+  glass1: 'rgba(200,155,60,0.04)',
+  glass2: 'rgba(200,155,60,0.07)',
+  glass3: 'rgba(200,155,60,0.12)',
+  glassBorder: 'rgba(200,155,60,0.18)',
+  primary: '#c89b3c',       // burnished gold
+  primaryMuted: '#8a8579',
+  primaryDim: 'rgba(200,155,60,0.15)',
+  primaryGlow: 'rgba(200,155,60,0.28)',
+  gold: '#d9b04c',          // warm gold hover
+  goldMuted: '#8a8579',
+  goldDim: 'rgba(217,176,76,0.15)',
+  accent: '#2d6a4f',        // deep forest emerald — sparingly
+  accentDim: 'rgba(45,106,79,0.15)',
   danger: '#a83254',
   dangerDim: 'rgba(168,50,84,0.15)',
-  text1: '#ebe7dd',
-  text2: 'rgba(235,231,221,0.78)',
-  text3: 'rgba(235,231,221,0.50)',
-  text4: 'rgba(235,231,221,0.30)',
-  border1: 'rgba(214,210,199,0.10)',
-  border2: 'rgba(214,210,199,0.18)',
-  shadowGreen: 'rgba(45,63,110,0.30)',
-  shadowBlue: 'rgba(45,63,110,0.30)',
-  shadowGold: 'rgba(214,210,199,0.30)',
+  text1: '#f5f3ed',          // warm cream
+  text2: 'rgba(245,243,237,0.80)',
+  text3: 'rgba(245,243,237,0.55)',
+  text4: 'rgba(245,243,237,0.32)',
+  border1: 'rgba(200,155,60,0.10)',
+  border2: 'rgba(200,155,60,0.22)',
+  shadowGreen: 'rgba(45,106,79,0.30)',
+  shadowBlue: 'rgba(29,40,64,0.45)',
+  shadowGold: 'rgba(200,155,60,0.30)',
   success: '#2d6a4f',
-  warning: '#b8902f',
-  info: '#2d3f6e',
+  warning: '#c89b3c',
+  info: '#2d6a4f',
 } as const;
 
 export const lightColors = {

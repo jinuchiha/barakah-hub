@@ -21,6 +21,7 @@ const NAV: { href: string; label: string; labelUr: string; icon: React.Component
   { href: '/admin/fund',      label: 'Fund Register',   labelUr: 'فنڈ رجسٹر',      icon: Wallet,   admin: true },
   { href: '/admin/loans',     label: 'Qarz-e-Hasana',   labelUr: 'قرض حسنہ',       icon: FileText, admin: true },
   { href: '/admin/broadcast', label: 'Broadcast',       labelUr: 'اعلان',          icon: Megaphone, admin: true },
+  { href: '/admin/annual-report', label: 'Annual Report', labelUr: 'سالانہ رپورٹ',  icon: ScrollText, admin: true },
   { href: '/admin/audit',     label: 'Audit Log',       labelUr: 'آڈٹ لاگ',        icon: ScrollText, admin: true },
 ];
 

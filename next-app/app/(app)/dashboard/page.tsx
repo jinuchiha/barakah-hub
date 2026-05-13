@@ -5,6 +5,7 @@ import { db } from '@/lib/db';
 import { members, payments, cases, votes, loans, config as configTbl, auditLog } from '@/lib/db/schema';
 import { StatCard } from '@/components/stat-card';
 import { GoalBar } from '@/components/goal-bar';
+import { SpendingDonut, type DonutSlice } from '@/components/spending-donut';
 import { Card, CardHeader, CardTitle, CardBody } from '@/components/ui/card';
 import { fmtRs } from '@/lib/i18n/dict';
 import { ini } from '@/lib/utils';
@@ -57,6 +58,44 @@ export default async function DashboardPage() {
   const eligibleCount = Math.max(0, (await db.$count(members, and(eq(members.deceased, false), eq(members.status, 'approved')))) - 1);
   const need = Math.ceil(eligibleCount * ((cfg?.voteThresholdPct ?? 50) / 100));
 
+  // Pool-level totals for the spending breakdown donut (admin-only)
+  const poolBreakdown = isAdmin
+    ? await db
+        .select({ pool: payments.pool, total: sql<number>`SUM(${payments.amount})::int` })
+        .from(payments)
+        .where(eq(payments.pendingVerify, false))
+        .groupBy(payments.pool)
+    : [];
+  const POOL_META: Record<string, { label: string; color: string }> = {
+    sadaqah: { label: 'Sadaqah · صدقہ', color: '#c89b3c' },
+    zakat:   { label: 'Zakat · زکوٰۃ',   color: '#2d6a4f' },
+    qarz:    { label: 'Qarz pool',       color: '#7a5fb8' },
+  };
+  const poolSlices: DonutSlice[] = poolBreakdown.map((p) => ({
+    key: p.pool,
+    label: POOL_META[p.pool]?.label ?? p.pool,
+    value: Number(p.total),
+    color: POOL_META[p.pool]?.color ?? '#8a8579',
+  }));
+
+  // Case-category disbursement breakdown (admin-only)
+  const caseBreakdown = isAdmin
+    ? await db
+        .select({ category: cases.category, total: sql<number>`SUM(${cases.amount})::int` })
+        .from(cases)
+        .where(eq(cases.status, 'disbursed'))
+        .groupBy(cases.category)
+    : [];
+  // Cycle through tasteful palette for case categories — we don't know
+  // in advance what categories admin will use.
+  const CATEGORY_PALETTE = ['#c89b3c', '#2d6a4f', '#7a5fb8', '#a83254', '#3a4a7a', '#a0671e', '#475569'];
+  const caseSlices: DonutSlice[] = caseBreakdown.map((c, i) => ({
+    key: c.category,
+    label: c.category,
+    value: Number(c.total),
+    color: CATEGORY_PALETTE[i % CATEGORY_PALETTE.length],
+  }));
+
   return (
     <div>
       <header className="mb-6 border-b border-[var(--border)] pb-4">
@@ -80,6 +119,29 @@ export default async function DashboardPage() {
           <MemberStats memberId={me.id} totalFund={totalFund} />
         )}
       </div>
+
+      {isAdmin && (poolSlices.length > 0 || caseSlices.length > 0) && (
+        <div className="mb-6 grid gap-4 md:grid-cols-2">
+          <Card>
+            <CardHeader>
+              <CardTitle>💰 Fund Composition</CardTitle>
+              <span className="text-[10px] uppercase tracking-widest text-[var(--color-gold-4)]">By pool</span>
+            </CardHeader>
+            <CardBody>
+              <SpendingDonut title="Fund composition" slices={poolSlices} />
+            </CardBody>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle>🎯 Disbursements</CardTitle>
+              <span className="text-[10px] uppercase tracking-widest text-[var(--color-gold-4)]">Approved cases</span>
+            </CardHeader>
+            <CardBody>
+              <SpendingDonut title="Disbursements by category" slices={caseSlices} />
+            </CardBody>
+          </Card>
+        </div>
+      )}
 
       {!isAdmin && (
         <Card className="mb-6 border-[var(--color-emerald-2)]/30">

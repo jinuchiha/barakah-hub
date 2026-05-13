@@ -77,7 +77,17 @@ export default function ProfileForm({ member }: { member: Member }) {
       )}
 
       <div className="grid gap-3 md:grid-cols-2">
-        <div><Label>Urdu Name</Label><Input value={form.nameUr} onChange={(e) => set('nameUr', e.target.value)} dir="rtl" /></div>
+        <div>
+          <Label>Urdu Name · اردو میں نام</Label>
+          <Input
+            value={form.nameUr}
+            onChange={(e) => set('nameUr', e.target.value)}
+            dir="rtl"
+            lang="ur"
+            placeholder="مثلاً: محمد ابوبکر"
+            className="font-[var(--font-arabic)] text-base leading-[2.2]"
+          />
+        </div>
         <div><Label>English Name</Label><Input value={form.nameEn} onChange={(e) => set('nameEn', e.target.value)} /></div>
         <div><Label>Phone</Label><Input value={form.phone} onChange={(e) => set('phone', e.target.value)} placeholder="03xx-xxxxxxx" /></div>
         <div><Label>City</Label><Input value={form.city} onChange={(e) => set('city', e.target.value)} /></div>
