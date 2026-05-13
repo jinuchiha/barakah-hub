@@ -120,10 +120,10 @@ export default async function DashboardPage() {
       <div className="mb-6 grid gap-3" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
         {isAdmin ? (
           <>
-            <StatCard label="Total Fund"         icon={Wallet}        value={fmtRs(totalFund)}                                       hint={`${memberCount.c} members`} tone="emerald" spark={sparkValues} />
-            <StatCard label="Active Members"     icon={Users}         value={memberCount.c}                                          hint="Approved family" tone="gold" />
-            <StatCard label="Outstanding Loans"  icon={FileText}      value={fmtRs(Number(outstandingLoans[0]?.owed ?? 0))}          hint="Active qarz" tone="ruby" />
-            <StatCard label="Pending Votes"      icon={Vote}          value={pendingVotes}                                           hint={pendingVotes ? 'Needs review' : 'All resolved'} tone="sapphire" />
+            <StatCard label="Total Fund"         icon={<Wallet />}    value={fmtRs(totalFund)}                                       hint={`${memberCount.c} members`} tone="emerald" spark={sparkValues} />
+            <StatCard label="Active Members"     icon={<Users />}     value={memberCount.c}                                          hint="Approved family" tone="gold" />
+            <StatCard label="Outstanding Loans"  icon={<FileText />}  value={fmtRs(Number(outstandingLoans[0]?.owed ?? 0))}          hint="Active qarz" tone="ruby" />
+            <StatCard label="Pending Votes"      icon={<Vote />}      value={pendingVotes}                                           hint={pendingVotes ? 'Needs review' : 'All resolved'} tone="sapphire" />
           </>
         ) : (
           <MemberStats memberId={me.id} totalFund={totalFund} />
@@ -289,9 +289,9 @@ async function MemberStats({ memberId, totalFund }: { memberId: string; totalFun
 
   return (
     <>
-      <StatCard label="My Total Paid"   icon={HandCoins} value={fmtRs(my)}                                       hint="جزاک اللہ خیر" tone="emerald" />
-      <StatCard label="My Months Paid"  icon={CheckCircle2} value={`${months.length}/${monthsThisYearSoFar}`}     hint={`${pct}% of year so far`} tone="gold" />
-      <StatCard label="Family Fund"     icon={Wallet} value={fmtRs(totalFund)}                                    hint="Collective trust" tone="sapphire" />
+      <StatCard label="My Total Paid"   icon={<HandCoins />}    value={fmtRs(my)}                                       hint="جزاک اللہ خیر" tone="emerald" />
+      <StatCard label="My Months Paid"  icon={<CheckCircle2 />} value={`${months.length}/${monthsThisYearSoFar}`}     hint={`${pct}% of year so far`} tone="gold" />
+      <StatCard label="Family Fund"     icon={<Wallet />}       value={fmtRs(totalFund)}                                hint="Collective trust" tone="sapphire" />
     </>
   );
 }

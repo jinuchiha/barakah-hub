@@ -12,7 +12,10 @@ interface StatCardProps {
   hint?: string;
   tone?: Tone;
   spark?: number[];
-  icon?: React.ComponentType<{ className?: string }>;
+  /** Pre-rendered icon element, e.g. `<Wallet />`. Sized via parent CSS.
+   *  Must be a JSX element — passing a bare component reference from a
+   *  Server Component would fail React's serialization boundary. */
+  icon?: React.ReactNode;
   /** Optional delta: e.g. "+12.4%". Sign drives the color. */
   delta?: string;
 }
@@ -26,7 +29,7 @@ const TONE_ACCENT: Record<Tone, string> = {
   ocean:    '#4ab8d6',
 };
 
-export function StatCard({ label, sublabel, value, hint, tone = 'emerald', spark, icon: Icon, delta }: StatCardProps) {
+export function StatCard({ label, sublabel, value, hint, tone = 'emerald', spark, icon, delta }: StatCardProps) {
   const accent = TONE_ACCENT[tone];
   const reduce = useReducedMotion();
   const deltaSign = delta?.[0] === '-' ? 'down' : delta?.[0] === '+' ? 'up' : null;
@@ -46,12 +49,12 @@ export function StatCard({ label, sublabel, value, hint, tone = 'emerald', spark
           <div className="text-[10px] font-semibold uppercase tracking-[1.4px] text-[var(--txt-3)]">{label}</div>
           {sublabel && <div className="mt-0.5 text-[11px] text-[var(--txt-4)]">{sublabel}</div>}
         </div>
-        {Icon && (
+        {icon && (
           <div
-            className="grid size-8 shrink-0 place-items-center rounded-md transition-colors"
+            className="grid size-8 shrink-0 place-items-center rounded-md transition-colors [&>svg]:size-4"
             style={{ background: `${accent}14`, color: accent }}
           >
-            <Icon className="size-4" />
+            {icon}
           </div>
         )}
       </div>
