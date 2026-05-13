@@ -16,6 +16,7 @@ export interface Member {
   clan: string | null;
   relation: string | null;
   parentId: string | null;
+  spouseId: string | null;
   role: Role;
   status: MemberStatus;
   phone: string | null;

@@ -12,7 +12,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useTheme } from '@/lib/useTheme';
 import { spacing, radius } from '@/lib/theme';
-import { layoutTree, flattenTree, buildEdges, type LayoutNode } from '@/lib/tree-layout';
+import { layoutTree, flattenTree, buildEdges, SPOUSE_OFFSET_X, type LayoutNode, type TreeNode } from '@/lib/tree-layout';
 import { TreeNodeComponent } from '@/components/tree/TreeNode';
 import { TreeConnector } from '@/components/tree/TreeConnector';
 import { useMembers } from '@/hooks/useMembers';
@@ -89,17 +89,57 @@ export default function FamilyTreeScreen() {
     ],
   }));
 
-  const treeNodes = useMemo(() => {
+  /**
+   * Build tree nodes with spouse pairing.
+   *
+   * Each marriage (A ↔ B with matching spouseId pointers) renders as ONE
+   * primary node with a `spouse` attachment so the layout algorithm
+   * gives them a double-width slot. The secondary partner (deterministic
+   * by smaller UUID) is excluded from the standalone node list so they
+   * don't appear separately under their own father.
+   */
+  const treeNodes = useMemo<TreeNode[]>(() => {
     if (!members) return [];
-    return members.map((m) => ({
-      id: m.id,
-      parentId: m.parentId,
-      label: m.nameEn,
-      sublabel: m.nameUr,
-      color: m.color,
-      photoUrl: m.photoUrl,
-      deceased: m.deceased,
-    }));
+    const byId = new Map(members.map((m) => [m.id, m]));
+    const claimedAsSpouse = new Set<string>();
+    const primaryToSpouseId = new Map<string, string>();
+
+    for (const m of members) {
+      if (!m.spouseId || claimedAsSpouse.has(m.id) || primaryToSpouseId.has(m.id)) continue;
+      const partner = byId.get(m.spouseId);
+      if (!partner || partner.spouseId !== m.id) continue;
+      const primary = m.id < partner.id ? m : partner;
+      const secondary = primary === m ? partner : m;
+      primaryToSpouseId.set(primary.id, secondary.id);
+      claimedAsSpouse.add(secondary.id);
+    }
+
+    return members
+      .filter((m) => !claimedAsSpouse.has(m.id))
+      .map((m) => {
+        const partnerId = primaryToSpouseId.get(m.id);
+        const partner = partnerId ? byId.get(partnerId) : undefined;
+        return {
+          id: m.id,
+          parentId: m.parentId,
+          label: m.nameEn,
+          sublabel: m.nameUr,
+          color: m.color,
+          photoUrl: m.photoUrl,
+          deceased: m.deceased,
+          spouse: partner
+            ? {
+                id: partner.id,
+                parentId: null,
+                label: partner.nameEn,
+                sublabel: partner.nameUr,
+                color: partner.color,
+                photoUrl: partner.photoUrl,
+                deceased: partner.deceased,
+              }
+            : null,
+        };
+      });
   }, [members]);
 
   const { roots, width: treeW, height: treeH } = useMemo(
@@ -161,14 +201,29 @@ export default function FamilyTreeScreen() {
               offsetY={OFFSET_Y}
             />
             {allNodes.map((node) => (
-              <TreeNodeComponent
-                key={node.id}
-                node={node}
-                selected={filteredIds ? filteredIds.has(node.id) : selected?.id === node.id}
-                onPress={setSelected}
-                offsetX={OFFSET_X}
-                offsetY={OFFSET_Y}
-              />
+              <React.Fragment key={node.id}>
+                <TreeNodeComponent
+                  node={node}
+                  selected={filteredIds ? filteredIds.has(node.id) : selected?.id === node.id}
+                  onPress={setSelected}
+                  offsetX={OFFSET_X}
+                  offsetY={OFFSET_Y}
+                />
+                {node.spouse ? (
+                  <TreeNodeComponent
+                    node={{
+                      ...node.spouse,
+                      x: node.x + SPOUSE_OFFSET_X,
+                      y: node.y,
+                      children: [],
+                    }}
+                    selected={filteredIds ? filteredIds.has(node.spouse.id) : selected?.id === node.spouse.id}
+                    onPress={(n) => setSelected(n)}
+                    offsetX={OFFSET_X}
+                    offsetY={OFFSET_Y}
+                  />
+                ) : null}
+              </React.Fragment>
             ))}
           </Animated.View>
         </View>

@@ -6,6 +6,8 @@ export interface TreeNode {
   color: string;
   photoUrl?: string | null;
   deceased?: boolean;
+  /** When set, this node is rendered side-by-side with its spouse. */
+  spouse?: TreeNode | null;
 }
 
 export interface LayoutNode extends TreeNode {
@@ -14,8 +16,9 @@ export interface LayoutNode extends TreeNode {
   children: LayoutNode[];
 }
 
-const H_GAP = 120;
-const V_GAP = 100;
+const H_GAP = 140;       // Wider so paired couples don't collide horizontally
+const V_GAP = 110;
+const SPOUSE_OFFSET = 90; // px offset from primary to spouse card
 
 function buildTree(nodes: TreeNode[], parentId: string | null): LayoutNode[] {
   return nodes
@@ -28,10 +31,14 @@ function buildTree(nodes: TreeNode[], parentId: string | null): LayoutNode[] {
     }));
 }
 
+/**
+ * Couples take two slots horizontally so neighbouring nodes don't overlap
+ * the spouse card. assignX gives a 2-slot width to married nodes.
+ */
 function assignX(node: LayoutNode, counter: { value: number }): void {
   if (node.children.length === 0) {
     node.x = counter.value * H_GAP;
-    counter.value += 1;
+    counter.value += node.spouse ? 2 : 1;
     return;
   }
   for (const child of node.children) assignX(child, counter);
@@ -52,7 +59,9 @@ export function layoutTree(nodes: TreeNode[]): { roots: LayoutNode[]; width: num
   for (const root of roots) assignY(root, 0);
 
   const allFlat = flattenTree(roots);
-  const maxX = allFlat.reduce((m, n) => Math.max(m, n.x), 0);
+  // Spouse cards add SPOUSE_OFFSET to the right of the primary, so make
+  // sure the canvas accounts for that when computing width.
+  const maxX = allFlat.reduce((m, n) => Math.max(m, n.x + (n.spouse ? SPOUSE_OFFSET : 0)), 0);
   const maxY = allFlat.reduce((m, n) => Math.max(m, n.y), 0);
 
   return { roots, width: maxX + H_GAP, height: maxY + V_GAP };
@@ -69,6 +78,10 @@ export interface Edge {
   fromY: number;
   toX: number;
   toY: number;
+  /** A "marriage" edge connects a primary node to its spouse instead of
+   *  a parent-child link. Renderer can draw this differently (no arrow,
+   *  short straight line). */
+  kind?: 'parent' | 'spouse';
 }
 
 export function buildEdges(nodes: LayoutNode[]): Edge[] {
@@ -83,8 +96,22 @@ export function buildEdges(nodes: LayoutNode[]): Edge[] {
         fromY: node.y + 28,
         toX: child.x,
         toY: child.y - 28,
+        kind: 'parent',
+      });
+    }
+    if (node.spouse) {
+      edges.push({
+        fromId: node.id,
+        toId: node.spouse.id,
+        fromX: node.x + 28,
+        fromY: node.y,
+        toX: node.x + SPOUSE_OFFSET - 28,
+        toY: node.y,
+        kind: 'spouse',
       });
     }
   }
   return edges;
 }
+
+export const SPOUSE_OFFSET_X = SPOUSE_OFFSET;
