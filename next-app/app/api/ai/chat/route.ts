@@ -5,13 +5,16 @@ import { meOrThrow } from '@/lib/auth-server';
 /**
  * AI chat — streams Server-Sent Events with `data: { delta }` chunks.
  *
- * When ANTHROPIC_API_KEY is set, this hits Claude Haiku for cheap, fast
- * responses tuned to Islamic family-fund Q&A. Without the key, returns a
- * deterministic stub so the mobile app's chat UI keeps working in dev.
+ * Provider auto-detect (first match wins):
+ *   1. ANTHROPIC_API_KEY → Claude Haiku 4.5
+ *   2. GROQ_API_KEY       → Groq Cloud (Llama 3.1, free + fast)
+ *   3. XAI_API_KEY        → Grok (xAI)
+ *   4. OPENAI_API_KEY     → GPT-4o-mini
+ *   5. (none)             → deterministic stub
  *
- * The mobile client (mobile/lib/ai.ts) splits on `\n` and parses each
- * `data:` line as JSON looking for `delta`, ending on `[DONE]`. We keep
- * that protocol intact for both paths.
+ * Mobile client (mobile/lib/ai.ts) parses `data:` lines as JSON looking
+ * for `delta`, ending on `[DONE]`. We keep that protocol identical
+ * across every provider.
  */
 export async function POST(req: Request) {
   try {
@@ -28,61 +31,98 @@ export async function POST(req: Request) {
   }
 
   const messages = body.messages ?? [];
-  const apiKey = process.env.ANTHROPIC_API_KEY;
+  const system = body.systemPrompt ?? defaultSystem();
   const encoder = new TextEncoder();
 
-  // ── Live Claude path ─────────────────────────────────────────────
-  if (apiKey) {
-    const anthropic = new Anthropic({ apiKey });
-    const stream = new ReadableStream({
-      async start(controller) {
-        try {
-          const claudeStream = await anthropic.messages.stream({
-            model: 'claude-haiku-4-5-20251001',
-            max_tokens: 1024,
-            system: body.systemPrompt ?? defaultSystem(),
-            messages: messages.map((m) => ({ role: m.role, content: m.content })),
-          });
-          for await (const event of claudeStream) {
-            if (event.type === 'content_block_delta' && event.delta.type === 'text_delta') {
-              controller.enqueue(encoder.encode(`data: ${JSON.stringify({ delta: event.delta.text })}\n\n`));
-            }
-          }
-          controller.enqueue(encoder.encode('data: [DONE]\n\n'));
-        } catch (err) {
-          const msg = err instanceof Error ? err.message : 'AI error';
-          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ delta: `\n\n[AI error: ${msg}]` })}\n\n`));
-          controller.enqueue(encoder.encode('data: [DONE]\n\n'));
-        } finally {
-          controller.close();
+  // ── 1. Anthropic Claude ─────────────────────────────────────────
+  if (process.env.ANTHROPIC_API_KEY) {
+    return streamSSE(async (push) => {
+      const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+      const claudeStream = await anthropic.messages.stream({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 1024,
+        system,
+        messages: messages.map((m) => ({ role: m.role, content: m.content })),
+      });
+      for await (const event of claudeStream) {
+        if (event.type === 'content_block_delta' && event.delta.type === 'text_delta') {
+          push(event.delta.text);
         }
-      },
-    });
-    return new Response(stream, {
-      headers: {
-        'Content-Type': 'text/event-stream',
-        'Cache-Control': 'no-cache, no-transform',
-        Connection: 'keep-alive',
-      },
-    });
+      }
+    }, encoder);
   }
 
-  // ── Stub path ────────────────────────────────────────────────────
+  // ── 2. Groq Cloud (Llama 3.1, free + sub-second latency) ────────
+  if (process.env.GROQ_API_KEY) {
+    return streamSSE((push) =>
+      streamOpenAICompatible({
+        baseUrl: 'https://api.groq.com/openai/v1',
+        apiKey: process.env.GROQ_API_KEY!,
+        model: process.env.GROQ_MODEL ?? 'llama-3.3-70b-versatile',
+        system,
+        messages,
+        onDelta: push,
+      }), encoder);
+  }
+
+  // ── 3. xAI Grok (OpenAI-compatible) ─────────────────────────────
+  if (process.env.XAI_API_KEY) {
+    return streamSSE((push) =>
+      streamOpenAICompatible({
+        baseUrl: 'https://api.x.ai/v1',
+        apiKey: process.env.XAI_API_KEY!,
+        model: process.env.XAI_MODEL ?? 'grok-3-mini',
+        system,
+        messages,
+        onDelta: push,
+      }), encoder);
+  }
+
+  // ── 4. OpenAI GPT ───────────────────────────────────────────────
+  if (process.env.OPENAI_API_KEY) {
+    return streamSSE((push) =>
+      streamOpenAICompatible({
+        baseUrl: 'https://api.openai.com/v1',
+        apiKey: process.env.OPENAI_API_KEY!,
+        model: process.env.OPENAI_MODEL ?? 'gpt-4o-mini',
+        system,
+        messages,
+        onDelta: push,
+      }), encoder);
+  }
+
+  // ── 5. Stub fallback ────────────────────────────────────────────
   const lastUser = messages.filter((m) => m.role === 'user').at(-1)?.content ?? '';
   const reply = pickStubReply(lastUser);
-  const chunks = reply.split(/(\s+)/).filter(Boolean);
+  return streamSSE(async (push) => {
+    for (const chunk of reply.split(/(\s+)/).filter(Boolean)) {
+      push(chunk);
+      await new Promise((r) => setTimeout(r, 25));
+    }
+  }, encoder);
+}
 
+/* ─── helpers ─── */
+
+type DeltaPush = (text: string) => void;
+
+function streamSSE(run: (push: DeltaPush) => Promise<void>, encoder: TextEncoder): Response {
   const stream = new ReadableStream({
     async start(controller) {
-      for (const chunk of chunks) {
-        controller.enqueue(encoder.encode(`data: ${JSON.stringify({ delta: chunk })}\n\n`));
-        await new Promise((r) => setTimeout(r, 25));
+      const push: DeltaPush = (text) => {
+        controller.enqueue(encoder.encode(`data: ${JSON.stringify({ delta: text })}\n\n`));
+      };
+      try {
+        await run(push);
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : 'AI error';
+        push(`\n\n[AI error: ${msg}]`);
+      } finally {
+        controller.enqueue(encoder.encode('data: [DONE]\n\n'));
+        controller.close();
       }
-      controller.enqueue(encoder.encode('data: [DONE]\n\n'));
-      controller.close();
     },
   });
-
   return new Response(stream, {
     headers: {
       'Content-Type': 'text/event-stream',
@@ -90,6 +130,59 @@ export async function POST(req: Request) {
       Connection: 'keep-alive',
     },
   });
+}
+
+interface OpenAICompatibleOpts {
+  baseUrl: string;
+  apiKey: string;
+  model: string;
+  system: string;
+  messages: { role: 'user' | 'assistant'; content: string }[];
+  onDelta: DeltaPush;
+}
+
+/** Stream from any OpenAI-compatible endpoint (xAI, OpenAI, Together, …). */
+async function streamOpenAICompatible(opts: OpenAICompatibleOpts): Promise<void> {
+  const res = await fetch(`${opts.baseUrl}/chat/completions`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${opts.apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: opts.model,
+      stream: true,
+      messages: [{ role: 'system', content: opts.system }, ...opts.messages],
+    }),
+  });
+  if (!res.ok || !res.body) {
+    const text = await res.text().catch(() => '');
+    throw new Error(`${opts.baseUrl} returned ${res.status}: ${text.slice(0, 200)}`);
+  }
+
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let buf = '';
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buf += decoder.decode(value, { stream: true });
+    let nl;
+    while ((nl = buf.indexOf('\n')) >= 0) {
+      const line = buf.slice(0, nl).trim();
+      buf = buf.slice(nl + 1);
+      if (!line.startsWith('data:')) continue;
+      const data = line.slice(5).trim();
+      if (data === '[DONE]') return;
+      try {
+        const parsed = JSON.parse(data) as { choices?: { delta?: { content?: string } }[] };
+        const delta = parsed.choices?.[0]?.delta?.content;
+        if (delta) opts.onDelta(delta);
+      } catch {
+        // skip malformed chunk
+      }
+    }
+  }
 }
 
 function defaultSystem(): string {
@@ -116,5 +209,5 @@ function pickStubReply(question: string): string {
   if (q.includes('vote') || q.includes('emergency')) {
     return 'Open emergency cases appear in the Emergency Vote tab. Each approved member can cast one yes/no vote. When yes-votes cross the configured threshold (default 50%), the case is approved for disbursement.';
   }
-  return 'Salaam. I can help with Zakat, Sadaqah, Qarz-e-Hasana, voting on emergency cases, and using Barakah Hub. The full AI assistant is being configured (add ANTHROPIC_API_KEY to enable Claude). Ask me about a specific feature meanwhile.';
+  return 'Salaam. I can help with Zakat, Sadaqah, Qarz-e-Hasana, voting on emergency cases, and using Barakah Hub. The full AI assistant is being configured (set ANTHROPIC_API_KEY, GROQ_API_KEY, XAI_API_KEY, or OPENAI_API_KEY to enable a live LLM).';
 }
