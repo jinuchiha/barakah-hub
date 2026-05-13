@@ -391,12 +391,14 @@ const editMemberSchema = z.object({
   monthlyPledge: z.number().int().min(0).max(1_000_000).optional(),
   role: z.enum(['admin', 'member']).optional(),
   status: z.enum(['pending', 'approved', 'rejected']).optional(),
+  // Pairing — null clears the marriage, uuid sets it.
+  spouseId: z.string().uuid().nullable().optional(),
 });
 
 export async function editMember(input: z.infer<typeof editMemberSchema>) {
   const me = await meOrThrow();
   if (me.role !== 'admin') throw new Error('Admin only');
-  const { id, ...rest } = editMemberSchema.parse(input);
+  const { id, spouseId, ...rest } = editMemberSchema.parse(input);
 
   // Refuse self-demotion to avoid lockout
   if (id === me.id && rest.role && rest.role !== 'admin') {
@@ -404,6 +406,36 @@ export async function editMember(input: z.infer<typeof editMemberSchema>) {
   }
 
   await db.update(members).set(rest).where(eq(members.id, id));
+
+  // Bidirectional spouse sync: setting A's spouse to B implies B's
+  // spouse is A. Clearing breaks the link on both sides. If the
+  // previous spouse was someone else (C), clear C's pointer too so
+  // there's no dangling reference.
+  if (spouseId !== undefined) {
+    const [prev] = await db.select({ spouseId: members.spouseId }).from(members).where(eq(members.id, id)).limit(1);
+    const previousSpouseId = prev?.spouseId ?? null;
+
+    if (previousSpouseId && previousSpouseId !== spouseId) {
+      // Clear stale partner's pointer back to us.
+      await db.update(members).set({ spouseId: null }).where(eq(members.id, previousSpouseId));
+    }
+
+    if (spouseId) {
+      // If new spouse is currently married to someone else (D), clear
+      // D's pointer first to maintain monogamous pairing semantics.
+      const [newPartner] = await db.select({ spouseId: members.spouseId }).from(members).where(eq(members.id, spouseId)).limit(1);
+      if (newPartner?.spouseId && newPartner.spouseId !== id) {
+        await db.update(members).set({ spouseId: null }).where(eq(members.id, newPartner.spouseId));
+      }
+      // Set both sides.
+      await db.update(members).set({ spouseId }).where(eq(members.id, id));
+      await db.update(members).set({ spouseId: id }).where(eq(members.id, spouseId));
+    } else {
+      // spouseId === null — explicit divorce; already cleared own side via main update.
+      await db.update(members).set({ spouseId: null }).where(eq(members.id, id));
+    }
+  }
+
   await audit(me.id, 'member-edited', `Edited member ${id}`, id);
   revalidatePath('/admin/members');
   revalidatePath('/tree');

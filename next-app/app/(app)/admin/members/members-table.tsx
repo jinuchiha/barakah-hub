@@ -168,6 +168,7 @@ export default function MembersTable({ initial }: Props) {
         <MemberDialog
           key={dialog.kind === 'edit' ? `edit-${dialog.member.id}` : 'add'}
           mode={dialog}
+          allMembers={initial}
           onClose={() => setDialog(null)}
         />
       )}

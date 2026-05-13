@@ -377,10 +377,20 @@ async function CommunityActivity({ meId, isAdmin }: { meId: string; isAdmin: boo
     : [];
   const memMap = new Map(memberRows.map((m) => [m.id, m]));
 
-  function maskedActor(memberId: string, pool: string) {
-    const isPrivate = pool === 'sadaqah' || pool === 'zakat';
+  /**
+   * Donor anonymisation.
+   *
+   * Donations of ANY pool stay anonymous for non-admin viewers — the
+   * point is that only the person who gave (and admins, who verify
+   * the receipt) know the donor's identity. Previously only sadaqah
+   * and zakat were masked; qarz donations leaked the donor name.
+   *
+   * The viewer always sees their own activity un-masked so they can
+   * recognise their own contributions in the feed.
+   */
+  function maskedActor(memberId: string, _pool: string) {
     const isSelf = memberId === meId;
-    if (!isPrivate || isSelf || isAdmin) {
+    if (isSelf || isAdmin) {
       return memMap.get(memberId) ?? { nameEn: 'Member', color: '#475569' };
     }
     return { nameEn: 'A member', nameUr: 'ایک رکن', color: '#475569' };
@@ -393,7 +403,8 @@ async function CommunityActivity({ meId, isAdmin }: { meId: string; isAdmin: boo
 
   const feed: FeedItem[] = [
     ...recentPayments.map((p) => {
-      const isPrivate = (p.pool === 'sadaqah' || p.pool === 'zakat') && p.memberId !== meId && !isAdmin;
+      // Anonymous for everyone except the donor themselves and admins.
+      const isPrivate = p.memberId !== meId && !isAdmin;
       return {
         kind: 'payment' as const,
         id: p.id,

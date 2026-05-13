@@ -28,9 +28,7 @@ export function buildSystemPrompt(language: SupportedLanguage): string {
     en: 'Respond in English.',
     ur: 'اردو میں جواب دیں۔',
     ar: 'أجب باللغة العربية.',
-    hi: 'हिंदी में जवाब दें।',
     ps: 'پښتو ژبه کې ځواب ورکه.',
-    sd: 'سنڌيءَ ۾ جواب ڏيو.',
   };
   return `${SYSTEM_PROMPT}\n\n${langInstructions[language]}`;
 }

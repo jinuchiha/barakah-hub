@@ -82,6 +82,11 @@ export const members = pgTable('members', {
   clan: text('clan'),
   relation: text('relation'),
   parentId: uuid('parent_id').references((): any => members.id, { onDelete: 'set null' }),
+  // Optional husband/wife pairing. Kept in sync bidirectionally by the
+  // admin edit action — see updateMember in app/actions.ts. Used by the
+  // family tree to render couples side-by-side and to walk lineage from
+  // both partners' fathers.
+  spouseId: uuid('spouse_id').references((): any => members.id, { onDelete: 'set null' }),
   role: roleEnum('role').notNull().default('member'),
   status: statusEnum('status').notNull().default('pending'),
   phone: text('phone'),

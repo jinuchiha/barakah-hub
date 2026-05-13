@@ -5,14 +5,15 @@ import { I18nManager } from 'react-native';
 import en from '@/locales/en.json';
 import ur from '@/locales/ur.json';
 import ar from '@/locales/ar.json';
-import hi from '@/locales/hi.json';
 import ps from '@/locales/ps.json';
-import sd from '@/locales/sd.json';
 import { getLanguage } from './storage';
 
-export type SupportedLanguage = 'en' | 'ur' | 'ar' | 'hi' | 'ps' | 'sd';
+// Supported languages — Hindi (hi) and Sindhi (sd) removed at user
+// request. The translation files are kept in /locales for now in case
+// they're re-enabled later, but they are not imported / wired here.
+export type SupportedLanguage = 'en' | 'ur' | 'ar' | 'ps';
 
-export const RTL_LANGUAGES: ReadonlySet<SupportedLanguage> = new Set(['ur', 'ar', 'ps', 'sd']);
+export const RTL_LANGUAGES: ReadonlySet<SupportedLanguage> = new Set(['ur', 'ar', 'ps']);
 
 export interface LanguageMeta {
   code: SupportedLanguage;
@@ -26,9 +27,7 @@ export const LANGUAGES: LanguageMeta[] = [
   { code: 'en', nativeName: 'English', englishName: 'English', flag: '🇬🇧', rtl: false },
   { code: 'ur', nativeName: 'اردو', englishName: 'Urdu', flag: '🇵🇰', rtl: true },
   { code: 'ar', nativeName: 'العربية', englishName: 'Arabic', flag: '🇸🇦', rtl: true },
-  { code: 'hi', nativeName: 'हिन्दी', englishName: 'Hindi', flag: '🇮🇳', rtl: false },
   { code: 'ps', nativeName: 'پښتو', englishName: 'Pashto', flag: '🇦🇫', rtl: true },
-  { code: 'sd', nativeName: 'سنڌي', englishName: 'Sindhi', flag: '🇵🇰', rtl: true },
 ];
 
 let initialized = false;
@@ -37,7 +36,7 @@ function detectDeviceLanguage(): SupportedLanguage {
   const locales = Localization.getLocales();
   const tag = locales[0]?.languageTag ?? 'en';
   const lang = tag.split('-')[0] as SupportedLanguage;
-  const supported: SupportedLanguage[] = ['en', 'ur', 'ar', 'hi', 'ps', 'sd'];
+  const supported: SupportedLanguage[] = ['en', 'ur', 'ar', 'ps'];
   return supported.includes(lang) ? lang : 'en';
 }
 
@@ -51,16 +50,18 @@ export function applyRTL(lang: SupportedLanguage): void {
 export async function initI18n(): Promise<void> {
   if (initialized) return;
   const stored = await getLanguage();
-  const lang = (stored && stored !== 'en' ? stored : detectDeviceLanguage()) as SupportedLanguage;
+  // If a previously-stored language is now unsupported (e.g. user had
+  // 'hi' or 'sd' set before we removed them), fall back to device or 'en'.
+  const supported: SupportedLanguage[] = ['en', 'ur', 'ar', 'ps'];
+  const validStored = stored && supported.includes(stored as SupportedLanguage) ? stored : null;
+  const lang = (validStored ?? (detectDeviceLanguage() as string)) as SupportedLanguage;
 
   await i18n.use(initReactI18next).init({
     resources: {
       en: { translation: en },
       ur: { translation: ur },
       ar: { translation: ar },
-      hi: { translation: hi },
       ps: { translation: ps },
-      sd: { translation: sd },
     },
     lng: lang,
     fallbackLng: 'en',

@@ -19,6 +19,7 @@ type Mode =
 
 interface Props {
   mode: Mode;
+  allMembers: Member[];
   onClose: () => void;
 }
 
@@ -36,6 +37,7 @@ interface FormState {
   monthlyPledge: number;
   role: 'admin' | 'member';
   status: 'pending' | 'approved' | 'rejected';
+  spouseId: string;
 }
 
 const blank: FormState = {
@@ -50,6 +52,7 @@ const blank: FormState = {
   monthlyPledge: 1000,
   role: 'member',
   status: 'approved',
+  spouseId: '',
 };
 
 function fromMember(m: Member): FormState {
@@ -65,10 +68,21 @@ function fromMember(m: Member): FormState {
     monthlyPledge: m.monthlyPledge,
     role: m.role,
     status: m.status,
+    spouseId: m.spouseId ?? '',
   };
 }
 
-export default function MemberDialog({ mode, onClose }: Props) {
+export default function MemberDialog({ mode, allMembers, onClose }: Props) {
+  // For the spouse dropdown — exclude the member themselves, deceased
+  // accounts, and (when editing) anyone already married to someone else
+  // (keeps pairing 1:1 and avoids accidentally breaking another couple).
+  const spouseCandidates = allMembers.filter((m) => {
+    if (mode.kind === 'edit' && m.id === mode.member.id) return false;
+    if (m.deceased) return false;
+    if (m.status === 'rejected') return false;
+    if (mode.kind === 'edit' && m.spouseId && m.spouseId !== mode.member.id) return false;
+    return true;
+  });
   const [pending, start] = useTransition();
   const [form, setForm] = useState<FormState>(() =>
     mode.kind === 'edit' ? fromMember(mode.member) : blank,
@@ -116,6 +130,7 @@ export default function MemberDialog({ mode, onClose }: Props) {
             monthlyPledge: form.monthlyPledge,
             role: form.role,
             status: form.status,
+            spouseId: form.spouseId || null,
           });
           toast.success('Member updated');
         }
@@ -182,6 +197,24 @@ export default function MemberDialog({ mode, onClose }: Props) {
                   <option value="approved">Approved</option>
                   <option value="rejected">Rejected</option>
                 </select>
+              </div>
+              <div className="md:col-span-2">
+                <Label>Spouse (husband/wife)</Label>
+                <select
+                  value={form.spouseId}
+                  onChange={(e) => set('spouseId', e.target.value)}
+                  className="w-full rounded-md border border-[var(--border)] bg-[var(--surf-3)] px-3 py-2.5 text-sm text-[var(--color-cream)]"
+                >
+                  <option value="">— None —</option>
+                  {spouseCandidates.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.nameEn || c.nameUr}{c.fatherName ? ` · s/o ${c.fatherName}` : ''}
+                    </option>
+                  ))}
+                </select>
+                <p className="mt-1 text-[10.5px] text-[var(--txt-3)]">
+                  Setting a spouse links both members automatically. Family tree will show them paired.
+                </p>
               </div>
             </>
           )}

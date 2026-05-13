@@ -17,12 +17,49 @@ function nameLower(s: string | null | undefined) {
 }
 
 /**
+ * Resolve spouse pairs and pick a "primary" side for tree rendering.
+ *
+ * Each marriage (A ↔ B) renders as ONE side-by-side card under the
+ * primary partner's father. We pick the primary by UUID order — purely
+ * a deterministic choice, no gender semantics. The secondary partner
+ * still keeps their own ancestry data; they just don't appear twice in
+ * the visual tree (which would split a couple's children visually).
+ *
+ * Returns:
+ *  - primaryToSpouse:  primary id → spouse Member (for rendering)
+ *  - claimedAsSpouse:  ids of secondary partners (hide from childrenOf)
+ */
+function resolveMarriages(members: Member[]) {
+  const byId = new Map(members.map((m) => [m.id, m]));
+  const primaryToSpouse = new Map<string, Member>();
+  const claimedAsSpouse = new Set<string>();
+
+  for (const m of members) {
+    if (!m.spouseId || claimedAsSpouse.has(m.id) || primaryToSpouse.has(m.id)) continue;
+    const partner = byId.get(m.spouseId);
+    if (!partner || partner.spouseId !== m.id) continue;
+    const primary = m.id < partner.id ? m : partner;
+    const secondary = primary === m ? partner : m;
+    primaryToSpouse.set(primary.id, secondary);
+    claimedAsSpouse.add(secondary.id);
+  }
+  return { primaryToSpouse, claimedAsSpouse };
+}
+
+/**
  * Build childrenOf map using:
  *  1. Explicit parentId (highest priority)
  *  2. fatherName case-insensitive match to another member's nameEn / nameUr
  *  3. Falls back to __root
+ *
+ * Members claimed as the secondary side of a marriage are skipped — they
+ * render beside their primary spouse instead, so they shouldn't also
+ * appear as a separate child of their own father.
  */
-function buildChildrenOf(members: Member[]): Map<string, Member[]> {
+function buildChildrenOf(
+  members: Member[],
+  claimedAsSpouse: Set<string>,
+): Map<string, Member[]> {
   const byName = new Map<string, string>();
   for (const m of members) {
     if (m.nameEn) byName.set(nameLower(m.nameEn), m.id);
@@ -31,10 +68,11 @@ function buildChildrenOf(members: Member[]): Map<string, Member[]> {
 
   const map = new Map<string, Member[]>();
   for (const m of members) {
+    if (claimedAsSpouse.has(m.id)) continue;
     let parentKey: string;
     if (m.parentId) {
       parentKey = m.parentId;
-    } else if (m.fatherName) {
+    } else if (m.fatherName && m.fatherName !== '—') {
       const auto = byName.get(nameLower(m.fatherName));
       parentKey = auto && auto !== m.id ? auto : '__root';
     } else {
@@ -57,7 +95,6 @@ export default function TreeView({ members, paidBy, viewerId, viewerIsAdmin }: P
     [members],
   );
 
-  // Apply search + city filter while keeping the full member list for tree-building
   const visible = useMemo(() => {
     const term = q.toLowerCase();
     return new Set(
@@ -71,10 +108,11 @@ export default function TreeView({ members, paidBy, viewerId, viewerIsAdmin }: P
     );
   }, [members, q, cityFilter]);
 
-  const childrenOf = useMemo(() => buildChildrenOf(members), [members]);
+  const { primaryToSpouse, claimedAsSpouse } = useMemo(() => resolveMarriages(members), [members]);
+  const childrenOf = useMemo(() => buildChildrenOf(members, claimedAsSpouse), [members, claimedAsSpouse]);
 
   const roots = (childrenOf.get('__root') ?? [])
-    .filter((m) => visible.has(m.id) || hasVisibleDescendant(m.id, childrenOf, visible));
+    .filter((m) => hasVisibleDescendant(m.id, childrenOf, visible) || visible.has(m.id) || (primaryToSpouse.get(m.id) && visible.has(primaryToSpouse.get(m.id)!.id)));
 
   function toggle(id: string) {
     setExpanded((prev) => {
@@ -85,10 +123,10 @@ export default function TreeView({ members, paidBy, viewerId, viewerIsAdmin }: P
   }
 
   const selectedMember = selected ? members.find((m) => m.id === selected) : null;
+  const selectedSpouse = selectedMember?.spouseId ? members.find((m) => m.id === selectedMember.spouseId) : null;
 
   return (
     <div>
-      {/* Filters */}
       <div className="mb-4 flex flex-wrap items-center gap-2">
         <div className="relative flex-1 min-w-[180px]">
           <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-[var(--txt-4)]" />
@@ -124,7 +162,9 @@ export default function TreeView({ members, paidBy, viewerId, viewerIsAdmin }: P
               <Branch
                 key={r.id}
                 m={r}
+                spouse={primaryToSpouse.get(r.id) ?? null}
                 childrenOf={childrenOf}
+                primaryToSpouse={primaryToSpouse}
                 visible={visible}
                 expanded={expanded}
                 onToggle={toggle}
@@ -146,10 +186,16 @@ export default function TreeView({ members, paidBy, viewerId, viewerIsAdmin }: P
             <div className="grid size-12 place-items-center rounded-full text-base font-bold text-white" style={{ background: selectedMember.color }}>
               {selectedMember.photoUrl ? <img src={selectedMember.photoUrl} alt="" className="size-full rounded-full object-cover" /> : ini(selectedMember.nameEn || selectedMember.nameUr)}
             </div>
-            <div>
+            <div className="flex-1">
               <div className="font-[var(--font-arabic)] text-xl text-[var(--color-gold-2)]">{selectedMember.nameUr || selectedMember.nameEn}</div>
               <div className="text-sm text-[var(--color-gold-4)]">{selectedMember.nameEn}</div>
             </div>
+            {selectedSpouse && (
+              <div className="text-right text-[11px] text-[var(--txt-3)]">
+                <div>Spouse:</div>
+                <div className="font-semibold text-[var(--color-cream)]">{selectedSpouse.nameEn || selectedSpouse.nameUr}</div>
+              </div>
+            )}
           </div>
           <dl className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
             <div><dt className="text-[10px] uppercase text-[var(--color-gold-4)]">Father</dt><dd className="mt-0.5">{selectedMember.fatherName}</dd></div>
@@ -167,7 +213,6 @@ export default function TreeView({ members, paidBy, viewerId, viewerIsAdmin }: P
   );
 }
 
-/** Returns true if this member or any descendant is in the visible set. */
 function hasVisibleDescendant(id: string, childrenOf: Map<string, Member[]>, visible: Set<string>): boolean {
   if (visible.has(id)) return true;
   for (const child of childrenOf.get(id) ?? []) {
@@ -178,7 +223,9 @@ function hasVisibleDescendant(id: string, childrenOf: Map<string, Member[]>, vis
 
 interface BranchProps {
   m: Member;
+  spouse: Member | null;
   childrenOf: Map<string, Member[]>;
+  primaryToSpouse: Map<string, Member>;
   visible: Set<string>;
   expanded: Set<string>;
   onToggle: (id: string) => void;
@@ -190,63 +237,99 @@ interface BranchProps {
   isRoot?: boolean;
 }
 
-function Branch({ m, childrenOf, visible, expanded, onToggle, onSelect, selectedId, paidBy, viewerIsAdmin, viewerId, isRoot }: BranchProps) {
+function NodeCard({
+  m, isRoot, isSelected, onSelect, paidBy, viewerIsAdmin, viewerId, dim,
+}: {
+  m: Member; isRoot?: boolean; isSelected: boolean;
+  onSelect: () => void; paidBy: Record<string, number>;
+  viewerIsAdmin: boolean; viewerId: string; dim?: boolean;
+}) {
+  return (
+    <div
+      onClick={onSelect}
+      aria-selected={isSelected}
+      className={cn(
+        'relative flex w-40 cursor-pointer flex-col items-center rounded-lg border bg-gradient-to-br from-[var(--surf-1)] to-[var(--surf-2)] p-3 text-center transition-all hover:border-[var(--color-gold)]',
+        isSelected && 'border-[var(--color-gold)] shadow-[0_0_0_3px_rgba(214,210,199,0.18)]',
+        isRoot && !isSelected && 'border-[var(--color-gold-2)]/60',
+        m.deceased && 'opacity-60',
+        !isRoot && !isSelected && !m.deceased && 'border-[var(--border)]',
+        dim && 'opacity-40 pointer-events-none',
+      )}
+    >
+      <div
+        className="mb-2 grid size-10 place-items-center rounded-full text-xs font-bold text-white shadow-sm"
+        style={{ background: m.color, filter: m.deceased ? 'grayscale(0.7)' : 'none' }}
+      >
+        {m.photoUrl ? <img src={m.photoUrl} alt="" className="size-full rounded-full object-cover" /> : ini(m.nameEn || m.nameUr)}
+      </div>
+      <div className="text-[13px] font-semibold leading-tight text-[var(--color-cream)]">{m.nameUr || m.nameEn}</div>
+      {m.nameUr && m.nameEn && <div className="mt-0.5 text-[10px] text-[var(--txt-3)]">{m.nameEn}</div>}
+      {m.city && <div className="mt-0.5 text-[9px] text-[var(--color-gold-4)]">📍 {m.city}</div>}
+      {m.deceased && <div className="mt-0.5 text-[9px] text-[var(--color-gold-4)] italic">مرحوم</div>}
+      {(viewerIsAdmin || m.id === viewerId) && paidBy[m.id] > 0 && (
+        <div className="mt-1 font-[var(--font-display)] text-xs text-[var(--color-gold)]">{fmtRs(paidBy[m.id])}</div>
+      )}
+    </div>
+  );
+}
+
+function Branch({
+  m, spouse, childrenOf, primaryToSpouse,
+  visible, expanded, onToggle, onSelect, selectedId, paidBy, viewerIsAdmin, viewerId, isRoot,
+}: BranchProps) {
   const allKids = childrenOf.get(m.id) ?? [];
   const kids = allKids.filter((k) => hasVisibleDescendant(k.id, childrenOf, visible));
   const isExpanded = expanded.has(m.id);
-  const isSelected = selectedId === m.id;
-  const isHidden = !visible.has(m.id);
+  const isHidden = !visible.has(m.id) && !(spouse && visible.has(spouse.id));
 
   return (
     <div className="flex flex-col items-center">
-      {/* Node card */}
-      <div
-        onClick={() => !isHidden && onSelect(m.id)}
-        aria-selected={isSelected}
-        className={cn(
-          'relative flex w-40 cursor-pointer flex-col items-center rounded-lg border bg-gradient-to-br from-[var(--surf-1)] to-[var(--surf-2)] p-3 text-center transition-all hover:border-[var(--color-gold)]',
-          isSelected && 'border-[var(--color-gold)] shadow-[0_0_0_3px_rgba(214,210,199,0.18)]',
-          isRoot && !isSelected && 'border-[var(--color-gold-2)]/60',
-          m.deceased && 'opacity-60',
-          !isRoot && !isSelected && !m.deceased && 'border-[var(--border)]',
-          isHidden && 'opacity-30 pointer-events-none',
-        )}
-      >
+      {/* Couple row: main node + (optional) spouse with marriage connector */}
+      <div className="relative flex items-center">
         {kids.length > 0 && (
           <button
             onClick={(e) => { e.stopPropagation(); onToggle(m.id); }}
             aria-label={isExpanded ? 'Collapse' : 'Expand'}
-            className="absolute -right-1 -top-1 grid size-5 place-items-center rounded-full border border-[var(--border)] bg-[var(--surf-3)] text-[10px] font-bold text-[var(--color-gold)] hover:bg-[var(--color-gold)]/10"
+            className="absolute -right-1 -top-1 z-10 grid size-5 place-items-center rounded-full border border-[var(--border)] bg-[var(--surf-3)] text-[10px] font-bold text-[var(--color-gold)] hover:bg-[var(--color-gold)]/10"
           >
             {isExpanded ? '−' : '+'}
           </button>
         )}
-        <div
-          className="mb-2 grid size-10 place-items-center rounded-full text-xs font-bold text-white shadow-sm"
-          style={{ background: m.color, filter: m.deceased ? 'grayscale(0.7)' : 'none' }}
-        >
-          {m.photoUrl ? <img src={m.photoUrl} alt="" className="size-full rounded-full object-cover" /> : ini(m.nameEn || m.nameUr)}
-        </div>
-        <div className="text-[13px] font-semibold leading-tight text-[var(--color-cream)]">{m.nameUr || m.nameEn}</div>
-        {m.nameUr && m.nameEn && <div className="mt-0.5 text-[10px] text-[var(--txt-3)]">{m.nameEn}</div>}
-        {m.city && <div className="mt-0.5 text-[9px] text-[var(--color-gold-4)]">📍 {m.city}</div>}
-        {m.deceased && <div className="mt-0.5 text-[9px] text-[var(--color-gold-4)] italic">مرحوم</div>}
-        {(viewerIsAdmin || m.id === viewerId) && paidBy[m.id] > 0 && (
-          <div className="mt-1 font-[var(--font-display)] text-xs text-[var(--color-gold)]">{fmtRs(paidBy[m.id])}</div>
-        )}
-        {kids.length > 0 && (
-          <div className="mt-0.5 text-[9px] text-[var(--color-emerald-2)]">{kids.length} child{kids.length > 1 ? 'ren' : ''}</div>
+        <NodeCard
+          m={m}
+          isRoot={isRoot}
+          isSelected={selectedId === m.id}
+          onSelect={() => !isHidden && onSelect(m.id)}
+          paidBy={paidBy}
+          viewerIsAdmin={viewerIsAdmin}
+          viewerId={viewerId}
+          dim={isHidden}
+        />
+        {spouse && (
+          <>
+            <div className="mx-2 flex flex-col items-center" aria-hidden="true">
+              <div className="text-[18px] leading-none text-[var(--color-gold)]">∞</div>
+              <div className="mt-1 h-px w-6 bg-[var(--color-gold-4)]" />
+              <div className="mt-1 text-[8px] uppercase tracking-[1.5px] text-[var(--color-gold-4)]">married</div>
+            </div>
+            <NodeCard
+              m={spouse}
+              isSelected={selectedId === spouse.id}
+              onSelect={() => visible.has(spouse.id) && onSelect(spouse.id)}
+              paidBy={paidBy}
+              viewerIsAdmin={viewerIsAdmin}
+              viewerId={viewerId}
+              dim={!visible.has(spouse.id) && !visible.has(m.id)}
+            />
+          </>
         )}
       </div>
 
-      {/* Children subtree */}
       {kids.length > 0 && isExpanded && (
         <div className="flex flex-col items-center">
-          {/* Trunk: vertical line from card to horizontal bar */}
           <div className="h-6 w-px bg-[var(--color-gold-4)]/50" />
-          {/* Children row with connecting lines */}
           <div className="relative flex items-start">
-            {/* Horizontal bar — rendered only when more than 1 child */}
             {kids.length > 1 && (
               <div
                 className="absolute top-0 h-px bg-[var(--color-gold-4)]/40"
@@ -255,11 +338,12 @@ function Branch({ m, childrenOf, visible, expanded, onToggle, onSelect, selected
             )}
             {kids.map((k) => (
               <div key={k.id} className="flex flex-col items-center px-2">
-                {/* Stub: vertical line from horizontal bar down to child */}
                 <div className="h-6 w-px bg-[var(--color-gold-4)]/50" />
                 <Branch
                   m={k}
+                  spouse={primaryToSpouse.get(k.id) ?? null}
                   childrenOf={childrenOf}
+                  primaryToSpouse={primaryToSpouse}
                   visible={visible}
                   expanded={expanded}
                   onToggle={onToggle}
