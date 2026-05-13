@@ -1,31 +1,32 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
     <defs>
-      <radialGradient id="bg" cx="50%" cy="40%" r="65%">
-        <stop offset="0%" stop-color="#1a1d24"/>
-        <stop offset="100%" stop-color="#14171c"/>
+      <radialGradient id="sky" cx="54.0%" cy="48.0%" r="75%">
+        <stop offset="0%" stop-color="#1d2127"/>
+        <stop offset="60%" stop-color="#14171c"/>
+        <stop offset="100%" stop-color="#0a0f1a"/>
       </radialGradient>
-      <linearGradient id="cr" x1="20%" y1="20%" x2="80%" y2="80%">
+      <radialGradient id="halo" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="rgba(235,231,221,0.22)" stop-opacity="0.85"/>
+        <stop offset="55%" stop-color="rgba(235,231,221,0.22)" stop-opacity="0.30"/>
+        <stop offset="100%" stop-color="rgba(235,231,221,0.22)" stop-opacity="0"/>
+      </radialGradient>
+      <linearGradient id="moon" x1="15%" y1="20%" x2="85%" y2="80%">
         <stop offset="0%" stop-color="#ebe7dd"/>
-        <stop offset="55%" stop-color="#d6d2c7"/>
+        <stop offset="50%" stop-color="#d6d2c7"/>
         <stop offset="100%" stop-color="#9c9588"/>
       </linearGradient>
-      <radialGradient id="glow" cx="50%" cy="50%" r="50%">
-        <stop offset="60%" stop-color="rgba(214,210,199,0.18)" stop-opacity="0"/>
-        <stop offset="100%" stop-color="rgba(214,210,199,0.18)" stop-opacity="0.45"/>
-      </radialGradient>
+      <mask id="crmask128">
+        <rect width="128" height="128" fill="black"/>
+        <circle cx="60" cy="64" r="50" fill="white"/>
+        <circle cx="82" cy="56" r="44" fill="black"/>
+      </mask>
     </defs>
-    <rect width="128" height="128" fill="url(#bg)"/>
+    <rect width="128" height="128" fill="url(#sky)"/>
     
-    <g transform="translate(32 32)">
-      <svg width="64" height="64" viewBox="0 0 128 128">
-        <defs>
-          <mask id="crmask">
-            <rect width="128" height="128" fill="black"/>
-            <circle cx="60" cy="64" r="50" fill="white"/>
-            <circle cx="82" cy="56" r="44" fill="black"/>
-          </mask>
-        </defs>
-        <circle cx="60" cy="64" r="50" fill="url(#cr)" mask="url(#crmask)"/>
+    <circle cx="69.12" cy="61.44" r="46.02" fill="url(#halo)"/>
+    <g transform="translate(39.6 31.9)">
+      <svg width="59" height="59" viewBox="0 0 128 128">
+        <circle cx="60" cy="64" r="50" fill="url(#moon)" mask="url(#crmask128)"/>
       </svg>
     </g>
   </svg>
