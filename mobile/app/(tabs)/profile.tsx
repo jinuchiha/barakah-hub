@@ -155,7 +155,7 @@ function ProfileScreen() {
           <SettingsRow icon="family-tree" label="Family Tree" onPress={() => router.push('/family-tree')} />
           <SettingsRow icon="trophy-outline" label="Achievements" onPress={() => router.push('/achievements')} />
           <SettingsRow icon="qrcode-scan" label="My QR Code" onPress={() => router.push('/qr-pay')} />
-          <SettingsRow icon="tools" label="Islamic Tools" onPress={() => router.push('/tools/index')} />
+          <SettingsRow icon="tools" label="Islamic Tools" onPress={() => router.push('/tools')} />
           <SettingsRow icon="robot-outline" label="AI Assistant" onPress={() => router.push('/ai-assistant')} />
         </SettingsGroup>
 

@@ -1,5 +1,6 @@
 import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
+import { bearer } from 'better-auth/plugins';
 import { db } from '@/lib/db';
 import { users, sessions, accounts, verifications } from '@/lib/db/schema';
 
@@ -73,6 +74,10 @@ export const auth = betterAuth({
 
   // Trusted origins for CORS / CSRF (same-origin in our case).
   trustedOrigins: [baseURL],
+
+  // Bearer plugin — required for the mobile app (Expo / React Native)
+  // which sends `Authorization: Bearer <session-token>` instead of cookies.
+  plugins: [bearer()],
 });
 
 export type Session = typeof auth.$Infer.Session;

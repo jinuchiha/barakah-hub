@@ -20,7 +20,7 @@ interface SearchableData {
 async function fetchSearchData(): Promise<SearchableData> {
   const [membersRes, paymentsRes, casesRes] = await Promise.all([
     api.get<Member[]>('/api/members'),
-    api.get<Payment[]>('/api/payments/my'),
+    api.get<Payment[]>('/api/payments/mine'),
     api.get<EmergencyCase[]>('/api/cases'),
   ]);
   return {

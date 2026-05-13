@@ -73,6 +73,12 @@ export async function onboardSelf(input: z.infer<typeof schema>) {
     finalUsername = `${username}_${user.id.slice(-4)}`;
   }
 
+  // Bootstrap: if there are no admins yet, the first user IS the admin —
+  // auto-approved and elevated. This removes the chicken-and-egg of
+  // needing an existing admin to approve the founding admin.
+  const adminCount = await db.$count(members, eq(members.role, 'admin'));
+  const isFounder = adminCount === 0;
+
   const [created] = await db
     .insert(members)
     .values({
@@ -85,8 +91,8 @@ export async function onboardSelf(input: z.infer<typeof schema>) {
       phone: data.phone,
       city: data.city,
       province: data.province,
-      role: 'member',
-      status: 'pending',
+      role: isFounder ? 'admin' : 'member',
+      status: isFounder ? 'approved' : 'pending',
       needsSetup: false,
     })
     .returning();
