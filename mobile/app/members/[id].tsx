@@ -2,7 +2,7 @@ import React from 'react';
 import {
   View, Text, StyleSheet, ScrollView, RefreshControl,
 } from 'react-native';
-import { useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, Stack } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Animated, { FadeInDown } from 'react-native-reanimated';
@@ -65,6 +65,7 @@ export default function MemberDetailScreen() {
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.bg1 }]} edges={['bottom']}>
+      <Stack.Screen options={{ title: member.nameEn || member.nameUr || 'Member' }} />
       <ScrollView
         contentContainerStyle={styles.scroll}
         refreshControl={

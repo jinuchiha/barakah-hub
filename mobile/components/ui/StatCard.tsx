@@ -85,7 +85,10 @@ const styles = StyleSheet.create({
   card: {
     padding: spacing.md,
     alignItems: 'center',
-    flex: 1,
+    // `flex: 1` was here previously, but the wrapping Animated.View
+    // already receives `flex: 1` from the parent layout via the `style`
+    // prop. Having it twice caused the card to stretch vertically into
+    // an unbounded tall bar instead of sizing to its content.
   },
   iconCircle: {
     width: 44,

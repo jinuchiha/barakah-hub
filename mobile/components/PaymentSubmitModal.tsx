@@ -68,7 +68,7 @@ export function PaymentSubmitModal({ visible, onClose, onSubmit }: PaymentSubmit
     setSubmitting(true);
     try {
       await onSubmit({ ...data, screenshotUri });
-      reset();
+      reset({ pool: 'sadaqah', monthLabel: currentMonthLabel() });
       setScreenshotUri(undefined);
       onClose();
     } catch (err) {
@@ -79,8 +79,17 @@ export function PaymentSubmitModal({ visible, onClose, onSubmit }: PaymentSubmit
     }
   };
 
+  // Cancel should also clear typed amount, note, and attached screenshot so
+  // a future submit doesn't auto-include them. (Reported issue: reopening
+  // the modal after Cancel still showed previous values.)
+  const handleCancel = () => {
+    reset({ pool: 'sadaqah', monthLabel: currentMonthLabel() });
+    setScreenshotUri(undefined);
+    onClose();
+  };
+
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={handleCancel}>
       <View style={styles.backdrop}>
         <View style={styles.sheet}>
           <View style={styles.handle} />
@@ -167,7 +176,7 @@ export function PaymentSubmitModal({ visible, onClose, onSubmit }: PaymentSubmit
             </TouchableOpacity>
 
             <View style={styles.buttons}>
-              <Button label="Cancel" onPress={onClose} variant="ghost" style={styles.btn} />
+              <Button label="Cancel" onPress={handleCancel} variant="ghost" style={styles.btn} />
               <Button
                 label="Submit"
                 onPress={handleSubmit(handleFormSubmit)}

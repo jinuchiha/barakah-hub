@@ -223,8 +223,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14, paddingVertical: 8, borderRadius: radius.full, borderWidth: 1.5,
   },
   createBtnText: { fontSize: 13, fontFamily: 'Inter_600SemiBold' },
-  filterScroll: { marginBottom: spacing.sm },
-  filterContent: { paddingHorizontal: spacing.md, gap: spacing.sm },
+  filterScroll: { height: 48, marginBottom: spacing.sm, flexGrow: 0 },
+  filterContent: { paddingHorizontal: spacing.md, gap: spacing.sm, alignItems: 'center' },
   filterTab: {
     flexDirection: 'row', alignItems: 'center', gap: 6,
     paddingHorizontal: 16, paddingVertical: 8, borderRadius: radius.full, borderWidth: 1.5,

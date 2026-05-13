@@ -4,6 +4,7 @@ import Animated, {
   useSharedValue, useAnimatedStyle, withTiming, Easing,
 } from 'react-native-reanimated';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import * as Location from 'expo-location';
 import { useTheme } from '@/lib/useTheme';
 import { spacing, radius } from '@/lib/theme';
 
@@ -24,19 +25,30 @@ function calcQiblaAngle(lat: number, lon: number): number {
 interface Loc { latitude: number; longitude: number }
 
 async function requestLocation(): Promise<Loc | null> {
-  if (Platform.OS === 'web') return null;
-  return new Promise((resolve) => {
-    // Use navigator.geolocation for Expo Go compat without expo-location
+  if (Platform.OS === 'web') {
     if (typeof navigator !== 'undefined' && navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => resolve({ latitude: pos.coords.latitude, longitude: pos.coords.longitude }),
-        () => resolve(null),
-        { timeout: 8000 },
-      );
-    } else {
-      resolve(null);
+      return new Promise((resolve) => {
+        navigator.geolocation.getCurrentPosition(
+          (pos) => resolve({ latitude: pos.coords.latitude, longitude: pos.coords.longitude }),
+          () => resolve(null),
+          { timeout: 8000 },
+        );
+      });
     }
-  });
+    return null;
+  }
+
+  // Native (Android/iOS) — expo-location with explicit permission prompt.
+  try {
+    const { status } = await Location.requestForegroundPermissionsAsync();
+    if (status !== 'granted') return null;
+    const pos = await Location.getLastKnownPositionAsync({ maxAge: 60_000 })
+      ?? await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+    if (!pos) return null;
+    return { latitude: pos.coords.latitude, longitude: pos.coords.longitude };
+  } catch {
+    return null;
+  }
 }
 
 export function QiblaCompass() {
