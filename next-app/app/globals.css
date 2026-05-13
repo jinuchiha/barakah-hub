@@ -20,33 +20,36 @@
   --font-body: 'Tajawal', sans-serif;
   --font-en: 'Cormorant Garamond', serif;
 
-  /* Primary accent (was: gold) — now off-white / bone */
-  --color-gold:   #d6d2c7;   /* bone */
-  --color-gold-2: #ebe7dd;   /* off-white */
-  --color-gold-3: #f5f3ed;   /* paper */
-  --color-gold-4: #6f7480;   /* slate (muted text accent) */
+  /* Modern Islamic finance palette — emerald primary, warm gold accent,
+     deep slate background. Inspired by Stripe + LaunchGood. */
 
-  /* Secondary accent (was: emerald) — now deep navy */
-  --color-emerald-1: #1e2a4a; /* deep navy */
-  --color-emerald-2: #2d3f6e; /* mid navy */
-  --color-emerald-3: #0f1828; /* navy ink */
+  /* Primary accent — vibrant emerald (was: bone/gold) */
+  --color-gold:   #10b981;   /* emerald-500 (primary buttons, links) */
+  --color-gold-2: #34d399;   /* emerald-400 (hover) */
+  --color-gold-3: #6ee7b7;   /* emerald-300 (highlights, subtle) */
+  --color-gold-4: #94a3b8;   /* slate-400 (muted captions, labels) */
 
-  /* Surface (was: ink) — charcoal / concrete */
-  --color-ink:   #14171c;     /* page background — concrete dark */
-  --color-ink-2: #1d2127;     /* card raised */
-  --color-ink-3: #262a32;     /* elevated panel */
+  /* Secondary accent — warm amber gold for status, badges, success $ */
+  --color-emerald-1: #f59e0b; /* amber-500 — fund total, primary stats */
+  --color-emerald-2: #fbbf24; /* amber-400 — emphasis */
+  --color-emerald-3: #d97706; /* amber-600 — pressed state */
 
-  /* Body text (was: cream) — off-white */
-  --color-cream:   #ebe7dd;
-  --color-cream-2: #c4c0b5;
+  /* Surface — deep slate (was: charcoal) */
+  --color-ink:   #0a0e1a;     /* page background — deep slate-navy */
+  --color-ink-2: #0f172a;     /* slate-900 — card base */
+  --color-ink-3: #1e293b;     /* slate-800 — elevated panel */
+
+  /* Body text — bright cream-white for proper contrast */
+  --color-cream:   #f8fafc;   /* slate-50 — primary text */
+  --color-cream-2: #cbd5e1;   /* slate-300 — secondary text */
 
   --radius-r: 14px;
   --radius-r-sm: 8px;
   --radius-r-lg: 20px;
 
-  /* Matte shadows — minimal, flat */
-  --shadow-card: 0 1px 2px rgba(0,0,0,0.18), 0 6px 18px rgba(0,0,0,0.22);
-  --shadow-hover: 0 6px 24px rgba(15,24,40,0.45), 0 2px 6px rgba(0,0,0,0.18);
+  /* Soft modern shadows with emerald hint on hover */
+  --shadow-card: 0 1px 2px rgba(0,0,0,0.2), 0 8px 24px rgba(15,23,42,0.40);
+  --shadow-hover: 0 8px 32px rgba(16,185,129,0.18), 0 2px 8px rgba(0,0,0,0.25);
 }
 
 /* ─────────────────────────────────────────
@@ -54,33 +57,33 @@
    These swap on .light / .dark — used in inline styles and components
    ───────────────────────────────────────── */
 :root {
-  --txt-1: #ebe7dd;
-  --txt-2: rgba(235,231,221,0.78);
-  --txt-3: rgba(235,231,221,0.5);
-  --txt-4: rgba(235,231,221,0.28);
-  --surf-1: #1d2127;
-  --surf-2: #14171c;
-  --surf-3: rgba(255,255,255,0.04);
-  --border: rgba(214,210,199,0.1);
-  --border-2: rgba(214,210,199,0.2);
+  --txt-1: #f8fafc;                       /* slate-50 — primary */
+  --txt-2: rgba(248,250,252,0.82);        /* secondary */
+  --txt-3: rgba(248,250,252,0.58);        /* muted */
+  --txt-4: rgba(248,250,252,0.36);        /* hint */
+  --surf-1: #0f172a;                       /* card */
+  --surf-2: #0a0e1a;                       /* page */
+  --surf-3: rgba(148,163,184,0.06);        /* input bg, raised tile */
+  --border: rgba(148,163,184,0.14);        /* default border */
+  --border-2: rgba(148,163,184,0.28);      /* emphasized border */
 }
 
 .light {
-  --txt-1: #14171c;
-  --txt-2: rgba(20,23,28,0.78);
-  --txt-3: rgba(20,23,28,0.55);
-  --txt-4: rgba(20,23,28,0.32);
+  --txt-1: #0f172a;
+  --txt-2: rgba(15,23,42,0.82);
+  --txt-3: rgba(15,23,42,0.58);
+  --txt-4: rgba(15,23,42,0.36);
   --surf-1: #ffffff;
-  --surf-2: #f5f3ed;
-  --surf-3: rgba(20,23,28,0.04);
-  --border: rgba(20,23,28,0.12);
-  --border-2: rgba(20,23,28,0.22);
-  --color-gold:   #2d3f6e;   /* navy accent reads on light */
-  --color-gold-2: #1e2a4a;
-  --color-gold-4: #4a5266;
-  --color-cream:  #14171c;
-  --color-ink:    #f5f3ed;
-  --color-ink-2:  #ebe7dd;
+  --surf-2: #f8fafc;
+  --surf-3: rgba(15,23,42,0.04);
+  --border: rgba(15,23,42,0.12);
+  --border-2: rgba(15,23,42,0.22);
+  --color-gold:   #059669;   /* deeper emerald reads on light */
+  --color-gold-2: #047857;
+  --color-gold-4: #475569;
+  --color-cream:  #0f172a;
+  --color-ink:    #f8fafc;
+  --color-ink-2:  #ffffff;
 }
 
 /* ─────────────────────────────────────────
@@ -118,21 +121,20 @@ html, body {
 
 [dir="rtl"] body { font-family: var(--font-arabic), var(--font-body); }
 
-/* Native <select> options — the OS-default popup ignores the parent's
-   colors and renders white/grey-on-white in dark mode. Force readable
-   contrast everywhere. */
+/* Native <select> options — the OS popup ignores the parent's bg/color
+   styles in dark mode. Force the modern palette everywhere. */
 option,
 optgroup {
-  background-color: var(--color-ink-2) !important;
-  color: var(--color-cream) !important;
+  background-color: #1e293b !important;   /* slate-800 — readable card bg */
+  color: #f8fafc !important;               /* slate-50 — bright text */
 }
 option:disabled {
-  color: var(--color-gold-4) !important;
+  color: #64748b !important;               /* slate-500 — muted */
 }
 option:checked,
 option:hover {
-  background-color: var(--color-emerald-2) !important;
-  color: var(--color-gold-2) !important;
+  background-color: #10b981 !important;    /* emerald primary */
+  color: #0a0e1a !important;               /* deep slate text on emerald */
 }
 
 /* WCAG AA — universal focus visibility */
