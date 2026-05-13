@@ -118,6 +118,23 @@ html, body {
 
 [dir="rtl"] body { font-family: var(--font-arabic), var(--font-body); }
 
+/* Native <select> options — the OS-default popup ignores the parent's
+   colors and renders white/grey-on-white in dark mode. Force readable
+   contrast everywhere. */
+option,
+optgroup {
+  background-color: var(--color-ink-2) !important;
+  color: var(--color-cream) !important;
+}
+option:disabled {
+  color: var(--color-gold-4) !important;
+}
+option:checked,
+option:hover {
+  background-color: var(--color-emerald-2) !important;
+  color: var(--color-gold-2) !important;
+}
+
 /* WCAG AA — universal focus visibility */
 *:focus-visible {
   outline: 2px solid var(--color-gold);
