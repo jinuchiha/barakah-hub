@@ -1,38 +1,39 @@
-// Premium Islamic-finance palette — mirrors the web app's deep midnight
-// navy + burnished gold + warm cream. Restrained, banking-grade, refined.
+// Modern fintech palette — mirrors the web (Linear/Mercury school).
+// Deep ink, NEUTRAL hairlines, gold used like an accent (CTAs, totals,
+// active rail), not as paint on every border.
 export const darkColors = {
-  bg0: '#0c1424',           // page — deep midnight navy
-  bg1: '#131c30',           // card base
-  bg2: '#1d2840',           // elevated panel
-  bg3: '#283353',           // higher elevation
-  bg4: '#324063',           // top elevation
-  glass1: 'rgba(200,155,60,0.04)',
-  glass2: 'rgba(200,155,60,0.07)',
-  glass3: 'rgba(200,155,60,0.12)',
-  glassBorder: 'rgba(200,155,60,0.18)',
-  primary: '#c89b3c',       // burnished gold
-  primaryMuted: '#8a8579',
-  primaryDim: 'rgba(200,155,60,0.15)',
-  primaryGlow: 'rgba(200,155,60,0.28)',
-  gold: '#d9b04c',          // warm gold hover
-  goldMuted: '#8a8579',
-  goldDim: 'rgba(217,176,76,0.15)',
-  accent: '#2d6a4f',        // deep forest emerald — sparingly
-  accentDim: 'rgba(45,106,79,0.15)',
-  danger: '#a83254',
-  dangerDim: 'rgba(168,50,84,0.15)',
-  text1: '#f5f3ed',          // warm cream
-  text2: 'rgba(245,243,237,0.80)',
-  text3: 'rgba(245,243,237,0.55)',
-  text4: 'rgba(245,243,237,0.32)',
-  border1: 'rgba(200,155,60,0.10)',
-  border2: 'rgba(200,155,60,0.22)',
-  shadowGreen: 'rgba(45,106,79,0.30)',
-  shadowBlue: 'rgba(29,40,64,0.45)',
-  shadowGold: 'rgba(200,155,60,0.30)',
-  success: '#2d6a4f',
+  bg0: '#0a0f1a',           // page
+  bg1: '#0f1626',           // card
+  bg2: '#18223a',           // elevated
+  bg3: '#1f2a45',           // higher elevation
+  bg4: '#28344e',           // top elevation
+  glass1: 'rgba(255,255,255,0.03)',
+  glass2: 'rgba(255,255,255,0.05)',
+  glass3: 'rgba(255,255,255,0.09)',
+  glassBorder: 'rgba(255,255,255,0.10)',
+  primary: '#c89b3c',       // burnished gold — CTAs, totals, rails
+  primaryMuted: '#7d7768',
+  primaryDim: 'rgba(200,155,60,0.12)',
+  primaryGlow: 'rgba(200,155,60,0.22)',
+  gold: '#d9b04c',
+  goldMuted: '#7d7768',
+  goldDim: 'rgba(217,176,76,0.13)',
+  accent: '#2d8a5f',        // money green — verified, paid, success
+  accentDim: 'rgba(45,138,95,0.13)',
+  danger: '#dc5252',
+  dangerDim: 'rgba(220,82,82,0.13)',
+  text1: '#ecebe6',
+  text2: 'rgba(236,235,230,0.78)',
+  text3: 'rgba(236,235,230,0.52)',
+  text4: 'rgba(236,235,230,0.32)',
+  border1: 'rgba(255,255,255,0.07)',     // neutral hairline
+  border2: 'rgba(255,255,255,0.12)',     // emphasized
+  shadowGreen: 'rgba(45,138,95,0.22)',
+  shadowBlue: 'rgba(96,141,215,0.20)',
+  shadowGold: 'rgba(200,155,60,0.22)',
+  success: '#2d8a5f',
   warning: '#c89b3c',
-  info: '#2d6a4f',
+  info: '#608dd7',
 } as const;
 
 export const lightColors = {

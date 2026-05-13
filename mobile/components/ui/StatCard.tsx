@@ -1,16 +1,13 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { View, Text, StyleSheet, Pressable, type ViewStyle } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withSpring,
-  withTiming,
-  Easing,
 } from 'react-native-reanimated';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { GlassCard } from './GlassCard';
 import { useTheme } from '@/lib/useTheme';
-import { spacing } from '@/lib/theme';
+import { spacing, radius } from '@/lib/theme';
 
 interface StatCardProps {
   icon: keyof typeof MaterialCommunityIcons.glyphMap;
@@ -21,25 +18,9 @@ interface StatCardProps {
   trend?: { direction: 'up' | 'down'; percent: number };
 }
 
-function useCountUp(target: number, isNumeric: boolean) {
-  const val = useSharedValue(isNumeric ? 0 : target);
-
-  useEffect(() => {
-    if (!isNumeric) return;
-    val.value = withTiming(target, { duration: 1200, easing: Easing.out(Easing.cubic) });
-  }, [target, isNumeric, val]);
-
-  return val;
-}
-
 export function StatCard({ icon, value, label, iconColor, style, trend }: StatCardProps) {
   const { colors } = useTheme();
   const scale = useSharedValue(1);
-  const numericValue = typeof value === 'number' ? value : parseFloat(value) || 0;
-  const isNumeric = typeof value === 'number' || /^\d/.test(String(value));
-  const displayValue = isNumeric ? numericValue : 0;
-  void useCountUp(displayValue, isNumeric);
-
   const color = iconColor ?? colors.primary;
 
   const animStyle = useAnimatedStyle(() => ({
@@ -47,35 +28,55 @@ export function StatCard({ icon, value, label, iconColor, style, trend }: StatCa
   }));
 
   const handlePressIn = () => {
-    scale.value = withSpring(0.97, { damping: 15, stiffness: 400 });
+    scale.value = withSpring(0.985, { damping: 20, stiffness: 400 });
   };
 
   const handlePressOut = () => {
-    scale.value = withSpring(1, { damping: 15, stiffness: 400 });
+    scale.value = withSpring(1, { damping: 20, stiffness: 400 });
   };
 
   return (
     <Animated.View style={[animStyle, style]}>
       <Pressable onPressIn={handlePressIn} onPressOut={handlePressOut}>
-        <GlassCard elevated style={styles.card}>
-          <View style={[styles.iconCircle, { backgroundColor: `${color}22` }]}>
-            <MaterialCommunityIcons name={icon} size={22} color={color} />
+        <View
+          style={[
+            styles.card,
+            { backgroundColor: colors.bg1, borderColor: colors.border1 },
+          ]}
+        >
+          <View style={[styles.rail, { backgroundColor: color }]} pointerEvents="none" />
+
+          <View style={styles.headerRow}>
+            <Text style={[styles.label, { color: colors.text3 }]} numberOfLines={1}>
+              {label}
+            </Text>
+            <View style={[styles.iconBox, { backgroundColor: `${color}1F` }]}>
+              <MaterialCommunityIcons name={icon} size={15} color={color} />
+            </View>
           </View>
-          <Text style={[styles.value, { color: colors.text1 }]}>{String(value)}</Text>
-          <Text style={[styles.label, { color: colors.text3 }]}>{label}</Text>
+
+          <Text style={[styles.value, { color: colors.text1 }]} numberOfLines={1}>
+            {String(value)}
+          </Text>
+
           {trend ? (
             <View style={styles.trendRow}>
               <MaterialCommunityIcons
                 name={trend.direction === 'up' ? 'trending-up' : 'trending-down'}
-                size={14}
-                color={trend.direction === 'up' ? colors.primary : colors.danger}
+                size={12}
+                color={trend.direction === 'up' ? colors.success : colors.danger}
               />
-              <Text style={[styles.trendText, { color: trend.direction === 'up' ? colors.primary : colors.danger }]}>
+              <Text
+                style={[
+                  styles.trendText,
+                  { color: trend.direction === 'up' ? colors.success : colors.danger },
+                ]}
+              >
                 {trend.percent}%
               </Text>
             </View>
           ) : null}
-        </GlassCard>
+        </View>
       </Pressable>
     </Animated.View>
   );
@@ -83,40 +84,61 @@ export function StatCard({ icon, value, label, iconColor, style, trend }: StatCa
 
 const styles = StyleSheet.create({
   card: {
-    padding: spacing.md,
-    alignItems: 'center',
-    // `flex: 1` was here previously, but the wrapping Animated.View
-    // already receives `flex: 1` from the parent layout via the `style`
-    // prop. Having it twice caused the card to stretch vertically into
-    // an unbounded tall bar instead of sizing to its content.
+    minHeight: 104,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.md,
+    paddingLeft: spacing.md + 3,
+    paddingRight: spacing.md,
+    overflow: 'hidden',
+    position: 'relative',
   },
-  iconCircle: {
-    width: 44,
-    height: 44,
-    borderRadius: 14,
+  rail: {
+    position: 'absolute',
+    left: 0,
+    top: 10,
+    bottom: 10,
+    width: 3,
+    borderTopRightRadius: 2,
+    borderBottomRightRadius: 2,
+  },
+  headerRow: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
     marginBottom: spacing.sm,
   },
-  value: {
-    fontSize: 18,
-    fontFamily: 'Inter_700Bold',
-    textAlign: 'center',
-  },
   label: {
-    fontSize: 12,
-    fontFamily: 'Inter_400Regular',
-    marginTop: 2,
-    textAlign: 'center',
+    flex: 1,
+    fontSize: 10,
+    fontFamily: 'Inter_600SemiBold',
+    letterSpacing: 1.2,
+    textTransform: 'uppercase',
+  },
+  iconBox: {
+    width: 26,
+    height: 26,
+    borderRadius: 7,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  value: {
+    fontSize: 20,
+    fontFamily: 'SpaceMono_400Regular',
+    fontWeight: '600',
+    letterSpacing: -0.4,
   },
   trendRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 2,
-    marginTop: 4,
+    gap: 3,
+    marginTop: 6,
   },
   trendText: {
     fontSize: 11,
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: 'SpaceMono_400Regular',
+    fontWeight: '600',
   },
 });

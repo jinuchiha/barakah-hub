@@ -4,7 +4,7 @@ import Animated, { FadeInDown } from 'react-native-reanimated';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { formatRelativeTime, formatPKR } from '@/lib/format';
 import { useTheme } from '@/lib/useTheme';
-import { spacing, radius, darkColors } from '@/lib/theme';
+import { spacing, radius } from '@/lib/theme';
 
 export interface ActivityItem {
   id: string;
@@ -16,11 +16,11 @@ export interface ActivityItem {
 }
 
 const ACTIVITY_CONFIG = {
-  payment: { icon: 'cash-check' as const, color: darkColors.primary },
-  vote: { icon: 'vote' as const, color: darkColors.gold },
-  case: { icon: 'alert-circle-outline' as const, color: darkColors.danger },
-  loan: { icon: 'handshake' as const, color: darkColors.accent },
-  member: { icon: 'account-plus' as const, color: '#ea80fc' },
+  payment: { icon: 'cash-check' as const,           color: '#2d8a5f' },
+  vote:    { icon: 'vote' as const,                 color: '#c89b3c' },
+  case:    { icon: 'alert-circle-outline' as const, color: '#dc5252' },
+  loan:    { icon: 'handshake' as const,            color: '#608dd7' },
+  member:  { icon: 'account-plus' as const,         color: '#8b6ec9' },
 };
 
 interface ActivityFeedProps {
@@ -131,6 +131,8 @@ const styles = StyleSheet.create({
   amount: {
     fontSize: 13,
     fontFamily: 'SpaceMono_400Regular',
+    fontWeight: '600',
+    letterSpacing: -0.2,
     marginTop: 2,
   },
   time: {

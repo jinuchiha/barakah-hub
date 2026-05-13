@@ -12,18 +12,6 @@ interface GlassCardProps {
   gradient?: [string, string];
 }
 
-function GlowBorder({ color }: { color: string }) {
-  return (
-    <View
-      style={[
-        StyleSheet.absoluteFillObject,
-        { borderRadius: radius.xl, borderWidth: 1.5, borderColor: color },
-      ]}
-      pointerEvents="none"
-    />
-  );
-}
-
 export function GlassCard({
   children,
   style,
@@ -35,11 +23,11 @@ export function GlassCard({
 
   const shadowStyle: ViewStyle = elevated
     ? {
-        shadowColor: glowColor ?? colors.primaryGlow,
-        shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 1,
-        shadowRadius: 24,
-        elevation: 12,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: 0.25,
+        shadowRadius: 18,
+        elevation: 8,
       }
     : {};
 
@@ -47,7 +35,7 @@ export function GlassCard({
     <View
       style={[
         styles.card,
-        { backgroundColor: colors.glass2, borderColor: glowColor ?? colors.glassBorder },
+        { backgroundColor: colors.bg1, borderColor: glowColor ?? colors.border1 },
         shadowStyle,
         style,
       ]}
@@ -59,23 +47,15 @@ export function GlassCard({
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
         />
-      ) : (
-        <LinearGradient
-          colors={['rgba(255,255,255,0.05)', 'rgba(255,255,255,0.00)']}
-          style={StyleSheet.absoluteFillObject}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 0, y: 1 }}
-        />
-      )}
+      ) : null}
       {children}
-      {glowColor ? <GlowBorder color={glowColor} /> : null}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
-    borderRadius: radius.xl,
+    borderRadius: radius.md,
     borderWidth: 1,
     overflow: 'hidden',
   },

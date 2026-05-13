@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -9,7 +8,7 @@ import Animated, {
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { ProgressBar } from './ui/ProgressBar';
 import { useTheme } from '@/lib/useTheme';
-import { spacing, radius, darkColors } from '@/lib/theme';
+import { spacing, radius } from '@/lib/theme';
 
 interface FundCardProps {
   pool: 'sadaqah' | 'zakat' | 'qarz';
@@ -22,24 +21,15 @@ interface FundCardProps {
 const POOL_CONFIG = {
   sadaqah: {
     icon: 'hand-heart' as const,
-    gradientStart: 'rgba(0,230,118,0.25)',
-    gradientEnd: 'rgba(0,230,118,0.04)',
-    glow: darkColors.shadowGreen,
-    borderColor: darkColors.primary,
+    accent: '#2d8a5f',
   },
   zakat: {
     icon: 'star-crescent' as const,
-    gradientStart: 'rgba(68,138,255,0.25)',
-    gradientEnd: 'rgba(68,138,255,0.04)',
-    glow: darkColors.shadowBlue,
-    borderColor: darkColors.accent,
+    accent: '#608dd7',
   },
   qarz: {
     icon: 'handshake' as const,
-    gradientStart: 'rgba(255,215,64,0.25)',
-    gradientEnd: 'rgba(255,215,64,0.04)',
-    glow: darkColors.shadowGold,
-    borderColor: darkColors.gold,
+    accent: '#c89b3c',
   },
 };
 
@@ -47,7 +37,7 @@ function useCountUp(target: number) {
   const [display, setDisplay] = useState(0);
 
   useEffect(() => {
-    const duration = 1200;
+    const duration = 1000;
     const start = Date.now();
 
     const tick = () => {
@@ -78,36 +68,37 @@ export function FundCard({ pool, amount, label, target, onViewHistory }: FundCar
 
   return (
     <Animated.View
-      style={[animStyle, styles.outer, {
-        borderColor: cfg.borderColor,
-        shadowColor: cfg.glow,
-      }]}
+      style={[
+        animStyle,
+        styles.outer,
+        { backgroundColor: colors.bg1, borderColor: colors.border1 },
+      ]}
     >
       <Pressable
-        onPressIn={() => { scale.value = withSpring(0.97, { damping: 15, stiffness: 400 }); }}
-        onPressOut={() => { scale.value = withSpring(1, { damping: 15, stiffness: 400 }); }}
+        onPressIn={() => { scale.value = withSpring(0.985, { damping: 20, stiffness: 400 }); }}
+        onPressOut={() => { scale.value = withSpring(1, { damping: 20, stiffness: 400 }); }}
       >
-        <LinearGradient
-          colors={[cfg.gradientStart, cfg.gradientEnd]}
-          style={StyleSheet.absoluteFillObject}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 0, y: 1 }}
-        />
+        <View style={[styles.rail, { backgroundColor: cfg.accent }]} pointerEvents="none" />
+
         <View style={styles.content}>
-          <View style={[styles.iconBox, { backgroundColor: `${cfg.borderColor}20` }]}>
-            <MaterialCommunityIcons name={cfg.icon} size={22} color={cfg.borderColor} />
+          <View style={styles.headerRow}>
+            <Text style={[styles.label, { color: colors.text3 }]}>{label}</Text>
+            <View style={[styles.iconBox, { backgroundColor: `${cfg.accent}1F` }]}>
+              <MaterialCommunityIcons name={cfg.icon} size={16} color={cfg.accent} />
+            </View>
           </View>
-          <Text style={[styles.label, { color: colors.text3 }]}>{label}</Text>
-          <Text style={[styles.amount, { color: cfg.borderColor }]}>
-            PKR {displayAmount.toLocaleString('en-PK')}
+
+          <Text style={[styles.amount, { color: colors.text1 }]} numberOfLines={1}>
+            <Text style={[styles.amountUnit, { color: colors.text3 }]}>PKR </Text>
+            {displayAmount.toLocaleString('en-PK')}
           </Text>
+
           {target ? (
             <View style={styles.progressSection}>
               <ProgressBar
                 progress={progress}
-                color={cfg.borderColor}
-                height={4}
-                showGlow
+                color={cfg.accent}
+                height={3}
                 style={styles.progressBar}
               />
               <Text style={[styles.progressLabel, { color: colors.text4 }]}>
@@ -116,10 +107,14 @@ export function FundCard({ pool, amount, label, target, onViewHistory }: FundCar
             </View>
           ) : null}
         </View>
+
         {onViewHistory ? (
-          <Pressable onPress={onViewHistory} style={styles.historyBtn}>
-            <Text style={[styles.historyText, { color: cfg.borderColor }]}>View History</Text>
-            <MaterialCommunityIcons name="chevron-right" size={14} color={cfg.borderColor} />
+          <Pressable
+            onPress={onViewHistory}
+            style={[styles.historyBtn, { borderTopColor: colors.border1 }]}
+          >
+            <Text style={[styles.historyText, { color: colors.text2 }]}>View history</Text>
+            <MaterialCommunityIcons name="chevron-right" size={14} color={colors.text3} />
           </Pressable>
         ) : null}
       </Pressable>
@@ -129,60 +124,77 @@ export function FundCard({ pool, amount, label, target, onViewHistory }: FundCar
 
 const styles = StyleSheet.create({
   outer: {
-    width: 280,
-    borderRadius: radius.xl,
-    borderWidth: 1.5,
+    width: 260,
+    borderRadius: radius.md,
+    borderWidth: 1,
     overflow: 'hidden',
-    marginRight: spacing.md,
-    backgroundColor: darkColors.bg2,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 1,
-    shadowRadius: 20,
-    elevation: 10,
+    marginRight: spacing.sm + 4,
+    position: 'relative',
+  },
+  rail: {
+    position: 'absolute',
+    left: 0,
+    top: 14,
+    bottom: 14,
+    width: 3,
+    borderTopRightRadius: 2,
+    borderBottomRightRadius: 2,
   },
   content: {
-    padding: spacing.lg,
+    padding: spacing.md,
+    paddingLeft: spacing.md + 3,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: spacing.sm + 2,
   },
   iconBox: {
-    width: 44,
-    height: 44,
-    borderRadius: 14,
+    width: 30,
+    height: 30,
+    borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: spacing.sm,
   },
   label: {
-    fontSize: 12,
+    fontSize: 10,
     fontFamily: 'Inter_600SemiBold',
-    letterSpacing: 0.8,
+    letterSpacing: 1.4,
     textTransform: 'uppercase',
-    marginBottom: 4,
   },
   amount: {
-    fontSize: 22,
-    fontFamily: 'Inter_700Bold',
+    fontSize: 24,
+    fontFamily: 'SpaceMono_400Regular',
+    fontWeight: '600',
     letterSpacing: -0.5,
+  },
+  amountUnit: {
+    fontSize: 12,
+    fontFamily: 'Inter_500Medium',
   },
   progressSection: {
     marginTop: spacing.md,
   },
   progressBar: {
-    marginBottom: 4,
+    marginBottom: 6,
   },
   progressLabel: {
-    fontSize: 11,
-    fontFamily: 'Inter_400Regular',
+    fontSize: 10.5,
+    fontFamily: 'Inter_500Medium',
+    letterSpacing: 0.4,
   },
   historyBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'flex-end',
-    paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.md,
+    paddingVertical: spacing.sm + 2,
+    paddingHorizontal: spacing.md,
+    borderTopWidth: 1,
     gap: 2,
   },
   historyText: {
-    fontSize: 12,
+    fontSize: 11.5,
     fontFamily: 'Inter_600SemiBold',
   },
 });

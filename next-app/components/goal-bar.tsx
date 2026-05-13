@@ -3,14 +3,14 @@ import { fmtRs } from '@/lib/i18n/dict';
 import type { Config } from '@/lib/db/schema';
 
 interface GoalBarProps {
-  config: Pick<Config, 'goalAmount' | 'goalLabelUr' | 'goalLabelEn' | 'goalDeadline'>;
+  config: Pick<Config, 'goalAmount' | 'goalLabelUr' | 'goalLabelEn' | 'goalDeadline'> | null | undefined;
   totalFund: number;
   locale?: 'ur' | 'en';
   daysRemaining?: number | null;
 }
 
 export function GoalBar({ config, totalFund, locale = 'en', daysRemaining = null }: GoalBarProps) {
-  if (!config.goalAmount || config.goalAmount === 0) return null;
+  if (!config?.goalAmount || config.goalAmount === 0) return null;
   const pct = Math.min(100, Math.round((totalFund / config.goalAmount) * 100));
   const remaining = Math.max(0, config.goalAmount - totalFund);
   const labelUr = config.goalLabelUr || 'خاندانی ہدف';

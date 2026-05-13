@@ -259,16 +259,16 @@ const styles = StyleSheet.create({
   name: { fontSize: 22, fontFamily: 'Inter_700Bold', marginTop: 2 },
   dateLabel: { fontSize: 12, fontFamily: 'Inter_400Regular', marginTop: 2 },
   bellBtn: {
-    width: 44, height: 44, borderRadius: 22,
+    width: 40, height: 40, borderRadius: 12,
     alignItems: 'center', justifyContent: 'center',
     borderWidth: 1, position: 'relative',
   },
   bellBadge: {
     position: 'absolute', top: 6, right: 6,
-    width: 16, height: 16, borderRadius: 8,
+    minWidth: 16, height: 16, paddingHorizontal: 4, borderRadius: 8,
     alignItems: 'center', justifyContent: 'center',
   },
-  bellBadgeText: { color: '#fff', fontSize: 9, fontFamily: 'Inter_700Bold' },
+  bellBadgeText: { color: '#fff', fontSize: 9, fontFamily: 'SpaceMono_400Regular', fontWeight: '700' },
   sectionLabel: {
     fontSize: 11, fontFamily: 'Inter_600SemiBold',
     letterSpacing: 1.2, marginBottom: spacing.sm,
