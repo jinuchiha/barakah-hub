@@ -13,6 +13,7 @@ const schema = z.object({
   pool: z.enum(['sadaqah', 'zakat', 'qarz']).default('sadaqah'),
   monthLabel: z.string().min(3).max(40),
   note: z.string().max(200).optional(),
+  receiptUrl: z.string().url().or(z.string().startsWith('/uploads/')).optional(),
 });
 
 export async function POST(req: NextRequest) {

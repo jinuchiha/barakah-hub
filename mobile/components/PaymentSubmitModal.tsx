@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import {
   View, Text, StyleSheet, Modal, ScrollView,
-  TouchableOpacity, Alert, Platform,
+  TouchableOpacity, Alert, Platform, KeyboardAvoidingView,
 } from 'react-native';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm, Controller, type FieldErrors } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import * as ImagePicker from 'expo-image-picker';
@@ -13,6 +13,7 @@ import { Input } from './ui/Input';
 import { Button } from './ui/Button';
 import { darkColors as colors, radius, spacing } from '@/lib/theme';
 import { currentMonthLabel } from '@/lib/format';
+import { api } from '@/lib/api';
 
 const schema = z.object({
   amount: z.coerce.number().int().positive('Amount must be positive').max(10_000_000),
@@ -26,7 +27,7 @@ type FormData = z.infer<typeof schema>;
 interface PaymentSubmitModalProps {
   visible: boolean;
   onClose: () => void;
-  onSubmit: (data: FormData & { screenshotUri?: string }) => Promise<void>;
+  onSubmit: (data: FormData & { receiptUrl?: string }) => Promise<void>;
 }
 
 const pools = [
@@ -46,8 +47,33 @@ export function PaymentSubmitModal({ visible, onClose, onSubmit }: PaymentSubmit
     formState: { errors },
   } = useForm<FormData>({
     resolver: zodResolver(schema),
-    defaultValues: { pool: 'sadaqah', monthLabel: currentMonthLabel() },
+    mode: 'onTouched',
+    defaultValues: { amount: undefined, pool: 'sadaqah', monthLabel: currentMonthLabel(), note: '' },
   });
+
+  /** Upload selected screenshot to /api/payments/upload-receipt, returns receipt URL. */
+  async function uploadReceiptIfPresent(): Promise<string | undefined> {
+    if (!screenshotUri) return undefined;
+    try {
+      const form = new FormData();
+      const ext = screenshotUri.split('.').pop()?.toLowerCase() === 'png' ? 'png' : 'jpg';
+      // React Native FormData accepts { uri, name, type } objects even though
+      // the lib.dom typing only knows Blob | string. Cast to bypass.
+      form.append('receipt', {
+        uri: screenshotUri,
+        name: `receipt.${ext}`,
+        type: ext === 'png' ? 'image/png' : 'image/jpeg',
+      } as unknown as Blob);
+      const { data } = await api.post<{ url: string }>('/api/payments/upload-receipt', form, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      return data.url;
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Receipt upload failed';
+      Alert.alert('Receipt upload failed', `${msg}\n\nWe'll still try to submit the payment without the screenshot.`);
+      return undefined;
+    }
+  }
 
   const pickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -67,30 +93,42 @@ export function PaymentSubmitModal({ visible, onClose, onSubmit }: PaymentSubmit
   const handleFormSubmit = async (data: FormData) => {
     setSubmitting(true);
     try {
-      await onSubmit({ ...data, screenshotUri });
-      reset({ pool: 'sadaqah', monthLabel: currentMonthLabel() });
+      const receiptUrl = await uploadReceiptIfPresent();
+      await onSubmit({ ...data, receiptUrl });
+      reset({ amount: undefined, pool: 'sadaqah', monthLabel: currentMonthLabel(), note: '' });
       setScreenshotUri(undefined);
       onClose();
+      Alert.alert('Submitted', 'Your payment is awaiting admin verification. Jazak Allah khair.');
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Failed to submit';
-      Alert.alert('Error', msg);
+      Alert.alert('Submission failed', msg);
     } finally {
       setSubmitting(false);
     }
   };
 
+  // If react-hook-form validation fails, show the first error as an Alert so
+  // the user can see what's wrong even if they missed the inline red text.
+  const handleInvalid = (formErrors: FieldErrors<FormData>) => {
+    const first = Object.values(formErrors)[0];
+    const msg = (first?.message as string | undefined) ?? 'Please fill all required fields correctly';
+    Alert.alert('Form incomplete', msg);
+  };
+
   // Cancel should also clear typed amount, note, and attached screenshot so
-  // a future submit doesn't auto-include them. (Reported issue: reopening
-  // the modal after Cancel still showed previous values.)
+  // a future submit doesn't auto-include them.
   const handleCancel = () => {
-    reset({ pool: 'sadaqah', monthLabel: currentMonthLabel() });
+    reset({ amount: undefined, pool: 'sadaqah', monthLabel: currentMonthLabel(), note: '' });
     setScreenshotUri(undefined);
     onClose();
   };
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={handleCancel}>
-      <View style={styles.backdrop}>
+      <KeyboardAvoidingView
+        style={styles.backdrop}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
         <View style={styles.sheet}>
           <View style={styles.handle} />
           <Text style={styles.title}>Submit Payment</Text>
@@ -178,15 +216,16 @@ export function PaymentSubmitModal({ visible, onClose, onSubmit }: PaymentSubmit
             <View style={styles.buttons}>
               <Button label="Cancel" onPress={handleCancel} variant="ghost" style={styles.btn} />
               <Button
-                label="Submit"
-                onPress={handleSubmit(handleFormSubmit)}
+                label={submitting ? 'Submitting…' : 'Submit'}
+                onPress={handleSubmit(handleFormSubmit, handleInvalid)}
                 loading={submitting}
+                disabled={submitting}
                 style={styles.btn}
               />
             </View>
           </ScrollView>
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }

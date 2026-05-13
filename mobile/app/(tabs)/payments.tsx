@@ -82,7 +82,7 @@ function PaymentsScreen() {
 
   const pendingCount = data?.filter((p) => p.pendingVerify).length ?? 0;
 
-  const handleSubmit = async (formData: { amount: number; pool: FundPool; monthLabel: string; note?: string }) => {
+  const handleSubmit = async (formData: { amount: number; pool: FundPool; monthLabel: string; note?: string; receiptUrl?: string }) => {
     await submitMutation.mutateAsync(formData);
   };
 

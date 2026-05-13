@@ -7,6 +7,7 @@ interface SubmitDonationInput {
   pool: FundPool;
   monthLabel: string;
   note?: string;
+  receiptUrl?: string;
 }
 
 async function fetchMyPayments(): Promise<Payment[]> {
