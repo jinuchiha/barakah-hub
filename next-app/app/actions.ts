@@ -27,9 +27,17 @@ import { eq, and, sql } from 'drizzle-orm';
 import { z } from 'zod';
 import { meOrThrow } from '@/lib/auth-server';
 import { db } from '@/lib/db';
-import { members, payments, cases, votes, loans, repayments, auditLog, notifications, messages, memberInvites, config as configTbl } from '@/lib/db/schema';
+import { members, payments, cases, votes, loans, repayments, auditLog, notifications, messages, memberInvites, users, config as configTbl } from '@/lib/db/schema';
 import { monthStartFromLabel } from '@/lib/month';
 import { broadcastPush, sendPushToMembers } from '@/lib/push';
+import { sendApprovalEmail, sendPaymentReceiptEmail, sendEmergencyCaseEmail } from '@/lib/email';
+
+/** Lookup the auth email for a member via auth_id → users.email. Null if missing. */
+async function emailForMember(memberAuthId: string | null): Promise<string | null> {
+  if (!memberAuthId) return null;
+  const [row] = await db.select({ email: users.email }).from(users).where(eq(users.id, memberAuthId)).limit(1);
+  return row?.email ?? null;
+}
 
 /* ─── helpers */
 async function audit(actorId: string, action: string, detail: string, targetId?: string) {
@@ -62,6 +70,10 @@ export async function approveMember(memberId: string) {
     body: 'Salaam — your Barakah Hub account has been approved. Welcome!',
     data: { type: 'approved' },
     channelId: 'admin',
+  }).catch(() => {});
+  // Email approval — fire & forget, never block on email
+  void emailForMember(m.authId).then((email) => {
+    if (email) return sendApprovalEmail(email, m.nameEn || m.nameUr);
   }).catch(() => {});
   revalidatePath('/admin/members');
 }
@@ -220,7 +232,7 @@ export async function verifyPayment(paymentId: string) {
     .set({ pendingVerify: false, verifiedById: me.id, verifiedAt: new Date() })
     .where(eq(payments.id, paymentId));
   await audit(me.id, 'payment-verified', `Verified payment ${paymentId}`);
-  // Notify the donor that their payment was approved
+  // Notify the donor that their payment was approved (push + email receipt)
   const [p] = await db.select().from(payments).where(eq(payments.id, paymentId)).limit(1);
   if (p) {
     void sendPushToMembers([p.memberId], {
@@ -229,6 +241,21 @@ export async function verifyPayment(paymentId: string) {
       data: { type: 'payment-verified', paymentId: p.id },
       channelId: 'payments',
     }).catch(() => {});
+    void (async () => {
+      const [donor] = await db.select().from(members).where(eq(members.id, p.memberId)).limit(1);
+      if (!donor) return;
+      const email = await emailForMember(donor.authId);
+      if (email) {
+        await sendPaymentReceiptEmail(email, {
+          name: donor.nameEn || donor.nameUr,
+          amount: p.amount,
+          pool: p.pool,
+          monthLabel: p.monthLabel,
+          paymentId: p.id,
+          verifiedAt: new Date(),
+        });
+      }
+    })().catch(() => {});
   }
   revalidatePath('/admin/fund');
   revalidatePath('/myaccount');
@@ -438,9 +465,44 @@ export async function createCase(input: z.infer<typeof caseSchema>) {
     data: { type: 'case', caseId: created.id },
     channelId: 'cases',
   }).catch(() => {});
+
+  // Email alert — only for cases flagged emergency (so we don't spam on
+  // every routine request). Sends to every approved member except the
+  // applicant themselves.
+  if (data.emergency) {
+    void (async () => {
+      const recipients = await db
+        .select({ nameEn: members.nameEn, nameUr: members.nameUr, authId: members.authId })
+        .from(members)
+        .where(and(eq(members.status, 'approved'), eq(members.deceased, false), sql`${members.id} != ${me.id}`));
+      const authIds = recipients.map((r) => r.authId).filter((v): v is string => !!v);
+      if (authIds.length === 0) return;
+      const userRows = await db.select({ id: users.id, email: users.email }).from(users).where(inArrayHelper(authIds));
+      const emailByAuthId = new Map(userRows.map((u) => [u.id, u.email]));
+      for (const r of recipients) {
+        if (!r.authId) continue;
+        const email = emailByAuthId.get(r.authId);
+        if (!email) continue;
+        await sendEmergencyCaseEmail(email, {
+          name: r.nameEn || r.nameUr,
+          beneficiary: data.beneficiaryName,
+          category: data.category,
+          amount: data.amount,
+          reasonEn: data.reasonEn,
+          caseId: created.id,
+        });
+      }
+    })().catch(() => {});
+  }
+
   revalidatePath('/cases');
   revalidatePath('/dashboard');
   return created;
+}
+
+/** Drizzle inArray wrapper that handles empty arrays without throwing. */
+function inArrayHelper(values: string[]) {
+  return sql`${users.id} IN (${sql.join(values.map((v) => sql`${v}`), sql`, `)})`;
 }
 
 /* ─── issue loan (admin) */

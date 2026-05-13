@@ -28,6 +28,19 @@ vi.mock('@/lib/db', () => ({
 }));
 vi.mock('next/cache', () => ({ revalidatePath: vi.fn() }));
 
+// Push + email side effects — fire-and-forget no-ops during tests.
+vi.mock('@/lib/push', () => ({
+  broadcastPush: vi.fn().mockResolvedValue({ sent: 0, invalid: 0 }),
+  sendPushToMembers: vi.fn().mockResolvedValue({ sent: 0, invalid: 0 }),
+}));
+vi.mock('@/lib/email', () => ({
+  sendWelcomeEmail: vi.fn().mockResolvedValue(undefined),
+  sendApprovalEmail: vi.fn().mockResolvedValue(undefined),
+  sendPaymentReceiptEmail: vi.fn().mockResolvedValue(undefined),
+  sendEmergencyCaseEmail: vi.fn().mockResolvedValue(undefined),
+  sendMonthlyStatementEmail: vi.fn().mockResolvedValue(undefined),
+}));
+
 const memberRow = {
   id: 'member-1',
   authId: 'auth-1',

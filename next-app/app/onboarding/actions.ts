@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { getSession } from '@/lib/auth-server';
 import { db } from '@/lib/db';
 import { members, memberInvites, auditLog } from '@/lib/db/schema';
+import { sendWelcomeEmail } from '@/lib/email';
 
 const schema = z.object({
   nameEn: z.string().min(2).max(80),
@@ -121,6 +122,11 @@ export async function onboardSelf(input: z.infer<typeof schema>) {
       .update(memberInvites)
       .set({ usedCount: sql`${memberInvites.usedCount} + 1` })
       .where(eq(memberInvites.id, validInvite.id));
+  }
+
+  // Welcome email — fire and forget, don't block onboarding on email failure.
+  if (user.email) {
+    void sendWelcomeEmail(user.email, data.nameEn).catch(() => {});
   }
 
   revalidatePath('/dashboard');

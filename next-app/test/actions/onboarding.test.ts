@@ -22,6 +22,16 @@ vi.mock('next/cache', () => ({
   revalidatePath: vi.fn(),
 }));
 
+// Email helpers no-op during unit tests — we don't want Resend SDK loading
+// or pretending to send during isolated action tests.
+vi.mock('@/lib/email', () => ({
+  sendWelcomeEmail: vi.fn().mockResolvedValue(undefined),
+  sendApprovalEmail: vi.fn().mockResolvedValue(undefined),
+  sendPaymentReceiptEmail: vi.fn().mockResolvedValue(undefined),
+  sendEmergencyCaseEmail: vi.fn().mockResolvedValue(undefined),
+  sendMonthlyStatementEmail: vi.fn().mockResolvedValue(undefined),
+}));
+
 describe('onboardSelf', () => {
   beforeEach(() => {
     vi.resetModules();
