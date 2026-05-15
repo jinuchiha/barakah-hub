@@ -446,10 +446,27 @@ async function CommunityActivity({ meId, isAdmin }: { meId: string; isAdmin: boo
     <>
       {feed.map((item) => {
         if (item.kind === 'payment') {
+          // Anonymous: drop avatar identity and donor name entirely. Show
+          // only "Anonymous donation" + amount — sadqa given in secret.
+          // For self/admin views, item.anon is false and full info shows.
+          if (item.anon) {
+            return (
+              <div key={`p-${item.id}`} className="flex items-center gap-3 border-b border-[var(--border)] px-5 py-2.5 last:border-b-0 hover:bg-[var(--surf-3)]">
+                <div className="grid size-7 shrink-0 place-items-center rounded-full bg-[rgba(200,155,60,0.10)] text-[var(--color-gold)]">
+                  <HandCoins className="size-3.5" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="text-[12.5px] text-[var(--color-cream)]">Anonymous donation</div>
+                  <div className="text-[10.5px] italic text-[var(--txt-4)]">سدقہ — given in secret</div>
+                </div>
+                <div className="num shrink-0 font-semibold text-[var(--color-cream)]">{fmtRs(item.amount)}</div>
+              </div>
+            );
+          }
           return (
             <div key={`p-${item.id}`} className="flex items-center gap-3 border-b border-[var(--border)] px-5 py-2.5 last:border-b-0 hover:bg-[var(--surf-3)]">
               <div className="grid size-7 shrink-0 place-items-center rounded-full text-[10px] font-semibold text-white" style={{ background: item.actor.color }}>
-                {item.anon ? '·' : ini(item.actor.nameEn || (item.actor.nameUr ?? '?'))}
+                {ini(item.actor.nameEn || (item.actor.nameUr ?? '?'))}
               </div>
               <div className="min-w-0 flex-1">
                 <div className="text-[12.5px] text-[var(--color-cream)]">

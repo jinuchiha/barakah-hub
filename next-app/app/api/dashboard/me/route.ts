@@ -27,39 +27,67 @@ export async function GET() {
       .select()
       .from(auditLog)
       .orderBy(desc(auditLog.createdAt))
-      .limit(20);
+      .limit(30);
 
     const isAdmin = me.role === 'admin';
-    // Sadaqah/Zakat payment activity is private — hide details when the
-    // viewer isn't the donor or an admin. The aggregate (running total)
-    // is still shown via the fund card, but who-gave-what stays between
-    // the donor and the treasurer.
-    const isPrivatePaymentAction = (action: string, detail: string | null) => {
-      if (!action.startsWith('payment')) return false;
-      const d = (detail ?? '').toLowerCase();
-      return d.includes('sadaqah') || d.includes('zakat');
-    };
+
+    /**
+     * Privacy policy for the activity feed (per user request 2026-05-15):
+     *
+     *  - Every donation is anonymous to other members. Non-admin viewers
+     *    must never be able to learn who gave what. Previously we leaked
+     *    donor identity through the audit detail string and the activity
+     *    icon coloured by donor.
+     *  - The donor themselves and admins still see full details so they
+     *    can recognise their own contributions / verify receipts.
+     *  - Sadqa is "given in secret" by Islamic principle, so for non-self
+     *    donations we collapse the entry to "Anonymous donation" with no
+     *    pool / amount / month exposed. The funds card already shows the
+     *    aggregate going up — that's the visible signal.
+     */
+    const isPaymentAction = (action: string) => action.startsWith('payment');
 
     const recentActivity = recentAudit
-      .filter((entry) => {
-        if (isAdmin) return true;
-        if (entry.actorId === me.id) return true;
-        return !isPrivatePaymentAction(entry.action, entry.detail);
-      })
-      .slice(0, 8)
       .map((entry) => {
-        const isOwnPrivate = entry.actorId === me.id && isPrivatePaymentAction(entry.action, entry.detail);
+        const isSelf = entry.actorId === me.id;
+        const isPayment = isPaymentAction(entry.action);
+
+        // Other people's payments — heavily anonymise.
+        if (isPayment && !isSelf && !isAdmin) {
+          return {
+            id: entry.id,
+            type: 'payment' as const,
+            title: 'Anonymous donation',
+            subtitle: undefined,
+            timestamp: entry.createdAt.toISOString(),
+            anonymous: true,
+          };
+        }
+
+        // Own payment — still shows "Your donation" but no extra identity.
+        if (isPayment && isSelf) {
+          return {
+            id: entry.id,
+            type: 'payment' as const,
+            title: 'Your donation',
+            subtitle: entry.detail ?? undefined,
+            timestamp: entry.createdAt.toISOString(),
+            anonymous: false,
+          };
+        }
+
+        // Non-payment activity (votes, cases, loans, members) — keep the
+        // detail since these are intentionally public for community trust.
         return {
           id: entry.id,
           type: mapActionToType(entry.action),
           title: entry.action.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()),
-          // For non-self private payments, strip donor reference from detail
           subtitle: entry.detail ?? undefined,
           timestamp: entry.createdAt.toISOString(),
-          anonymous: !isAdmin && entry.actorId !== me.id && isPrivatePaymentAction(entry.action, entry.detail),
-          isOwnPrivate,
+          anonymous: false,
         };
-      });
+      })
+      .slice(0, 8);
 
     return NextResponse.json({ member: me, currentMonthPayment, recentActivity });
   } catch {
@@ -67,7 +95,7 @@ export async function GET() {
   }
 }
 
-function mapActionToType(action: string): string {
+function mapActionToType(action: string): 'payment' | 'vote' | 'case' | 'loan' | 'member' {
   if (action.startsWith('payment')) return 'payment';
   if (action.startsWith('vote') || action.startsWith('emergency')) return 'vote';
   if (action.startsWith('loan')) return 'loan';
