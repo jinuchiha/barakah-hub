@@ -3,7 +3,7 @@ import Link from 'next/link';
 import {
   Wallet, Users, FileText, Vote, PieChart as PieIcon, Target,
   HandCoins, AlertTriangle, ArrowDownToLine, LogIn, LogOut, UserPlus, CheckCircle2, Mail,
-  Activity,
+  Activity, Hourglass,
 } from 'lucide-react';
 import { getMeOrRedirect } from '@/lib/auth-server';
 import { db } from '@/lib/db';
@@ -24,6 +24,16 @@ export default async function DashboardPage() {
     .from(payments)
     .where(eq(payments.pendingVerify, false));
   const totalFund = Number(totalRow?.total ?? 0);
+
+  // Total Rs sitting in the supervisor/admin approval flow — shown to
+  // admin as a 5th stat card so they can see workload at a glance.
+  const [pendingRow] = isAdmin
+    ? await db
+        .select({ total: sql<number>`COALESCE(SUM(${payments.amount}),0)::int` })
+        .from(payments)
+        .where(eq(payments.pendingVerify, true))
+    : [{ total: 0 }];
+  const pendingAmount = Number(pendingRow?.total ?? 0);
 
   const [memberCount] = await db
     .select({ c: sql<number>`COUNT(*)::int` })
@@ -121,7 +131,8 @@ export default async function DashboardPage() {
         {isAdmin ? (
           <>
             <StatCard label="Total Fund"         icon={<Wallet />}    value={fmtRs(totalFund)}                                       hint={`${memberCount.c} members`} tone="emerald" spark={sparkValues} />
-            <StatCard label="Active Members"     icon={<Users />}     value={memberCount.c}                                          hint="Approved family" tone="gold" />
+            <StatCard label="Pending Approval"   icon={<Hourglass />} value={fmtRs(pendingAmount)}                                   hint={pendingAmount > 0 ? 'In supervisor/admin flow' : 'Nothing pending'} tone="gold" />
+            <StatCard label="Active Members"     icon={<Users />}     value={memberCount.c}                                          hint="Approved family" tone="violet" />
             <StatCard label="Outstanding Loans"  icon={<FileText />}  value={fmtRs(Number(outstandingLoans[0]?.owed ?? 0))}          hint="Active qarz" tone="ruby" />
             <StatCard label="Pending Votes"      icon={<Vote />}      value={pendingVotes}                                           hint={pendingVotes ? 'Needs review' : 'All resolved'} tone="sapphire" />
           </>

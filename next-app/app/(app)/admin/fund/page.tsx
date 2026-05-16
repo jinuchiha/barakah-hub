@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
-import { eq, desc, sql, and, isNull, isNotNull } from 'drizzle-orm';
+import { eq, desc, sql, and, isNull, isNotNull, or } from 'drizzle-orm';
 import { getMeOrRedirect, canManageFunds } from '@/lib/auth-server';
 import { db } from '@/lib/db';
 import { members, payments } from '@/lib/db/schema';
@@ -36,12 +36,19 @@ export default async function FundPage() {
   if (isSupervisor) {
     const [awaitingSupervisor, allMembers] = await Promise.all([
       db.select().from(payments)
-        .where(and(eq(payments.pendingVerify, true), isNull(payments.supervisorApprovedAt)))
+        .where(and(
+          eq(payments.pendingVerify, true),
+          isNull(payments.supervisorApprovedAt),
+          isNull(payments.supervisorRejectedAt),
+        ))
         .orderBy(desc(payments.createdAt)),
       db.select({ id: members.id, nameEn: members.nameEn, nameUr: members.nameUr, color: members.color })
         .from(members),
     ]);
     const memById = new Map(allMembers.map((m) => [m.id, m]));
+
+    // Total amount awaiting supervisor — helps Noor see workload at a glance.
+    const pendingTotal = awaitingSupervisor.reduce((s, p) => s + p.amount, 0);
 
     return (
       <div>
@@ -52,6 +59,12 @@ export default async function FundPage() {
               Review and approve incoming payments. An admin will give the final verification afterwards.
             </p>
           </div>
+          {awaitingSupervisor.length > 0 && (
+            <div className="text-right">
+              <div className="text-[10px] font-semibold uppercase tracking-[1.5px] text-[var(--txt-3)]">Pending amount</div>
+              <div className="num-display mt-1 text-2xl text-[var(--color-gold)]">{fmtRs(pendingTotal)}</div>
+            </div>
+          )}
         </header>
 
         <Card>
@@ -81,7 +94,7 @@ export default async function FundPage() {
                         {p.note ? ` · ${p.note}` : ''}
                       </div>
                     </div>
-                    <VerifyButtons paymentId={p.id} mode="supervisor" />
+                    <VerifyButtons paymentId={p.id} mode="supervisor-pending" />
                   </div>
                 );
               })
@@ -93,19 +106,29 @@ export default async function FundPage() {
   }
 
   // Admin: full view.
-  const [allMembers, history, awaitingSupervisor, awaitingAdmin] = await Promise.all([
-    // Only show approved + alive members in the record-payment dropdown.
-    // Rejected and pending shouldn't be selectable as donors.
+  const [allMembers, history, awaitingSupervisor, awaitingAdmin, rejectedBySupervisor] = await Promise.all([
     db.select().from(members).where(and(eq(members.deceased, false), eq(members.status, 'approved'))),
     db.select().from(payments).where(eq(payments.pendingVerify, false)).orderBy(desc(payments.paidOn)).limit(50),
+    // Awaiting supervisor: still in their initial queue (not approved, not rejected)
     db.select().from(payments)
-      .where(and(eq(payments.pendingVerify, true), isNull(payments.supervisorApprovedAt)))
+      .where(and(
+        eq(payments.pendingVerify, true),
+        isNull(payments.supervisorApprovedAt),
+        isNull(payments.supervisorRejectedAt),
+      ))
       .orderBy(desc(payments.createdAt)),
+    // Awaiting admin: supervisor has approved, admin needs to verify
     db.select().from(payments)
       .where(and(eq(payments.pendingVerify, true), isNotNull(payments.supervisorApprovedAt)))
       .orderBy(desc(payments.supervisorApprovedAt)),
+    // Supervisor rejected — admin must decide: resend or delete
+    db.select().from(payments)
+      .where(and(eq(payments.pendingVerify, true), isNotNull(payments.supervisorRejectedAt)))
+      .orderBy(desc(payments.supervisorRejectedAt)),
   ]);
   const memById = new Map(allMembers.map((m) => [m.id, m]));
+  const pendingTotal = [...awaitingSupervisor, ...awaitingAdmin, ...rejectedBySupervisor]
+    .reduce((s, p) => s + p.amount, 0);
 
   const pools = await db
     .select({
@@ -168,10 +191,19 @@ export default async function FundPage() {
         </CardBody>
       </Card>
 
+      {(awaitingSupervisor.length + awaitingAdmin.length + rejectedBySupervisor.length) > 0 && (
+        <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2 rounded-md border border-[var(--border-accent)] bg-[rgba(200,155,60,0.06)] px-4 py-3">
+          <span className="text-[11px] font-semibold uppercase tracking-[2px] text-[var(--color-gold-4)]">
+            Pending in approval flow
+          </span>
+          <span className="num-display text-xl text-[var(--color-gold)]">{fmtRs(pendingTotal)}</span>
+        </div>
+      )}
+
       {awaitingAdmin.length > 0 && (
         <Card className="mb-4 border-[var(--color-gold)]/40 ring-1 ring-[var(--color-gold)]/20">
           <CardHeader>
-            <CardTitle>✓ Supervisor-Approved · Awaiting Final ({awaitingAdmin.length})</CardTitle>
+            <CardTitle>✓ Supervisor-Approved · Awaiting Your Final ({awaitingAdmin.length})</CardTitle>
             <span className="text-[10px] uppercase tracking-[1.5px] text-[var(--color-gold-4)]">
               Verify to release into the fund
             </span>
@@ -196,7 +228,48 @@ export default async function FundPage() {
                       </div>
                     )}
                   </div>
-                  <VerifyButtons paymentId={p.id} mode="admin" />
+                  <VerifyButtons paymentId={p.id} mode="admin-approved" />
+                </div>
+              );
+            })}
+          </CardBody>
+        </Card>
+      )}
+
+      {rejectedBySupervisor.length > 0 && (
+        <Card className="mb-4 border-[#dc5252]/30 ring-1 ring-[#dc5252]/15">
+          <CardHeader>
+            <CardTitle>✗ Supervisor Rejected · Your Decision ({rejectedBySupervisor.length})</CardTitle>
+            <span className="text-[10px] uppercase tracking-[1.5px] text-[#f08585]">
+              Resend for re-approval or delete
+            </span>
+          </CardHeader>
+          <CardBody className="p-0">
+            {rejectedBySupervisor.map((p) => {
+              const m = memById.get(p.memberId);
+              const supr = p.supervisorRejectedById ? memById.get(p.supervisorRejectedById) : null;
+              return (
+                <div key={p.id} className="flex items-start gap-3 border-b border-[var(--border)] p-3 last:border-b-0">
+                  <div className="mt-0.5 grid size-8 place-items-center rounded-full text-xs font-bold text-white" style={{ background: m?.color || '#888' }}>{m ? ini(m.nameEn || m.nameUr) : '?'}</div>
+                  <div className="flex-1">
+                    <div className="text-sm font-semibold text-[var(--color-cream)]">
+                      {m?.nameEn || m?.nameUr} · <span className="text-[var(--color-gold)]">{fmtRs(p.amount)}</span>
+                    </div>
+                    <div className="text-[11px] text-[var(--color-gold-4)]">
+                      {p.monthLabel} · {p.pool}{p.note ? ` · ${p.note}` : ''}
+                    </div>
+                    {supr && (
+                      <div className="mt-0.5 text-[10px] text-[#f08585]">
+                        Rejected by {supr.nameEn || supr.nameUr}
+                      </div>
+                    )}
+                    {p.supervisorRejectionNote && (
+                      <div className="mt-1 rounded border-l-2 border-[#dc5252]/40 bg-[rgba(220,82,82,0.05)] px-2 py-1 text-[11px] italic text-[var(--txt-2)]">
+                        "{p.supervisorRejectionNote}"
+                      </div>
+                    )}
+                  </div>
+                  <VerifyButtons paymentId={p.id} mode="admin-rejected" />
                 </div>
               );
             })}
@@ -209,7 +282,7 @@ export default async function FundPage() {
           <CardHeader>
             <CardTitle>⏳ Pending Supervisor ({awaitingSupervisor.length})</CardTitle>
             <span className="text-[10px] uppercase tracking-[1.5px] text-[var(--color-gold-4)]">
-              You can verify directly or wait for supervisor
+              Waiting for supervisor's first review
             </span>
           </CardHeader>
           <CardBody className="p-0">
@@ -224,7 +297,7 @@ export default async function FundPage() {
                     </div>
                     <div className="text-[11px] text-[var(--color-gold-4)]">{p.monthLabel} · {p.pool}{p.note ? ` · ${p.note}` : ''}</div>
                   </div>
-                  <VerifyButtons paymentId={p.id} mode="admin" />
+                  <VerifyButtons paymentId={p.id} mode="admin-pending" />
                 </div>
               );
             })}
@@ -248,12 +321,14 @@ export default async function FundPage() {
               ) : history.map((p) => {
                 const m = memById.get(p.memberId);
                 return (
-                  <div key={p.id} className="flex items-center gap-3 border-b border-[rgba(214,210,199,0.06)] px-3 py-2.5">
+                  <div key={p.id} className="flex items-center gap-2 border-b border-[rgba(214,210,199,0.06)] px-3 py-2.5">
                     <div className="grid size-7 place-items-center rounded-full text-[10px] font-bold text-white" style={{ background: m?.color || '#888' }}>{m ? ini(m.nameEn || m.nameUr) : '?'}</div>
-                    <div className="flex-1 min-w-0">
+                    <div className="min-w-0 flex-1">
                       <div className="text-sm text-[var(--color-cream)]">{m?.nameEn || m?.nameUr} <span className="font-bold text-[var(--color-gold)]">{fmtRs(p.amount)}</span></div>
                       <div className="text-[10px] text-[var(--color-gold-4)]">{p.monthLabel} · {p.pool} · {new Date(p.paidOn).toLocaleDateString('en-GB')}</div>
                     </div>
+                    {/* Admin can delete verified payments too — useful for fixing recording mistakes */}
+                    <VerifyButtons paymentId={p.id} mode="admin-pending" />
                   </div>
                 );
               })}

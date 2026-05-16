@@ -245,9 +245,16 @@ export async function supervisorApprovePayment(paymentId: string) {
   if (me.role !== 'supervisor' && me.role !== 'admin') {
     throw new Error('Supervisor or admin only');
   }
+  // Approval clears any prior rejection in case admin resent.
   const updated = await db
     .update(payments)
-    .set({ supervisorApprovedAt: new Date(), supervisorApprovedById: me.id })
+    .set({
+      supervisorApprovedAt: new Date(),
+      supervisorApprovedById: me.id,
+      supervisorRejectedAt: null,
+      supervisorRejectedById: null,
+      supervisorRejectionNote: null,
+    })
     .where(and(
       eq(payments.id, paymentId),
       eq(payments.pendingVerify, true),
@@ -263,11 +270,104 @@ export async function supervisorApprovePayment(paymentId: string) {
   revalidatePath('/admin/fund');
 }
 
-/* ─── verify / reject pending payment (admin) */
+/* ─── supervisor reject (admin must decide: resend or delete) */
+export async function supervisorRejectPayment(paymentId: string, note?: string) {
+  if (!/^[0-9a-f-]{36}$/i.test(paymentId)) throw new Error('Invalid id');
+  const me = await meOrThrow();
+  if (me.role !== 'supervisor' && me.role !== 'admin') {
+    throw new Error('Supervisor or admin only');
+  }
+  const trimmedNote = note?.trim().slice(0, 500) || null;
+  const updated = await db
+    .update(payments)
+    .set({
+      supervisorRejectedAt: new Date(),
+      supervisorRejectedById: me.id,
+      supervisorRejectionNote: trimmedNote,
+      // Clear any prior approval in case supervisor changes mind.
+      supervisorApprovedAt: null,
+      supervisorApprovedById: null,
+    })
+    .where(and(
+      eq(payments.id, paymentId),
+      eq(payments.pendingVerify, true),
+    ))
+    .returning();
+  if (updated.length === 0) throw new Error('Payment not found or already verified');
+  await audit(
+    me.id,
+    'payment-supervisor-rejected',
+    `Rejected Rs ${updated[0].amount} ${updated[0].pool}${trimmedNote ? ` — ${trimmedNote}` : ''}`,
+    updated[0].memberId,
+  );
+  revalidatePath('/admin/fund');
+}
+
+/* ─── admin resend rejected payment back to supervisor */
+export async function adminResendPaymentToSupervisor(paymentId: string) {
+  if (!/^[0-9a-f-]{36}$/i.test(paymentId)) throw new Error('Invalid id');
+  const me = await meOrThrow();
+  if (me.role !== 'admin') throw new Error('Admin only');
+  const updated = await db
+    .update(payments)
+    .set({
+      supervisorRejectedAt: null,
+      supervisorRejectedById: null,
+      supervisorRejectionNote: null,
+      supervisorApprovedAt: null,
+      supervisorApprovedById: null,
+    })
+    .where(and(
+      eq(payments.id, paymentId),
+      eq(payments.pendingVerify, true),
+    ))
+    .returning();
+  if (updated.length === 0) throw new Error('Payment not found or already verified');
+  await audit(
+    me.id,
+    'payment-resent-to-supervisor',
+    `Resent Rs ${updated[0].amount} ${updated[0].pool} back to supervisor for re-approval`,
+    updated[0].memberId,
+  );
+  revalidatePath('/admin/fund');
+}
+
+/* ─── admin hard-delete payment (any state) */
+export async function adminDeletePayment(paymentId: string) {
+  if (!/^[0-9a-f-]{36}$/i.test(paymentId)) throw new Error('Invalid id');
+  const me = await meOrThrow();
+  if (me.role !== 'admin') throw new Error('Admin only');
+  const [p] = await db.select().from(payments).where(eq(payments.id, paymentId)).limit(1);
+  if (!p) return;
+  await db.delete(payments).where(eq(payments.id, paymentId));
+  await audit(
+    me.id,
+    'payment-deleted',
+    `Deleted Rs ${p.amount} ${p.pool} for ${p.monthLabel}`,
+    p.memberId,
+  );
+  revalidatePath('/admin/fund');
+}
+
+/* ─── verify / reject pending payment (admin)
+ *
+ * Per workflow: cash is physically with the supervisor, so final verification
+ * requires the supervisor to have approved. If supervisor rejected, admin
+ * must either resend (adminResendPaymentToSupervisor) or delete
+ * (adminDeletePayment) — they can't override the rejection here.
+ */
 export async function verifyPayment(paymentId: string) {
   if (!/^[0-9a-f-]{36}$/i.test(paymentId)) throw new Error('Invalid id');
   const me = await meOrThrow();
   if (me.role !== 'admin') throw new Error('Admin only');
+
+  const [existing] = await db.select().from(payments).where(eq(payments.id, paymentId)).limit(1);
+  if (!existing) throw new Error('Payment not found');
+  if (!existing.pendingVerify) throw new Error('Already verified');
+  if (existing.supervisorRejectedAt) {
+    throw new Error('Supervisor rejected this payment — resend it for re-approval first, or delete it.');
+  }
+
   await db
     .update(payments)
     .set({ pendingVerify: false, verifiedById: me.id, verifiedAt: new Date() })

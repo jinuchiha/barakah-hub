@@ -137,6 +137,12 @@ export const payments = pgTable('payments', {
   // admin can always verify directly. See app/actions.ts.
   supervisorApprovedAt: timestamp('supervisor_approved_at', { withTimezone: true }),
   supervisorApprovedById: uuid('supervisor_approved_by_id').references(() => members.id, { onDelete: 'set null' }),
+  // Supervisor rejection — admin can either resend (clear these fields)
+  // or delete the payment. Admin canNOT verify directly after a
+  // supervisor rejection — cash is physically with the supervisor.
+  supervisorRejectedAt: timestamp('supervisor_rejected_at', { withTimezone: true }),
+  supervisorRejectedById: uuid('supervisor_rejected_by_id').references(() => members.id, { onDelete: 'set null' }),
+  supervisorRejectionNote: text('supervisor_rejection_note'),
   verifiedById: uuid('verified_by_id').references(() => members.id),
   verifiedAt: timestamp('verified_at', { withTimezone: true }),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
