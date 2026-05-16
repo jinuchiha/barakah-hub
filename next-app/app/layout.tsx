@@ -4,8 +4,14 @@ import { Toaster } from 'sonner';
 import { ServiceWorkerRegister } from '@/components/sw-register';
 
 export const metadata: Metadata = {
-  title: 'Barakah Hub — Islamic Family Fund',
-  description: 'Barakah Hub — Islamic family fund: sadqa, qarz-e-hasana, emergency vote, audit trail',
+  // Template applies a crescent to every sub-page title automatically.
+  // Sub-pages set `title: 'Fund Register · Barakah Hub'` etc; the template
+  // wraps them as "🌙 Fund Register · Barakah Hub".
+  title: {
+    default: '🌙 Barakah Hub',
+    template: '🌙 %s',
+  },
+  description: 'Barakah Hub · Islamic family fund: sadqa, qarz-e-hasana, emergency vote, audit trail',
   manifest: '/manifest.webmanifest',
   applicationName: 'Barakah Hub',
   appleWebApp: { capable: true, title: 'Barakah Hub', statusBarStyle: 'black-translucent' },
