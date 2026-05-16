@@ -8,11 +8,17 @@ import {
   AlertTriangle, FileText, Megaphone, ScrollText, UserPlus,
 } from 'lucide-react';
 
-const NAV: { href: string; label: string; labelUr: string; icon: React.ComponentType<{ className?: string }>; admin?: boolean }[] = [
+const NAV: { href: string; label: string; labelUr: string; icon: React.ComponentType<{ className?: string }>; admin?: boolean; supervisor?: boolean }[] = [
   { href: '/dashboard',       label: 'Dashboard',       labelUr: 'ڈیش بورڈ',       icon: LayoutDashboard },
   { href: '/myaccount',       label: 'My Account',      labelUr: 'میرا کھاتہ',     icon: User },
   { href: '/tree',            label: 'Family Tree',     labelUr: 'خاندانی درخت',   icon: GitBranch },
   { href: '/cases',           label: 'Emergency Vote',  labelUr: 'ایمرجنسی ووٹ',   icon: AlertTriangle },
+  // Supervisor-visible link to the approval queue. Sits in the main
+  // section (not the admin section) so the supervisor sees their full
+  // member nav with one extra item — their work surface. Hidden from
+  // regular members. Admins also see it (their normal admin nav already
+  // points at the same /admin/fund page).
+  { href: '/admin/fund',      label: 'Fund Approvals',  labelUr: 'فنڈ منظوری',     icon: Wallet,   supervisor: true },
   { href: '/notifications',   label: 'Notifications',   labelUr: 'اطلاعات',        icon: Bell },
   { href: '/messages',        label: 'Messages',        labelUr: 'پیغامات',        icon: Mail },
   { href: '/settings',        label: 'Settings',        labelUr: 'ترتیبات',        icon: Settings },
@@ -27,9 +33,9 @@ const NAV: { href: string; label: string; labelUr: string; icon: React.Component
 
 interface NavProps {
   isAdmin?: boolean;
-  /** Supervisor role — fund collector. Sees only the fund register link;
-   *  all other nav items (including non-admin "main" items) are hidden
-   *  per the explicit spec: "baqi kuch bhe nahi pata chalana chaye". */
+  /** Supervisor role — fund collector. Sees the full member nav plus
+   *  a "Fund Approvals" link in the main section. Their work surface
+   *  is the same role-aware /admin/fund page that admins use. */
   isSupervisor?: boolean;
   locale?: 'ur' | 'en';
   /** Called after a nav link is activated. Used by the mobile drawer to close itself. */
@@ -43,9 +49,20 @@ interface NavProps {
 /** Inner nav list — shared between desktop `<Sidebar>` and the mobile drawer. */
 export function SidebarNav({ isAdmin = false, isSupervisor = false, locale = 'en', onNavigate, layoutIdSuffix = 'desktop', badges = {} }: NavProps) {
   const pathname = usePathname();
-  const items = isSupervisor
-    ? NAV.filter((n) => n.href === '/admin/fund')
-    : NAV.filter((n) => !n.admin || isAdmin);
+  // Item visibility rules:
+  //  - Members (default): non-admin, non-supervisor items only
+  //  - Supervisors:       member items + the supervisor "Fund Approvals" link
+  //  - Admins:            everything (admin section + their /admin/fund variant)
+  // Admin section's separate /admin/fund entry is suppressed for
+  // supervisors so they don't see a duplicate.
+  const items = NAV.filter((n) => {
+    if (n.admin) return isAdmin;
+    // Show the supervisor approvals link only to supervisors. Admins
+    // already reach the same page through their admin-section "Fund
+    // Register" link, so they don't need a duplicate in the main nav.
+    if (n.supervisor) return isSupervisor && !isAdmin;
+    return true;
+  });
   const adminStart = items.findIndex((n) => n.admin);
 
   return (

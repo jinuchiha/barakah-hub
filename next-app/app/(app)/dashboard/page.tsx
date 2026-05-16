@@ -5,7 +5,7 @@ import {
   HandCoins, AlertTriangle, ArrowDownToLine, LogIn, LogOut, UserPlus, CheckCircle2, Mail,
   Activity,
 } from 'lucide-react';
-import { getMeOrRedirectSupervisor } from '@/lib/auth-server';
+import { getMeOrRedirect } from '@/lib/auth-server';
 import { db } from '@/lib/db';
 import { members, payments, cases, votes, loans, config as configTbl, auditLog } from '@/lib/db/schema';
 import { StatCard } from '@/components/stat-card';
@@ -16,7 +16,7 @@ import { fmtRs } from '@/lib/i18n/dict';
 import { ini } from '@/lib/utils';
 
 export default async function DashboardPage() {
-  const me = await getMeOrRedirectSupervisor();
+  const me = await getMeOrRedirect();
   const isAdmin = me.role === 'admin';
 
   const [totalRow] = await db
