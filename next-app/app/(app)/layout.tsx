@@ -1,4 +1,4 @@
-import { eq, and } from 'drizzle-orm';
+import { eq, and, isNull } from 'drizzle-orm';
 import { getMeOrRedirect } from '@/lib/auth-server';
 import { db } from '@/lib/db';
 import { notifications, members, payments } from '@/lib/db/schema';
@@ -12,10 +12,29 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const isAdmin = me.role === 'admin';
   const isSupervisor = me.role === 'supervisor';
 
+  /**
+   * Sidebar badge counts. Each role sees only the count they can act on:
+   *  - Admin: ALL pending payments (anything in approval flow)
+   *  - Supervisor: only payments awaiting their first decision —
+   *    not the ones they already approved or rejected, and not the
+   *    ones admin is still resending. The badge must match what they
+   *    actually see on the Fund Approvals page.
+   */
   const [unreadCount, pendingMembers, pendingPayments] = await Promise.all([
     db.$count(notifications, and(eq(notifications.recipientId, me.id), eq(notifications.read, false))),
     isAdmin ? db.$count(members, eq(members.status, 'pending')) : Promise.resolve(0),
-    isAdmin || isSupervisor ? db.$count(payments, eq(payments.pendingVerify, true)) : Promise.resolve(0),
+    isAdmin
+      ? db.$count(payments, eq(payments.pendingVerify, true))
+      : isSupervisor
+        ? db.$count(
+            payments,
+            and(
+              eq(payments.pendingVerify, true),
+              isNull(payments.supervisorApprovedAt),
+              isNull(payments.supervisorRejectedAt),
+            ),
+          )
+        : Promise.resolve(0),
   ]);
 
   const adminBadges: Record<string, number> = {};

@@ -248,24 +248,37 @@ export default async function FundPage() {
             {rejectedBySupervisor.map((p) => {
               const m = memById.get(p.memberId);
               const supr = p.supervisorRejectedById ? memById.get(p.supervisorRejectedById) : null;
+              const rejectedAt = p.supervisorRejectedAt ? new Date(p.supervisorRejectedAt) : null;
               return (
                 <div key={p.id} className="flex items-start gap-3 border-b border-[var(--border)] p-3 last:border-b-0">
                   <div className="mt-0.5 grid size-8 place-items-center rounded-full text-xs font-bold text-white" style={{ background: m?.color || '#888' }}>{m ? ini(m.nameEn || m.nameUr) : '?'}</div>
                   <div className="flex-1">
-                    <div className="text-sm font-semibold text-[var(--color-cream)]">
-                      {m?.nameEn || m?.nameUr} · <span className="text-[var(--color-gold)]">{fmtRs(p.amount)}</span>
+                    <div className="flex flex-wrap items-baseline gap-x-2">
+                      <span className="text-sm font-semibold text-[var(--color-cream)]">
+                        {m?.nameEn || m?.nameUr}
+                      </span>
+                      <span className="num text-[var(--color-gold)]">{fmtRs(p.amount)}</span>
+                      <span className="rounded-full bg-[rgba(220,82,82,0.10)] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-[#f08585]">
+                        Rejected
+                      </span>
                     </div>
-                    <div className="text-[11px] text-[var(--color-gold-4)]">
-                      {p.monthLabel} · {p.pool}{p.note ? ` · ${p.note}` : ''}
+                    <div className="mt-0.5 text-[11px] text-[var(--txt-3)]">
+                      <span className="capitalize">{p.pool}</span> · {p.monthLabel} · Submitted {new Date(p.createdAt).toLocaleDateString('en-GB')}
+                      {p.note ? <> · Member note: <span className="italic">{p.note}</span></> : null}
                     </div>
-                    {supr && (
-                      <div className="mt-0.5 text-[10px] text-[#f08585]">
-                        Rejected by {supr.nameEn || supr.nameUr}
-                      </div>
-                    )}
-                    {p.supervisorRejectionNote && (
-                      <div className="mt-1 rounded border-l-2 border-[#dc5252]/40 bg-[rgba(220,82,82,0.05)] px-2 py-1 text-[11px] italic text-[var(--txt-2)]">
+                    <div className="mt-1.5 text-[10.5px] text-[#f08585]">
+                      Rejected by {supr ? (supr.nameEn || supr.nameUr) : 'supervisor'}
+                      {rejectedAt && (
+                        <> · {rejectedAt.toLocaleDateString('en-GB')} at {rejectedAt.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}</>
+                      )}
+                    </div>
+                    {p.supervisorRejectionNote ? (
+                      <div className="mt-1.5 rounded border-l-2 border-[#dc5252]/40 bg-[rgba(220,82,82,0.05)] px-2.5 py-1.5 text-[12px] italic text-[var(--txt-2)]">
                         "{p.supervisorRejectionNote}"
+                      </div>
+                    ) : (
+                      <div className="mt-1.5 text-[10.5px] italic text-[var(--txt-4)]">
+                        Supervisor did not leave a reason
                       </div>
                     )}
                   </div>
