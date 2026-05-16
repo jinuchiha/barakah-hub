@@ -94,7 +94,9 @@ export default async function FundPage() {
 
   // Admin: full view.
   const [allMembers, history, awaitingSupervisor, awaitingAdmin] = await Promise.all([
-    db.select().from(members).where(eq(members.deceased, false)),
+    // Only show approved + alive members in the record-payment dropdown.
+    // Rejected and pending shouldn't be selectable as donors.
+    db.select().from(members).where(and(eq(members.deceased, false), eq(members.status, 'approved'))),
     db.select().from(payments).where(eq(payments.pendingVerify, false)).orderBy(desc(payments.paidOn)).limit(50),
     db.select().from(payments)
       .where(and(eq(payments.pendingVerify, true), isNull(payments.supervisorApprovedAt)))

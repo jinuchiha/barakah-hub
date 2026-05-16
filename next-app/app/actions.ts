@@ -165,7 +165,18 @@ export async function addMember(input: z.infer<typeof addMemberSchema>) {
   return created;
 }
 
-/* ─── record payment (admin) */
+/* ─── record payment (admin / supervisor)
+ *
+ * Per user requirement: EVERY donation flows through the supervisor
+ * approval queue first, even admin-recorded ones, so a single human
+ * eye (the fund collector) confirms cash receipt before money lands
+ * in the verified pool. Admin can still verify directly afterwards.
+ *
+ * Behavior:
+ *   - pendingVerify = true (lands in /admin/fund approval queue)
+ *   - supervisor_approved_at = NULL (awaiting supervisor)
+ *   - actor recorded in audit log so we know who entered the row
+ */
 const recordPaymentSchema = z.object({
   memberId: z.string().uuid(),
   amount: z.number().int().positive().max(10_000_000),
@@ -176,19 +187,24 @@ const recordPaymentSchema = z.object({
 
 export async function recordPayment(input: z.infer<typeof recordPaymentSchema>) {
   const me = await meOrThrow();
-  if (me.role !== 'admin') throw new Error('Only admin can record direct payments');
+  if (me.role !== 'admin' && me.role !== 'supervisor') {
+    throw new Error('Only admin or supervisor can record payments');
+  }
   const data = recordPaymentSchema.parse(input);
   const [created] = await db
     .insert(payments)
     .values({
       ...data,
       monthStart: monthStartFromLabel(data.monthLabel),
-      pendingVerify: false,
-      verifiedById: me.id,
-      verifiedAt: new Date(),
+      pendingVerify: true,
     })
     .returning();
-  await audit(me.id, 'payment-record', `${data.pool} payment ${data.amount} for ${data.monthLabel}`, data.memberId);
+  await audit(
+    me.id,
+    'payment-record',
+    `Recorded ${data.pool} ${data.amount} for ${data.monthLabel} — awaiting supervisor approval`,
+    data.memberId,
+  );
   revalidatePath('/admin/fund');
   revalidatePath('/dashboard');
   return created;

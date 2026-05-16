@@ -58,9 +58,14 @@ export default function RecordPaymentForm({ members }: { members: { id: string; 
           <Input value={note} onChange={(e) => setNote(e.target.value)} placeholder="e.g. JazzCash transfer" />
         </div>
       </div>
-      <Button type="submit" variant="gold" className="mt-4" disabled={pending}>
-        {pending ? 'Recording…' : 'Record Payment'}
-      </Button>
+      <div className="mt-4 flex flex-wrap items-center gap-3">
+        <Button type="submit" variant="gold" disabled={pending}>
+          {pending ? 'Recording…' : 'Record Payment'}
+        </Button>
+        <span className="text-[11px] text-[var(--txt-3)]">
+          Recorded payments enter the supervisor approval queue first.
+        </span>
+      </div>
     </form>
   );
 }
