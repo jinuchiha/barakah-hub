@@ -222,6 +222,31 @@ export async function submitDonation(input: z.infer<typeof submitDonationSchema>
   return created;
 }
 
+/* ─── supervisor approve (intermediate — admin still needs to verify) */
+export async function supervisorApprovePayment(paymentId: string) {
+  if (!/^[0-9a-f-]{36}$/i.test(paymentId)) throw new Error('Invalid id');
+  const me = await meOrThrow();
+  if (me.role !== 'supervisor' && me.role !== 'admin') {
+    throw new Error('Supervisor or admin only');
+  }
+  const updated = await db
+    .update(payments)
+    .set({ supervisorApprovedAt: new Date(), supervisorApprovedById: me.id })
+    .where(and(
+      eq(payments.id, paymentId),
+      eq(payments.pendingVerify, true),
+    ))
+    .returning();
+  if (updated.length === 0) throw new Error('Payment not found or already verified');
+  await audit(
+    me.id,
+    'payment-supervisor-approved',
+    `Approved Rs ${updated[0].amount} ${updated[0].pool} — pending admin final verification`,
+    updated[0].memberId,
+  );
+  revalidatePath('/admin/fund');
+}
+
 /* ─── verify / reject pending payment (admin) */
 export async function verifyPayment(paymentId: string) {
   if (!/^[0-9a-f-]{36}$/i.test(paymentId)) throw new Error('Invalid id');
@@ -389,7 +414,7 @@ const editMemberSchema = z.object({
   city: z.string().max(60).optional().nullable(),
   province: z.string().max(40).optional().nullable(),
   monthlyPledge: z.number().int().min(0).max(1_000_000).optional(),
-  role: z.enum(['admin', 'member']).optional(),
+  role: z.enum(['admin', 'member', 'supervisor']).optional(),
   status: z.enum(['pending', 'approved', 'rejected']).optional(),
   // Pairing — null clears the marriage, uuid sets it.
   spouseId: z.string().uuid().nullable().optional(),

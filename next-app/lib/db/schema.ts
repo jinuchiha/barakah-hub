@@ -63,7 +63,11 @@ export const verifications = pgTable('verifications', {
 });
 
 /* ─── ENUMS ─── */
-export const roleEnum = pgEnum('role', ['admin', 'member']);
+// `supervisor` is a trusted fund collector — they can record + verify
+// payments (the money operations) but cannot do member CRUD, force
+// case decisions, issue loans, or change config. Use canManageFunds()
+// in app/lib/auth-server.ts to guard money endpoints.
+export const roleEnum = pgEnum('role', ['admin', 'member', 'supervisor']);
 export const statusEnum = pgEnum('member_status', ['pending', 'approved', 'rejected']);
 export const poolEnum = pgEnum('fund_pool', ['sadaqah', 'zakat', 'qarz']);
 export const caseStatusEnum = pgEnum('case_status', ['voting', 'approved', 'rejected', 'disbursed']);
@@ -128,6 +132,11 @@ export const payments = pgTable('payments', {
   note: text('note'),
   receiptUrl: text('receipt_url'),
   pendingVerify: boolean('pending_verify').notNull().default(false),
+  // Two-step approval — supervisor approves first (intermediate),
+  // admin verifies last (final). Supervisor approval is OPTIONAL —
+  // admin can always verify directly. See app/actions.ts.
+  supervisorApprovedAt: timestamp('supervisor_approved_at', { withTimezone: true }),
+  supervisorApprovedById: uuid('supervisor_approved_by_id').references(() => members.id, { onDelete: 'set null' }),
   verifiedById: uuid('verified_by_id').references(() => members.id),
   verifiedAt: timestamp('verified_at', { withTimezone: true }),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),

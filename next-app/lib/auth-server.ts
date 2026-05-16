@@ -60,3 +60,33 @@ export async function meOrThrow(): Promise<Member> {
   if (!m) throw new Error('Member record not found');
   return m;
 }
+
+/**
+ * Permission predicates.
+ *
+ *  - canManageFunds: record + verify + reject payments. Admins AND
+ *    supervisors both pass. Used by /api/payments/* routes and the
+ *    admin/fund page.
+ *  - isAdminOnly: admin-only operations (member CRUD, loan issuing,
+ *    case veto, config changes). Supervisors are blocked here so a
+ *    fund-collector can't accidentally demote an admin or wipe data.
+ */
+export function canManageFunds(role: Member['role']): boolean {
+  return role === 'admin' || role === 'supervisor';
+}
+
+export function isAdminOnly(role: Member['role']): boolean {
+  return role === 'admin';
+}
+
+/**
+ * Helper for page components: if the viewer is a supervisor, redirect
+ * them to /admin/fund (their only authorised destination). Returns the
+ * viewer's member record on the regular path. Call at the top of any
+ * page supervisors shouldn't see.
+ */
+export async function getMeOrRedirectSupervisor(): Promise<Member> {
+  const me = await getMeOrRedirect();
+  if (me.role === 'supervisor') redirect('/admin/fund');
+  return me;
+}

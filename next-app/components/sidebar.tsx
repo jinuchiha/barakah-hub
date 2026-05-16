@@ -27,6 +27,10 @@ const NAV: { href: string; label: string; labelUr: string; icon: React.Component
 
 interface NavProps {
   isAdmin?: boolean;
+  /** Supervisor role — fund collector. Sees only the fund register link;
+   *  all other nav items (including non-admin "main" items) are hidden
+   *  per the explicit spec: "baqi kuch bhe nahi pata chalana chaye". */
+  isSupervisor?: boolean;
   locale?: 'ur' | 'en';
   /** Called after a nav link is activated. Used by the mobile drawer to close itself. */
   onNavigate?: () => void;
@@ -37,9 +41,11 @@ interface NavProps {
 }
 
 /** Inner nav list — shared between desktop `<Sidebar>` and the mobile drawer. */
-export function SidebarNav({ isAdmin = false, locale = 'en', onNavigate, layoutIdSuffix = 'desktop', badges = {} }: NavProps) {
+export function SidebarNav({ isAdmin = false, isSupervisor = false, locale = 'en', onNavigate, layoutIdSuffix = 'desktop', badges = {} }: NavProps) {
   const pathname = usePathname();
-  const items = NAV.filter((n) => !n.admin || isAdmin);
+  const items = isSupervisor
+    ? NAV.filter((n) => n.href === '/admin/fund')
+    : NAV.filter((n) => !n.admin || isAdmin);
   const adminStart = items.findIndex((n) => n.admin);
 
   return (
@@ -61,10 +67,20 @@ export function SidebarNav({ isAdmin = false, locale = 'en', onNavigate, layoutI
   );
 }
 
-export function Sidebar({ isAdmin = false, locale = 'en', badges = {} }: { isAdmin?: boolean; locale?: 'ur' | 'en'; badges?: Record<string, number> }) {
+export function Sidebar({
+  isAdmin = false,
+  isSupervisor = false,
+  locale = 'en',
+  badges = {},
+}: {
+  isAdmin?: boolean;
+  isSupervisor?: boolean;
+  locale?: 'ur' | 'en';
+  badges?: Record<string, number>;
+}) {
   return (
     <aside className="hidden w-60 shrink-0 flex-col border-r border-[var(--border)] bg-[var(--surf-2)] md:flex">
-      <SidebarNav isAdmin={isAdmin} locale={locale} layoutIdSuffix="desktop" badges={badges} />
+      <SidebarNav isAdmin={isAdmin} isSupervisor={isSupervisor} locale={locale} layoutIdSuffix="desktop" badges={badges} />
       <div className="border-t border-[var(--border)] px-4 py-3 text-[10px] uppercase tracking-[2px] text-[var(--txt-4)]">
         v3.0 · Barakah Hub
       </div>

@@ -35,7 +35,7 @@ interface FormState {
   city: string;
   province: string;
   monthlyPledge: number;
-  role: 'admin' | 'member';
+  role: 'admin' | 'member' | 'supervisor';
   status: 'pending' | 'approved' | 'rejected';
   spouseId: string;
 }
@@ -185,8 +185,9 @@ export default function MemberDialog({ mode, allMembers, onClose }: Props) {
             <>
               <div>
                 <Label>Role</Label>
-                <select value={form.role} onChange={(e) => set('role', e.target.value as 'admin' | 'member')} className="w-full rounded-md border border-[var(--border)] bg-[var(--surf-3)] px-3 py-2.5 text-sm text-[var(--color-cream)]">
+                <select value={form.role} onChange={(e) => set('role', e.target.value as FormState['role'])} className="w-full rounded-md border border-[var(--border)] bg-[var(--surf-3)] px-3 py-2.5 text-sm text-[var(--color-cream)]">
                   <option value="member">Member</option>
+                  <option value="supervisor">Supervisor (fund collector)</option>
                   <option value="admin">Admin</option>
                 </select>
               </div>
