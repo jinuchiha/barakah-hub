@@ -104,10 +104,12 @@ export async function bulkImportMembers(input: z.infer<typeof bulkImportSchema>)
   // Detect existing usernames so we skip duplicates cleanly instead of
   // bombing the whole batch on the first conflict.
   const usernames = data.rows.map((r) => r.username.toLowerCase());
-  const existing = await db
-    .select({ username: members.username })
-    .from(members)
-    .where(sql`LOWER(${members.username}) = ANY(${usernames})`);
+  const existing = usernames.length
+    ? await db
+        .select({ username: members.username })
+        .from(members)
+        .where(sql`LOWER(${members.username}) = ANY(${usernames})`)
+    : [];
   const existingSet = new Set(existing.map((e) => e.username.toLowerCase()));
 
   const errors: string[] = [];
