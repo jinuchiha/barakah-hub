@@ -3,7 +3,7 @@ import {
   View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity,
   Alert, KeyboardAvoidingView, Platform,
 } from 'react-native';
-import { useRouter, Redirect } from 'expo-router';
+import { useRouter, Redirect, Stack } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Input } from '@/components/ui/Input';
@@ -65,6 +65,7 @@ export default function IssueLoanScreen() {
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.bg1 }]} edges={['bottom']}>
+      <Stack.Screen options={{ title: 'Issue Qarz Loan' }} />
       <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
           <Text style={[styles.sectionLabel, { color: colors.text4 }]}>BORROWER</Text>

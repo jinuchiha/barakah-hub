@@ -144,6 +144,12 @@ export default function AdminDashboard() {
             {isAdmin ? (
               <AdminActionCard icon="hand-coin-outline" label="Issue Loan" color={colors.primary} onPress={() => router.push('/admin/issue-loan')} />
             ) : null}
+            {isAdmin ? (
+              <AdminActionCard icon="link-variant" label="Invites" color="#ea80fc" onPress={() => router.push('/admin/invites')} />
+            ) : null}
+            {isAdmin ? (
+              <AdminActionCard icon="account-plus-outline" label="Add Member" color={colors.primary} onPress={() => router.push('/admin/member-form')} />
+            ) : null}
           </View>
         </Animated.View>
       </ScrollView>
