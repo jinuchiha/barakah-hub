@@ -177,6 +177,7 @@ function ProfileScreen() {
             onPress={() => router.push('/settings/theme')}
           />
           <SettingsRow icon="bell-outline" label="Notifications" onPress={() => router.push('/notifications')} />
+          <SettingsRow icon="message-text-outline" label="Messages" onPress={() => router.push('/messages')} />
           <SettingsRow icon="alarm" label="Reminders" onPress={() => router.push('/settings/reminders')} />
         </SettingsGroup>
 

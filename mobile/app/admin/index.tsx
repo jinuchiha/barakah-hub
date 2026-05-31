@@ -150,6 +150,9 @@ export default function AdminDashboard() {
             {isAdmin ? (
               <AdminActionCard icon="account-plus-outline" label="Add Member" color={colors.primary} onPress={() => router.push('/admin/member-form')} />
             ) : null}
+            {isAdmin ? (
+              <AdminActionCard icon="message-text-outline" label="Messages" color={colors.accent} onPress={() => router.push('/messages')} />
+            ) : null}
           </View>
         </Animated.View>
       </ScrollView>
