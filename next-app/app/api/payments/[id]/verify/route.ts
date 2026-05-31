@@ -1,38 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { eq } from 'drizzle-orm';
-import { meOrThrow } from '@/lib/auth-server';
-import { db } from '@/lib/db';
-import { payments, auditLog } from '@/lib/db/schema';
+import { verifyPayment } from '@/app/actions';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
+/**
+ * Final admin verification. Delegates to the verifyPayment server action so
+ * the REST surface (mobile) enforces the EXACT same two-step rules as the
+ * web: rejects if already verified or if the supervisor rejected the
+ * payment (cash is physically with the supervisor — admin must resend or
+ * delete instead). Keeps web and app behaviour identical.
+ */
 export async function POST(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const me = await meOrThrow();
-    if (me.role !== 'admin') return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-
     const { id } = await params;
     if (!/^[0-9a-f-]{36}$/i.test(id)) {
       return NextResponse.json({ error: 'Invalid id' }, { status: 400 });
     }
-
-    await db
-      .update(payments)
-      .set({ pendingVerify: false, verifiedById: me.id, verifiedAt: new Date() })
-      .where(eq(payments.id, id));
-
-    await db.insert(auditLog).values({
-      actorId: me.id,
-      action: 'payment-verified',
-      detail: `Verified payment ${id}`,
-    });
-
+    await verifyPayment(id);
     return NextResponse.json({ ok: true });
-  } catch {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : 'Error';
+    const status = msg === 'Not authenticated' ? 401 : msg === 'Admin only' ? 403 : 400;
+    return NextResponse.json({ error: msg }, { status });
   }
 }

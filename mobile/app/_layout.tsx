@@ -2,8 +2,8 @@ import '../global.css';
 import React, { useEffect, useState, useCallback } from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { QueryClient } from '@tanstack/react-query';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
+import type { Persister } from '@tanstack/react-query-persist-client';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { I18nextProvider } from 'react-i18next';
@@ -22,33 +22,43 @@ import { LoadingScreen } from '@/components/ui/LoadingScreen';
 import { ALL_THEMES, type ThemeName } from '@/lib/theme';
 import { ThemeContext, themeNameToMode } from '@/lib/useTheme';
 import { OfflineBanner } from '@/components/OfflineBanner';
+import { PushManager } from '@/components/PushManager';
 import { startNetworkListener } from '@/lib/offline';
 import { setupDeepLinkListener, handleInitialURL } from '@/lib/deep-link';
-import { queryPersister } from '@/lib/query-persist';
+import { initQueryPersister } from '@/lib/query-persist';
+import { queryClient } from '@/lib/query-client';
+import { isScreenshotProtectionEnabled, enableScreenCapturePrevention } from '@/lib/security';
 
 SplashScreen.preventAutoHideAsync().catch(() => undefined);
 
 const THEME_KEY = 'bh_theme';
-
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: { staleTime: 30_000, retry: 1, refetchOnWindowFocus: false },
-  },
-});
+const CACHE_MAX_AGE = 1000 * 60 * 60 * 24; // 24h — stale financial data expires
 
 function AuthInitializer({ children }: { children: React.ReactNode }) {
   const { refreshSession, isLoading } = useAuth();
 
   useEffect(() => {
-    initI18n().then(() => refreshSession());
+    initI18n()
+      .then(() => refreshSession())
+      .catch(() => undefined);
     startNetworkListener();
+    // Re-apply the user's screenshot-protection preference on every launch
+    // (the native flag does not persist across app restarts).
+    isScreenshotProtectionEnabled()
+      .then((on) => (on ? enableScreenCapturePrevention() : undefined))
+      .catch(() => undefined);
     const cleanupDeepLink = setupDeepLinkListener();
     void handleInitialURL();
     return cleanupDeepLink;
   }, [refreshSession]);
 
   if (isLoading) return <LoadingScreen />;
-  return <>{children}</>;
+  return (
+    <>
+      <PushManager />
+      {children}
+    </>
+  );
 }
 
 function ThemeProvider({ children }: { children: React.ReactNode }) {
@@ -91,19 +101,24 @@ export default function RootLayout() {
     Inter_700Bold,
     SpaceMono_400Regular,
   });
+  const [persister, setPersister] = useState<Persister | null>(null);
+
+  useEffect(() => {
+    initQueryPersister().then(setPersister).catch(() => setPersister(null));
+  }, []);
 
   useEffect(() => {
     if (fontsLoaded) SplashScreen.hideAsync().catch(() => undefined);
   }, [fontsLoaded]);
 
-  if (!fontsLoaded) return <LoadingScreen />;
+  if (!fontsLoaded || !persister) return <LoadingScreen />;
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
         <PersistQueryClientProvider
           client={queryClient}
-          persistOptions={{ persister: queryPersister }}
+          persistOptions={{ persister, maxAge: CACHE_MAX_AGE }}
         >
           <I18nextProvider i18n={i18n}>
             <ThemeProvider>

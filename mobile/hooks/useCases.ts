@@ -45,9 +45,14 @@ async function deleteCase(caseId: string): Promise<void> {
   await api.delete(`/api/cases/${caseId}`);
 }
 
+async function disburseCase(caseId: string): Promise<void> {
+  await api.post(`/api/cases/${caseId}/disburse`);
+}
+
 function invalidateCaseQueries(qc: ReturnType<typeof useQueryClient>) {
   qc.invalidateQueries({ queryKey: ['cases'] });
   qc.invalidateQueries({ queryKey: ['dashboard'] });
+  qc.invalidateQueries({ queryKey: ['loans'] });
 }
 
 export function useCases(filter: CasesFilter = {}) {
@@ -76,4 +81,9 @@ export function useAdminResolveCase() {
 export function useDeleteCase() {
   const qc = useQueryClient();
   return useMutation({ mutationFn: deleteCase, onSuccess: () => invalidateCaseQueries(qc) });
+}
+
+export function useDisburseCase() {
+  const qc = useQueryClient();
+  return useMutation({ mutationFn: disburseCase, onSuccess: () => invalidateCaseQueries(qc) });
 }

@@ -20,6 +20,7 @@ import { spacing, radius } from '@/lib/theme';
 
 const schema = z.object({
   name: z.string().min(2, 'Full name required'),
+  fatherName: z.string().optional(),
   email: z.string().email('Invalid email'),
   password: z.string().min(8, 'Minimum 8 characters'),
   confirmPassword: z.string(),
@@ -85,7 +86,7 @@ export default function RegisterScreen() {
   });
 
   const stepFields: Array<Array<keyof FormData>> = [
-    ['name', 'phone'],
+    ['name', 'fatherName', 'phone'],
     ['monthlyPledge'],
     ['email', 'password', 'confirmPassword'],
   ];
@@ -98,7 +99,7 @@ export default function RegisterScreen() {
   const onSubmit = async (data: FormData) => {
     setLoading(true);
     try {
-      await register({ email: data.email, password: data.password, name: data.name, phone: data.phone, monthlyPledge: data.monthlyPledge });
+      await register({ email: data.email, password: data.password, name: data.name, fatherName: data.fatherName, phone: data.phone, monthlyPledge: data.monthlyPledge });
       Alert.alert('Registration Submitted', 'Your account is pending admin approval.', [
         { text: 'OK', onPress: () => router.replace('/(auth)/login') },
       ]);
@@ -136,6 +137,11 @@ export default function RegisterScreen() {
                   <Controller control={control} name="name"
                     render={({ field: { onChange, value } }) => (
                       <Input label="Full Name" value={value ?? ''} onChangeText={onChange} leftIcon="account-outline" autoComplete="name" error={errors.name?.message} />
+                    )}
+                  />
+                  <Controller control={control} name="fatherName"
+                    render={({ field: { onChange, value } }) => (
+                      <Input label="Father's Name (links family tree)" value={value ?? ''} onChangeText={onChange} leftIcon="account-supervisor-outline" error={errors.fatherName?.message} />
                     )}
                   />
                   <Controller control={control} name="phone"

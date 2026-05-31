@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, KeyboardAvoidingView,
-  Platform, Alert, TouchableOpacity,
+  Platform, Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Redirect } from 'expo-router';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -14,6 +15,8 @@ import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { api } from '@/lib/api';
+import { useAuthStore } from '@/stores/auth.store';
+import { isAdminOnly } from '@/lib/roles';
 import { useTheme } from '@/lib/useTheme';
 import { spacing, radius } from '@/lib/theme';
 
@@ -23,27 +26,9 @@ const schema = z.object({
 });
 
 type FormData = z.infer<typeof schema>;
-type LangMode = 'en' | 'ur' | 'both';
 
 async function sendBroadcast(data: FormData): Promise<void> {
   await api.post('/api/admin/broadcast', data);
-}
-
-function LanguageChip({ value, active, onPress }: { value: LangMode; active: boolean; onPress: () => void }) {
-  const { colors } = useTheme();
-  const labels: Record<LangMode, string> = { en: 'English', ur: 'Urdu', both: 'Both' };
-
-  return (
-    <TouchableOpacity
-      style={[
-        styles.langChip,
-        { backgroundColor: active ? colors.primaryDim : colors.glass2, borderColor: active ? colors.primary : colors.border1 },
-      ]}
-      onPress={onPress}
-    >
-      <Text style={[styles.langChipText, { color: active ? colors.primary : colors.text3 }]}>{labels[value]}</Text>
-    </TouchableOpacity>
-  );
 }
 
 function SuccessView({ onDismiss }: { onDismiss: () => void }) {
@@ -67,8 +52,8 @@ function SuccessView({ onDismiss }: { onDismiss: () => void }) {
 
 export default function BroadcastScreen() {
   const { colors } = useTheme();
+  const { user } = useAuthStore();
   const [sent, setSent] = useState(false);
-  const [langMode, setLangMode] = useState<LangMode>('en');
 
   const mutation = useMutation({ mutationFn: sendBroadcast });
 
@@ -93,6 +78,8 @@ export default function BroadcastScreen() {
     ]);
   };
 
+  if (!isAdminOnly(user?.role)) return <Redirect href="/admin" />;
+
   if (sent) return (
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.bg1 }]} edges={['bottom']}>
       <View style={styles.centeredContainer}>
@@ -112,15 +99,6 @@ export default function BroadcastScreen() {
             <View>
               <Text style={[styles.pageTitle, { color: colors.text1 }]}>Broadcast Message</Text>
               <Text style={[styles.pageSub, { color: colors.text3 }]}>Send to all members</Text>
-            </View>
-          </Animated.View>
-
-          <Animated.View entering={FadeInDown.duration(400).delay(80)}>
-            <Text style={[styles.sectionLabel, { color: colors.text4 }]}>LANGUAGE</Text>
-            <View style={styles.langRow}>
-              {(['en', 'ur', 'both'] as LangMode[]).map((l) => (
-                <LanguageChip key={l} value={l} active={langMode === l} onPress={() => setLangMode(l)} />
-              ))}
             </View>
           </Animated.View>
 
@@ -178,24 +156,6 @@ const styles = StyleSheet.create({
   },
   pageTitle: { fontSize: 20, fontFamily: 'Inter_700Bold' },
   pageSub: { fontSize: 13, fontFamily: 'Inter_400Regular', marginTop: 2 },
-  sectionLabel: {
-    fontSize: 11,
-    fontFamily: 'Inter_600SemiBold',
-    letterSpacing: 1.2,
-    marginBottom: spacing.sm,
-  },
-  langRow: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-    marginBottom: spacing.lg,
-  },
-  langChip: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: radius.full,
-    borderWidth: 1.5,
-  },
-  langChipText: { fontSize: 13, fontFamily: 'Inter_600SemiBold' },
   formCard: { padding: spacing.lg },
   warningBox: {
     flexDirection: 'row',

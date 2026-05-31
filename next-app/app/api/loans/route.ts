@@ -1,8 +1,9 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { desc, eq } from 'drizzle-orm';
 import { meOrThrow } from '@/lib/auth-server';
 import { db } from '@/lib/db';
 import { loans, members } from '@/lib/db/schema';
+import { issueLoan } from '@/app/actions';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -39,5 +40,18 @@ export async function GET() {
     return NextResponse.json(rows);
   } catch {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+}
+
+/** Issue a qarz loan (admin). Delegates to the issueLoan server action. */
+export async function POST(req: NextRequest) {
+  try {
+    const body = await req.json();
+    const created = await issueLoan(body);
+    return NextResponse.json(created, { status: 201 });
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : 'Error';
+    const status = msg === 'Not authenticated' ? 401 : msg === 'Admin only' ? 403 : 400;
+    return NextResponse.json({ error: msg }, { status });
   }
 }

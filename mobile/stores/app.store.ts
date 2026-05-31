@@ -7,6 +7,7 @@ interface AppState {
   setNetworkConnected: (connected: boolean) => void;
   setGlobalLoading: (loading: boolean) => void;
   setNotificationCount: (count: number) => void;
+  incrementNotificationCount: () => void;
   decrementNotificationCount: () => void;
 }
 
@@ -18,6 +19,8 @@ export const useAppStore = create<AppState>((set, get) => ({
   setNetworkConnected: (isNetworkConnected) => set({ isNetworkConnected }),
   setGlobalLoading: (globalLoading) => set({ globalLoading }),
   setNotificationCount: (notificationCount) => set({ notificationCount }),
+  incrementNotificationCount: () =>
+    set({ notificationCount: get().notificationCount + 1 }),
   decrementNotificationCount: () =>
     set({ notificationCount: Math.max(0, get().notificationCount - 1) }),
 }));

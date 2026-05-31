@@ -20,7 +20,9 @@ export const dynamic = 'force-dynamic';
 export async function GET(req: Request) {
   const auth = req.headers.get('authorization');
   const secret = process.env.CRON_SECRET;
-  if (secret && auth !== `Bearer ${secret}`) {
+  // Fail closed: if no secret is configured, the endpoint is disabled
+  // rather than left publicly triggerable.
+  if (!secret || auth !== `Bearer ${secret}`) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 

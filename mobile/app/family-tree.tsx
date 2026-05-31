@@ -12,7 +12,8 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useTheme } from '@/lib/useTheme';
 import { spacing, radius } from '@/lib/theme';
-import { layoutTree, flattenTree, buildEdges, SPOUSE_OFFSET_X, type LayoutNode, type TreeNode } from '@/lib/tree-layout';
+import { layoutTree, flattenTree, buildEdges, SPOUSE_OFFSET_X, type LayoutNode } from '@/lib/tree-layout';
+import { buildFamilyTreeNodes } from '@/lib/family-tree';
 import { TreeNodeComponent } from '@/components/tree/TreeNode';
 import { TreeConnector } from '@/components/tree/TreeConnector';
 import { useMembers } from '@/hooks/useMembers';
@@ -89,58 +90,9 @@ export default function FamilyTreeScreen() {
     ],
   }));
 
-  /**
-   * Build tree nodes with spouse pairing.
-   *
-   * Each marriage (A ↔ B with matching spouseId pointers) renders as ONE
-   * primary node with a `spouse` attachment so the layout algorithm
-   * gives them a double-width slot. The secondary partner (deterministic
-   * by smaller UUID) is excluded from the standalone node list so they
-   * don't appear separately under their own father.
-   */
-  const treeNodes = useMemo<TreeNode[]>(() => {
-    if (!members) return [];
-    const byId = new Map(members.map((m) => [m.id, m]));
-    const claimedAsSpouse = new Set<string>();
-    const primaryToSpouseId = new Map<string, string>();
-
-    for (const m of members) {
-      if (!m.spouseId || claimedAsSpouse.has(m.id) || primaryToSpouseId.has(m.id)) continue;
-      const partner = byId.get(m.spouseId);
-      if (!partner || partner.spouseId !== m.id) continue;
-      const primary = m.id < partner.id ? m : partner;
-      const secondary = primary === m ? partner : m;
-      primaryToSpouseId.set(primary.id, secondary.id);
-      claimedAsSpouse.add(secondary.id);
-    }
-
-    return members
-      .filter((m) => !claimedAsSpouse.has(m.id))
-      .map((m) => {
-        const partnerId = primaryToSpouseId.get(m.id);
-        const partner = partnerId ? byId.get(partnerId) : undefined;
-        return {
-          id: m.id,
-          parentId: m.parentId,
-          label: m.nameEn,
-          sublabel: m.nameUr,
-          color: m.color,
-          photoUrl: m.photoUrl,
-          deceased: m.deceased,
-          spouse: partner
-            ? {
-                id: partner.id,
-                parentId: null,
-                label: partner.nameEn,
-                sublabel: partner.nameUr,
-                color: partner.color,
-                photoUrl: partner.photoUrl,
-                deceased: partner.deceased,
-              }
-            : null,
-        };
-      });
-  }, [members]);
+  // Build tree nodes: fatherName grouping (virtual-father roots) + spouse
+  // pairing. See lib/family-tree.ts.
+  const treeNodes = useMemo(() => buildFamilyTreeNodes(members ?? []), [members]);
 
   const { roots, width: treeW, height: treeH } = useMemo(
     () => (treeNodes.length > 0 ? layoutTree(treeNodes) : { roots: [], width: 0, height: 0 }),

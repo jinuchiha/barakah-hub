@@ -19,43 +19,43 @@ type ForegroundHandler = (n: ForegroundNotification) => void;
 
 export function usePushNotifications(onForeground?: ForegroundHandler): void {
   const { isAuthenticated } = useAuthStore();
-  const { notificationCount, setNotificationCount } = useAppStore();
-  const cleanupRef = useRef<(() => void) | null>(null);
+  const notificationCount = useAppStore((s) => s.notificationCount);
+  const incrementNotificationCount = useAppStore((s) => s.incrementNotificationCount);
+  // Keep the latest foreground handler without re-subscribing listeners.
+  const onForegroundRef = useRef<ForegroundHandler | undefined>(onForeground);
+  onForegroundRef.current = onForeground;
 
+  // Register the push token once per auth session (not on every notification).
   useEffect(() => {
     if (!isAuthenticated) return;
-
     let cancelled = false;
-
-    async function setup(): Promise<void> {
+    (async () => {
       const token = await getExpoPushToken();
       if (!token || cancelled) return;
-
       try {
         await registerPushToken(token);
       } catch {
         // server unavailable — non-fatal
       }
-    }
-
-    void setup();
-
-    cleanupRef.current = setupNotificationListeners((notification) => {
-      if (onForeground) {
-        onForeground({
-          title: notification.request.content.title,
-          body: notification.request.content.body,
-          id: notification.request.identifier,
-        });
-      }
-      setNotificationCount(notificationCount + 1);
-    });
-
+    })().catch(() => undefined);
     return () => {
       cancelled = true;
-      cleanupRef.current?.();
     };
-  }, [isAuthenticated, onForeground, notificationCount, setNotificationCount]);
+  }, [isAuthenticated]);
+
+  // Subscribe foreground/response listeners once per auth session.
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    const cleanup = setupNotificationListeners((notification) => {
+      onForegroundRef.current?.({
+        title: notification.request.content.title,
+        body: notification.request.content.body,
+        id: notification.request.identifier,
+      });
+      incrementNotificationCount();
+    });
+    return cleanup;
+  }, [isAuthenticated, incrementNotificationCount]);
 
   useEffect(() => {
     void setBadgeCount(notificationCount);

@@ -1,5 +1,7 @@
 import { api } from './api';
 import { saveSessionToken, clearSessionToken, saveUser, clearStoredUser } from './storage';
+import { queryClient } from './query-client';
+import { clearQueryCache } from './query-persist';
 import type { Session, MemberWithSession } from '@/types';
 
 export interface SignInInput {
@@ -11,6 +13,7 @@ export interface SignUpInput {
   email: string;
   password: string;
   name: string;
+  fatherName?: string;
   phone?: string;
   monthlyPledge?: number;
   joinCode?: string;
@@ -70,6 +73,7 @@ export async function signUp(input: SignUpInput): Promise<void> {
   await api.post('/api/onboarding/mobile', {
     nameEn: input.name,
     nameUr: input.name,
+    fatherName: input.fatherName,
     phone: input.phone,
     monthlyPledge: input.monthlyPledge,
   });
@@ -83,6 +87,9 @@ export async function signOut(): Promise<void> {
   }
   await clearSessionToken();
   await clearStoredUser();
+  // Wipe cached financial/PII data so the next user never sees it.
+  queryClient.clear();
+  clearQueryCache();
 }
 
 export async function forgotPassword(input: ForgotPasswordInput): Promise<void> {
@@ -109,6 +116,7 @@ export async function fetchMyMember(): Promise<MemberWithSession> {
 export interface UpdateProfileInput {
   nameEn?: string;
   nameUr?: string;
+  fatherName?: string;
   phone?: string | null;
   city?: string | null;
   province?: string | null;

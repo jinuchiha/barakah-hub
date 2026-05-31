@@ -7,18 +7,25 @@ type DeepLinkRoute =
   | { type: 'notifications' }
   | { type: 'unknown' };
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+function extractId(raw: string | undefined): string | null {
+  if (!raw) return null;
+  return UUID_RE.test(raw) ? raw : null;
+}
+
 export function parseDeepLink(url: string): DeepLinkRoute {
   try {
     const parsed = Linking.parse(url);
     const path = parsed.path ?? '';
 
     if (path.startsWith('/case/') || parsed.hostname === 'case') {
-      const id = path.replace('/case/', '') || (parsed.queryParams?.id as string);
+      const id = extractId(path.replace('/case/', '') || (parsed.queryParams?.id as string));
       if (id) return { type: 'case', id };
     }
 
     if (path.startsWith('/payment/') || parsed.hostname === 'payment') {
-      const id = path.replace('/payment/', '') || (parsed.queryParams?.id as string);
+      const id = extractId(path.replace('/payment/', '') || (parsed.queryParams?.id as string));
       if (id) return { type: 'payment', id };
     }
 

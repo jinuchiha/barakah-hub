@@ -6,6 +6,9 @@ import { useAppStore } from '@/stores/app.store';
 import { useTheme } from '@/lib/useTheme';
 import { BottomNav, type TabRoute } from '@/components/BottomNav';
 import { useRouter, usePathname } from 'expo-router';
+import { useAppLock } from '@/hooks/useAppLock';
+import { LoadingScreen } from '@/components/ui/LoadingScreen';
+import { canManageFunds } from '@/lib/roles';
 
 function CustomTabBar() {
   const router = useRouter();
@@ -32,7 +35,7 @@ function CustomTabBar() {
       activeTab={getActiveTab()}
       onTabPress={handleTabPress}
       notificationCount={notificationCount}
-      isAdmin={user?.role === 'admin'}
+      isAdmin={canManageFunds(user?.role)}
     />
   );
 }
@@ -40,8 +43,10 @@ function CustomTabBar() {
 export default function TabsLayout() {
   const { isAuthenticated } = useAuthStore();
   const { colors } = useTheme();
+  const { ready } = useAppLock(isAuthenticated);
 
   if (!isAuthenticated) return <Redirect href="/(auth)/login" />;
+  if (!ready) return <LoadingScreen />;
 
   return (
     <View style={[styles.container, { backgroundColor: colors.bg1 }]}>

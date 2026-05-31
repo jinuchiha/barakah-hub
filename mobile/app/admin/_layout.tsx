@@ -1,11 +1,13 @@
 import { Redirect, Stack } from 'expo-router';
 import { useAuthStore } from '@/stores/auth.store';
+import { canManageFunds } from '@/lib/roles';
 import { darkColors } from '@/lib/theme';
 
 export default function AdminLayout() {
   const { user } = useAuthStore();
 
-  if (user?.role !== 'admin') return <Redirect href="/(tabs)/" />;
+  // Admins and supervisors enter; per-screen guards restrict admin-only pages.
+  if (!canManageFunds(user?.role)) return <Redirect href="/(tabs)/" />;
 
   return (
     <Stack

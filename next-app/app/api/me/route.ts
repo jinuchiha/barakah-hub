@@ -28,6 +28,7 @@ export async function GET() {
 const patchSchema = z.object({
   nameUr: z.string().min(1).max(80).optional(),
   nameEn: z.string().min(1).max(80).optional(),
+  fatherName: z.string().max(80).optional(),
   phone: z.string().max(30).optional().nullable(),
   city: z.string().max(60).optional().nullable(),
   province: z.string().max(40).optional().nullable(),

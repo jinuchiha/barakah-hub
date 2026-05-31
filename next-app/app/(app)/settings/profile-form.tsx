@@ -23,6 +23,7 @@ export default function ProfileForm({ member }: { member: Member }) {
     photoUrl: member.photoUrl ?? null,
   });
   const [showColors, setShowColors] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   function set<K extends keyof typeof form>(k: K, v: (typeof form)[K]) { setForm({ ...form, [k]: v }); }
@@ -30,11 +31,20 @@ export default function ProfileForm({ member }: { member: Member }) {
   async function uploadPhoto(file: File) {
     if (file.size > 2 * 1024 * 1024) { toast.error('Image too large (>2MB)'); return; }
     if (!file.type.startsWith('image/')) { toast.error('Image files only'); return; }
-    // TODO(Phase 6): wire to Cloudflare R2 via signed URL. For now, allow
-    // pasting a URL into the photoUrl field manually as a stop-gap until
-    // the storage migration lands.
-    toast.message('Photo upload disabled — pending R2 storage migration. Paste a public image URL into the photoUrl field instead.');
-    void file;
+    setUploading(true);
+    try {
+      const body = new FormData();
+      body.append('avatar', file);
+      const res = await fetch('/api/members/avatar', { method: 'POST', body });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error ?? 'Upload failed');
+      setForm((f) => ({ ...f, photoUrl: data.url }));
+      toast.success('Photo uploaded ✓');
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Upload failed');
+    } finally {
+      setUploading(false);
+    }
   }
 
   function save(e: React.FormEvent) {
@@ -62,7 +72,7 @@ export default function ProfileForm({ member }: { member: Member }) {
           <div className="text-xs text-[var(--txt-3)]">{member.role === 'admin' ? 'Admin' : 'Member'}</div>
           <div className="mt-2 flex gap-2">
             <button type="button" onClick={() => setShowColors((s) => !s)} className="rounded-md border border-[var(--border)] px-3 py-1 text-xs">🎨 Color</button>
-            <button type="button" onClick={() => fileRef.current?.click()} className="rounded-md border border-[var(--border)] px-3 py-1 text-xs">📷 Photo</button>
+            <button type="button" disabled={uploading} onClick={() => fileRef.current?.click()} className="rounded-md border border-[var(--border)] px-3 py-1 text-xs disabled:opacity-50">{uploading ? '⏳ Uploading…' : '📷 Photo'}</button>
             {form.photoUrl && <button type="button" onClick={() => set('photoUrl', null)} className="rounded-md border border-red-500/40 px-3 py-1 text-xs text-red-400">✕ Remove</button>}
           </div>
         </div>

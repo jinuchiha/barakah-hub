@@ -18,9 +18,10 @@ import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { Badge } from '@/components/ui/Badge';
-import { useCases, useCastVote, useCreateCase, useAdminResolveCase, useDeleteCase } from '@/hooks/useCases';
+import { useCases, useCastVote, useCreateCase, useAdminResolveCase, useDeleteCase, useDisburseCase } from '@/hooks/useCases';
 import { useAuthStore } from '@/stores/auth.store';
 import { useTheme } from '@/lib/useTheme';
+import { formatPKR } from '@/lib/format';
 import { spacing, radius } from '@/lib/theme';
 import type { EmergencyCase, CaseStatus } from '@/types';
 
@@ -167,6 +168,7 @@ function CasesScreen() {
   const voteMutation = useCastVote();
   const adminResolveMutation = useAdminResolveCase();
   const deleteMutation = useDeleteCase();
+  const disburseMutation = useDisburseCase();
   const activeCaseCount = useMemo(() => data?.filter((c) => c.status === 'voting').length ?? 0, [data]);
   const isAdmin = user?.role === 'admin';
 
@@ -207,6 +209,27 @@ function CasesScreen() {
               void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
             } catch (e) {
               Alert.alert('Failed', e instanceof Error ? e.message : 'Delete failed');
+            }
+          },
+        },
+      ],
+    );
+  };
+
+  const confirmDisburse = (caseId: string, beneficiary: string, amount: number) => {
+    Alert.alert(
+      'Disburse Funds?',
+      `Confirm ${formatPKR(amount)} disbursed to ${beneficiary}. For qarz cases this creates a loan to track repayment.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Disburse',
+          onPress: async () => {
+            try {
+              await disburseMutation.mutateAsync(caseId);
+              void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+            } catch (e) {
+              Alert.alert('Failed', e instanceof Error ? e.message : 'Disburse failed');
             }
           },
         },
@@ -257,6 +280,7 @@ function CasesScreen() {
               onAdminApprove={isAdmin ? () => confirmAdminResolve(item.id, 'approved', item.beneficiaryName) : undefined}
               onAdminReject={isAdmin ? () => confirmAdminResolve(item.id, 'rejected', item.beneficiaryName) : undefined}
               onAdminDelete={isAdmin ? () => confirmDelete(item.id, item.beneficiaryName) : undefined}
+              onAdminDisburse={isAdmin && item.status === 'approved' ? () => confirmDisburse(item.id, item.beneficiaryName, item.amount) : undefined}
             />
           )}
           estimatedItemSize={200}

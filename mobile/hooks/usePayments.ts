@@ -33,6 +33,25 @@ async function rejectPayment(paymentId: string): Promise<void> {
   await api.delete(`/api/payments/${paymentId}`);
 }
 
+async function supervisorApprovePayment(paymentId: string): Promise<void> {
+  await api.post(`/api/payments/${paymentId}/supervisor-approve`);
+}
+
+async function supervisorRejectPayment({ paymentId, note }: { paymentId: string; note?: string }): Promise<void> {
+  await api.post(`/api/payments/${paymentId}/supervisor-reject`, { note });
+}
+
+async function resendPayment(paymentId: string): Promise<void> {
+  await api.post(`/api/payments/${paymentId}/resend`);
+}
+
+/** Invalidate every query whose freshness depends on payment state. */
+function invalidatePaymentQueries(qc: ReturnType<typeof useQueryClient>): void {
+  qc.invalidateQueries({ queryKey: ['payments'] });
+  qc.invalidateQueries({ queryKey: ['dashboard'] });
+  qc.invalidateQueries({ queryKey: ['admin', 'stats'] });
+}
+
 export function useMyPayments() {
   return useQuery({
     queryKey: ['payments', 'mine'],
@@ -64,10 +83,7 @@ export function useVerifyPayment() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: verifyPayment,
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['payments'] });
-      qc.invalidateQueries({ queryKey: ['dashboard'] });
-    },
+    onSuccess: () => invalidatePaymentQueries(qc),
   });
 }
 
@@ -75,8 +91,30 @@ export function useRejectPayment() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: rejectPayment,
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['payments'] });
-    },
+    onSuccess: () => invalidatePaymentQueries(qc),
+  });
+}
+
+export function useSupervisorApprovePayment() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: supervisorApprovePayment,
+    onSuccess: () => invalidatePaymentQueries(qc),
+  });
+}
+
+export function useSupervisorRejectPayment() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: supervisorRejectPayment,
+    onSuccess: () => invalidatePaymentQueries(qc),
+  });
+}
+
+export function useResendPayment() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: resendPayment,
+    onSuccess: () => invalidatePaymentQueries(qc),
   });
 }

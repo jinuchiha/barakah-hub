@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { eq, and } from 'drizzle-orm';
 import { z } from 'zod';
-import { meOrThrow } from '@/lib/auth-server';
+import { meApprovedOrThrow } from '@/lib/auth-server';
 import { db } from '@/lib/db';
 import { cases, votes, members, auditLog, config as configTbl } from '@/lib/db/schema';
 
@@ -15,7 +15,7 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const me = await meOrThrow();
+    const me = await meApprovedOrThrow();
     const { id: caseId } = await params;
 
     if (!/^[0-9a-f-]{36}$/i.test(caseId)) {

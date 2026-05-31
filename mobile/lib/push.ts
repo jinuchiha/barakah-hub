@@ -1,5 +1,6 @@
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
+import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 import { api } from './api';
 
@@ -7,11 +8,16 @@ export type NotificationChannel = 'payments' | 'cases' | 'messages' | 'admin';
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
-    shouldShowAlert: false,
-    shouldPlaySound: false,
+    shouldShowAlert: true,
+    shouldPlaySound: true,
     shouldSetBadge: true,
   }),
 });
+
+/** EAS project id — getExpoPushTokenAsync needs it in production builds. */
+function getProjectId(): string | undefined {
+  return Constants.expoConfig?.extra?.eas?.projectId;
+}
 
 export async function setupAndroidChannels(): Promise<void> {
   if (Platform.OS !== 'android') return;
@@ -51,7 +57,8 @@ export async function getExpoPushToken(): Promise<string | null> {
 
     await setupAndroidChannels();
 
-    const tokenData = await Notifications.getExpoPushTokenAsync();
+    const projectId = getProjectId();
+    const tokenData = await Notifications.getExpoPushTokenAsync(projectId ? { projectId } : undefined);
     return tokenData.data;
   } catch {
     return null;

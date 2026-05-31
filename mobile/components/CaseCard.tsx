@@ -24,6 +24,7 @@ interface CaseCardProps {
   onAdminApprove?: () => void;
   onAdminReject?: () => void;
   onAdminDelete?: () => void;
+  onAdminDisburse?: () => void;
 }
 
 const STATUS_VARIANT: Record<string, BadgeVariant> = {
@@ -97,6 +98,7 @@ export function CaseCard({
   onAdminApprove,
   onAdminReject,
   onAdminDelete,
+  onAdminDisburse,
 }: CaseCardProps) {
   const { colors } = useTheme();
   const scale = useSharedValue(1);
@@ -176,6 +178,15 @@ export function CaseCard({
                 >
                   <MaterialCommunityIcons name="close-thick" size={12} color={colors.danger} />
                   <Text style={[styles.adminBtnText, { color: colors.danger }]}>Force Reject</Text>
+                </Pressable>
+              ) : null}
+              {c.status === 'approved' && onAdminDisburse ? (
+                <Pressable
+                  style={[styles.adminBtn, { backgroundColor: colors.goldDim, borderColor: colors.gold }]}
+                  onPress={() => { void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); onAdminDisburse(); }}
+                >
+                  <MaterialCommunityIcons name="cash-fast" size={12} color={colors.gold} />
+                  <Text style={[styles.adminBtnText, { color: colors.gold }]}>Disburse</Text>
                 </Pressable>
               ) : null}
               {onAdminDelete ? (

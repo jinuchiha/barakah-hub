@@ -1,6 +1,6 @@
 /* Domain types mirrored from the backend schema */
 
-export type Role = 'admin' | 'member';
+export type Role = 'admin' | 'supervisor' | 'member';
 export type MemberStatus = 'pending' | 'approved' | 'rejected';
 export type FundPool = 'sadaqah' | 'zakat' | 'qarz';
 export type CaseStatus = 'voting' | 'approved' | 'rejected' | 'disbursed';
@@ -44,8 +44,23 @@ export interface Payment {
   pendingVerify: boolean;
   verifiedById: string | null;
   verifiedAt: string | null;
+  supervisorApprovedAt: string | null;
+  supervisorApprovedById: string | null;
+  supervisorRejectedAt: string | null;
+  supervisorRejectedById: string | null;
+  supervisorRejectionNote: string | null;
   createdAt: string;
   member?: Pick<Member, 'id' | 'nameEn' | 'nameUr' | 'color'>;
+}
+
+/** Two-step approval queue state, mirrored from the web fund page. */
+export type PaymentQueueState = 'awaiting-supervisor' | 'awaiting-admin' | 'rejected';
+
+export function paymentQueueState(p: Payment): PaymentQueueState | null {
+  if (!p.pendingVerify) return null;
+  if (p.supervisorRejectedAt) return 'rejected';
+  if (p.supervisorApprovedAt) return 'awaiting-admin';
+  return 'awaiting-supervisor';
 }
 
 export interface EmergencyCase {

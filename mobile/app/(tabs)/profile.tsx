@@ -17,7 +17,8 @@ import { useMyPayments } from '@/hooks/usePayments';
 import { useMyLoans } from '@/hooks/useLoans';
 import { useBiometric } from '@/hooks/useBiometric';
 import { useTheme } from '@/lib/useTheme';
-import { formatDate } from '@/lib/format';
+import { formatDate, formatPKR } from '@/lib/format';
+import { canManageFunds, isAdminOnly, roleLabel } from '@/lib/roles';
 import { spacing, radius } from '@/lib/theme';
 import { isScreenshotProtectionEnabled, setScreenshotProtection } from '@/lib/security';
 import { isPinEnabled } from '@/lib/pin';
@@ -93,7 +94,6 @@ function ProfileScreen() {
 
   const totalDonated = payments?.filter((p) => !p.pendingVerify && p.verifiedAt).reduce((s, p) => s + p.amount, 0) ?? 0;
   const activeLoans = loans?.filter((l) => l.active).length ?? 0;
-  const casesVoted = 0;
 
   const handleLogout = () => {
     Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
@@ -110,15 +110,20 @@ function ProfileScreen() {
   };
 
   const handleScreenshotToggle = async (val: boolean) => {
-    await setScreenshotProtection(val);
-    setScreenshotProtected(val);
+    try {
+      await setScreenshotProtection(val);
+      setScreenshotProtected(val);
+    } catch {
+      Alert.alert('Error', 'Could not change screenshot protection.');
+    }
   };
 
   const handleBiometricToggle = async (val: boolean) => {
-    if (val) {
-      await enableBiometric();
-    } else {
-      await disableBiometric();
+    try {
+      if (val) await enableBiometric();
+      else await disableBiometric();
+    } catch {
+      Alert.alert('Error', 'Could not update biometric lock.');
     }
   };
 
@@ -136,7 +141,7 @@ function ProfileScreen() {
           <Text style={[styles.profileName, { color: colors.text1 }]}>{user.nameEn}</Text>
           {user.nameUr ? <Text style={[styles.profileNameUr, { color: colors.text3 }]}>{user.nameUr}</Text> : null}
           <View style={styles.badgeRow}>
-            <Badge label={user.role === 'admin' ? 'Admin' : 'Member'} variant={user.role === 'admin' ? 'info' : 'success'} />
+            <Badge label={roleLabel(user.role)} variant={canManageFunds(user.role) ? 'info' : 'success'} />
           </View>
           <Text style={[styles.joinDate, { color: colors.text4 }]}>
             Member since {formatDate(user.joinedAt)} · #{user.id.slice(0, 8).toUpperCase()}
@@ -144,8 +149,8 @@ function ProfileScreen() {
         </Animated.View>
 
         <Animated.View entering={FadeInDown.duration(400).delay(80)} style={styles.statsRow}>
-          <StatCard icon="cash-check" value={`PKR ${(totalDonated / 1000).toFixed(0)}K`} label="Total Donated" style={styles.stat} />
-          <StatCard icon="vote" value={`${casesVoted}`} label="Cases Voted" iconColor={colors.gold} style={styles.stat} />
+          <StatCard icon="cash-check" value={formatPKR(totalDonated)} label="Total Donated" style={styles.stat} />
+          <StatCard icon="hand-heart-outline" value={formatPKR(user.monthlyPledge)} label="Monthly Pledge" iconColor={colors.gold} style={styles.stat} />
           <StatCard icon="handshake-outline" value={`${activeLoans}`} label="Active Loans" iconColor={colors.accent} style={styles.stat} />
         </Animated.View>
 
@@ -216,10 +221,16 @@ function ProfileScreen() {
           />
         </SettingsGroup>
 
-        {user.role === 'admin' ? (
-          <SettingsGroup title="ADMIN">
-            <SettingsRow icon="shield-crown-outline" label="Admin Panel" onPress={() => router.push('/admin/')} />
-            <SettingsRow icon="account-group-outline" label="Members Directory" onPress={() => router.push('/members/')} />
+        {canManageFunds(user.role) ? (
+          <SettingsGroup title={isAdminOnly(user.role) ? 'ADMIN' : 'SUPERVISOR'}>
+            <SettingsRow
+              icon="shield-crown-outline"
+              label={isAdminOnly(user.role) ? 'Admin Panel' : 'Supervisor Panel'}
+              onPress={() => router.push('/admin/')}
+            />
+            {isAdminOnly(user.role) ? (
+              <SettingsRow icon="account-group-outline" label="Members Directory" onPress={() => router.push('/members/')} />
+            ) : null}
           </SettingsGroup>
         ) : null}
 

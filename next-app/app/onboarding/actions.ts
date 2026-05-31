@@ -6,6 +6,7 @@ import { getSession } from '@/lib/auth-server';
 import { db } from '@/lib/db';
 import { members, memberInvites, auditLog } from '@/lib/db/schema';
 import { sendWelcomeEmail } from '@/lib/email';
+import { notifyMembers, adminIds } from '@/lib/notify';
 
 const schema = z.object({
   nameEn: z.string().min(2).max(80),
@@ -127,6 +128,20 @@ export async function onboardSelf(input: z.infer<typeof schema>) {
   // Welcome email — fire and forget, don't block onboarding on email failure.
   if (user.email) {
     void sendWelcomeEmail(user.email, data.nameEn).catch(() => {});
+  }
+
+  // Notify admins of a pending member (founders are auto-approved → skip).
+  if (!isFounder) {
+    await notifyMembers(
+      await adminIds(created.id),
+      {
+        titleEn: 'New member to approve', titleUr: 'نیا رکن برائے منظوری',
+        en: `${data.nameEn} signed up and is awaiting your approval.`,
+        ur: `${data.nameUr || data.nameEn} نے سائن اپ کیا اور آپ کی منظوری کا منتظر ہے۔`,
+        type: 'member-pending',
+      },
+      { title: '👤 New member to approve', body: data.nameEn, data: { type: 'member-pending' }, channelId: 'admin' },
+    );
   }
 
   revalidatePath('/dashboard');

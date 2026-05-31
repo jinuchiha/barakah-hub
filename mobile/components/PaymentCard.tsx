@@ -5,6 +5,7 @@ import type { Payment } from '@/types';
 import { Badge } from './ui/Badge';
 import { formatPKR, formatDate } from '@/lib/format';
 import { useTheme } from '@/lib/useTheme';
+import { poolColor } from '@/lib/pool';
 import { spacing, radius } from '@/lib/theme';
 
 interface PaymentCardProps {
@@ -23,16 +24,10 @@ function getStatusInfo(payment: Payment) {
   return { label: 'Rejected', variant: 'danger', pulse: false } as const;
 }
 
-function getAccentColor(pool: string, primary: string, accent: string, gold: string) {
-  if (pool === 'sadaqah') return primary;
-  if (pool === 'zakat') return accent;
-  return gold;
-}
-
 export function PaymentCard({ payment }: PaymentCardProps) {
   const { colors } = useTheme();
   const status = getStatusInfo(payment);
-  const accentColor = getAccentColor(payment.pool, colors.primary, colors.accent, colors.gold);
+  const accentColor = poolColor(payment.pool, colors);
 
   return (
     <View style={[styles.card, { backgroundColor: colors.bg2, borderColor: colors.border1 }]}>

@@ -25,6 +25,7 @@ import { DailyVerseCard } from '@/components/DailyVerseCard';
 import { GlobalSearch } from '@/components/GlobalSearch';
 import { useTheme } from '@/lib/useTheme';
 import { spacing } from '@/lib/theme';
+import { formatPKR } from '@/lib/format';
 import { format } from 'date-fns';
 
 function DashboardHeader({ displayName, notificationCount, onBell, onSearch }: {
@@ -210,8 +211,8 @@ function DashboardScreen() {
         </Animated.View>
 
         <Animated.View entering={FadeInDown.duration(400).delay(150)} style={styles.statsRow}>
-          <StatCard icon="wallet-outline" value={`PKR ${((user?.monthlyPledge ?? 0) / 1000).toFixed(0)}K`} label="My Pledge" style={styles.stat} />
-          <StatCard icon="account-group-outline" value={`${data?.memberCount ?? 0}`} label="Members" iconColor={colors.gold} style={styles.stat} />
+          <StatCard icon="wallet-outline" value={formatPKR(user?.monthlyPledge ?? 0)} label="My Pledge" style={styles.stat} />
+          <StatCard icon="clock-outline" value={`${data?.fund.pendingCount ?? 0}`} label="Pending" iconColor={colors.gold} style={styles.stat} />
           <StatCard icon="cash-multiple" value={data?.myCurrentMonth ? 'Paid' : 'Pending'} label="This Month" iconColor={data?.myCurrentMonth ? colors.primary : colors.gold} style={styles.stat} />
         </Animated.View>
 

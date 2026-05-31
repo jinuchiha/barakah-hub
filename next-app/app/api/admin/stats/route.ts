@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { eq, and } from 'drizzle-orm';
-import { meOrThrow } from '@/lib/auth-server';
+import { meOrThrow, canManageFunds } from '@/lib/auth-server';
 import { db } from '@/lib/db';
 import { members, payments, loans, cases } from '@/lib/db/schema';
 
@@ -10,7 +10,7 @@ export const dynamic = 'force-dynamic';
 export async function GET() {
   try {
     const me = await meOrThrow();
-    if (me.role !== 'admin') return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    if (!canManageFunds(me.role)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
     const [pendingMembers, pendingPayments, activeLoans, votingCases] = await Promise.all([
       db.$count(members, eq(members.status, 'pending')),

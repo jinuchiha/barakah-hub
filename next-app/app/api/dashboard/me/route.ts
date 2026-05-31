@@ -46,47 +46,65 @@ export async function GET() {
      *    aggregate going up — that's the visible signal.
      */
     const isPaymentAction = (action: string) => action.startsWith('payment');
+    // Only these event families are appropriate for ordinary members.
+    // Emergency cases + loans (qarz) are community-known by design (voting /
+    // repayment tracking need identity). Everything else — member edits,
+    // profile/name changes, approvals, votes, broadcasts, config — is
+    // internal/admin and must NOT appear in the public feed.
+    const isPublicForMembers = (action: string) =>
+      action.startsWith('case') || action.startsWith('emergency') || action.startsWith('loan');
+    const humanize = (action: string) =>
+      action.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 
     const recentActivity = recentAudit
       .map((entry) => {
         const isSelf = entry.actorId === me.id;
         const isPayment = isPaymentAction(entry.action);
 
-        // Other people's payments — heavily anonymise.
-        if (isPayment && !isSelf && !isAdmin) {
+        // Admins see the full audit trail.
+        if (isAdmin) {
           return {
             id: entry.id,
-            type: 'payment' as const,
-            title: 'Anonymous donation',
-            subtitle: undefined,
-            timestamp: entry.createdAt.toISOString(),
-            anonymous: true,
-          };
-        }
-
-        // Own payment — still shows "Your donation" but no extra identity.
-        if (isPayment && isSelf) {
-          return {
-            id: entry.id,
-            type: 'payment' as const,
-            title: 'Your donation',
+            type: mapActionToType(entry.action),
+            title: isSelf && isPayment ? 'Your donation' : humanize(entry.action),
             subtitle: entry.detail ?? undefined,
             timestamp: entry.createdAt.toISOString(),
             anonymous: false,
           };
         }
 
-        // Non-payment activity (votes, cases, loans, members) — keep the
-        // detail since these are intentionally public for community trust.
-        return {
-          id: entry.id,
-          type: mapActionToType(entry.action),
-          title: entry.action.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()),
-          subtitle: entry.detail ?? undefined,
-          timestamp: entry.createdAt.toISOString(),
-          anonymous: false,
-        };
+        // Own donation — visible to the donor only.
+        if (isPayment && isSelf) {
+          return {
+            id: entry.id, type: 'payment' as const, title: 'Your donation',
+            subtitle: entry.detail ?? undefined,
+            timestamp: entry.createdAt.toISOString(), anonymous: false,
+          };
+        }
+
+        // Others' donations — fully anonymised (sadqa is given in secret).
+        if (isPayment) {
+          return {
+            id: entry.id, type: 'payment' as const, title: 'Anonymous donation',
+            subtitle: undefined,
+            timestamp: entry.createdAt.toISOString(), anonymous: true,
+          };
+        }
+
+        // Public community events (cases + loans) only.
+        if (isPublicForMembers(entry.action)) {
+          return {
+            id: entry.id, type: mapActionToType(entry.action),
+            title: humanize(entry.action), subtitle: entry.detail ?? undefined,
+            timestamp: entry.createdAt.toISOString(), anonymous: false,
+          };
+        }
+
+        // Internal/admin activity (member edits, name changes, approvals,
+        // votes, broadcasts, config) — hidden from ordinary members.
+        return null;
       })
+      .filter((a): a is NonNullable<typeof a> => a !== null)
       .slice(0, 8);
 
     return NextResponse.json({ member: me, currentMonthPayment, recentActivity });
