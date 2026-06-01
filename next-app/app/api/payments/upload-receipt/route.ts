@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { writeFile, mkdir } from 'fs/promises';
 import path from 'path';
 import { meOrThrow } from '@/lib/auth-server';
-import { isR2Configured, uploadToR2 } from '@/lib/r2';
+import { isStorageConfigured, uploadToStorage } from '@/lib/storage';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -37,8 +37,8 @@ export async function POST(req: Request) {
     const filename = `receipt_${Date.now()}_${Math.random().toString(36).slice(2, 8)}.${ext}`;
     const bytes = new Uint8Array(await file.arrayBuffer());
 
-    if (isR2Configured()) {
-      const url = await uploadToR2(`receipts/${filename}`, bytes, file.type);
+    if (isStorageConfigured()) {
+      const url = await uploadToStorage(`receipts/${filename}`, bytes, file.type);
       return NextResponse.json({ url });
     }
 
@@ -50,7 +50,7 @@ export async function POST(req: Request) {
     }
 
     return NextResponse.json(
-      { error: 'Receipt storage not configured (set R2_* env vars).' },
+      { error: 'Receipt storage not configured (set BLOB_READ_WRITE_TOKEN).' },
       { status: 501 },
     );
   } catch (e: unknown) {

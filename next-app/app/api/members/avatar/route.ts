@@ -5,7 +5,7 @@ import path from 'path';
 import { meOrThrow } from '@/lib/auth-server';
 import { db } from '@/lib/db';
 import { members } from '@/lib/db/schema';
-import { isR2Configured, uploadToR2 } from '@/lib/r2';
+import { isStorageConfigured, uploadToStorage } from '@/lib/storage';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -37,15 +37,15 @@ export async function POST(req: Request) {
 
     // Production: Cloudflare R2 (HTTPS URL). Local dev fallback: public/uploads.
     let url: string;
-    if (isR2Configured()) {
-      url = await uploadToR2(`avatars/${filename}`, bytes, file.type);
+    if (isStorageConfigured()) {
+      url = await uploadToStorage(`avatars/${filename}`, bytes, file.type);
     } else if (process.env.NODE_ENV !== 'production') {
       await mkdir(UPLOAD_DIR, { recursive: true });
       await writeFile(path.join(UPLOAD_DIR, filename), bytes);
       url = `/uploads/avatars/${filename}`;
     } else {
       return NextResponse.json(
-        { error: 'Image storage not configured (set R2_* env vars).' },
+        { error: 'Image storage not configured (set BLOB_READ_WRITE_TOKEN).' },
         { status: 501 },
       );
     }
