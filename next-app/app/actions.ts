@@ -499,12 +499,15 @@ export async function castVote(caseId: string, yes: boolean) {
   );
   const eligible = Math.max(0, eligibleCount - 1); // exclude applicant
   const [cfg] = await db.select().from(configTbl).where(eq(configTbl.id, 1)).limit(1);
-  const need = Math.ceil(eligible * ((cfg?.voteThresholdPct ?? 50) / 100));
+  // Require at least one vote, and never auto-resolve when there are no other
+  // eligible voters (otherwise need=0 would approve a case on its first vote —
+  // even a NO — with zero real consensus).
+  const need = Math.max(1, Math.ceil(eligible * ((cfg?.voteThresholdPct ?? 50) / 100)));
 
-  if (yesCount >= need) {
+  if (eligible > 0 && yesCount >= need) {
     await db.update(cases).set({ status: 'approved', resolvedAt: new Date() }).where(eq(cases.id, caseId));
     await audit(me.id, 'emergency-approved', `Case approved by majority`, c.applicantId);
-  } else if (noCount >= need) {
+  } else if (eligible > 0 && noCount >= need) {
     await db.update(cases).set({ status: 'rejected', resolvedAt: new Date() }).where(eq(cases.id, caseId));
     await audit(me.id, 'emergency-rejected', `Case rejected by majority`, c.applicantId);
   }
@@ -898,18 +901,23 @@ export async function disburseCase(caseId: string) {
   const c = updated[0];
   await audit(me.id, 'case-disbursed', `Disbursed ${c.amount} for ${c.beneficiaryName}`, c.applicantId);
 
-  // For qarz cases, auto-create the loan record so repayments can be tracked
+  // For qarz cases, auto-create the loan record so repayments can be tracked.
+  // Guard against a duplicate loan if disburse is somehow retried (no DB
+  // transaction on the neon-http driver).
   if (c.caseType === 'qarz') {
-    await db.insert(loans).values({
-      memberId: c.applicantId,
-      amount: c.amount,
-      purpose: c.reasonEn,
-      pool: 'qarz',
-      city: c.city,
-      caseId: c.id,
-      paid: 0,
-      active: true,
-    });
+    const [existingLoan] = await db.select({ id: loans.id }).from(loans).where(eq(loans.caseId, c.id)).limit(1);
+    if (!existingLoan) {
+      await db.insert(loans).values({
+        memberId: c.applicantId,
+        amount: c.amount,
+        purpose: c.reasonEn,
+        pool: 'qarz',
+        city: c.city,
+        caseId: c.id,
+        paid: 0,
+        active: true,
+      });
+    }
     revalidatePath('/admin/loans');
   }
 
@@ -1050,6 +1058,10 @@ export async function sendMessage(input: z.infer<typeof sendMessageSchema>) {
   const [recipient] = await db.select().from(members).where(eq(members.id, data.toId)).limit(1);
   if (!recipient) throw new Error('Recipient not found');
   if (recipient.deceased) throw new Error('Cannot message a deceased member');
+  // Admins may message anyone; members may only message approved members.
+  if (me.role !== 'admin' && recipient.status !== 'approved') {
+    throw new Error('Recipient not available');
+  }
 
   await db.insert(messages).values({ ...data, fromId: me.id });
   // Also drop a notification on the recipient so they see the badge

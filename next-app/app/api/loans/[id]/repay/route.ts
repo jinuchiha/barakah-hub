@@ -24,6 +24,9 @@ export async function POST(
     const body = await req.json();
     const { amount, note } = schema.parse(body);
     const { id: loanId } = await params;
+    if (!/^[0-9a-f-]{36}$/i.test(loanId)) {
+      return NextResponse.json({ error: 'Invalid loan id' }, { status: 400 });
+    }
 
     const updated = await db
       .update(loans)

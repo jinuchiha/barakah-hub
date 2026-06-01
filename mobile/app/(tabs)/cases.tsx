@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import {
   View, Text, StyleSheet, RefreshControl, ScrollView, Alert,
-  KeyboardAvoidingView, Platform, TouchableOpacity,
+  KeyboardAvoidingView, Platform, TouchableOpacity, Switch,
 } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -34,6 +34,7 @@ const caseSchema = z.object({
   emergency: z.boolean().default(false),
   caseType: z.enum(['gift', 'qarz']),
   pool: z.enum(['sadaqah', 'zakat', 'qarz']),
+  returnDate: z.string().optional(),
 });
 
 type CaseFormData = z.infer<typeof caseSchema>;
@@ -136,6 +137,63 @@ function CreateCaseSheet({ visible, onClose }: { visible: boolean; onClose: () =
                 />
               )}
             />
+            <Text style={[styles.fieldLabel, { color: colors.text4 }]}>TYPE</Text>
+            <Controller control={control} name="caseType"
+              render={({ field: { onChange, value } }) => (
+                <View style={styles.chipRow}>
+                  {(['gift', 'qarz'] as const).map((t) => (
+                    <TouchableOpacity
+                      key={t}
+                      onPress={() => { onChange(t); }}
+                      style={[styles.chip, { backgroundColor: value === t ? colors.primaryDim : colors.glass2, borderColor: value === t ? colors.primary : colors.border1 }]}
+                    >
+                      <Text style={[styles.chipText, { color: value === t ? colors.primary : colors.text3 }]}>
+                        {t === 'gift' ? 'Gift (Sadaqah)' : 'Qarz (Loan)'}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
+            />
+
+            <Text style={[styles.fieldLabel, { color: colors.text4 }]}>POOL</Text>
+            <Controller control={control} name="pool"
+              render={({ field: { onChange, value } }) => (
+                <View style={styles.chipRow}>
+                  {(['sadaqah', 'zakat', 'qarz'] as const).map((p) => (
+                    <TouchableOpacity
+                      key={p}
+                      onPress={() => onChange(p)}
+                      style={[styles.chip, { backgroundColor: value === p ? colors.primaryDim : colors.glass2, borderColor: value === p ? colors.primary : colors.border1 }]}
+                    >
+                      <Text style={[styles.chipText, { color: value === p ? colors.primary : colors.text3 }]}>{p}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
+            />
+
+            <Controller control={control} name="emergency"
+              render={({ field: { onChange, value } }) => (
+                <View style={styles.emergencyRow}>
+                  <Text style={[styles.emergencyLabel, { color: colors.text2 }]}>Mark as emergency (urgent)</Text>
+                  <Switch value={!!value} onValueChange={onChange} trackColor={{ false: colors.bg4, true: colors.dangerDim }} thumbColor={colors.danger} />
+                </View>
+              )}
+            />
+
+            <Controller control={control} name="caseType"
+              render={({ field: { value: ct } }) => (
+                ct === 'qarz' ? (
+                  <Controller control={control} name="returnDate"
+                    render={({ field: { onChange, value } }) => (
+                      <Input label="Expected return date (optional)" value={value ?? ''} onChangeText={onChange} placeholder="e.g. Dec 2026" />
+                    )}
+                  />
+                ) : <View />
+              )}
+            />
+
             <View style={styles.sheetBtns}>
               <Button label="Cancel" onPress={onClose} variant="ghost" style={styles.halfBtn} />
               <Button
@@ -343,4 +401,10 @@ const styles = StyleSheet.create({
   sheetTitle: { fontSize: 18, fontFamily: 'Inter_600SemiBold', marginBottom: spacing.lg },
   sheetBtns: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.sm },
   halfBtn: { flex: 1 },
+  fieldLabel: { fontSize: 11, fontFamily: 'Inter_600SemiBold', letterSpacing: 1, marginTop: spacing.sm, marginBottom: spacing.xs },
+  chipRow: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.sm, flexWrap: 'wrap' },
+  chip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: radius.full, borderWidth: 1.5 },
+  chipText: { fontSize: 13, fontFamily: 'Inter_600SemiBold', textTransform: 'capitalize' },
+  emergencyRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: spacing.sm },
+  emergencyLabel: { fontSize: 14, fontFamily: 'Inter_400Regular', flex: 1, marginRight: spacing.md },
 });

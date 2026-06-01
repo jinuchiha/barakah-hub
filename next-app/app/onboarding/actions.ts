@@ -46,6 +46,10 @@ export async function onboardSelf(input: z.infer<typeof schema>) {
     if (byUsername.role === 'admin') {
       throw new Error('Admin records cannot be self-claimed — contact existing admin');
     }
+    // Security: claiming a pre-imported record links credentials to an
+    // already-approved identity purely by email-prefix === username. To stop
+    // an outsider taking over an approved member, a claim drops the record to
+    // `pending` so an admin re-confirms before it's active again.
     await db
       .update(members)
       .set({
@@ -53,18 +57,30 @@ export async function onboardSelf(input: z.infer<typeof schema>) {
         nameEn: data.nameEn,
         nameUr: data.nameUr || data.nameEn,
         fatherName: data.fatherName,
+        fatherDeceased: data.fatherDeceased ?? false,
         relation: data.relation,
         phone: data.phone,
         city: data.city,
         province: data.province,
         needsSetup: false,
+        status: 'pending',
       })
       .where(eq(members.id, byUsername.id));
     await db.insert(auditLog).values({
       actorId: byUsername.id,
-      action: 'setup-complete',
-      detail: `Claimed account ${username}`,
+      action: 'account-claimed',
+      detail: `Claimed account ${username} — awaiting admin re-approval`,
     });
+    await notifyMembers(
+      await adminIds(byUsername.id),
+      {
+        titleEn: 'Account claim to review', titleUr: 'اکاؤنٹ کلیم برائے جائزہ',
+        en: `${data.nameEn} claimed the member record "${username}" — confirm it's really them before approving.`,
+        ur: `${data.nameUr || data.nameEn} نے "${username}" کا ریکارڈ کلیم کیا — منظوری سے پہلے تصدیق کریں۔`,
+        type: 'member-pending',
+      },
+      { title: '👤 Account claim to review', body: data.nameEn, data: { type: 'member-pending' }, channelId: 'admin' },
+    );
     revalidatePath('/dashboard');
     return;
   }
