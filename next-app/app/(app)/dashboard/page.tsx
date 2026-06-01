@@ -125,12 +125,42 @@ export default async function DashboardPage() {
         </div>
       </header>
 
+      {isAdmin && (
+        <div
+          className="relative mb-6 overflow-hidden rounded-2xl p-7 shadow-[0_10px_40px_rgba(200,155,60,0.18)]"
+          style={{ background: 'linear-gradient(135deg, #c89b3c 0%, #d9b04c 42%, #18223a 100%)' }}
+        >
+          <div className="relative z-10">
+            <div className="text-[11px] font-bold uppercase tracking-[2.5px] text-black/60">Total Family Fund</div>
+            <div className="tabular mt-2 text-[44px] font-bold leading-none text-[#0a0f1a]">{fmtRs(totalFund)}</div>
+            <div className="mt-3 h-px w-14 bg-black/25" />
+            <div className="mt-3 text-[12.5px] font-semibold text-black/60">
+              {memberCount.c} members · {fmtRs(pendingAmount)} awaiting approval
+            </div>
+            {sparkValues.length > 1 && (
+              <svg viewBox="0 0 100 26" preserveAspectRatio="none" className="mt-4 h-8 w-full max-w-[260px]">
+                <polyline
+                  points={sparkValues
+                    .map((v, i) => `${(i / (sparkValues.length - 1)) * 100},${26 - (v / Math.max(...sparkValues, 1)) * 24}`)
+                    .join(' ')}
+                  fill="none"
+                  stroke="rgba(0,0,0,0.45)"
+                  strokeWidth="2.5"
+                  strokeLinejoin="round"
+                  strokeLinecap="round"
+                />
+              </svg>
+            )}
+          </div>
+          <div className="pointer-events-none absolute -right-6 -bottom-8 text-[140px] leading-none text-black/[0.06]">☾</div>
+        </div>
+      )}
+
       <GoalBar config={cfg} totalFund={totalFund} daysRemaining={daysRemaining} />
 
       <div className="mb-6 grid gap-3" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
         {isAdmin ? (
           <>
-            <StatCard label="Total Fund"         icon={<Wallet />}    value={fmtRs(totalFund)}                                       hint={`${memberCount.c} members`} tone="emerald" spark={sparkValues} />
             <StatCard label="Pending Approval"   icon={<Hourglass />} value={fmtRs(pendingAmount)}                                   hint={pendingAmount > 0 ? 'In supervisor/admin flow' : 'Nothing pending'} tone="gold" />
             <StatCard label="Active Members"     icon={<Users />}     value={memberCount.c}                                          hint="Approved family" tone="violet" />
             <StatCard label="Outstanding Loans"  icon={<FileText />}  value={fmtRs(Number(outstandingLoans[0]?.owed ?? 0))}          hint="Active qarz" tone="ruby" />
