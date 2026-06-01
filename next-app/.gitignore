@@ -24,3 +24,5 @@ pnpm-debug.log*
 drizzle/
 *.tsbuildinfo
 next-env.d.ts
+.vercel
+.env*

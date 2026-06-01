@@ -7,6 +7,7 @@ import { FlashList } from '@shopify/flash-list';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Animated, { FadeInDown } from 'react-native-reanimated';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -108,23 +109,35 @@ function LoansScreen() {
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.bg1 }]} edges={['top']}>
-      <Animated.View entering={FadeInDown.duration(400)} style={styles.header}>
-        <Text style={[styles.title, { color: colors.text1 }]}>Qarz-e-Hasana</Text>
-        {isAdmin ? (
-          <TouchableOpacity
-            style={[styles.toggleBtn, { backgroundColor: viewAll ? colors.primaryDim : colors.glass2, borderColor: viewAll ? colors.primary : colors.border1 }]}
-            onPress={() => setViewAll(!viewAll)}
-          >
-            <Text style={[styles.toggleText, { color: viewAll ? colors.primary : colors.text3 }]}>
-              {viewAll ? 'My Loans' : 'All Loans'}
-            </Text>
-          </TouchableOpacity>
-        ) : null}
+      <Animated.View entering={FadeInDown.duration(400)}>
+        <LinearGradient
+          colors={[colors.accentDim, 'transparent']}
+          start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+          style={styles.heroGradient}
+        >
+          <View style={styles.heroRow}>
+            <View>
+              <Text style={[styles.heroLabel, { color: colors.text4 }]}>QARZ-E-HASANA</Text>
+              <Text style={[styles.heroValue, { color: colors.text1 }]}>{formatPKR(totalOutstanding)}</Text>
+              <Text style={[styles.heroSub, { color: colors.text3 }]}>outstanding · {formatPKR(totalPaid)} repaid</Text>
+            </View>
+            {isAdmin ? (
+              <TouchableOpacity
+                style={[styles.toggleBtn, { backgroundColor: viewAll ? colors.primaryDim : colors.glass2, borderColor: viewAll ? colors.primary : colors.border1 }]}
+                onPress={() => setViewAll(!viewAll)}
+              >
+                <Text style={[styles.toggleText, { color: viewAll ? colors.primary : colors.text3 }]}>
+                  {viewAll ? 'Mine' : 'All'}
+                </Text>
+              </TouchableOpacity>
+            ) : null}
+          </View>
+        </LinearGradient>
       </Animated.View>
 
-      <Animated.View entering={FadeInDown.duration(400).delay(80)} style={styles.statsRow}>
+      <Animated.View entering={FadeInDown.duration(400).delay(60)} style={styles.statsRow}>
         <StatCard icon="handshake-outline" value={`${loans.filter((l) => l.active).length}`} label="Active" style={styles.stat} />
-        <StatCard icon="cash-check" value={formatPKR(totalPaid)} label="Total Repaid" style={styles.stat} />
+        <StatCard icon="cash-check" value={formatPKR(totalPaid)} label="Repaid" style={styles.stat} />
         <StatCard icon="cash-remove" value={formatPKR(totalOutstanding)} label="Outstanding" iconColor={colors.danger} style={styles.stat} />
       </Animated.View>
 
@@ -164,11 +177,11 @@ export default LoansScreen;
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
-  header: {
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    paddingHorizontal: spacing.md, paddingTop: spacing.md, paddingBottom: spacing.sm,
-  },
-  title: { fontSize: 22, fontFamily: 'Inter_700Bold' },
+  heroGradient: { paddingHorizontal: spacing.md, paddingTop: spacing.lg, paddingBottom: spacing.md },
+  heroRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' },
+  heroLabel: { fontSize: 11, fontFamily: 'Inter_700Bold', letterSpacing: 1.8 },
+  heroValue: { fontSize: 28, fontFamily: 'Inter_700Bold', marginTop: 4 },
+  heroSub: { fontSize: 12, fontFamily: 'Inter_400Regular', marginTop: 4 },
   toggleBtn: {
     paddingHorizontal: 14, paddingVertical: 8, borderRadius: radius.full, borderWidth: 1.5,
   },
