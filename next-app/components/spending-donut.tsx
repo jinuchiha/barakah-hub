@@ -26,9 +26,15 @@ export function SpendingDonut({ title, slices, size = 200 }: Props) {
 
   if (total === 0 || visible.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center gap-2 py-10 text-center">
-        <div className="size-12 rounded-full border-2 border-dashed border-[var(--border-2)]" />
-        <p className="text-[11.5px] text-[var(--txt-3)]">No data yet</p>
+      <div className="flex flex-col items-center justify-center gap-3 py-12 text-center">
+        <div
+          className="grid size-14 place-items-center rounded-full border border-[var(--border)]"
+          style={{ background: 'radial-gradient(circle at 30% 30%, rgba(200,155,60,0.10), transparent 70%)' }}
+        >
+          <span className="text-[20px] text-[var(--color-gold-4)]">☾</span>
+        </div>
+        <p className="text-[12px] font-medium text-[var(--txt-3)]">Nothing here yet</p>
+        <p className="text-[10.5px] text-[var(--txt-4)]">Data will appear as activity comes in</p>
       </div>
     );
   }

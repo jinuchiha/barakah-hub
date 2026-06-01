@@ -39,12 +39,17 @@ export function StatCard({ label, sublabel, value, hint, tone = 'emerald', spark
       whileHover={reduce ? undefined : { y: -2 }}
       transition={{ type: 'spring', stiffness: 320, damping: 28 }}
       className={cn(
-        'sc-base group relative flex min-h-[124px] flex-col justify-between rounded-[var(--radius-r)] p-5 transition-colors',
+        'sc-base group relative flex min-h-[124px] flex-col justify-between overflow-hidden rounded-[var(--radius-r)] p-5 transition-colors',
         'hover:border-[var(--border-2)]',
       )}
-      style={{ boxShadow: `inset 3px 0 0 0 ${accent}` }}
+      style={{ boxShadow: `inset 3px 0 0 0 ${accent}, 0 12px 32px -12px ${accent}40` }}
     >
-      <div className="flex items-start justify-between gap-3">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0"
+        style={{ background: `radial-gradient(130% 110% at 0% 0%, ${accent}1F, transparent 55%)` }}
+      />
+      <div className="relative flex items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="text-[10px] font-semibold uppercase tracking-[1.4px] text-[var(--txt-3)]">{label}</div>
           {sublabel && <div className="mt-0.5 text-[11px] text-[var(--txt-4)]">{sublabel}</div>}
@@ -59,7 +64,7 @@ export function StatCard({ label, sublabel, value, hint, tone = 'emerald', spark
         )}
       </div>
 
-      <div className="mt-3 flex items-end justify-between gap-3">
+      <div className="relative mt-3 flex items-end justify-between gap-3">
         <div className="num-display text-[28px] leading-none text-[var(--color-cream)]">
           {value}
         </div>
@@ -67,7 +72,7 @@ export function StatCard({ label, sublabel, value, hint, tone = 'emerald', spark
       </div>
 
       {(hint || delta) && (
-        <div className="mt-2.5 flex items-center justify-between gap-2 text-[11px]">
+        <div className="relative mt-2.5 flex items-center justify-between gap-2 text-[11px]">
           {hint && <span className="text-[var(--txt-3)]">{hint}</span>}
           {delta && (
             <span
