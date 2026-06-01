@@ -1,5 +1,6 @@
 import * as Notifications from 'expo-notifications';
 import { MMKV } from 'react-native-mmkv';
+import { getDailyVerse } from './quran';
 
 const storage = new MMKV({ id: 'reminders' });
 const PREFS_KEY = 'reminder_prefs';
@@ -62,12 +63,17 @@ export async function schedulePaymentReminder(day: number): Promise<void> {
 export async function scheduleDailyVerse(hour: number, minute: number): Promise<void> {
   if (!(await ensurePermission())) return;
   await Notifications.cancelScheduledNotificationAsync('daily-verse').catch(() => undefined);
+  // Carry the day's actual verse text. Rescheduled on each app open (see
+  // PushManager) so the verse rotates daily.
+  const verse = getDailyVerse();
+  const body = verse.english.length > 160 ? `${verse.english.slice(0, 157)}…` : verse.english;
   await Notifications.scheduleNotificationAsync({
     identifier: 'daily-verse',
     content: {
-      title: 'Daily Reflection',
-      body: 'Your daily Quran verse is ready. Bismillah.',
-      data: { screen: '/' },
+      title: '🌙 Daily Reflection',
+      body,
+      subtitle: verse.reference,
+      data: { screen: '/', type: 'daily-verse' },
     },
     trigger: {
       type: Notifications.SchedulableTriggerInputTypes.DAILY,
