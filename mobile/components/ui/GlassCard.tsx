@@ -21,6 +21,7 @@ export function GlassCard({
 }: GlassCardProps) {
   const { colors } = useTheme();
 
+  // Subtle depth on every card for a premium feel; deeper when elevated.
   const shadowStyle: ViewStyle = elevated
     ? {
         shadowColor: '#000',
@@ -29,7 +30,13 @@ export function GlassCard({
         shadowRadius: 18,
         elevation: 8,
       }
-    : {};
+    : {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.18,
+        shadowRadius: 10,
+        elevation: 3,
+      };
 
   return (
     <View
