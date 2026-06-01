@@ -16,12 +16,14 @@ export async function GET(req: NextRequest) {
     const year = parseInt(new URL(req.url).searchParams.get('year') ?? '', 10) || new Date().getFullYear();
     const start = new Date(year, 0, 1);
     const end = new Date(year + 1, 0, 1);
-    const inYear = (col: typeof payments.createdAt) => and(gte(col, start), lt(col, end));
+    // loans.issuedOn is a DATE (string) column; payments/cases.createdAt are timestamps.
+    const startDate = start.toISOString().slice(0, 10);
+    const endDate = end.toISOString().slice(0, 10);
 
     const [pays, caseRows, loanRows, memberRows] = await Promise.all([
-      db.select().from(payments).where(and(inYear(payments.createdAt), eq(payments.pendingVerify, false))),
-      db.select().from(cases).where(inYear(cases.createdAt)),
-      db.select().from(loans).where(inYear(loans.issuedOn)),
+      db.select().from(payments).where(and(gte(payments.createdAt, start), lt(payments.createdAt, end), eq(payments.pendingVerify, false))),
+      db.select().from(cases).where(and(gte(cases.createdAt, start), lt(cases.createdAt, end))),
+      db.select().from(loans).where(and(gte(loans.issuedOn, startDate), lt(loans.issuedOn, endDate))),
       db.select({ id: members.id, status: members.status, createdAt: members.createdAt }).from(members),
     ]);
 

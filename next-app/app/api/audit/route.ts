@@ -25,7 +25,7 @@ export async function GET() {
         id: r.id,
         action: r.action,
         detail: r.detail,
-        actor: nameById.get(r.actorId) ?? 'System',
+        actor: (r.actorId ? nameById.get(r.actorId) : null) ?? 'System',
         target: r.targetId ? nameById.get(r.targetId) ?? null : null,
         createdAt: r.createdAt.toISOString(),
       })),
