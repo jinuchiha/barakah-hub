@@ -15,7 +15,6 @@ import { useAuthStore } from '@/stores/auth.store';
 import { useAppStore } from '@/stores/app.store';
 import { useDashboard } from '@/hooks/useDashboard';
 import { FundCard } from '@/components/FundCard';
-import { PoolDonutChart } from '@/components/charts/PoolDonutChart';
 import { ActivityFeed } from '@/components/ActivityFeed';
 import { StatCard } from '@/components/ui/StatCard';
 import { GlassCard } from '@/components/ui/GlassCard';
@@ -169,28 +168,60 @@ function AIFab() {
   );
 }
 
-/** Wow centrepiece: fund split donut + amount legend. */
+/** Grand total — luxury hero with the family fund total in big gold figures. */
+function TotalFundHero({ fund }: { fund?: { sadaqah: number; zakat: number; qarz: number } }) {
+  const { colors } = useTheme();
+  const total = (fund?.sadaqah ?? 0) + (fund?.zakat ?? 0) + (fund?.qarz ?? 0);
+  return (
+    <Animated.View entering={FadeInDown.duration(400).delay(60)}>
+      <LinearGradient
+        colors={[colors.primary, colors.gold, colors.bg2]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.totalHero}
+      >
+        <View style={styles.totalHeroInner}>
+          <Text style={styles.totalHeroLabel}>TOTAL FAMILY FUND</Text>
+          <Text style={styles.totalHeroValue}>{formatPKR(total)}</Text>
+          <View style={styles.totalHeroDivider} />
+          <Text style={styles.totalHeroSub}>Sadaqah · Zakat · Qarz combined</Text>
+        </View>
+        <MaterialCommunityIcons name="star-crescent" size={64} color="rgba(0,0,0,0.10)" style={styles.totalHeroMotif} />
+      </LinearGradient>
+    </Animated.View>
+  );
+}
+
+/** Premium fund composition — a single gradient stacked bar + % legend. */
 function FundDistribution({ fund }: { fund?: { sadaqah: number; zakat: number; qarz: number } }) {
   const { colors } = useTheme();
   const s = fund?.sadaqah ?? 0;
   const z = fund?.zakat ?? 0;
   const q = fund?.qarz ?? 0;
-  const legend = [
+  const total = s + z + q || 1;
+  const rows = [
     { label: 'Sadaqah', value: s, color: colors.primary },
     { label: 'Zakat', value: z, color: colors.gold },
     { label: 'Qarz', value: q, color: colors.accent },
   ];
   return (
     <Animated.View entering={FadeInDown.duration(400).delay(120)}>
-      <SectionLabel title="FUND DISTRIBUTION" />
-      <GlassCard elevated style={styles.distCard}>
-        <PoolDonutChart sadaqah={s} zakat={z} qarz={q} size={148} />
-        <View style={styles.distLegend}>
-          {legend.map((l) => (
-            <View key={l.label} style={styles.distRow}>
-              <View style={[styles.distDot, { backgroundColor: l.color }]} />
-              <Text style={[styles.distLabel, { color: colors.text3 }]}>{l.label}</Text>
-              <Text style={[styles.distValue, { color: colors.text1 }]}>{formatPKR(l.value)}</Text>
+      <SectionLabel title="FUND COMPOSITION" />
+      <GlassCard elevated style={styles.compCard}>
+        <View style={styles.compBar}>
+          {rows.map((r) => (
+            r.value > 0 ? (
+              <View key={r.label} style={{ flex: r.value, backgroundColor: r.color }} />
+            ) : null
+          ))}
+        </View>
+        <View style={styles.compLegend}>
+          {rows.map((r) => (
+            <View key={r.label} style={styles.compRow}>
+              <View style={[styles.compDot, { backgroundColor: r.color }]} />
+              <Text style={[styles.compLabel, { color: colors.text2 }]}>{r.label}</Text>
+              <Text style={[styles.compPct, { color: colors.text4 }]}>{Math.round((r.value / total) * 100)}%</Text>
+              <Text style={[styles.compValue, { color: colors.text1 }]}>{formatPKR(r.value)}</Text>
             </View>
           ))}
         </View>
@@ -253,6 +284,8 @@ function DashboardScreen() {
           onBell={() => router.push('/notifications')}
           onSearch={() => setSearchVisible(true)}
         />
+
+        <TotalFundHero fund={data?.fund} />
 
         <DailyVerseCard />
 
@@ -344,12 +377,27 @@ const styles = StyleSheet.create({
   },
   sectionTitleWrap: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   sectionBar: { width: 3, height: 14, borderRadius: 2 },
-  distCard: { flexDirection: 'row', alignItems: 'center', padding: spacing.md, gap: spacing.md },
-  distLegend: { flex: 1, gap: spacing.sm },
-  distRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  distDot: { width: 10, height: 10, borderRadius: 5 },
-  distLabel: { fontSize: 12, fontFamily: 'Inter_400Regular', flex: 1 },
-  distValue: { fontSize: 13, fontFamily: 'SpaceMono_400Regular', fontWeight: '700' },
+  totalHero: {
+    borderRadius: 24, padding: spacing.lg, marginBottom: spacing.md,
+    overflow: 'hidden', position: 'relative',
+  },
+  totalHeroInner: { zIndex: 1 },
+  totalHeroLabel: { fontSize: 11, fontFamily: 'Inter_700Bold', letterSpacing: 2, color: 'rgba(0,0,0,0.55)' },
+  totalHeroValue: { fontSize: 34, fontFamily: 'Inter_700Bold', color: '#0a0a0f', marginTop: 4, letterSpacing: -0.5 },
+  totalHeroDivider: { height: 1, backgroundColor: 'rgba(0,0,0,0.18)', marginVertical: spacing.sm, width: 48 },
+  totalHeroSub: { fontSize: 12, fontFamily: 'Inter_600SemiBold', color: 'rgba(0,0,0,0.55)' },
+  totalHeroMotif: { position: 'absolute', right: 12, bottom: 8 },
+  compCard: { padding: spacing.md },
+  compBar: {
+    flexDirection: 'row', height: 14, borderRadius: 7, overflow: 'hidden',
+    marginBottom: spacing.md,
+  },
+  compLegend: { gap: spacing.sm },
+  compRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  compDot: { width: 10, height: 10, borderRadius: 5 },
+  compLabel: { fontSize: 13, fontFamily: 'Inter_400Regular', flex: 1 },
+  compPct: { fontSize: 12, fontFamily: 'Inter_600SemiBold', marginRight: spacing.sm },
+  compValue: { fontSize: 13, fontFamily: 'SpaceMono_400Regular', fontWeight: '700' },
   sectionHeader: {
     flexDirection: 'row', justifyContent: 'space-between',
     alignItems: 'center', marginTop: spacing.lg, marginBottom: spacing.sm,
