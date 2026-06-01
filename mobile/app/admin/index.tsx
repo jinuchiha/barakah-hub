@@ -156,6 +156,9 @@ export default function AdminDashboard() {
             {isAdmin ? (
               <AdminActionCard icon="chart-box-outline" label="Reports" color={colors.gold} onPress={() => router.push('/admin/reports')} />
             ) : null}
+            {isAdmin ? (
+              <AdminActionCard icon="cog-outline" label="Config" color={colors.primary} onPress={() => router.push('/admin/config')} />
+            ) : null}
           </View>
         </Animated.View>
       </ScrollView>

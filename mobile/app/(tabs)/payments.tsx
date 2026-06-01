@@ -6,6 +6,7 @@ import { FlashList } from '@shopify/flash-list';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Animated, { FadeInDown, useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
+import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 import { PaymentCard } from '@/components/PaymentCard';
 import { PaymentSubmitModal } from '@/components/PaymentSubmitModal';
@@ -88,13 +89,20 @@ function PaymentsScreen() {
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.bg1 }]} edges={['top']}>
-      <Animated.View entering={FadeInDown.duration(400)} style={styles.header}>
-        <Text style={[styles.title, { color: colors.text1 }]}>My Payments</Text>
-        <Text style={[styles.total, { color: colors.primary }]}>{formatPKR(totalVerified)}</Text>
+      <Animated.View entering={FadeInDown.duration(400)}>
+        <LinearGradient
+          colors={[colors.primaryDim, 'transparent']}
+          start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+          style={styles.heroGradient}
+        >
+          <Text style={[styles.heroLabel, { color: colors.text4 }]}>MY PAYMENTS</Text>
+          <Text style={[styles.heroValue, { color: colors.text1 }]}>{formatPKR(totalVerified)}</Text>
+          <Text style={[styles.heroSub, { color: colors.text3 }]}>total verified · {pendingCount} pending</Text>
+        </LinearGradient>
       </Animated.View>
 
       <Animated.View entering={FadeInDown.duration(400).delay(80)} style={styles.statsRow}>
-        <StatCard icon="cash-check" value={formatPKR(totalVerified)} label="Total Verified" style={styles.stat} />
+        <StatCard icon="cash-check" value={formatPKR(totalVerified)} label="Verified" style={styles.stat} />
         <StatCard icon="clock-outline" value={`${pendingCount}`} label="Pending" iconColor={colors.gold} style={styles.stat} />
       </Animated.View>
 
@@ -141,16 +149,12 @@ export default PaymentsScreen;
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: spacing.md,
-    paddingTop: spacing.md,
-    paddingBottom: spacing.sm,
+  heroGradient: {
+    paddingHorizontal: spacing.md, paddingTop: spacing.lg, paddingBottom: spacing.md,
   },
-  title: { fontSize: 22, fontFamily: 'Inter_700Bold' },
-  total: { fontSize: 14, fontFamily: 'SpaceMono_400Regular' },
+  heroLabel: { fontSize: 11, fontFamily: 'Inter_700Bold', letterSpacing: 1.8 },
+  heroValue: { fontSize: 30, fontFamily: 'Inter_700Bold', marginTop: 4 },
+  heroSub: { fontSize: 12, fontFamily: 'Inter_400Regular', marginTop: 4 },
   statsRow: {
     flexDirection: 'row',
     paddingHorizontal: spacing.md,

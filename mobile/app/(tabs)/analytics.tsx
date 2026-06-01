@@ -19,7 +19,10 @@ import { format } from 'date-fns';
 function SectionTitle({ label }: { label: string }) {
   const { colors } = useTheme();
   return (
-    <Text style={[styles.sectionTitle, { color: colors.text4 }]}>{label}</Text>
+    <View style={styles.sectionTitleRow}>
+      <View style={[styles.sectionTitleBar, { backgroundColor: colors.gold }]} />
+      <Text style={[styles.sectionTitle, { color: colors.text2 }]}>{label}</Text>
+    </View>
   );
 }
 
@@ -62,10 +65,11 @@ export default function AnalyticsScreen() {
 
   const fundLineData = useMemo(() => {
     if (!data) return [];
-    const total = data.fund.sadaqah + data.fund.zakat + data.fund.qarz;
     return [
-      { month: 'Fund', amount: total },
-    ];
+      { month: 'Sadaqah', amount: data.fund.sadaqah },
+      { month: 'Zakat', amount: data.fund.zakat },
+      { month: 'Qarz', amount: data.fund.qarz },
+    ].filter((d) => d.amount > 0);
   }, [data]);
 
   if (!isAdmin) {
@@ -156,12 +160,15 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter_400Regular',
     marginTop: 2,
   },
+  sectionTitleRow: {
+    flexDirection: 'row', alignItems: 'center', gap: 8,
+    marginBottom: spacing.sm, marginTop: spacing.md,
+  },
+  sectionTitleBar: { width: 3, height: 14, borderRadius: 2 },
   sectionTitle: {
-    fontSize: 11,
+    fontSize: 11.5,
     fontFamily: 'Inter_600SemiBold',
-    letterSpacing: 1.2,
-    marginBottom: spacing.sm,
-    marginTop: spacing.md,
+    letterSpacing: 1.8,
   },
   chartCard: {
     padding: spacing.md,

@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, Pressable, type ViewStyle } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -41,9 +42,15 @@ export function StatCard({ icon, value, label, iconColor, style, trend }: StatCa
         <View
           style={[
             styles.card,
-            { backgroundColor: colors.bg1, borderColor: colors.border1 },
+            { backgroundColor: colors.bg1, borderColor: colors.border1, shadowColor: color, shadowOpacity: 0.18, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 4 },
           ]}
         >
+          <LinearGradient
+            colors={[`${color}1A`, 'transparent']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1.2, y: 1 }}
+            style={StyleSheet.absoluteFillObject}
+          />
           <View style={[styles.rail, { backgroundColor: color }]} pointerEvents="none" />
 
           <View style={styles.headerRow}>
