@@ -13,9 +13,12 @@ async function fetchUnreadCount(): Promise<UnreadCount> {
   return data;
 }
 
+// Stable reference so useSmartPolling's effect doesn't re-subscribe each render.
+const UNREAD_KEY = ['notifications', 'unread-count'];
+
 export function useRealtimeNotifications(): void {
   const { setNotificationCount } = useAppStore();
-  const queryKey = ['notifications', 'unread-count'];
+  const queryKey = UNREAD_KEY;
 
   useSmartPolling({
     queryKey,
