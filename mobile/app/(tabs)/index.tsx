@@ -14,6 +14,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useAuthStore } from '@/stores/auth.store';
 import { useAppStore } from '@/stores/app.store';
 import { useDashboard } from '@/hooks/useDashboard';
+import { useCommunity } from '@/hooks/useCommunity';
 import { FundCard } from '@/components/FundCard';
 import { ActivityFeed } from '@/components/ActivityFeed';
 import { StatCard } from '@/components/ui/StatCard';
@@ -230,6 +231,33 @@ function FundDistribution({ fund }: { fund?: { sadaqah: number; zakat: number; q
   );
 }
 
+/** Community donations feed — donors masked server-side (sadqa privacy). */
+function CommunityFeed() {
+  const { colors } = useTheme();
+  const { data } = useCommunity();
+  const payments = (data?.payments ?? []).filter((p) => !p.pendingVerify).slice(0, 6);
+  if (payments.length === 0) return null;
+  return (
+    <Animated.View entering={FadeInDown.duration(400).delay(400)}>
+      <SectionLabel title="COMMUNITY ACTIVITY" />
+      <GlassCard style={styles.activityCard}>
+        {payments.map((p) => (
+          <View key={p.id} style={[styles.commRow, { borderBottomColor: colors.border1 }]}>
+            <Avatar name={p.member?.nameEn ?? 'A member'} color={p.member?.color} size="sm" />
+            <View style={styles.commInfo}>
+              <Text style={[styles.commName, { color: colors.text1 }]} numberOfLines={1}>
+                {p.member?.nameEn ?? 'A member'}
+              </Text>
+              <Text style={[styles.commMeta, { color: colors.text3 }]}>donated · {p.pool}</Text>
+            </View>
+            <Text style={[styles.commAmount, { color: colors.gold }]}>{formatPKR(p.amount)}</Text>
+          </View>
+        ))}
+      </GlassCard>
+    </Animated.View>
+  );
+}
+
 /** Premium section heading: a gold accent bar + refined uppercase label. */
 function SectionLabel({ title, action }: { title: string; action?: React.ReactNode }) {
   const { colors } = useTheme();
@@ -330,6 +358,8 @@ function DashboardScreen() {
             <ActivityFeed items={data?.recentActivity ?? []} />
           </GlassCard>
         </Animated.View>
+
+        <CommunityFeed />
       </ScrollView>
     </SafeAreaView>
   );
@@ -398,6 +428,11 @@ const styles = StyleSheet.create({
   compLabel: { fontSize: 13, fontFamily: 'Inter_400Regular', flex: 1 },
   compPct: { fontSize: 12, fontFamily: 'Inter_600SemiBold', marginRight: spacing.sm },
   compValue: { fontSize: 13, fontFamily: 'SpaceMono_400Regular', fontWeight: '700' },
+  commRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.sm, borderBottomWidth: 1 },
+  commInfo: { flex: 1 },
+  commName: { fontSize: 13, fontFamily: 'Inter_600SemiBold' },
+  commMeta: { fontSize: 11, fontFamily: 'Inter_400Regular', marginTop: 1, textTransform: 'capitalize' },
+  commAmount: { fontSize: 13, fontFamily: 'SpaceMono_400Regular', fontWeight: '700' },
   sectionHeader: {
     flexDirection: 'row', justifyContent: 'space-between',
     alignItems: 'center', marginTop: spacing.lg, marginBottom: spacing.sm,
