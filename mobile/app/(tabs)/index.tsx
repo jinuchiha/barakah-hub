@@ -168,6 +168,20 @@ function AIFab() {
   );
 }
 
+/** Premium section heading: a gold accent bar + refined uppercase label. */
+function SectionLabel({ title, action }: { title: string; action?: React.ReactNode }) {
+  const { colors } = useTheme();
+  return (
+    <View style={styles.sectionHeader}>
+      <View style={styles.sectionTitleWrap}>
+        <View style={[styles.sectionBar, { backgroundColor: colors.gold }]} />
+        <Text style={[styles.sectionLabel, { color: colors.text2 }]}>{title}</Text>
+      </View>
+      {action}
+    </View>
+  );
+}
+
 function DashboardScreen() {
   const router = useRouter();
   const { user } = useAuthStore();
@@ -212,7 +226,7 @@ function DashboardScreen() {
         <DailyVerseCard />
 
         <Animated.View entering={FadeInDown.duration(400).delay(100)}>
-          <Text style={[styles.sectionLabel, { color: colors.text4 }]}>FUND OVERVIEW</Text>
+          <SectionLabel title="FUND OVERVIEW" />
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.cardsScroll}>
             <FundCard pool="sadaqah" amount={data?.fund.sadaqah ?? 0} label="Sadaqah Fund" />
             <FundCard pool="zakat" amount={data?.fund.zakat ?? 0} label="Zakat Fund" />
@@ -238,12 +252,14 @@ function DashboardScreen() {
         <QuickActions isAdmin={user?.role === 'admin'} onAction={handleAction} />
 
         <Animated.View entering={FadeInDown.duration(400).delay(350)}>
-          <View style={styles.sectionHeader}>
-            <Text style={[styles.sectionLabel, { color: colors.text4 }]}>RECENT ACTIVITY</Text>
-            <TouchableOpacity onPress={() => router.push('/notifications')}>
-              <Text style={[styles.seeAll, { color: colors.primary }]}>See All</Text>
-            </TouchableOpacity>
-          </View>
+          <SectionLabel
+            title="RECENT ACTIVITY"
+            action={(
+              <TouchableOpacity onPress={() => router.push('/notifications')}>
+                <Text style={[styles.seeAll, { color: colors.primary }]}>See All</Text>
+              </TouchableOpacity>
+            )}
+          />
           <GlassCard style={styles.activityCard}>
             <ActivityFeed items={data?.recentActivity ?? []} />
           </GlassCard>
@@ -290,9 +306,11 @@ const styles = StyleSheet.create({
   },
   bellBadgeText: { color: '#fff', fontSize: 9, fontFamily: 'SpaceMono_400Regular', fontWeight: '700' },
   sectionLabel: {
-    fontSize: 11, fontFamily: 'Inter_600SemiBold',
-    letterSpacing: 1.2, marginBottom: spacing.sm,
+    fontSize: 11.5, fontFamily: 'Inter_600SemiBold',
+    letterSpacing: 1.8,
   },
+  sectionTitleWrap: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  sectionBar: { width: 3, height: 14, borderRadius: 2 },
   sectionHeader: {
     flexDirection: 'row', justifyContent: 'space-between',
     alignItems: 'center', marginTop: spacing.lg, marginBottom: spacing.sm,
