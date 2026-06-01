@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView, KeyboardAvoidingView, Platform, Alert, TouchableOpacity,
+  View, Text, StyleSheet, ScrollView, KeyboardAvoidingView, Platform, Alert, TouchableOpacity, Switch,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -20,6 +20,7 @@ const schema = z.object({
   nameEn: z.string().min(1, 'English name is required').max(80),
   nameUr: z.string().max(80).optional().or(z.literal('')),
   fatherName: z.string().max(80).optional().or(z.literal('')),
+  fatherDeceased: z.boolean().optional(),
   phone: z.string().max(30).optional().or(z.literal('')),
   city: z.string().max(60).optional().or(z.literal('')),
   province: z.string().max(40).optional().or(z.literal('')),
@@ -48,6 +49,7 @@ export default function EditProfileScreen() {
       nameEn: user?.nameEn ?? '',
       nameUr: user?.nameUr ?? '',
       fatherName: user?.fatherName && user.fatherName !== '—' ? user.fatherName : '',
+      fatherDeceased: user?.fatherDeceased ?? false,
       phone: user?.phone ?? '',
       city: user?.city ?? '',
       province: user?.province ?? '',
@@ -70,6 +72,7 @@ export default function EditProfileScreen() {
         nameEn: data.nameEn,
         nameUr: data.nameUr || undefined,
         fatherName: data.fatherName || undefined,
+        fatherDeceased: data.fatherDeceased ?? false,
         phone: data.phone || null,
         city: data.city || null,
         province: data.province || null,
@@ -172,6 +175,22 @@ export default function EditProfileScreen() {
 
           <Controller
             control={control}
+            name="fatherDeceased"
+            render={({ field: { onChange, value } }) => (
+              <View style={styles.switchRow}>
+                <Text style={[styles.switchLabel, { color: colors.text2 }]}>Father has passed away (Marhoom)</Text>
+                <Switch
+                  value={!!value}
+                  onValueChange={onChange}
+                  trackColor={{ false: colors.bg4, true: colors.primaryDim }}
+                  thumbColor={colors.primary}
+                />
+              </View>
+            )}
+          />
+
+          <Controller
+            control={control}
             name="phone"
             render={({ field: { onChange, value } }) => (
               <Input
@@ -252,6 +271,11 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   avatarHint: { fontSize: 11, fontFamily: 'Inter_400Regular' },
+  switchRow: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    paddingVertical: spacing.sm, marginBottom: spacing.sm,
+  },
+  switchLabel: { fontSize: 14, fontFamily: 'Inter_400Regular', flex: 1, marginRight: spacing.md },
   btnRow: {
     flexDirection: 'row',
     gap: spacing.sm,

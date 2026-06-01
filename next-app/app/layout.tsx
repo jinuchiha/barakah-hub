@@ -12,6 +12,15 @@ export const metadata: Metadata = {
     template: '🌙 %s',
   },
   description: 'Barakah Hub · Islamic family fund: sadqa, qarz-e-hasana, emergency vote, audit trail',
+  // Real favicon so the browser tab shows the app icon instead of the blank
+  // white document placeholder.
+  icons: {
+    icon: [
+      { url: '/icon.svg', type: 'image/svg+xml' },
+      { url: '/icon.png', type: 'image/png' },
+    ],
+    apple: '/apple-icon.png',
+  },
   manifest: '/manifest.webmanifest',
   applicationName: 'Barakah Hub',
   appleWebApp: { capable: true, title: 'Barakah Hub', statusBarStyle: 'black-translucent' },

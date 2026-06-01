@@ -51,6 +51,8 @@ export function buildFamilyTreeNodes(members: Member[]): TreeNode[] {
   const virtualFathers = new Map<string, string>(); // normName -> virtualId
   const virtualLabels = new Map<string, string>();   // virtualId -> display name
 
+  const virtualDeceased = new Map<string, boolean>(); // vid -> any child says father passed away
+
   function resolveParentId(m: Member): string | null {
     if (m.parentId && byId.has(m.parentId)) return m.parentId;
     const fn = m.fatherName?.trim();
@@ -63,7 +65,10 @@ export function buildFamilyTreeNodes(members: Member[]): TreeNode[] {
       virtualFathers.set(key, vid);
       virtualLabels.set(vid, fn);
     }
-    return virtualFathers.get(key)!;
+    const vid = virtualFathers.get(key)!;
+    // Father is shown deceased only if a child explicitly says so — never assumed.
+    virtualDeceased.set(vid, (virtualDeceased.get(vid) ?? false) || Boolean(m.fatherDeceased));
+    return vid;
   }
 
   const nodes: TreeNode[] = [];
@@ -107,7 +112,7 @@ export function buildFamilyTreeNodes(members: Member[]): TreeNode[] {
       label,
       sublabel: 'Walid',
       color: VIRTUAL_COLOR,
-      deceased: true,
+      deceased: virtualDeceased.get(vid) ?? false,
       isVirtual: true,
       spouse: null,
     });

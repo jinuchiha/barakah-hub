@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity,
-  Alert, KeyboardAvoidingView, Platform,
+  Alert, KeyboardAvoidingView, Platform, Switch,
 } from 'react-native';
 import { useRouter, useLocalSearchParams, Redirect, Stack } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -57,6 +57,7 @@ export default function MemberFormScreen() {
   const [nameUr, setNameUr] = useState(existing?.nameUr ?? '');
   const [username, setUsername] = useState(existing?.username ?? '');
   const [fatherName, setFatherName] = useState(existing?.fatherName && existing.fatherName !== '—' ? existing.fatherName : '');
+  const [fatherDeceased, setFatherDeceased] = useState(existing?.fatherDeceased ?? false);
   const [phone, setPhone] = useState(existing?.phone ?? '');
   const [city, setCity] = useState(existing?.city ?? '');
   const [pledge, setPledge] = useState(String(existing?.monthlyPledge ?? 1000));
@@ -83,6 +84,7 @@ export default function MemberFormScreen() {
       if (isEdit && id) {
         await edit.mutateAsync({
           id, nameEn, nameUr: nameUr || undefined, fatherName: fatherName || undefined,
+          fatherDeceased,
           phone: phone || null, city: city || null,
           monthlyPledge: parseInt(pledge, 10) || 0, role, status, spouseId,
         });
@@ -90,7 +92,7 @@ export default function MemberFormScreen() {
         if (username.trim().length < 2) { Alert.alert('Username required'); return; }
         await add.mutateAsync({
           username: username.trim(), nameEn: nameEn.trim(), nameUr: (nameUr || nameEn).trim(),
-          fatherName: (fatherName || '—').trim(), phone: phone || undefined,
+          fatherName: (fatherName || '—').trim(), fatherDeceased, phone: phone || undefined,
           city: city || undefined, monthlyPledge: parseInt(pledge, 10) || 1000,
         });
       }
@@ -113,6 +115,15 @@ export default function MemberFormScreen() {
             <Input label="Username" value={username} onChangeText={setUsername} autoCapitalize="none" placeholder="lowercase, no spaces" />
           ) : null}
           <Input label="Father's Name" value={fatherName} onChangeText={setFatherName} autoCapitalize="words" placeholder="Links siblings in the tree" />
+          <View style={styles.switchRow}>
+            <Text style={[styles.switchLabel, { color: colors.text2 }]}>Father has passed away (Marhoom)</Text>
+            <Switch
+              value={fatherDeceased}
+              onValueChange={setFatherDeceased}
+              trackColor={{ false: colors.bg4, true: colors.primaryDim }}
+              thumbColor={colors.primary}
+            />
+          </View>
           <Input label="Phone" value={phone} onChangeText={setPhone} keyboardType="phone-pad" />
           <Input label="City" value={city} onChangeText={setCity} autoCapitalize="words" />
           <Input label="Monthly Pledge (PKR)" value={pledge} onChangeText={setPledge} keyboardType="numeric" />
@@ -190,6 +201,8 @@ const styles = StyleSheet.create({
   segRow: { flexDirection: 'row', gap: spacing.sm },
   seg: { flex: 1, paddingVertical: 10, borderRadius: radius.full, borderWidth: 1.5, alignItems: 'center' },
   segText: { fontSize: 12, fontFamily: 'Inter_600SemiBold' },
+  switchRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: spacing.sm, marginBottom: spacing.sm },
+  switchLabel: { fontSize: 14, fontFamily: 'Inter_400Regular', flex: 1, marginRight: spacing.md },
   spouseRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, padding: spacing.sm, borderWidth: 1, borderRadius: radius.md },
   spouseName: { flex: 1, fontSize: 14, fontFamily: 'Inter_600SemiBold' },
   linkSpouse: { fontSize: 14, fontFamily: 'Inter_600SemiBold', paddingVertical: spacing.sm },

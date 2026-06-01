@@ -48,7 +48,7 @@ function resolveMarriages(members: Member[]) {
 
 /** Synthesize a placeholder "father" node so siblings whose father isn't
  *  (yet) a member still group under one root instead of scattering. */
-function makeVirtualFather(id: string, name: string): Member {
+function makeVirtualFather(id: string, name: string, deceased: boolean): Member {
   const now = new Date();
   return {
     id,
@@ -57,6 +57,7 @@ function makeVirtualFather(id: string, name: string): Member {
     nameUr: '',
     nameEn: name,
     fatherName: '',
+    fatherDeceased: false,
     clan: null,
     relation: null,
     parentId: null,
@@ -69,7 +70,7 @@ function makeVirtualFather(id: string, name: string): Member {
     monthlyPledge: 0,
     color: '#64748b',
     photoUrl: null,
-    deceased: true,
+    deceased, // only when a child explicitly marks the father as passed away
     needsSetup: false,
     joinedAt: '',
     createdAt: now,
@@ -115,7 +116,12 @@ function buildTreeData(
         push(auto, m);
       } else {
         const vid = `virtual:${nameLower(m.fatherName)}`;
-        if (!virtualFathers.has(vid)) virtualFathers.set(vid, makeVirtualFather(vid, m.fatherName));
+        const existing = virtualFathers.get(vid);
+        if (!existing) {
+          virtualFathers.set(vid, makeVirtualFather(vid, m.fatherName, Boolean(m.fatherDeceased)));
+        } else if (m.fatherDeceased) {
+          existing.deceased = true; // a child confirmed the father has passed away
+        }
         push(vid, m);
       }
     } else {

@@ -25,6 +25,7 @@ export interface EditMemberInput {
   nameEn?: string;
   nameUr?: string;
   fatherName?: string;
+  fatherDeceased?: boolean;
   phone?: string | null;
   city?: string | null;
   province?: string | null;
@@ -39,6 +40,7 @@ export interface AddMemberInput {
   nameEn: string;
   nameUr: string;
   fatherName: string;
+  fatherDeceased?: boolean;
   phone?: string;
   city?: string;
   province?: string;

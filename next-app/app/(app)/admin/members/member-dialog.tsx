@@ -30,6 +30,7 @@ interface FormState {
   nameEn: string;
   nameUr: string;
   fatherName: string;
+  fatherDeceased: boolean;
   relation: string;
   phone: string;
   city: string;
@@ -45,6 +46,7 @@ const blank: FormState = {
   nameEn: '',
   nameUr: '',
   fatherName: '',
+  fatherDeceased: false,
   relation: '',
   phone: '',
   city: '',
@@ -61,6 +63,7 @@ function fromMember(m: Member): FormState {
     nameEn: m.nameEn,
     nameUr: m.nameUr,
     fatherName: m.fatherName,
+    fatherDeceased: m.fatherDeceased,
     relation: m.relation ?? '',
     phone: m.phone ?? '',
     city: m.city ?? '',
@@ -110,6 +113,7 @@ export default function MemberDialog({ mode, allMembers, onClose }: Props) {
             nameEn: form.nameEn.trim(),
             nameUr: form.nameUr.trim() || form.nameEn.trim(),
             fatherName: form.fatherName.trim(),
+            fatherDeceased: form.fatherDeceased,
             relation: form.relation.trim() || undefined,
             phone: form.phone.trim() || undefined,
             city: form.city.trim() || undefined,
@@ -123,6 +127,7 @@ export default function MemberDialog({ mode, allMembers, onClose }: Props) {
             nameEn: form.nameEn.trim(),
             nameUr: form.nameUr.trim() || form.nameEn.trim(),
             fatherName: form.fatherName.trim(),
+            fatherDeceased: form.fatherDeceased,
             relation: form.relation.trim() || null,
             phone: form.phone.trim() || null,
             city: form.city.trim() || null,
@@ -164,7 +169,11 @@ export default function MemberDialog({ mode, allMembers, onClose }: Props) {
           <div><Label>English Name *</Label><Input value={form.nameEn} onChange={(e) => set('nameEn', e.target.value)} required /></div>
           <div><Label>Urdu Name</Label><Input value={form.nameUr} onChange={(e) => set('nameUr', e.target.value)} dir="rtl" /></div>
           <div className="md:col-span-2"><Label>Father&apos;s Name *</Label><Input value={form.fatherName} onChange={(e) => set('fatherName', e.target.value)} required /></div>
-          <div><Label>Relation</Label><Input value={form.relation} onChange={(e) => set('relation', e.target.value)} placeholder="e.g. Son of Abu Baker" /></div>
+          <label className="md:col-span-2 flex items-center gap-2 text-sm text-[var(--txt-2)]">
+            <input type="checkbox" checked={form.fatherDeceased} onChange={(e) => set('fatherDeceased', e.target.checked)} />
+            Father has passed away (Marhoom)
+          </label>
+          <div><Label>Relation</Label><Input value={form.relation} onChange={(e) => set('relation', e.target.value)} placeholder="e.g. Son of / Daughter of" /></div>
           <div><Label>Phone</Label><Input value={form.phone} onChange={(e) => set('phone', e.target.value)} placeholder="03xx-xxxxxxx" /></div>
           <div><Label>City</Label><Input value={form.city} onChange={(e) => set('city', e.target.value)} /></div>
           <div>
