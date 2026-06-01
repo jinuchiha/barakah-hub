@@ -46,11 +46,12 @@ export async function POST(
     );
     const eligible = Math.max(0, eligibleCount - 1);
     const [cfg] = await db.select().from(configTbl).where(eq(configTbl.id, 1)).limit(1);
-    const need = Math.ceil(eligible * ((cfg?.voteThresholdPct ?? 50) / 100));
+    // Require ≥1 vote and never auto-resolve with no other eligible voters.
+    const need = Math.max(1, Math.ceil(eligible * ((cfg?.voteThresholdPct ?? 50) / 100)));
 
-    if (yesCount >= need) {
+    if (eligible > 0 && yesCount >= need) {
       await db.update(cases).set({ status: 'approved', resolvedAt: new Date() }).where(eq(cases.id, caseId));
-    } else if (noCount >= need) {
+    } else if (eligible > 0 && noCount >= need) {
       await db.update(cases).set({ status: 'rejected', resolvedAt: new Date() }).where(eq(cases.id, caseId));
     }
 

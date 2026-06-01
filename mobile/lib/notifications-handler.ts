@@ -8,11 +8,16 @@ export type NotificationPayload = {
 };
 
 function resolveRoute(data: NotificationPayload): string {
-  if (data.type === 'case' && data.id) return `/(tabs)/cases`;
-  if (data.type === 'payment' && data.id) return `/(tabs)/payments`;
-  if (data.type === 'message') return `/notifications`;
-  if (data.type === 'admin') return `/admin/`;
-  return `/notifications`;
+  const type = data.type ?? '';
+  // Match the type strings the web actually emits (lib/notify.ts + actions.ts):
+  // payment-pending / payment-awaiting-admin / payment-rejected / payment-verified,
+  // member-pending, msg, approved, case, vote-*.
+  if (type.startsWith('payment')) return '/(tabs)/payments';
+  if (type.startsWith('case') || type.startsWith('vote') || type.startsWith('emergency')) return '/(tabs)/cases';
+  if (type === 'member-pending') return '/admin/approve-members';
+  if (type === 'msg' || type === 'message') return '/messages';
+  if (type === 'admin') return '/admin/';
+  return '/notifications';
 }
 
 export function handleNotificationTap(
