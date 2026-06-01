@@ -38,12 +38,13 @@ export function SpendingDonut({ title, slices, size = 200 }: Props) {
   const cy = size / 2;
   const circ = 2 * Math.PI * r;
 
-  let cumulative = 0;
-  const arcs = visible.map((s) => {
+  const arcs = visible.map((s, i) => {
     const fraction = s.value / total;
+    // Prefix sum of prior fractions (no mutable outer var — keeps the React
+    // Compiler lint happy). The pool list is tiny, so O(n²) is fine.
+    const prior = visible.slice(0, i).reduce((sum, x) => sum + x.value / total, 0);
     const dasharray = `${fraction * circ} ${circ - fraction * circ}`;
-    const dashoffset = -cumulative * circ;
-    cumulative += fraction;
+    const dashoffset = -prior * circ;
     return { ...s, dasharray, dashoffset, percent: Math.round(fraction * 100) };
   });
 
