@@ -274,7 +274,7 @@ export default async function FundPage() {
                     </div>
                     {p.supervisorRejectionNote ? (
                       <div className="mt-1.5 rounded border-l-2 border-[#dc5252]/40 bg-[rgba(220,82,82,0.05)] px-2.5 py-1.5 text-[12px] italic text-[var(--txt-2)]">
-                        "{p.supervisorRejectionNote}"
+                        &ldquo;{p.supervisorRejectionNote}&rdquo;
                       </div>
                     ) : (
                       <div className="mt-1.5 text-[10.5px] italic text-[var(--txt-4)]">
@@ -295,7 +295,7 @@ export default async function FundPage() {
           <CardHeader>
             <CardTitle>⏳ Pending Supervisor ({awaitingSupervisor.length})</CardTitle>
             <span className="text-[10px] uppercase tracking-[1.5px] text-[var(--color-gold-4)]">
-              Waiting for supervisor's first review
+              Waiting for supervisor&apos;s first review
             </span>
           </CardHeader>
           <CardBody className="p-0">
