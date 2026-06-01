@@ -15,6 +15,7 @@ import { useAuthStore } from '@/stores/auth.store';
 import { useAppStore } from '@/stores/app.store';
 import { useDashboard } from '@/hooks/useDashboard';
 import { FundCard } from '@/components/FundCard';
+import { PoolDonutChart } from '@/components/charts/PoolDonutChart';
 import { ActivityFeed } from '@/components/ActivityFeed';
 import { StatCard } from '@/components/ui/StatCard';
 import { GlassCard } from '@/components/ui/GlassCard';
@@ -168,6 +169,36 @@ function AIFab() {
   );
 }
 
+/** Wow centrepiece: fund split donut + amount legend. */
+function FundDistribution({ fund }: { fund?: { sadaqah: number; zakat: number; qarz: number } }) {
+  const { colors } = useTheme();
+  const s = fund?.sadaqah ?? 0;
+  const z = fund?.zakat ?? 0;
+  const q = fund?.qarz ?? 0;
+  const legend = [
+    { label: 'Sadaqah', value: s, color: colors.primary },
+    { label: 'Zakat', value: z, color: colors.gold },
+    { label: 'Qarz', value: q, color: colors.accent },
+  ];
+  return (
+    <Animated.View entering={FadeInDown.duration(400).delay(120)}>
+      <SectionLabel title="FUND DISTRIBUTION" />
+      <GlassCard elevated style={styles.distCard}>
+        <PoolDonutChart sadaqah={s} zakat={z} qarz={q} size={148} />
+        <View style={styles.distLegend}>
+          {legend.map((l) => (
+            <View key={l.label} style={styles.distRow}>
+              <View style={[styles.distDot, { backgroundColor: l.color }]} />
+              <Text style={[styles.distLabel, { color: colors.text3 }]}>{l.label}</Text>
+              <Text style={[styles.distValue, { color: colors.text1 }]}>{formatPKR(l.value)}</Text>
+            </View>
+          ))}
+        </View>
+      </GlassCard>
+    </Animated.View>
+  );
+}
+
 /** Premium section heading: a gold accent bar + refined uppercase label. */
 function SectionLabel({ title, action }: { title: string; action?: React.ReactNode }) {
   const { colors } = useTheme();
@@ -233,6 +264,8 @@ function DashboardScreen() {
             <FundCard pool="qarz" amount={data?.fund.qarz ?? 0} label="Qarz Fund" />
           </ScrollView>
         </Animated.View>
+
+        <FundDistribution fund={data?.fund} />
 
         <Animated.View entering={FadeInDown.duration(400).delay(150)} style={styles.statsRow}>
           <StatCard icon="wallet-outline" value={formatPKR(user?.monthlyPledge ?? 0)} label="My Pledge" style={styles.stat} />
@@ -311,6 +344,12 @@ const styles = StyleSheet.create({
   },
   sectionTitleWrap: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   sectionBar: { width: 3, height: 14, borderRadius: 2 },
+  distCard: { flexDirection: 'row', alignItems: 'center', padding: spacing.md, gap: spacing.md },
+  distLegend: { flex: 1, gap: spacing.sm },
+  distRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  distDot: { width: 10, height: 10, borderRadius: 5 },
+  distLabel: { fontSize: 12, fontFamily: 'Inter_400Regular', flex: 1 },
+  distValue: { fontSize: 13, fontFamily: 'SpaceMono_400Regular', fontWeight: '700' },
   sectionHeader: {
     flexDirection: 'row', justifyContent: 'space-between',
     alignItems: 'center', marginTop: spacing.lg, marginBottom: spacing.sm,
