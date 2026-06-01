@@ -13,6 +13,7 @@ export interface Member {
   nameUr: string;
   nameEn: string;
   fatherName: string;
+  fatherDeceased: boolean;
   clan: string | null;
   relation: string | null;
   parentId: string | null;

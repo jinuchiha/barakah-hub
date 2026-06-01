@@ -70,7 +70,7 @@ export default function OnboardingForm({ existing }: Props) {
             <div><Label>English Name *</Label><Input value={form.nameEn} onChange={(e) => set('nameEn', e.target.value)} placeholder="Ahmad Baloch" /></div>
             <div><Label>Urdu Name</Label><Input value={form.nameUr} onChange={(e) => set('nameUr', e.target.value)} dir="rtl" /></div>
             <div className="md:col-span-2"><Label>Father&apos;s Name *</Label><Input value={form.fatherName} onChange={(e) => set('fatherName', e.target.value)} /></div>
-            <div className="md:col-span-2"><Label>Relation in family</Label><Input value={form.relation} onChange={(e) => set('relation', e.target.value)} placeholder="e.g. Son of Abu Baker" /></div>
+            <div className="md:col-span-2"><Label>Relation in family</Label><Input value={form.relation} onChange={(e) => set('relation', e.target.value)} placeholder="e.g. Son of / Daughter of" /></div>
           </div>
         </>
       )}

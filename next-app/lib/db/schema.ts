@@ -83,6 +83,7 @@ export const members = pgTable('members', {
   nameUr: text('name_ur').notNull(),
   nameEn: text('name_en').notNull(),
   fatherName: text('father_name').notNull(),
+  fatherDeceased: boolean('father_deceased').notNull().default(false),
   clan: text('clan'),
   relation: text('relation'),
   parentId: uuid('parent_id').references((): any => members.id, { onDelete: 'set null' }),

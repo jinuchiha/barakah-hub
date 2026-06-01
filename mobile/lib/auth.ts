@@ -14,6 +14,7 @@ export interface SignUpInput {
   password: string;
   name: string;
   fatherName?: string;
+  fatherDeceased?: boolean;
   phone?: string;
   monthlyPledge?: number;
   joinCode?: string;
@@ -74,6 +75,7 @@ export async function signUp(input: SignUpInput): Promise<void> {
     nameEn: input.name,
     nameUr: input.name,
     fatherName: input.fatherName,
+    fatherDeceased: input.fatherDeceased,
     phone: input.phone,
     monthlyPledge: input.monthlyPledge,
   });
@@ -117,6 +119,7 @@ export interface UpdateProfileInput {
   nameEn?: string;
   nameUr?: string;
   fatherName?: string;
+  fatherDeceased?: boolean;
   phone?: string | null;
   city?: string | null;
   province?: string | null;

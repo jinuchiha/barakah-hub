@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, KeyboardAvoidingView,
-  Platform, TouchableOpacity, Alert,
+  Platform, TouchableOpacity, Alert, Switch,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useForm, Controller } from 'react-hook-form';
@@ -21,6 +21,7 @@ import { spacing, radius } from '@/lib/theme';
 const schema = z.object({
   name: z.string().min(2, 'Full name required'),
   fatherName: z.string().optional(),
+  fatherDeceased: z.boolean().optional(),
   email: z.string().email('Invalid email'),
   password: z.string().min(8, 'Minimum 8 characters'),
   confirmPassword: z.string(),
@@ -82,7 +83,7 @@ export default function RegisterScreen() {
 
   const { control, handleSubmit, trigger, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
-    defaultValues: { monthlyPledge: 1000 },
+    defaultValues: { monthlyPledge: 1000, fatherDeceased: false },
   });
 
   const stepFields: Array<Array<keyof FormData>> = [
@@ -99,7 +100,7 @@ export default function RegisterScreen() {
   const onSubmit = async (data: FormData) => {
     setLoading(true);
     try {
-      await register({ email: data.email, password: data.password, name: data.name, fatherName: data.fatherName, phone: data.phone, monthlyPledge: data.monthlyPledge });
+      await register({ email: data.email, password: data.password, name: data.name, fatherName: data.fatherName, fatherDeceased: data.fatherDeceased, phone: data.phone, monthlyPledge: data.monthlyPledge });
       Alert.alert('Registration Submitted', 'Your account is pending admin approval.', [
         { text: 'OK', onPress: () => router.replace('/(auth)/login') },
       ]);
@@ -142,6 +143,14 @@ export default function RegisterScreen() {
                   <Controller control={control} name="fatherName"
                     render={({ field: { onChange, value } }) => (
                       <Input label="Father's Name (links family tree)" value={value ?? ''} onChangeText={onChange} leftIcon="account-supervisor-outline" error={errors.fatherName?.message} />
+                    )}
+                  />
+                  <Controller control={control} name="fatherDeceased"
+                    render={({ field: { onChange, value } }) => (
+                      <View style={styles.fatherStatusRow}>
+                        <Text style={[styles.fatherStatusLabel, { color: colors.text3 }]}>Father has passed away (Marhoom)</Text>
+                        <Switch value={!!value} onValueChange={onChange} trackColor={{ false: colors.bg4, true: colors.primaryDim }} thumbColor={colors.primary} />
+                      </View>
                     )}
                   />
                   <Controller control={control} name="phone"
@@ -239,6 +248,11 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     marginBottom: spacing.md,
   },
+  fatherStatusRow: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    paddingVertical: spacing.xs, marginBottom: spacing.sm,
+  },
+  fatherStatusLabel: { fontSize: 13, fontFamily: 'Inter_400Regular', flex: 1, marginRight: spacing.sm },
   btnRow: {
     marginTop: spacing.sm,
   },

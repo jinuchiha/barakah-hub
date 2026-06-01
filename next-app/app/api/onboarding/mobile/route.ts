@@ -35,6 +35,7 @@ const schema = z.object({
   city: z.string().max(60).optional(),
   province: z.string().max(40).optional(),
   fatherName: z.string().max(80).optional(),
+  fatherDeceased: z.boolean().optional(),
 });
 
 export async function POST(req: NextRequest) {
@@ -77,6 +78,7 @@ export async function POST(req: NextRequest) {
         nameEn: data.nameEn,
         nameUr: data.nameUr || data.nameEn,
         fatherName: data.fatherName?.trim() || '—',
+        fatherDeceased: data.fatherDeceased ?? false,
         phone: data.phone,
         city: data.city,
         province: data.province,
