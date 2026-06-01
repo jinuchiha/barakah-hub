@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import Animated, {
   useSharedValue,
@@ -8,44 +8,39 @@ import Animated, {
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { ProgressBar } from './ui/ProgressBar';
 import { useTheme } from '@/lib/useTheme';
+import { poolColor } from '@/lib/pool';
 import { spacing, radius } from '@/lib/theme';
+import type { FundPool } from '@/types';
 
 interface FundCardProps {
-  pool: 'sadaqah' | 'zakat' | 'qarz';
+  pool: FundPool;
   amount: number;
   label: string;
   target?: number;
   onViewHistory?: () => void;
 }
 
-const POOL_CONFIG = {
-  sadaqah: {
-    icon: 'hand-heart' as const,
-    accent: '#2d8a5f',
-  },
-  zakat: {
-    icon: 'star-crescent' as const,
-    accent: '#608dd7',
-  },
-  qarz: {
-    icon: 'handshake' as const,
-    accent: '#c89b3c',
-  },
+const POOL_ICONS: Record<FundPool, keyof typeof import('@expo/vector-icons').MaterialCommunityIcons.glyphMap> = {
+  sadaqah: 'hand-heart',
+  zakat: 'star-crescent',
+  qarz: 'handshake',
 };
 
 function useCountUp(target: number) {
-  const [display, setDisplay] = useState(0);
+  const [display, setDisplay] = useState(target);
+  const fromRef = useRef(target);
 
   useEffect(() => {
-    const duration = 1000;
     const start = Date.now();
+    const duration = 800;
+    const from = fromRef.current;
 
     const tick = () => {
-      const elapsed = Date.now() - start;
-      const progress = Math.min(elapsed / duration, 1);
+      const progress = Math.min((Date.now() - start) / duration, 1);
       const eased = 1 - Math.pow(1 - progress, 3);
-      setDisplay(Math.floor(eased * target));
+      setDisplay(Math.round(from + (target - from) * eased));
       if (progress < 1) requestAnimationFrame(tick);
+      else fromRef.current = target;
     };
 
     const frame = requestAnimationFrame(tick);
@@ -57,7 +52,8 @@ function useCountUp(target: number) {
 
 export function FundCard({ pool, amount, label, target, onViewHistory }: FundCardProps) {
   const { colors } = useTheme();
-  const cfg = POOL_CONFIG[pool];
+  const accent = poolColor(pool, colors);
+  const icon = POOL_ICONS[pool];
   const displayAmount = useCountUp(amount);
   const scale = useSharedValue(1);
   const progress = target && target > 0 ? amount / target : 0;
@@ -78,13 +74,13 @@ export function FundCard({ pool, amount, label, target, onViewHistory }: FundCar
         onPressIn={() => { scale.value = withSpring(0.985, { damping: 20, stiffness: 400 }); }}
         onPressOut={() => { scale.value = withSpring(1, { damping: 20, stiffness: 400 }); }}
       >
-        <View style={[styles.rail, { backgroundColor: cfg.accent }]} pointerEvents="none" />
+        <View style={[styles.rail, { backgroundColor: accent }]} pointerEvents="none" />
 
         <View style={styles.content}>
           <View style={styles.headerRow}>
             <Text style={[styles.label, { color: colors.text3 }]}>{label}</Text>
-            <View style={[styles.iconBox, { backgroundColor: `${cfg.accent}1F` }]}>
-              <MaterialCommunityIcons name={cfg.icon} size={16} color={cfg.accent} />
+            <View style={[styles.iconBox, { backgroundColor: `${accent}1F` }]}>
+              <MaterialCommunityIcons name={icon} size={16} color={accent} />
             </View>
           </View>
 
@@ -97,7 +93,7 @@ export function FundCard({ pool, amount, label, target, onViewHistory }: FundCar
             <View style={styles.progressSection}>
               <ProgressBar
                 progress={progress}
-                color={cfg.accent}
+                color={accent}
                 height={3}
                 style={styles.progressBar}
               />

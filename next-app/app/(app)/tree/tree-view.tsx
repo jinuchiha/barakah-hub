@@ -46,20 +46,52 @@ function resolveMarriages(members: Member[]) {
   return { primaryToSpouse, claimedAsSpouse };
 }
 
+/** Synthesize a placeholder "father" node so siblings whose father isn't
+ *  (yet) a member still group under one root instead of scattering. */
+function makeVirtualFather(id: string, name: string): Member {
+  const now = new Date();
+  return {
+    id,
+    authId: null,
+    username: id,
+    nameUr: '',
+    nameEn: name,
+    fatherName: '',
+    clan: null,
+    relation: null,
+    parentId: null,
+    spouseId: null,
+    role: 'member',
+    status: 'approved',
+    phone: null,
+    city: null,
+    province: null,
+    monthlyPledge: 0,
+    color: '#64748b',
+    photoUrl: null,
+    deceased: true,
+    needsSetup: false,
+    joinedAt: '',
+    createdAt: now,
+    updatedAt: now,
+  } as Member;
+}
+
 /**
- * Build childrenOf map using:
+ * Build the renderable node list + childrenOf map using:
  *  1. Explicit parentId (highest priority)
  *  2. fatherName case-insensitive match to another member's nameEn / nameUr
- *  3. Falls back to __root
+ *  3. A synthetic "virtual father" node keyed by the father name, so
+ *     siblings sharing a non-member father group under one root
+ *  4. Falls back to __root
  *
  * Members claimed as the secondary side of a marriage are skipped — they
- * render beside their primary spouse instead, so they shouldn't also
- * appear as a separate child of their own father.
+ * render beside their primary spouse instead.
  */
-function buildChildrenOf(
+function buildTreeData(
   members: Member[],
   claimedAsSpouse: Set<string>,
-): Map<string, Member[]> {
+): { nodes: Member[]; childrenOf: Map<string, Member[]> } {
   const byName = new Map<string, string>();
   for (const m of members) {
     if (m.nameEn) byName.set(nameLower(m.nameEn), m.id);
@@ -67,21 +99,34 @@ function buildChildrenOf(
   }
 
   const map = new Map<string, Member[]>();
+  const virtualFathers = new Map<string, Member>();
+  const push = (key: string, m: Member) => {
+    if (!map.has(key)) map.set(key, []);
+    map.get(key)!.push(m);
+  };
+
   for (const m of members) {
     if (claimedAsSpouse.has(m.id)) continue;
-    let parentKey: string;
     if (m.parentId) {
-      parentKey = m.parentId;
+      push(m.parentId, m);
     } else if (m.fatherName && m.fatherName !== '—') {
       const auto = byName.get(nameLower(m.fatherName));
-      parentKey = auto && auto !== m.id ? auto : '__root';
+      if (auto && auto !== m.id) {
+        push(auto, m);
+      } else {
+        const vid = `virtual:${nameLower(m.fatherName)}`;
+        if (!virtualFathers.has(vid)) virtualFathers.set(vid, makeVirtualFather(vid, m.fatherName));
+        push(vid, m);
+      }
     } else {
-      parentKey = '__root';
+      push('__root', m);
     }
-    if (!map.has(parentKey)) map.set(parentKey, []);
-    map.get(parentKey)!.push(m);
   }
-  return map;
+
+  // Virtual fathers are themselves roots.
+  for (const vf of virtualFathers.values()) push('__root', vf);
+
+  return { nodes: [...members, ...virtualFathers.values()], childrenOf: map };
 }
 
 export default function TreeView({ members, paidBy, viewerId, viewerIsAdmin }: Props) {
@@ -109,7 +154,7 @@ export default function TreeView({ members, paidBy, viewerId, viewerIsAdmin }: P
   }, [members, q, cityFilter]);
 
   const { primaryToSpouse, claimedAsSpouse } = useMemo(() => resolveMarriages(members), [members]);
-  const childrenOf = useMemo(() => buildChildrenOf(members, claimedAsSpouse), [members, claimedAsSpouse]);
+  const { nodes, childrenOf } = useMemo(() => buildTreeData(members, claimedAsSpouse), [members, claimedAsSpouse]);
 
   const roots = (childrenOf.get('__root') ?? [])
     .filter((m) => hasVisibleDescendant(m.id, childrenOf, visible) || visible.has(m.id) || (primaryToSpouse.get(m.id) && visible.has(primaryToSpouse.get(m.id)!.id)));
@@ -122,8 +167,8 @@ export default function TreeView({ members, paidBy, viewerId, viewerIsAdmin }: P
     });
   }
 
-  const selectedMember = selected ? members.find((m) => m.id === selected) : null;
-  const selectedSpouse = selectedMember?.spouseId ? members.find((m) => m.id === selectedMember.spouseId) : null;
+  const selectedMember = selected ? nodes.find((m) => m.id === selected) : null;
+  const selectedSpouse = selectedMember?.spouseId ? nodes.find((m) => m.id === selectedMember.spouseId) : null;
 
   return (
     <div>

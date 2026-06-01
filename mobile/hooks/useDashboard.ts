@@ -7,7 +7,6 @@ interface DashboardData {
   fund: FundSummary;
   myCurrentMonth: Payment | null;
   recentActivity: ActivityItem[];
-  memberCount: number;
 }
 
 async function fetchDashboard(): Promise<DashboardData> {
@@ -20,7 +19,6 @@ async function fetchDashboard(): Promise<DashboardData> {
     fund: fundRes.data,
     myCurrentMonth: meRes.data.currentMonthPayment,
     recentActivity: meRes.data.recentActivity,
-    memberCount: fundRes.data.pendingCount,
   };
 }
 

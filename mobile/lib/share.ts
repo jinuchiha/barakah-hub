@@ -12,6 +12,16 @@ export async function shareText(text: string): Promise<void> {
   await Sharing.shareAsync(tempUri, { mimeType: 'text/plain' });
 }
 
+/** Write CSV text to a temp .csv file and open the share sheet. */
+export async function shareCsv(filename: string, csv: string): Promise<void> {
+  const isAvailable = await Sharing.isAvailableAsync();
+  if (!isAvailable) return;
+  const safe = filename.endsWith('.csv') ? filename : `${filename}.csv`;
+  const uri = `${FileSystem.cacheDirectory}${safe}`;
+  await FileSystem.writeAsStringAsync(uri, csv);
+  await Sharing.shareAsync(uri, { mimeType: 'text/csv', dialogTitle: safe });
+}
+
 export async function shareImageFile(uri: string, message?: string): Promise<void> {
   const isAvailable = await Sharing.isAvailableAsync();
   if (!isAvailable) return;

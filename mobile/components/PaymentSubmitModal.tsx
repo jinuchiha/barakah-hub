@@ -6,18 +6,23 @@ import {
 import { useForm, Controller, type FieldErrors } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import * as ImagePicker from 'expo-image-picker';
 import { Image } from 'expo-image';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Input } from './ui/Input';
 import { Button } from './ui/Button';
-import { darkColors as colors, radius, spacing } from '@/lib/theme';
+import { radius, spacing } from '@/lib/theme';
+import { useTheme } from '@/lib/useTheme';
 import { currentMonthLabel } from '@/lib/format';
+import { pickImageWithChoice } from '@/lib/camera';
 import { api } from '@/lib/api';
 
+type Colors = ReturnType<typeof useTheme>['colors'];
+
+// Members self-submit Sadaqah/Zakat only — qarz is disbursed by admins,
+// never self-credited (mirrors the server-side restriction).
 const schema = z.object({
   amount: z.coerce.number().int().positive('Amount must be positive').max(10_000_000),
-  pool: z.enum(['sadaqah', 'zakat', 'qarz']),
+  pool: z.enum(['sadaqah', 'zakat']),
   monthLabel: z.string().min(3),
   note: z.string().max(200).optional(),
 });
@@ -33,10 +38,11 @@ interface PaymentSubmitModalProps {
 const pools = [
   { value: 'sadaqah' as const, label: 'Sadaqah' },
   { value: 'zakat' as const, label: 'Zakat' },
-  { value: 'qarz' as const, label: 'Qarz' },
 ];
 
 export function PaymentSubmitModal({ visible, onClose, onSubmit }: PaymentSubmitModalProps) {
+  const { colors } = useTheme();
+  const styles = React.useMemo(() => makeStyles(colors), [colors]);
   const [screenshotUri, setScreenshotUri] = useState<string | undefined>();
   const [submitting, setSubmitting] = useState(false);
 
@@ -68,26 +74,17 @@ export function PaymentSubmitModal({ visible, onClose, onSubmit }: PaymentSubmit
         headers: { 'Content-Type': 'multipart/form-data' },
       });
       return data.url;
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Receipt upload failed';
-      Alert.alert('Receipt upload failed', `${msg}\n\nWe'll still try to submit the payment without the screenshot.`);
+    } catch {
+      // Receipt is optional — if the upload fails (e.g. storage not yet
+      // configured) we submit the payment without it rather than blocking
+      // the donation with an error popup. Admin can request the slip later.
       return undefined;
     }
   }
 
   const pickImage = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert('Permission required', 'Please allow photo access to upload screenshots.');
-      return;
-    }
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      quality: 0.7,
-    });
-    if (!result.canceled && result.assets[0]) {
-      setScreenshotUri(result.assets[0].uri);
-    }
+    const picked = await pickImageWithChoice();
+    if (picked) setScreenshotUri(picked.uri);
   };
 
   const handleFormSubmit = async (data: FormData) => {
@@ -230,7 +227,7 @@ export function PaymentSubmitModal({ visible, onClose, onSubmit }: PaymentSubmit
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Colors) => StyleSheet.create({
   backdrop: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.75)',

@@ -14,7 +14,7 @@ export default function DonationForm() {
   const [pending, start] = useTransition();
   const [open, setOpen] = useState(false);
   const [amount, setAmount] = useState(0);
-  const [pool, setPool] = useState<'sadaqah' | 'zakat' | 'qarz'>('sadaqah');
+  const [pool, setPool] = useState<'sadaqah' | 'zakat'>('sadaqah');
   const [month, setMonth] = useState(`${MONTHS[new Date().getMonth()]} ${new Date().getFullYear()}`);
   const [note, setNote] = useState('');
 
@@ -72,7 +72,6 @@ export default function DonationForm() {
         >
           <option value="sadaqah">Sadaqah / صدقہ</option>
           <option value="zakat">Zakat / زکوٰۃ</option>
-          <option value="qarz">Qarz pool</option>
         </select>
       </div>
       <div className="md:col-span-2">

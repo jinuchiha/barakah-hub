@@ -11,6 +11,8 @@ import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { StatCard } from '@/components/ui/StatCard';
 import { GlassCard } from '@/components/ui/GlassCard';
+import { useAuthStore } from '@/stores/auth.store';
+import { isAdminOnly } from '@/lib/roles';
 import { useTheme } from '@/lib/useTheme';
 import { spacing, radius } from '@/lib/theme';
 
@@ -71,6 +73,8 @@ function AdminActionCard({ icon, label, badge, color, onPress }: AdminActionProp
 export default function AdminDashboard() {
   const router = useRouter();
   const { colors } = useTheme();
+  const { user } = useAuthStore();
+  const isAdmin = isAdminOnly(user?.role);
   const { data, isLoading, refetch, isRefetching } = useQuery({
     queryKey: ['admin', 'stats'],
     queryFn: fetchAdminStats,
@@ -90,8 +94,10 @@ export default function AdminDashboard() {
             <MaterialCommunityIcons name="shield-crown-outline" size={28} color={colors.danger} />
           </View>
           <View>
-            <Text style={[styles.pageTitle, { color: colors.text1 }]}>Admin Panel</Text>
-            <Text style={[styles.pageSub, { color: colors.text3 }]}>Manage Barakah Hub</Text>
+            <Text style={[styles.pageTitle, { color: colors.text1 }]}>{isAdmin ? 'Admin Panel' : 'Supervisor Panel'}</Text>
+            <Text style={[styles.pageSub, { color: colors.text3 }]}>
+              {isAdmin ? 'Manage Barakah Hub' : 'Approve fund collections'}
+            </Text>
           </View>
         </Animated.View>
 
@@ -125,10 +131,31 @@ export default function AdminDashboard() {
         <Animated.View entering={FadeInDown.duration(400).delay(160)}>
           <Text style={[styles.sectionLabel, { color: colors.text4 }]}>ACTIONS</Text>
           <View style={styles.actionsGrid}>
-            <AdminActionCard icon="account-check-outline" label="Approve Members" badge={data?.pendingMembers} color={colors.primary} onPress={() => router.push('/admin/approve-members')} />
+            {isAdmin ? (
+              <AdminActionCard icon="account-check-outline" label="Approve Members" badge={data?.pendingMembers} color={colors.primary} onPress={() => router.push('/admin/approve-members')} />
+            ) : null}
             <AdminActionCard icon="cash-check" label="Review Payments" badge={data?.pendingPayments} color={colors.gold} onPress={() => router.push('/admin/payments-review')} />
-            <AdminActionCard icon="bullhorn-outline" label="Broadcast" color="#ea80fc" onPress={() => router.push('/admin/broadcast')} />
-            <AdminActionCard icon="account-group-outline" label="Members" color={colors.accent} onPress={() => router.push('/members/')} />
+            {isAdmin ? (
+              <AdminActionCard icon="bullhorn-outline" label="Broadcast" color="#ea80fc" onPress={() => router.push('/admin/broadcast')} />
+            ) : null}
+            {isAdmin ? (
+              <AdminActionCard icon="account-group-outline" label="Members" color={colors.accent} onPress={() => router.push('/members/')} />
+            ) : null}
+            {isAdmin ? (
+              <AdminActionCard icon="hand-coin-outline" label="Issue Loan" color={colors.primary} onPress={() => router.push('/admin/issue-loan')} />
+            ) : null}
+            {isAdmin ? (
+              <AdminActionCard icon="link-variant" label="Invites" color="#ea80fc" onPress={() => router.push('/admin/invites')} />
+            ) : null}
+            {isAdmin ? (
+              <AdminActionCard icon="account-plus-outline" label="Add Member" color={colors.primary} onPress={() => router.push('/admin/member-form')} />
+            ) : null}
+            {isAdmin ? (
+              <AdminActionCard icon="message-text-outline" label="Messages" color={colors.accent} onPress={() => router.push('/messages')} />
+            ) : null}
+            {isAdmin ? (
+              <AdminActionCard icon="chart-box-outline" label="Reports" color={colors.gold} onPress={() => router.push('/admin/reports')} />
+            ) : null}
           </View>
         </Animated.View>
       </ScrollView>

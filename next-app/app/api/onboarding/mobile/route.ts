@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { eq } from 'drizzle-orm';
 import { z } from 'zod';
-import { meOrThrow, getUser } from '@/lib/auth-server';
+import { getUser } from '@/lib/auth-server';
 import { db } from '@/lib/db';
 import { members, auditLog } from '@/lib/db/schema';
+import { notifyMembers, adminIds } from '@/lib/notify';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -90,6 +91,18 @@ export async function POST(req: NextRequest) {
       action: 'member-added',
       detail: `Mobile signup: ${data.nameEn} (${authUser.email}) — awaiting approval`,
     });
+
+    // Tell admins a new member is waiting for approval.
+    await notifyMembers(
+      await adminIds(),
+      {
+        titleEn: 'New member to approve', titleUr: 'نیا رکن برائے منظوری',
+        en: `${data.nameEn} signed up and is awaiting your approval.`,
+        ur: `${data.nameUr || data.nameEn} نے سائن اپ کیا اور آپ کی منظوری کا منتظر ہے۔`,
+        type: 'member-pending',
+      },
+      { title: '👤 New member to approve', body: data.nameEn, data: { type: 'member-pending' }, channelId: 'admin' },
+    );
 
     return NextResponse.json(created, { status: 201 });
   } catch (err) {

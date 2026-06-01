@@ -10,7 +10,9 @@ export const dynamic = 'force-dynamic';
 
 const schema = z.object({
   amount: z.number().int().positive().max(10_000_000),
-  pool: z.enum(['sadaqah', 'zakat', 'qarz']).default('sadaqah'),
+  // Members self-submit donations only — the qarz pool is disbursed by
+  // admins, never self-credited.
+  pool: z.enum(['sadaqah', 'zakat']).default('sadaqah'),
   monthLabel: z.string().min(3).max(40),
   note: z.string().max(200).optional(),
   receiptUrl: z.string().url().or(z.string().startsWith('/uploads/')).optional(),

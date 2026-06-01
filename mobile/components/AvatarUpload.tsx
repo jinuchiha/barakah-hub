@@ -8,7 +8,7 @@ import Animated, {
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Avatar } from '@/components/ui/Avatar';
 import { useTheme } from '@/lib/useTheme';
-import { pickAndResizeAvatar } from '@/lib/camera';
+import { pickImageWithChoice } from '@/lib/camera';
 import { uploadAvatar } from '@/lib/upload';
 import { radius } from '@/lib/theme';
 
@@ -35,7 +35,7 @@ export const AvatarUpload = memo(function AvatarUpload({
   }));
 
   const handlePress = async () => {
-    const image = await pickAndResizeAvatar();
+    const image = await pickImageWithChoice();
     if (!image) return;
 
     setLocalUri(image.uri);

@@ -6,6 +6,9 @@ export interface TreeNode {
   color: string;
   photoUrl?: string | null;
   deceased?: boolean;
+  /** A synthetic ancestor node (a father typed by name but not yet a member)
+   *  used to group siblings under one root. Rendered muted. */
+  isVirtual?: boolean;
   /** When set, this node is rendered side-by-side with its spouse. */
   spouse?: TreeNode | null;
 }

@@ -30,6 +30,7 @@ import { db } from '@/lib/db';
 import { members, payments, cases, votes, loans, repayments, auditLog, notifications, messages, memberInvites, users, config as configTbl } from '@/lib/db/schema';
 import { monthStartFromLabel } from '@/lib/month';
 import { broadcastPush, sendPushToMembers } from '@/lib/push';
+import { notifyMembers as notify, fundApproverIds, adminIds } from '@/lib/notify';
 import { sendApprovalEmail, sendPaymentReceiptEmail, sendEmergencyCaseEmail } from '@/lib/email';
 
 /** Lookup the auth email for a member via auth_id → users.email. Null if missing. */
@@ -103,10 +104,12 @@ export async function bulkImportMembers(input: z.infer<typeof bulkImportSchema>)
   // Detect existing usernames so we skip duplicates cleanly instead of
   // bombing the whole batch on the first conflict.
   const usernames = data.rows.map((r) => r.username.toLowerCase());
-  const existing = await db
-    .select({ username: members.username })
-    .from(members)
-    .where(sql`LOWER(${members.username}) = ANY(${usernames})`);
+  const existing = usernames.length
+    ? await db
+        .select({ username: members.username })
+        .from(members)
+        .where(sql`LOWER(${members.username}) = ANY(${usernames})`)
+    : [];
   const existingSet = new Set(existing.map((e) => e.username.toLowerCase()));
 
   const errors: string[] = [];
@@ -205,15 +208,27 @@ export async function recordPayment(input: z.infer<typeof recordPaymentSchema>) 
     `Recorded ${data.pool} ${data.amount} for ${data.monthLabel} — awaiting supervisor approval`,
     data.memberId,
   );
+  await notify(
+    await fundApproverIds(me.id),
+    {
+      titleEn: 'New payment to review', titleUr: 'نئی ادائیگی برائے منظوری',
+      en: `A ${data.pool} payment of Rs ${data.amount.toLocaleString('en-PK')} for ${data.monthLabel} is awaiting approval.`,
+      ur: `${data.monthLabel} کے لیے روپے ${data.amount.toLocaleString('en-PK')} (${data.pool}) منظوری کے منتظر ہے۔`,
+      type: 'payment-pending',
+    },
+    { title: '🧾 New payment to review', body: `Rs ${data.amount.toLocaleString('en-PK')} ${data.pool}`, data: { type: 'payment-pending' }, channelId: 'payments' },
+  );
   revalidatePath('/admin/fund');
   revalidatePath('/dashboard');
   return created;
 }
 
-/* ─── self-submit donation (any member) */
+/* ─── self-submit donation (any member)
+ * Members may self-submit Sadaqah/Zakat only — the qarz pool is disbursed
+ * by admins, never self-credited. Matches /api/payments/submit. */
 const submitDonationSchema = z.object({
   amount: z.number().int().positive().max(10_000_000),
-  pool: z.enum(['sadaqah', 'zakat', 'qarz']).default('sadaqah'),
+  pool: z.enum(['sadaqah', 'zakat']).default('sadaqah'),
   monthLabel: z.string().min(3).max(40),
   note: z.string().max(200).optional(),
 });
@@ -233,6 +248,22 @@ export async function submitDonation(input: z.infer<typeof submitDonationSchema>
     })
     .returning();
   await audit(me.id, 'payment-self-submit', `Submitted ${data.pool} ${data.amount} for ${data.monthLabel}`, me.id);
+  // Notify fund approvers (supervisors + admins) so the approval queue
+  // doesn't sit unseen.
+  await notify(
+    await fundApproverIds(me.id),
+    {
+      titleEn: 'New payment to review', titleUr: 'نئی ادائیگی برائے منظوری',
+      en: `${me.nameEn || me.nameUr} submitted Rs ${data.amount.toLocaleString('en-PK')} (${data.pool}) for ${data.monthLabel}.`,
+      ur: `${me.nameUr || me.nameEn} نے ${data.monthLabel} کے لیے روپے ${data.amount.toLocaleString('en-PK')} (${data.pool}) جمع کیے۔`,
+      type: 'payment-pending',
+    },
+    {
+      title: '🧾 New payment to review',
+      body: `${me.nameEn || me.nameUr} — Rs ${data.amount.toLocaleString('en-PK')} ${data.pool}`,
+      data: { type: 'payment-pending' }, channelId: 'payments',
+    },
+  );
   revalidatePath('/myaccount');
   revalidatePath('/admin/fund');
   return created;
@@ -267,6 +298,16 @@ export async function supervisorApprovePayment(paymentId: string) {
     `Approved Rs ${updated[0].amount} ${updated[0].pool} — pending admin final verification`,
     updated[0].memberId,
   );
+  await notify(
+    await adminIds(me.id),
+    {
+      titleEn: 'Payment ready to verify', titleUr: 'ادائیگی برائے تصدیق تیار',
+      en: `A ${updated[0].pool} payment of Rs ${updated[0].amount.toLocaleString('en-PK')} was approved by the supervisor — awaiting your final verification.`,
+      ur: `سپروائزر نے روپے ${updated[0].amount.toLocaleString('en-PK')} (${updated[0].pool}) کی منظوری دی — آپ کی حتمی تصدیق درکار ہے۔`,
+      type: 'payment-awaiting-admin',
+    },
+    { title: '✅ Payment ready to verify', body: `Rs ${updated[0].amount.toLocaleString('en-PK')} ${updated[0].pool}`, data: { type: 'payment-awaiting-admin' }, channelId: 'payments' },
+  );
   revalidatePath('/admin/fund');
 }
 
@@ -299,6 +340,16 @@ export async function supervisorRejectPayment(paymentId: string, note?: string) 
     'payment-supervisor-rejected',
     `Rejected Rs ${updated[0].amount} ${updated[0].pool}${trimmedNote ? ` — ${trimmedNote}` : ''}`,
     updated[0].memberId,
+  );
+  await notify(
+    await adminIds(me.id),
+    {
+      titleEn: 'Payment rejected by supervisor', titleUr: 'سپروائزر نے ادائیگی مسترد کی',
+      en: `A ${updated[0].pool} payment of Rs ${updated[0].amount.toLocaleString('en-PK')} was rejected${trimmedNote ? `: ${trimmedNote}` : ''}. Resend or delete it.`,
+      ur: `روپے ${updated[0].amount.toLocaleString('en-PK')} (${updated[0].pool}) مسترد${trimmedNote ? `: ${trimmedNote}` : ''} — دوبارہ بھیجیں یا حذف کریں۔`,
+      type: 'payment-rejected',
+    },
+    { title: '⛔ Payment rejected', body: `Rs ${updated[0].amount.toLocaleString('en-PK')} ${updated[0].pool} — needs your action`, data: { type: 'payment-rejected' }, channelId: 'payments' },
   );
   revalidatePath('/admin/fund');
 }

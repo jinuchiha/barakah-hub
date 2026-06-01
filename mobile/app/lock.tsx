@@ -18,6 +18,7 @@ import { useTheme } from '@/lib/useTheme';
 import { authenticateWithBiometric, getBiometricCapability, getBiometricLabel } from '@/lib/biometric';
 import { isBiometricEnabled } from '@/lib/security';
 import { verifyPin, getPinAttempts } from '@/lib/pin';
+import { markUnlocked } from '@/lib/lock-state';
 import { useAuth } from '@/hooks/useAuth';
 import { spacing, radius } from '@/lib/theme';
 
@@ -60,6 +61,7 @@ export default function LockScreen() {
   const attemptBiometric = useCallback(async () => {
     const success = await authenticateWithBiometric('Unlock Barakah Hub');
     if (success) {
+      markUnlocked();
       router.replace('/(tabs)/');
     }
   }, [router]);
@@ -89,6 +91,7 @@ export default function LockScreen() {
       const result = await verifyPin(next);
       setPin('');
       if (result === 'ok') {
+        markUnlocked();
         router.replace('/(tabs)/');
       } else if (result === 'locked') {
         Alert.alert(

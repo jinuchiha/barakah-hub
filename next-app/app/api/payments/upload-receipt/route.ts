@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { writeFile, mkdir } from 'fs/promises';
 import path from 'path';
 import { meOrThrow } from '@/lib/auth-server';
+import { isStorageConfigured, uploadToStorage } from '@/lib/storage';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -11,12 +12,10 @@ const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
 /**
  * Upload a payment receipt screenshot.
- *
- * Strategy:
- *  - On Vercel (read-only FS): use Vercel Blob if BLOB_READ_WRITE_TOKEN
- *    is set, otherwise return 501 with a clear hint. The mobile client
- *    treats failed uploads as non-fatal and still submits the payment.
- *  - Locally (dev): write to public/uploads/receipts.
+ *  - Production: Cloudflare R2 (returns an HTTPS URL).
+ *  - Local dev (no R2 env): write to public/uploads/receipts.
+ * The mobile client treats a failed upload as non-fatal and still submits
+ * the payment, so a 501 here never blocks a donation.
  */
 export async function POST(req: Request) {
   try {
@@ -36,42 +35,24 @@ export async function POST(req: Request) {
 
     const ext = file.type === 'image/png' ? 'png' : file.type === 'image/webp' ? 'webp' : 'jpg';
     const filename = `receipt_${Date.now()}_${Math.random().toString(36).slice(2, 8)}.${ext}`;
+    const bytes = new Uint8Array(await file.arrayBuffer());
 
-    // Production (Vercel) path — use Vercel Blob if available.
-    if (process.env.VERCEL) {
-      if (!process.env.BLOB_READ_WRITE_TOKEN) {
-        return NextResponse.json(
-          { error: 'Receipt storage not configured (BLOB_READ_WRITE_TOKEN missing).' },
-          { status: 501 },
-        );
-      }
-      try {
-        // Dynamic, untyped import — package may not be installed yet.
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const mod: any = await import(/* @vite-ignore */ '@vercel/blob' as string).catch(() => null);
-        if (!mod?.put) {
-          return NextResponse.json(
-            { error: '@vercel/blob not installed. Run `pnpm add @vercel/blob`.' },
-            { status: 501 },
-          );
-        }
-        const blob = await mod.put(`receipts/${filename}`, file, {
-          access: 'public',
-          contentType: file.type,
-        });
-        return NextResponse.json({ url: blob.url });
-      } catch (e) {
-        const m = e instanceof Error ? e.message : 'Blob upload failed';
-        return NextResponse.json({ error: m }, { status: 500 });
-      }
+    if (isStorageConfigured()) {
+      const url = await uploadToStorage(`receipts/${filename}`, bytes, file.type);
+      return NextResponse.json({ url });
     }
 
-    // Local dev — write to public/uploads.
-    const UPLOAD_DIR = path.join(process.cwd(), 'public', 'uploads', 'receipts');
-    await mkdir(UPLOAD_DIR, { recursive: true });
-    const buffer = Buffer.from(await file.arrayBuffer());
-    await writeFile(path.join(UPLOAD_DIR, filename), buffer);
-    return NextResponse.json({ url: `/uploads/receipts/${filename}` });
+    if (process.env.NODE_ENV !== 'production') {
+      const UPLOAD_DIR = path.join(process.cwd(), 'public', 'uploads', 'receipts');
+      await mkdir(UPLOAD_DIR, { recursive: true });
+      await writeFile(path.join(UPLOAD_DIR, filename), bytes);
+      return NextResponse.json({ url: `/uploads/receipts/${filename}` });
+    }
+
+    return NextResponse.json(
+      { error: 'Receipt storage not configured (set BLOB_READ_WRITE_TOKEN).' },
+      { status: 501 },
+    );
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : 'Upload failed';
     const status = msg === 'Not authenticated' ? 401 : 500;

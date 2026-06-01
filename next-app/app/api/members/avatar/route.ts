@@ -5,6 +5,7 @@ import path from 'path';
 import { meOrThrow } from '@/lib/auth-server';
 import { db } from '@/lib/db';
 import { members } from '@/lib/db/schema';
+import { isStorageConfigured, uploadToStorage } from '@/lib/storage';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -22,25 +23,32 @@ export async function POST(req: Request) {
     if (!(file instanceof File)) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 });
     }
-
     if (file.size > MAX_SIZE_BYTES) {
       return NextResponse.json({ error: 'File too large (max 2 MB)' }, { status: 413 });
     }
-
     const allowed = ['image/jpeg', 'image/png', 'image/webp'];
     if (!allowed.includes(file.type)) {
       return NextResponse.json({ error: 'Invalid file type' }, { status: 415 });
     }
 
-    const ext = file.type === 'image/png' ? 'png' : 'jpg';
+    const ext = file.type === 'image/png' ? 'png' : file.type === 'image/webp' ? 'webp' : 'jpg';
     const filename = `${me.id}_${Date.now()}.${ext}`;
+    const bytes = new Uint8Array(await file.arrayBuffer());
 
-    await mkdir(UPLOAD_DIR, { recursive: true });
-
-    const buffer = Buffer.from(await file.arrayBuffer());
-    await writeFile(path.join(UPLOAD_DIR, filename), buffer);
-
-    const url = `/uploads/avatars/${filename}`;
+    // Production: Cloudflare R2 (HTTPS URL). Local dev fallback: public/uploads.
+    let url: string;
+    if (isStorageConfigured()) {
+      url = await uploadToStorage(`avatars/${filename}`, bytes, file.type);
+    } else if (process.env.NODE_ENV !== 'production') {
+      await mkdir(UPLOAD_DIR, { recursive: true });
+      await writeFile(path.join(UPLOAD_DIR, filename), bytes);
+      url = `/uploads/avatars/${filename}`;
+    } else {
+      return NextResponse.json(
+        { error: 'Image storage not configured (set BLOB_READ_WRITE_TOKEN).' },
+        { status: 501 },
+      );
+    }
 
     await db
       .update(members)

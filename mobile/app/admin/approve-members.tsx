@@ -12,6 +12,9 @@ import { GlassCard } from '@/components/ui/GlassCard';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Button } from '@/components/ui/Button';
 import { useMembers, useApproveMember, useRejectMember } from '@/hooks/useMembers';
+import { useAuthStore } from '@/stores/auth.store';
+import { isAdminOnly } from '@/lib/roles';
+import { Redirect } from 'expo-router';
 import { formatDate, formatPKR } from '@/lib/format';
 import { useTheme } from '@/lib/useTheme';
 import { spacing, radius } from '@/lib/theme';
@@ -69,6 +72,7 @@ function PendingMemberCard({
 
 export default function ApproveMembersScreen() {
   const { colors } = useTheme();
+  const { user } = useAuthStore();
   const { data: members, isLoading, refetch, isRefetching } = useMembers();
   const approveMutation = useApproveMember();
   const rejectMutation = useRejectMember();
@@ -103,6 +107,8 @@ export default function ApproveMembersScreen() {
       },
     ]);
   };
+
+  if (!isAdminOnly(user?.role)) return <Redirect href="/admin" />;
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.bg1 }]} edges={['bottom']}>

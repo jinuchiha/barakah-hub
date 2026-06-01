@@ -1,10 +1,13 @@
-import React from 'react';
-import { View, Text, StyleSheet, Modal, TouchableOpacity } from 'react-native';
+import React, { useMemo } from 'react';
+import { View, Text, StyleSheet, Modal } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import type { EmergencyCase } from '@/types';
 import { Button } from './ui/Button';
 import { formatPKR } from '@/lib/format';
-import { darkColors as colors, radius, spacing } from '@/lib/theme';
+import { useTheme } from '@/lib/useTheme';
+import { radius, spacing } from '@/lib/theme';
+
+type Colors = ReturnType<typeof useTheme>['colors'];
 
 interface VoteModalProps {
   visible: boolean;
@@ -23,6 +26,9 @@ export function VoteModal({
   onCancel,
   loading = false,
 }: VoteModalProps) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
+
   if (!emergencyCase) return null;
 
   const isYes = voteDirection === true;
@@ -76,7 +82,7 @@ export function VoteModal({
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Colors) => StyleSheet.create({
   backdrop: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.75)',

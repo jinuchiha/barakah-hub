@@ -3,6 +3,7 @@ import { asc, eq, ne, and } from 'drizzle-orm';
 import { meOrThrow } from '@/lib/auth-server';
 import { db } from '@/lib/db';
 import { members } from '@/lib/db/schema';
+import { addMember } from '@/app/actions';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -49,5 +50,19 @@ export async function GET(req: NextRequest) {
     return NextResponse.json(rows);
   } catch {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+}
+
+/** Admin add member (approved, manual). Delegates to addMember. */
+export async function POST(req: NextRequest) {
+  try {
+    const body = await req.json();
+    const created = await addMember(body);
+    return NextResponse.json(created, { status: 201 });
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : 'Error';
+    const status = msg === 'Not authenticated' ? 401
+      : msg === 'Only admin can add members' ? 403 : 400;
+    return NextResponse.json({ error: msg }, { status });
   }
 }

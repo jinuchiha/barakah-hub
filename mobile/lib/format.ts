@@ -1,9 +1,12 @@
-export function formatPKR(amount: number): string {
-  return `PKR ${amount.toLocaleString('en-PK')}`;
+export function formatPKR(amount: number | null | undefined): string {
+  const n = typeof amount === 'number' && Number.isFinite(amount) ? amount : 0;
+  return `PKR ${n.toLocaleString('en-PK', { maximumFractionDigits: 0 })}`;
 }
 
-export function formatDate(dateStr: string): string {
+export function formatDate(dateStr: string | null | undefined): string {
+  if (!dateStr) return '—';
   const date = new Date(dateStr);
+  if (Number.isNaN(date.getTime())) return '—';
   return date.toLocaleDateString('en-PK', {
     day: '2-digit',
     month: 'short',
@@ -11,9 +14,11 @@ export function formatDate(dateStr: string): string {
   });
 }
 
-export function formatRelativeTime(dateStr: string): string {
+export function formatRelativeTime(dateStr: string | null | undefined): string {
+  if (!dateStr) return '—';
   const now = Date.now();
   const date = new Date(dateStr).getTime();
+  if (Number.isNaN(date)) return '—';
   const diff = now - date;
   const minutes = Math.floor(diff / 60000);
   const hours = Math.floor(minutes / 60);

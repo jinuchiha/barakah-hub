@@ -8,6 +8,19 @@ interface RecordRepaymentInput {
   note?: string;
 }
 
+interface IssueLoanInput {
+  memberId: string;
+  amount: number;
+  purpose: string;
+  city?: string;
+  expectedReturn?: string | null;
+}
+
+async function issueLoan(input: IssueLoanInput): Promise<Loan> {
+  const { data } = await api.post<Loan>('/api/loans', input);
+  return data;
+}
+
 async function fetchMyLoans(): Promise<Loan[]> {
   const { data } = await api.get<Loan[]>('/api/loans/mine');
   return data;
@@ -61,6 +74,18 @@ export function useRecordRepayment() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['loans'] });
       qc.invalidateQueries({ queryKey: ['dashboard'] });
+    },
+  });
+}
+
+export function useIssueLoan() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: issueLoan,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['loans'] });
+      qc.invalidateQueries({ queryKey: ['dashboard'] });
+      qc.invalidateQueries({ queryKey: ['admin', 'stats'] });
     },
   });
 }

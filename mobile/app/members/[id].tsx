@@ -1,8 +1,8 @@
 import React from 'react';
 import {
-  View, Text, StyleSheet, ScrollView, RefreshControl,
+  View, Text, StyleSheet, ScrollView, RefreshControl, TouchableOpacity,
 } from 'react-native';
-import { useLocalSearchParams, Stack } from 'expo-router';
+import { useLocalSearchParams, Stack, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Animated, { FadeInDown } from 'react-native-reanimated';
@@ -46,6 +46,7 @@ function SectionLabel({ title }: { title: string }) {
 
 export default function MemberDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const router = useRouter();
   const { user } = useAuthStore();
   const { colors } = useTheme();
   const { data: member, isLoading, error, refetch, isRefetching } = useMember(id ?? '');
@@ -65,7 +66,22 @@ export default function MemberDetailScreen() {
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.bg1 }]} edges={['bottom']}>
-      <Stack.Screen options={{ title: member.nameEn || member.nameUr || 'Member' }} />
+      <Stack.Screen
+        options={{
+          title: member.nameEn || member.nameUr || 'Member',
+          headerRight: isAdmin
+            ? () => (
+                <TouchableOpacity
+                  onPress={() => router.push(`/admin/member-form?id=${member.id}`)}
+                  accessibilityLabel="Edit member"
+                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                >
+                  <MaterialCommunityIcons name="pencil-outline" size={22} color={colors.primary} />
+                </TouchableOpacity>
+              )
+            : undefined,
+        }}
+      />
       <ScrollView
         contentContainerStyle={styles.scroll}
         refreshControl={

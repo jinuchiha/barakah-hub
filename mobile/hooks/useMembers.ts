@@ -20,6 +20,41 @@ async function rejectMember(memberId: string): Promise<void> {
   await api.post(`/api/members/${memberId}/reject`);
 }
 
+export interface EditMemberInput {
+  id: string;
+  nameEn?: string;
+  nameUr?: string;
+  fatherName?: string;
+  phone?: string | null;
+  city?: string | null;
+  province?: string | null;
+  monthlyPledge?: number;
+  role?: 'admin' | 'supervisor' | 'member';
+  status?: 'pending' | 'approved' | 'rejected';
+  spouseId?: string | null;
+}
+
+export interface AddMemberInput {
+  username: string;
+  nameEn: string;
+  nameUr: string;
+  fatherName: string;
+  phone?: string;
+  city?: string;
+  province?: string;
+  monthlyPledge?: number;
+}
+
+async function editMember(input: EditMemberInput): Promise<void> {
+  const { id, ...rest } = input;
+  await api.patch(`/api/members/${id}`, rest);
+}
+
+async function addMember(input: AddMemberInput): Promise<Member> {
+  const { data } = await api.post<Member>('/api/members', input);
+  return data;
+}
+
 export function useMembers() {
   return useQuery({
     queryKey: ['members'],
@@ -55,4 +90,19 @@ export function useRejectMember() {
       qc.invalidateQueries({ queryKey: ['members'] });
     },
   });
+}
+
+function invalidateMemberQueries(qc: ReturnType<typeof useQueryClient>) {
+  qc.invalidateQueries({ queryKey: ['members'] });
+  qc.invalidateQueries({ queryKey: ['admin', 'stats'] });
+}
+
+export function useEditMember() {
+  const qc = useQueryClient();
+  return useMutation({ mutationFn: editMember, onSuccess: () => invalidateMemberQueries(qc) });
+}
+
+export function useAddMember() {
+  const qc = useQueryClient();
+  return useMutation({ mutationFn: addMember, onSuccess: () => invalidateMemberQueries(qc) });
 }

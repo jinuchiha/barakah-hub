@@ -19,6 +19,7 @@ import { spacing } from '@/lib/theme';
 const schema = z.object({
   nameEn: z.string().min(1, 'English name is required').max(80),
   nameUr: z.string().max(80).optional().or(z.literal('')),
+  fatherName: z.string().max(80).optional().or(z.literal('')),
   phone: z.string().max(30).optional().or(z.literal('')),
   city: z.string().max(60).optional().or(z.literal('')),
   province: z.string().max(40).optional().or(z.literal('')),
@@ -46,6 +47,7 @@ export default function EditProfileScreen() {
     defaultValues: {
       nameEn: user?.nameEn ?? '',
       nameUr: user?.nameUr ?? '',
+      fatherName: user?.fatherName && user.fatherName !== '—' ? user.fatherName : '',
       phone: user?.phone ?? '',
       city: user?.city ?? '',
       province: user?.province ?? '',
@@ -67,6 +69,7 @@ export default function EditProfileScreen() {
       const updated = await updateProfile({
         nameEn: data.nameEn,
         nameUr: data.nameUr || undefined,
+        fatherName: data.fatherName || undefined,
         phone: data.phone || null,
         city: data.city || null,
         province: data.province || null,
@@ -80,6 +83,17 @@ export default function EditProfileScreen() {
       Alert.alert('Failed to save', err instanceof Error ? err.message : 'Unknown error');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleAvatarUploaded = async (url: string) => {
+    const previous = user;
+    setUser({ ...previous, photoUrl: url });
+    try {
+      await updateProfile({ photoUrl: url });
+    } catch (err) {
+      setUser(previous);
+      Alert.alert('Photo not saved', err instanceof Error ? err.message : 'Could not save photo');
     }
   };
 
@@ -108,6 +122,7 @@ export default function EditProfileScreen() {
               name={user.nameEn || user.nameUr}
               color={user.color}
               currentUrl={user.photoUrl}
+              onUploadComplete={handleAvatarUploaded}
             />
             <Text style={[styles.avatarHint, { color: colors.text4 }]}>Tap avatar to change photo</Text>
           </View>
@@ -136,6 +151,21 @@ export default function EditProfileScreen() {
                 onChangeText={onChange}
                 error={errors.nameUr?.message}
                 placeholder="اختیاری"
+              />
+            )}
+          />
+
+          <Controller
+            control={control}
+            name="fatherName"
+            render={({ field: { onChange, value } }) => (
+              <Input
+                label="Father's Name"
+                value={value ?? ''}
+                onChangeText={onChange}
+                error={errors.fatherName?.message}
+                placeholder="Used to link siblings in the family tree"
+                autoCapitalize="words"
               />
             )}
           />

@@ -28,7 +28,7 @@ export default async function JoinPage({ params }: Props) {
           <>
             <div className="mb-4 text-4xl">🌙</div>
             <h1 className="mb-2 font-[var(--font-arabic)] text-2xl text-[var(--color-gold-2)]">السلام علیکم</h1>
-            <p className="mb-1 font-[var(--font-display)] text-sm uppercase tracking-widest text-[var(--color-gold-4)]">You're invited to Barakah Hub</p>
+            <p className="mb-1 font-[var(--font-display)] text-sm uppercase tracking-widest text-[var(--color-gold-4)]">You&apos;re invited to Barakah Hub</p>
             {invite?.label && (
               <p className="mt-3 text-sm text-[var(--txt-2)]">Invitation: <strong className="text-[var(--color-gold-2)]">{invite.label}</strong></p>
             )}

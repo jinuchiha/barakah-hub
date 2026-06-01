@@ -62,6 +62,21 @@ export async function meOrThrow(): Promise<Member> {
 }
 
 /**
+ * Like meOrThrow, but additionally requires the member to be approved and
+ * not deceased. Use on REST routes that perform member-level actions
+ * (vote, create case, submit donation) so pending/rejected/deceased users
+ * are blocked at the API layer — matching the server-action guards the
+ * web pages rely on.
+ */
+export async function meApprovedOrThrow(): Promise<Member> {
+  const m = await meOrThrow();
+  if (m.status !== 'approved' || m.deceased) {
+    throw new Error('Account not approved');
+  }
+  return m;
+}
+
+/**
  * Permission predicates.
  *
  *  - canManageFunds: record + verify + reject payments. Admins AND

@@ -10,6 +10,7 @@ import Animated, {
   withRepeat, withTiming, withSequence,
 } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useAuthStore } from '@/stores/auth.store';
 import { useAppStore } from '@/stores/app.store';
 import { useDashboard } from '@/hooks/useDashboard';
@@ -25,6 +26,7 @@ import { DailyVerseCard } from '@/components/DailyVerseCard';
 import { GlobalSearch } from '@/components/GlobalSearch';
 import { useTheme } from '@/lib/useTheme';
 import { spacing } from '@/lib/theme';
+import { formatPKR } from '@/lib/format';
 import { format } from 'date-fns';
 
 function DashboardHeader({ displayName, notificationCount, onBell, onSearch }: {
@@ -37,25 +39,34 @@ function DashboardHeader({ displayName, notificationCount, onBell, onSearch }: {
   const today = format(new Date(), 'EEEE, d MMM yyyy');
 
   return (
-    <Animated.View entering={FadeInDown.duration(400)} style={styles.header}>
-      <View style={styles.headerLeft}>
-        <Text style={[styles.greeting, { color: colors.gold }]}>السلام عليكم،</Text>
-        <Text style={[styles.name, { color: colors.text1 }]}>{displayName}</Text>
-        <Text style={[styles.dateLabel, { color: colors.text4 }]}>{today}</Text>
-      </View>
-      <View style={styles.headerRight}>
-        <TouchableOpacity style={[styles.bellBtn, { backgroundColor: colors.glass2, borderColor: colors.border1 }]} onPress={onSearch}>
-          <MaterialCommunityIcons name="magnify" size={20} color={colors.text2} />
-        </TouchableOpacity>
-        <TouchableOpacity style={[styles.bellBtn, { backgroundColor: colors.glass2, borderColor: colors.border1 }]} onPress={onBell}>
-          <MaterialCommunityIcons name="bell-outline" size={22} color={colors.text2} />
-          {notificationCount > 0 ? (
-            <View style={[styles.bellBadge, { backgroundColor: colors.danger }]}>
-              <Text style={styles.bellBadgeText}>{notificationCount > 9 ? '9+' : notificationCount}</Text>
-            </View>
-          ) : null}
-        </TouchableOpacity>
-      </View>
+    <Animated.View entering={FadeInDown.duration(400)}>
+      <LinearGradient
+        colors={[colors.primaryDim, 'transparent']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.hero}
+      >
+        <View style={styles.header}>
+          <View style={styles.headerLeft}>
+            <Text style={[styles.greeting, { color: colors.gold }]}>السلام عليكم،</Text>
+            <Text style={[styles.name, { color: colors.text1 }]}>{displayName}</Text>
+            <Text style={[styles.dateLabel, { color: colors.text4 }]}>{today}</Text>
+          </View>
+          <View style={styles.headerRight}>
+            <TouchableOpacity accessibilityLabel="Search" style={[styles.bellBtn, { backgroundColor: colors.glass2, borderColor: colors.border1 }]} onPress={onSearch}>
+              <MaterialCommunityIcons name="magnify" size={20} color={colors.text2} />
+            </TouchableOpacity>
+            <TouchableOpacity accessibilityLabel="Notifications" style={[styles.bellBtn, { backgroundColor: colors.glass2, borderColor: colors.border1 }]} onPress={onBell}>
+              <MaterialCommunityIcons name="bell-outline" size={22} color={colors.text2} />
+              {notificationCount > 0 ? (
+                <View style={[styles.bellBadge, { backgroundColor: colors.danger }]}>
+                  <Text style={styles.bellBadgeText}>{notificationCount > 9 ? '9+' : notificationCount}</Text>
+                </View>
+              ) : null}
+            </TouchableOpacity>
+          </View>
+        </View>
+      </LinearGradient>
     </Animated.View>
   );
 }
@@ -210,8 +221,8 @@ function DashboardScreen() {
         </Animated.View>
 
         <Animated.View entering={FadeInDown.duration(400).delay(150)} style={styles.statsRow}>
-          <StatCard icon="wallet-outline" value={`PKR ${((user?.monthlyPledge ?? 0) / 1000).toFixed(0)}K`} label="My Pledge" style={styles.stat} />
-          <StatCard icon="account-group-outline" value={`${data?.memberCount ?? 0}`} label="Members" iconColor={colors.gold} style={styles.stat} />
+          <StatCard icon="wallet-outline" value={formatPKR(user?.monthlyPledge ?? 0)} label="My Pledge" style={styles.stat} />
+          <StatCard icon="clock-outline" value={`${data?.fund.pendingCount ?? 0}`} label="Pending" iconColor={colors.gold} style={styles.stat} />
           <StatCard icon="cash-multiple" value={data?.myCurrentMonth ? 'Paid' : 'Pending'} label="This Month" iconColor={data?.myCurrentMonth ? colors.primary : colors.gold} style={styles.stat} />
         </Animated.View>
 
@@ -247,11 +258,20 @@ export default DashboardScreen;
 const styles = StyleSheet.create({
   safe: { flex: 1 },
   scroll: { padding: spacing.md, paddingBottom: 100 },
+  hero: {
+    marginHorizontal: -spacing.md,
+    marginTop: -spacing.md,
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.lg,
+    paddingBottom: spacing.md,
+    borderBottomLeftRadius: 28,
+    borderBottomRightRadius: 28,
+    marginBottom: spacing.md,
+  },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: spacing.lg,
   },
   headerLeft: { flex: 1 },
   headerRight: { flexDirection: 'row', gap: 8, alignItems: 'center' },

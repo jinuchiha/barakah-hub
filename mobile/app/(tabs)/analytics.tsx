@@ -51,7 +51,8 @@ export default function AnalyticsScreen() {
     if (!payments) return [];
     const byMonth = new Map<string, number>();
     for (const p of payments) {
-      const key = p.monthLabel || format(new Date(p.paidOn), 'MMM yy');
+      const d = p.paidOn ? new Date(p.paidOn) : null;
+      const key = p.monthLabel || (d && !Number.isNaN(d.getTime()) ? format(d, 'MMM yy') : 'Unknown');
       byMonth.set(key, (byMonth.get(key) ?? 0) + p.amount);
     }
     return Array.from(byMonth.entries())
@@ -128,8 +129,8 @@ export default function AnalyticsScreen() {
               </Text>
             </View>
             <View style={styles.summaryRow}>
-              <Text style={[styles.summaryLabel, { color: colors.text3 }]}>Active Members</Text>
-              <Text style={[styles.summaryValue, { color: colors.text1 }]}>{data?.memberCount ?? 0}</Text>
+              <Text style={[styles.summaryLabel, { color: colors.text3 }]}>Pending Payments</Text>
+              <Text style={[styles.summaryValue, { color: colors.text1 }]}>{data?.fund.pendingCount ?? 0}</Text>
             </View>
             <View style={styles.summaryRow}>
               <Text style={[styles.summaryLabel, { color: colors.text3 }]}>My Payments</Text>

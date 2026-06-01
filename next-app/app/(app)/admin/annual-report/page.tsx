@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
-import { and, asc, eq, gte, lte, sql } from 'drizzle-orm';
+import { and, asc, eq, gte, lte, sql, inArray } from 'drizzle-orm';
 import { getMeOrRedirect } from '@/lib/auth-server';
 import { db } from '@/lib/db';
 import { members, payments, cases, loans } from '@/lib/db/schema';
@@ -70,10 +70,18 @@ export default async function AnnualReportPage({ searchParams }: Props) {
     .orderBy(sql`SUM(${payments.amount}) DESC`)
     .limit(10);
 
+  // Resolve names for the top contributors. Guard the empty case —
+  // `ANY('{}')` / an empty array param crashes the Neon HTTP driver, which
+  // was taking the whole report page down when there were no donations yet.
+  const topIds = topContributors.map((t) => t.memberId);
   const memberMap = new Map(
-    (await db.select({ id: members.id, nameEn: members.nameEn, nameUr: members.nameUr }).from(members)
-      .where(sql`${members.id} = ANY(${topContributors.map((t) => t.memberId)})`))
-      .map((m) => [m.id, m]),
+    topIds.length
+      ? (await db
+          .select({ id: members.id, nameEn: members.nameEn, nameUr: members.nameUr })
+          .from(members)
+          .where(inArray(members.id, topIds))
+        ).map((m) => [m.id, m])
+      : [],
   );
 
   return (
