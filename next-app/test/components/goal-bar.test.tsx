@@ -35,7 +35,7 @@ describe('GoalBar', () => {
 
   it('shows deadline-passed when daysRemaining is 0 or negative', () => {
     render(<GoalBar config={baseConfig} totalFund={50_000} daysRemaining={-3} />);
-    expect(screen.getByText(/deadline passed/)).toBeInTheDocument();
+    expect(screen.getByText(/Deadline passed/i)).toBeInTheDocument();
   });
 
   it('switches labels for Urdu locale', () => {

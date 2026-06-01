@@ -24,7 +24,7 @@ export function GoalBar({ config, totalFund, locale = 'en', daysRemaining = null
   }
 
   const milestone = (() => {
-    if (pct >= 100) return { en: 'Goal achieved',  ur: 'الحمدللہ! ہدف مکمل',   tone: 'pill-success' as const };
+    if (pct >= 100) return { en: 'Alhamdulillah! Goal achieved',  ur: 'الحمدللہ! ہدف مکمل',   tone: 'pill-success' as const };
     if (pct >= 75)  return { en: 'Almost there',   ur: 'بس تھوڑا اور',          tone: 'pill-warn'    as const };
     if (pct >= 50)  return { en: 'Past halfway',   ur: 'آدھے سے زیادہ',         tone: 'pill-info'    as const };
     if (pct >= 25)  return { en: 'Off to a start', ur: 'آغاز ہو چکا',           tone: 'pill-info'    as const };
