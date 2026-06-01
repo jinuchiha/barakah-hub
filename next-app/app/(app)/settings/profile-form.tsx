@@ -1,11 +1,10 @@
 'use client';
-import { useState, useTransition, useRef } from 'react';
+import { useState, useTransition } from 'react';
 import { toast } from 'sonner';
-import { Camera } from 'lucide-react';
 import { updateProfile } from '@/app/actions';
 import { Input, Label } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { ini } from '@/lib/utils';
+import { AvatarUpload } from '@/components/avatar-upload';
 import type { Member } from '@/lib/db/schema';
 
 const PROVINCES = ['', 'balochistan', 'sindh', 'punjab', 'kpk', 'gilgit', 'azadkashmir', 'islamabad', 'overseas', 'other'];
@@ -23,29 +22,8 @@ export default function ProfileForm({ member }: { member: Member }) {
     photoUrl: member.photoUrl ?? null,
   });
   const [showColors, setShowColors] = useState(false);
-  const [uploading, setUploading] = useState(false);
-  const fileRef = useRef<HTMLInputElement>(null);
 
   function set<K extends keyof typeof form>(k: K, v: (typeof form)[K]) { setForm({ ...form, [k]: v }); }
-
-  async function uploadPhoto(file: File) {
-    if (file.size > 2 * 1024 * 1024) { toast.error('Image too large (>2MB)'); return; }
-    if (!file.type.startsWith('image/')) { toast.error('Image files only'); return; }
-    setUploading(true);
-    try {
-      const body = new FormData();
-      body.append('avatar', file);
-      const res = await fetch('/api/members/avatar', { method: 'POST', body });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data?.error ?? 'Upload failed');
-      setForm((f) => ({ ...f, photoUrl: data.url }));
-      toast.success('Photo uploaded ✓');
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : 'Upload failed');
-    } finally {
-      setUploading(false);
-    }
-  }
 
   function save(e: React.FormEvent) {
     e.preventDefault();
@@ -57,24 +35,29 @@ export default function ProfileForm({ member }: { member: Member }) {
 
   return (
     <form onSubmit={save}>
-      <div className="mb-4 flex items-center gap-4 rounded-md border border-[var(--border)] bg-[rgba(214,210,199,0.05)] p-4">
-        <div className="relative">
-          <button type="button" onClick={() => fileRef.current?.click()} className="grid size-16 place-items-center overflow-hidden rounded-full text-xl font-bold text-white shadow-[0_0_12px_rgba(214,210,199,0.2)]" style={{ background: form.color }}>
-            {form.photoUrl ? <img src={form.photoUrl} alt="" className="size-full object-cover" /> : ini(form.nameEn || form.nameUr)}
-          </button>
-          <button type="button" onClick={() => fileRef.current?.click()} className="absolute -bottom-1 -right-1 grid size-6 place-items-center rounded-full border-2 border-[var(--color-ink)] bg-[var(--color-gold)] text-[10px] text-[var(--color-ink)]">
-            <Camera className="size-3" />
-          </button>
-          <input ref={fileRef} type="file" accept="image/*" hidden onChange={(e) => e.target.files?.[0] && uploadPhoto(e.target.files[0])} />
-        </div>
-        <div className="flex-1">
+      {/* ── Modern avatar upload ── */}
+      <div className="mb-5 flex flex-col items-center gap-4 rounded-xl border border-[var(--border)] bg-[rgba(200,155,60,0.03)] p-6">
+        <AvatarUpload
+          name={form.nameEn || form.nameUr}
+          color={form.color}
+          photoUrl={form.photoUrl}
+          onUploaded={(url) => set('photoUrl', url)}
+        />
+        <div className="text-center">
           <div className="text-sm font-semibold text-[var(--color-cream)]">{form.nameEn || form.nameUr}</div>
-          <div className="text-xs text-[var(--txt-3)]">{member.role === 'admin' ? 'Admin' : 'Member'}</div>
-          <div className="mt-2 flex gap-2">
-            <button type="button" onClick={() => setShowColors((s) => !s)} className="rounded-md border border-[var(--border)] px-3 py-1 text-xs">🎨 Color</button>
-            <button type="button" disabled={uploading} onClick={() => fileRef.current?.click()} className="rounded-md border border-[var(--border)] px-3 py-1 text-xs disabled:opacity-50">{uploading ? '⏳ Uploading…' : '📷 Photo'}</button>
-            {form.photoUrl && <button type="button" onClick={() => set('photoUrl', null)} className="rounded-md border border-red-500/40 px-3 py-1 text-xs text-red-400">✕ Remove</button>}
+          <div className="mt-0.5 text-[11px] text-[var(--txt-3)]">
+            {member.role === 'admin' ? 'Admin' : member.role === 'supervisor' ? 'Supervisor' : 'Member'}
           </div>
+        </div>
+        <div className="flex gap-2">
+          <button type="button" onClick={() => setShowColors((s) => !s)} className="rounded-full border border-[var(--border)] px-4 py-1.5 text-xs transition-colors hover:border-[var(--color-gold)]">
+            🎨 Color
+          </button>
+          {form.photoUrl && (
+            <button type="button" onClick={() => set('photoUrl', null)} className="rounded-full border border-red-500/40 px-4 py-1.5 text-xs text-red-400 transition-colors hover:bg-red-500/10">
+              ✕ Remove photo
+            </button>
+          )}
         </div>
       </div>
 
