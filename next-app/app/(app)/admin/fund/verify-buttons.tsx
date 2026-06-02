@@ -23,7 +23,7 @@ import {
  *  - `admin-rejected`: supervisor rejected. Resend to supervisor (↩)
  *    or Delete (🗑). Admin cannot force-verify per business rule.
  */
-type Mode = 'supervisor-pending' | 'admin-pending' | 'admin-approved' | 'admin-rejected';
+type Mode = 'supervisor-pending' | 'admin-pending' | 'admin-approved' | 'admin-rejected' | 'admin-history';
 
 export default function VerifyButtons({
   paymentId,
@@ -109,6 +109,15 @@ export default function VerifyButtons({
           🗑 Delete
         </button>
       </div>
+    );
+  }
+
+  // admin-history: already verified; show a subtle delete-only button
+  if (mode === 'admin-history') {
+    return (
+      <button onClick={onAdminDelete} disabled={pending} title="Delete verified payment" className="rounded-md border border-[var(--border-2)] bg-transparent px-2 py-1 text-[11px] text-[var(--txt-4)] hover:border-[#dc5252]/40 hover:bg-red-500/10 hover:text-[#f08585] disabled:opacity-50">
+        🗑
+      </button>
     );
   }
 

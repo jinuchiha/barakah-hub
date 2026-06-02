@@ -94,34 +94,36 @@ export default function AnalyticsScreen() {
           <Text style={[styles.sub, { color: colors.text4 }]}>Fund performance & insights</Text>
         </Animated.View>
 
-        <Animated.View entering={FadeInDown.duration(400).delay(100)}>
-          <SectionTitle label="FUND DISTRIBUTION" />
-          <ChartCard title="Pool Breakdown">
-            <PoolDonutChart
-              sadaqah={data?.fund.sadaqah ?? 0}
-              zakat={data?.fund.zakat ?? 0}
-              qarz={data?.fund.qarz ?? 0}
-            />
-          </ChartCard>
-        </Animated.View>
+        {isLoading ? (
+          <View style={styles.placeholder} />
+        ) : (
+          <>
+            <Animated.View entering={FadeInDown.duration(400).delay(100)}>
+              <SectionTitle label="FUND DISTRIBUTION" />
+              <ChartCard title="Pool Breakdown">
+                <PoolDonutChart
+                  sadaqah={data?.fund.sadaqah ?? 0}
+                  zakat={data?.fund.zakat ?? 0}
+                  qarz={data?.fund.qarz ?? 0}
+                />
+              </ChartCard>
+            </Animated.View>
 
-        <Animated.View entering={FadeInDown.duration(400).delay(200)}>
-          <SectionTitle label="MY PAYMENTS (LAST 6 MONTHS)" />
-          <ChartCard title="Monthly Contributions">
-            <PaymentBarChart data={paymentBarData} />
-          </ChartCard>
-        </Animated.View>
+            <Animated.View entering={FadeInDown.duration(400).delay(200)}>
+              <SectionTitle label="MY PAYMENTS (LAST 6 MONTHS)" />
+              <ChartCard title="Monthly Contributions">
+                <PaymentBarChart data={paymentBarData} />
+              </ChartCard>
+            </Animated.View>
 
-        <Animated.View entering={FadeInDown.duration(400).delay(300)}>
-          <SectionTitle label="FUND GROWTH" />
-          <ChartCard title="Total Fund Over Time">
-            {isLoading ? (
-              <View style={styles.placeholder} />
-            ) : (
-              <FundLineChart data={fundLineData} />
-            )}
-          </ChartCard>
-        </Animated.View>
+            <Animated.View entering={FadeInDown.duration(400).delay(300)}>
+              <SectionTitle label="FUND BREAKDOWN BY POOL" />
+              <ChartCard title="Sadaqah · Zakat · Qarz">
+                <FundLineChart data={fundLineData} />
+              </ChartCard>
+            </Animated.View>
+          </>
+        )}
 
         <Animated.View entering={FadeInDown.duration(400).delay(400)}>
           <SectionTitle label="SUMMARY" />

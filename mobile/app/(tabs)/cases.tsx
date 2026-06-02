@@ -145,14 +145,14 @@ function CreateCaseSheet({ visible, onClose }: { visible: boolean; onClose: () =
             <Controller control={control} name="caseType"
               render={({ field: { onChange, value } }) => (
                 <View style={styles.chipRow}>
-                  {(['gift', 'qarz'] as const).map((t) => (
+                  {(['gift', 'qarz'] as const).map((ct) => (
                     <TouchableOpacity
-                      key={t}
-                      onPress={() => { onChange(t); }}
-                      style={[styles.chip, { backgroundColor: value === t ? colors.primaryDim : colors.glass2, borderColor: value === t ? colors.primary : colors.border1 }]}
+                      key={ct}
+                      onPress={() => { onChange(ct); }}
+                      style={[styles.chip, { backgroundColor: value === ct ? colors.primaryDim : colors.glass2, borderColor: value === ct ? colors.primary : colors.border1 }]}
                     >
-                      <Text style={[styles.chipText, { color: value === t ? colors.primary : colors.text3 }]}>
-                        {t === 'gift' ? 'Gift (Sadaqah)' : 'Qarz (Loan)'}
+                      <Text style={[styles.chipText, { color: value === ct ? colors.primary : colors.text3 }]}>
+                        {ct === 'gift' ? t('cases.gift') : t('islamic.qarzHasana')}
                       </Text>
                     </TouchableOpacity>
                   ))}
@@ -164,13 +164,15 @@ function CreateCaseSheet({ visible, onClose }: { visible: boolean; onClose: () =
             <Controller control={control} name="pool"
               render={({ field: { onChange, value } }) => (
                 <View style={styles.chipRow}>
-                  {(['sadaqah', 'zakat', 'qarz'] as const).map((p) => (
+                  {(['sadaqah', 'zakat', 'qarz'] as const).map((pl) => (
                     <TouchableOpacity
-                      key={p}
-                      onPress={() => onChange(p)}
-                      style={[styles.chip, { backgroundColor: value === p ? colors.primaryDim : colors.glass2, borderColor: value === p ? colors.primary : colors.border1 }]}
+                      key={pl}
+                      onPress={() => onChange(pl)}
+                      style={[styles.chip, { backgroundColor: value === pl ? colors.primaryDim : colors.glass2, borderColor: value === pl ? colors.primary : colors.border1 }]}
                     >
-                      <Text style={[styles.chipText, { color: value === p ? colors.primary : colors.text3 }]}>{p}</Text>
+                      <Text style={[styles.chipText, { color: value === pl ? colors.primary : colors.text3 }]}>
+                        {pl === 'sadaqah' ? t('payments.sadaqah') : pl === 'zakat' ? t('payments.zakat') : t('payments.qarz')}
+                      </Text>
                     </TouchableOpacity>
                   ))}
                 </View>

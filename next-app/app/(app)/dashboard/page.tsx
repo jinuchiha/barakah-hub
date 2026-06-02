@@ -35,10 +35,11 @@ export default async function DashboardPage() {
     : [{ total: 0 }];
   const pendingAmount = Number(pendingRow?.total ?? 0);
 
-  const [memberCount] = await db
+  const [memberCountRow] = await db
     .select({ c: sql<number>`COUNT(*)::int` })
     .from(members)
     .where(and(eq(members.deceased, false), eq(members.status, 'approved')));
+  const memberCount = memberCountRow?.c ?? 0;
 
   const outstandingLoans = await db
     .select({ owed: sql<number>`COALESCE(SUM(${loans.amount} - ${loans.paid}),0)::int` })
@@ -135,7 +136,7 @@ export default async function DashboardPage() {
             <div className="tabular mt-2 text-[44px] font-bold leading-none text-[#0a0f1a]">{fmtRs(totalFund)}</div>
             <div className="mt-3 h-px w-14 bg-black/25" />
             <div className="mt-3 text-[12.5px] font-semibold text-black/60">
-              {memberCount.c} members · {fmtRs(pendingAmount)} awaiting approval
+              {memberCount} members · {fmtRs(pendingAmount)} awaiting approval
             </div>
             {sparkValues.length > 1 && (
               <svg viewBox="0 0 100 26" preserveAspectRatio="none" className="mt-4 h-8 w-full max-w-[260px]">
@@ -162,7 +163,7 @@ export default async function DashboardPage() {
         {isAdmin ? (
           <>
             <StatCard label="Pending Approval"   icon={<Hourglass />} value={fmtRs(pendingAmount)}                                   hint={pendingAmount > 0 ? 'In supervisor/admin flow' : 'Nothing pending'} tone="gold" />
-            <StatCard label="Active Members"     icon={<Users />}     value={memberCount.c}                                          hint="Approved family" tone="violet" />
+            <StatCard label="Active Members"     icon={<Users />}     value={memberCount}                                          hint="Approved family" tone="violet" />
             <StatCard label="Outstanding Loans"  icon={<FileText />}  value={fmtRs(Number(outstandingLoans[0]?.owed ?? 0))}          hint="Active qarz" tone="ruby" />
             <StatCard label="Pending Votes"      icon={<Vote />}      value={pendingVotes}                                           hint={pendingVotes ? 'Needs review' : 'All resolved'} tone="sapphire" />
           </>

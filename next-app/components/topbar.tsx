@@ -20,6 +20,7 @@ interface TopbarProps {
   user: { name: string; role: string; color?: string; photoUrl?: string | null };
   unreadCount?: number;
   isAdmin?: boolean;
+  isSupervisor?: boolean;
   badges?: Record<string, number>;
 }
 
@@ -38,7 +39,7 @@ const themeStore = {
   getServerSnapshot: (): 'dark' | 'light' => 'dark',
 };
 
-export function Topbar({ user, unreadCount = 0, isAdmin = false, badges = {} }: TopbarProps) {
+export function Topbar({ user, unreadCount = 0, isAdmin = false, isSupervisor = false, badges = {} }: TopbarProps) {
   const [q, setQ] = useState('');
   const mode = useSyncExternalStore(themeStore.subscribe, themeStore.getSnapshot, themeStore.getServerSnapshot);
   const router = useRouter();
@@ -77,7 +78,7 @@ export function Topbar({ user, unreadCount = 0, isAdmin = false, badges = {} }: 
       <div aria-hidden className="pointer-events-none absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[rgba(200,155,60,0.25)] to-transparent" />
 
       <div className="flex items-center gap-2.5 md:gap-3">
-        <MobileNav isAdmin={isAdmin} badges={badges} />
+        <MobileNav isAdmin={isAdmin} isSupervisor={isSupervisor} badges={badges} />
         {/* Premium brand mark */}
         <div className="grid size-8 shrink-0 place-items-center rounded-lg bg-gradient-to-br from-[rgba(200,155,60,0.22)] to-[rgba(200,155,60,0.06)] shadow-[0_0_0_1px_rgba(200,155,60,0.25),0_2px_8px_rgba(200,155,60,0.15)]">
           <Crescent />

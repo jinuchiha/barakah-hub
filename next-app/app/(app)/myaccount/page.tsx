@@ -20,8 +20,12 @@ export default async function MyAccountPage() {
   const verifiedTotal = myPayments
     .filter((p) => !p.pendingVerify)
     .reduce((a, p) => a + p.amount, 0);
-  const pendingTotal = myPayments
-    .filter((p) => p.pendingVerify)
+  const pendingPayments = myPayments.filter((p) => p.pendingVerify);
+  const rejectedTotal = pendingPayments
+    .filter((p) => p.supervisorRejectedAt)
+    .reduce((a, p) => a + p.amount, 0);
+  const pendingTotal = pendingPayments
+    .filter((p) => !p.supervisorRejectedAt)
     .reduce((a, p) => a + p.amount, 0);
 
   return (
@@ -42,7 +46,7 @@ export default async function MyAccountPage() {
               {me.photoUrl ? (
                 <img src={me.photoUrl} alt="" className="size-full rounded-full object-cover" />
               ) : (
-                ini(me.nameEn)
+                ini(me.nameEn || me.nameUr)
               )}
             </div>
             <div className="flex-1">
@@ -57,7 +61,12 @@ export default async function MyAccountPage() {
           <div className="font-[var(--font-display)] text-3xl font-bold text-[var(--color-gold)]">{fmtRs(verifiedTotal)}</div>
           {pendingTotal > 0 && (
             <div className="mt-1 text-xs text-[var(--color-gold-2)]">
-              + {fmtRs(pendingTotal)} awaiting admin verification
+              + {fmtRs(pendingTotal)} awaiting verification
+            </div>
+          )}
+          {rejectedTotal > 0 && (
+            <div className="mt-1 text-xs text-[#f08585]">
+              {fmtRs(rejectedTotal)} rejected by supervisor — contact admin
             </div>
           )}
         </CardBody>
