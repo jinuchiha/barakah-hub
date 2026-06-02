@@ -134,7 +134,7 @@ export default async function DashboardPage() {
         >
           <div className="relative z-10">
             <div className="text-[11px] font-bold uppercase tracking-[2.5px] text-black/60">Total Family Fund</div>
-            <AnimatedNumber value={totalFund} formatter={(n) => `Rs. ${n.toLocaleString('en-PK')}`} className="tabular mt-2 text-[44px] font-bold leading-none text-[#0a0f1a]" />
+            <AnimatedNumber value={totalFund} prefix="Rs. " className="tabular mt-2 text-[44px] font-bold leading-none text-[#0a0f1a]" />
             <div className="mt-3 h-px w-14 bg-black/25" />
             <div className="mt-3 text-[12.5px] font-semibold text-black/60">
               {memberCount} members · {fmtRs(pendingAmount)} awaiting approval

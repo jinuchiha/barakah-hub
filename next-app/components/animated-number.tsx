@@ -4,11 +4,14 @@ import { useEffect, useRef, useState } from 'react';
 interface AnimatedNumberProps {
   value: number;
   duration?: number;
+  /** Serializable string prepended to the formatted number — use from Server Components */
+  prefix?: string;
+  /** Only safe to use when AnimatedNumber is rendered from a Client Component */
   formatter?: (n: number) => string;
   className?: string;
 }
 
-export function AnimatedNumber({ value, duration = 800, formatter, className }: AnimatedNumberProps) {
+export function AnimatedNumber({ value, duration = 800, prefix, formatter, className }: AnimatedNumberProps) {
   const [displayed, setDisplayed] = useState(0);
   const startRef = useRef(0);
   const startTimeRef = useRef<number | null>(null);
@@ -39,6 +42,8 @@ export function AnimatedNumber({ value, duration = 800, formatter, className }: 
     return () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); };
   }, [value, duration]);
 
-  const text = formatter ? formatter(displayed) : displayed.toLocaleString('en-PK');
+  const text = formatter
+    ? formatter(displayed)
+    : `${prefix ?? ''}${displayed.toLocaleString('en-PK')}`;
   return <span className={className}>{text}</span>;
 }
