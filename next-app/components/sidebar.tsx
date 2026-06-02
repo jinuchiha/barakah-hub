@@ -1,7 +1,6 @@
 'use client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { motion } from 'motion/react';
 import { cn } from '@/lib/utils';
 import {
   LayoutDashboard, User, Users, GitBranch, Bell, Mail, Settings, Wallet,
@@ -9,64 +8,43 @@ import {
 } from 'lucide-react';
 
 const NAV: { href: string; label: string; labelUr: string; icon: React.ComponentType<{ className?: string }>; admin?: boolean; supervisor?: boolean }[] = [
-  { href: '/dashboard',       label: 'Dashboard',       labelUr: 'ڈیش بورڈ',       icon: LayoutDashboard },
-  { href: '/myaccount',       label: 'My Account',      labelUr: 'میرا کھاتہ',     icon: User },
-  { href: '/tree',            label: 'Family Tree',     labelUr: 'خاندانی درخت',   icon: GitBranch },
-  { href: '/cases',           label: 'Emergency Vote',  labelUr: 'ایمرجنسی ووٹ',   icon: AlertTriangle },
-  // Supervisor-visible link to the approval queue. Sits in the main
-  // section (not the admin section) so the supervisor sees their full
-  // member nav with one extra item — their work surface. Hidden from
-  // regular members. Admins also see it (their normal admin nav already
-  // points at the same /admin/fund page).
-  { href: '/admin/fund',      label: 'Fund Approvals',  labelUr: 'فنڈ منظوری',     icon: Wallet,   supervisor: true },
-  { href: '/notifications',   label: 'Notifications',   labelUr: 'اطلاعات',        icon: Bell },
-  { href: '/messages',        label: 'Messages',        labelUr: 'پیغامات',        icon: Mail },
-  { href: '/settings',        label: 'Settings',        labelUr: 'ترتیبات',        icon: Settings },
-  { href: '/admin/members',   label: 'Members',         labelUr: 'اراکین',         icon: Users,    admin: true },
-  { href: '/admin/invites',   label: 'Invites',         labelUr: 'دعوت نامے',     icon: UserPlus, admin: true },
-  { href: '/admin/fund',      label: 'Fund Register',   labelUr: 'فنڈ رجسٹر',      icon: Wallet,   admin: true },
-  { href: '/admin/loans',     label: 'Qarz-e-Hasana',   labelUr: 'قرض حسنہ',       icon: FileText, admin: true },
-  { href: '/admin/broadcast', label: 'Broadcast',       labelUr: 'اعلان',          icon: Megaphone, admin: true },
-  { href: '/admin/annual-report', label: 'Annual Report', labelUr: 'سالانہ رپورٹ',  icon: ScrollText, admin: true },
-  { href: '/admin/audit',     label: 'Audit Log',       labelUr: 'آڈٹ لاگ',        icon: ScrollText, admin: true },
+  { href: '/dashboard',           label: 'Dashboard',       labelUr: 'ڈیش بورڈ',       icon: LayoutDashboard },
+  { href: '/myaccount',           label: 'My Account',      labelUr: 'میرا کھاتہ',     icon: User },
+  { href: '/tree',                label: 'Family Tree',     labelUr: 'خاندانی درخت',   icon: GitBranch },
+  { href: '/cases',               label: 'Emergency Vote',  labelUr: 'ایمرجنسی ووٹ',   icon: AlertTriangle },
+  { href: '/admin/fund',          label: 'Fund Approvals',  labelUr: 'فنڈ منظوری',     icon: Wallet,   supervisor: true },
+  { href: '/notifications',       label: 'Notifications',   labelUr: 'اطلاعات',        icon: Bell },
+  { href: '/messages',            label: 'Messages',        labelUr: 'پیغامات',        icon: Mail },
+  { href: '/settings',            label: 'Settings',        labelUr: 'ترتیبات',        icon: Settings },
+  { href: '/admin/members',       label: 'Members',         labelUr: 'اراکین',         icon: Users,    admin: true },
+  { href: '/admin/invites',       label: 'Invites',         labelUr: 'دعوت نامے',     icon: UserPlus, admin: true },
+  { href: '/admin/fund',          label: 'Fund Register',   labelUr: 'فنڈ رجسٹر',      icon: Wallet,   admin: true },
+  { href: '/admin/loans',         label: 'Qarz-e-Hasana',   labelUr: 'قرض حسنہ',       icon: FileText, admin: true },
+  { href: '/admin/broadcast',     label: 'Broadcast',       labelUr: 'اعلان',          icon: Megaphone, admin: true },
+  { href: '/admin/annual-report', label: 'Annual Report',   labelUr: 'سالانہ رپورٹ',  icon: ScrollText, admin: true },
+  { href: '/admin/audit',         label: 'Audit Log',       labelUr: 'آڈٹ لاگ',        icon: ScrollText, admin: true },
 ];
 
 interface NavProps {
   isAdmin?: boolean;
-  /** Supervisor role — fund collector. Sees the full member nav plus
-   *  a "Fund Approvals" link in the main section. Their work surface
-   *  is the same role-aware /admin/fund page that admins use. */
   isSupervisor?: boolean;
   locale?: 'ur' | 'en';
-  /** Called after a nav link is activated. Used by the mobile drawer to close itself. */
   onNavigate?: () => void;
-  /** Distinct layoutId per render context so motion.span animations don't collide between desktop + drawer. */
   layoutIdSuffix?: string;
-  /** href → badge count (e.g. pending members, pending payments). 0 or undefined = no badge. */
   badges?: Record<string, number>;
 }
 
-/** Inner nav list — shared between desktop `<Sidebar>` and the mobile drawer. */
 export function SidebarNav({ isAdmin = false, isSupervisor = false, locale = 'en', onNavigate, layoutIdSuffix = 'desktop', badges = {} }: NavProps) {
   const pathname = usePathname();
-  // Item visibility rules:
-  //  - Members (default): non-admin, non-supervisor items only
-  //  - Supervisors:       member items + the supervisor "Fund Approvals" link
-  //  - Admins:            everything (admin section + their /admin/fund variant)
-  // Admin section's separate /admin/fund entry is suppressed for
-  // supervisors so they don't see a duplicate.
   const items = NAV.filter((n) => {
     if (n.admin) return isAdmin;
-    // Show the supervisor approvals link only to supervisors. Admins
-    // already reach the same page through their admin-section "Fund
-    // Register" link, so they don't need a duplicate in the main nav.
     if (n.supervisor) return isSupervisor && !isAdmin;
     return true;
   });
   const adminStart = items.findIndex((n) => n.admin);
 
   return (
-    <nav className="flex-1 overflow-y-auto py-3" aria-label="Main">
+    <nav className="flex-1 overflow-y-auto px-3 py-2" aria-label="Main">
       <SectionLabel label={locale === 'ur' ? 'مینو' : 'MAIN'} />
       {items.map((n, i) => {
         const isActive = pathname === n.href || pathname.startsWith(n.href + '/');
@@ -74,35 +52,44 @@ export function SidebarNav({ isAdmin = false, isSupervisor = false, locale = 'en
           return (
             <div key={n.href}>
               <SectionLabel label={locale === 'ur' ? 'ایڈمن' : 'ADMIN'} />
-              <NavItem n={n} isActive={isActive} locale={locale} onNavigate={onNavigate} layoutIdSuffix={layoutIdSuffix} badge={badges[n.href]} />
+              <NavItem n={n} isActive={isActive} locale={locale} onNavigate={onNavigate} badge={badges[n.href]} />
             </div>
           );
         }
-        return <NavItem key={n.href} n={n} isActive={isActive} locale={locale} onNavigate={onNavigate} layoutIdSuffix={layoutIdSuffix} badge={badges[n.href]} />;
+        return <NavItem key={n.href} n={n} isActive={isActive} locale={locale} onNavigate={onNavigate} badge={badges[n.href]} />;
       })}
     </nav>
   );
 }
 
-export function Sidebar({
-  isAdmin = false,
-  isSupervisor = false,
-  locale = 'en',
-  badges = {},
-}: {
-  isAdmin?: boolean;
-  isSupervisor?: boolean;
-  locale?: 'ur' | 'en';
-  badges?: Record<string, number>;
+export function Sidebar({ isAdmin = false, isSupervisor = false, locale = 'en', badges = {} }: {
+  isAdmin?: boolean; isSupervisor?: boolean; locale?: 'ur' | 'en'; badges?: Record<string, number>;
 }) {
   return (
-    <aside className="hidden w-60 shrink-0 flex-col border-r border-[rgba(200,155,60,0.08)] bg-[rgba(10,15,26,0.95)] shadow-[1px_0_0_0_rgba(200,155,60,0.05)] backdrop-blur-xl md:flex">
-      {/* Premium gold gradient top stripe */}
-      <div aria-hidden className="pointer-events-none h-px bg-gradient-to-r from-transparent via-[rgba(200,155,60,0.30)] to-transparent" />
+    <aside
+      className="hidden w-[220px] shrink-0 flex-col md:flex"
+      style={{ background: 'linear-gradient(180deg,#060b13 0%,#080e18 100%)', borderRight: '1px solid rgba(200,155,60,0.14)' }}
+    >
+      {/* ── BRAND AREA ── */}
+      <div className="flex items-center gap-3 px-4 py-5" style={{ borderBottom: '1px solid rgba(200,155,60,0.10)' }}>
+        <div
+          className="grid size-9 shrink-0 place-items-center rounded-xl"
+          style={{ background: 'linear-gradient(135deg,#d9b04c,#c89b3c,#9a7230)', boxShadow: '0 0 18px rgba(200,155,60,0.45),0 2px 8px rgba(0,0,0,0.4)', color: '#0a0f1a', fontSize: 19, lineHeight: 1 }}
+        >
+          ☾
+        </div>
+        <div>
+          <div className="text-[14px] font-bold leading-tight tracking-tight" style={{ color: '#ecebe6' }}>Barakah Hub</div>
+          <div className="mt-0.5 font-[var(--font-arabic)] text-[11px]" style={{ color: '#c89b3c' }}>بَرَكَة ہب</div>
+        </div>
+      </div>
+
       <SidebarNav isAdmin={isAdmin} isSupervisor={isSupervisor} locale={locale} layoutIdSuffix="desktop" badges={badges} />
-      <div className="border-t border-[rgba(200,155,60,0.07)] px-4 py-3">
-        <div className="text-[9px] uppercase tracking-[2px] text-[var(--txt-4)]">v3.0 · Barakah Hub</div>
-        <div className="mt-0.5 font-[var(--font-arabic)] text-[9px] text-[rgba(200,155,60,0.35)]">بَرَكَة ہب</div>
+
+      {/* ── FOOTER ── */}
+      <div className="px-4 py-3 text-[9px] uppercase tracking-[2px]"
+        style={{ borderTop: '1px solid rgba(200,155,60,0.08)', color: 'rgba(236,235,230,0.22)' }}>
+        v3.0 · Barakah Hub
       </div>
     </aside>
   );
@@ -110,53 +97,39 @@ export function Sidebar({
 
 function SectionLabel({ label }: { label: string }) {
   return (
-    <div className="mx-4 mb-1 mt-5 flex items-center gap-2">
-      <div className="h-px flex-1 bg-gradient-to-r from-[rgba(200,155,60,0.20)] to-transparent" />
-      <span className="text-[9px] font-bold uppercase tracking-[2.5px] text-[rgba(200,155,60,0.50)]">{label}</span>
+    <div className="mb-1 mt-4 px-2 text-[9.5px] font-bold uppercase tracking-[2.5px]" style={{ color: 'rgba(200,155,60,0.5)' }}>
+      {label}
     </div>
   );
 }
 
-function NavItem({
-  n,
-  isActive,
-  locale,
-  onNavigate,
-  layoutIdSuffix,
-  badge,
-}: {
-  n: typeof NAV[number];
-  isActive: boolean;
-  locale: 'ur' | 'en';
-  onNavigate?: () => void;
-  layoutIdSuffix: string;
-  badge?: number;
+function NavItem({ n, isActive, locale, onNavigate, badge }: {
+  n: typeof NAV[number]; isActive: boolean; locale: 'ur' | 'en'; onNavigate?: () => void; badge?: number;
 }) {
   const Icon = n.icon;
   return (
     <Link
       href={n.href as any}
       onClick={onNavigate}
-      className={cn(
-        'group relative mx-2 my-0.5 flex items-center gap-3 rounded-xl px-3 py-2 text-[13px] transition-all duration-150',
-        isActive
-          ? 'bg-gradient-to-r from-[rgba(200,155,60,0.15)] to-[rgba(200,155,60,0.04)] font-medium text-[var(--color-cream)] shadow-[0_1px_0_rgba(200,155,60,0.12)]'
-          : 'text-[var(--txt-2)] hover:bg-[rgba(255,255,255,0.04)] hover:text-[var(--txt-1)]',
-      )}
       aria-current={isActive ? 'page' : undefined}
-    >
-      {isActive && (
-        <motion.span
-          layoutId={`sidebar-active-indicator-${layoutIdSuffix}`}
-          aria-hidden="true"
-          className="absolute left-0 top-[18%] h-[64%] w-[2px] rounded-r-full bg-[var(--color-gold)]"
-          transition={{ type: 'spring', stiffness: 380, damping: 32 }}
-        />
+      className={cn(
+        'group relative my-0.5 flex items-center gap-2.5 rounded-xl px-3 py-2 text-[13px] transition-all duration-150',
+        isActive ? 'font-medium' : 'hover:bg-white/[0.04]',
       )}
-      <Icon className={cn('size-[15px] shrink-0', isActive ? 'text-[var(--color-gold)]' : 'text-[var(--txt-3)]')} />
+      style={isActive ? {
+        background: 'linear-gradient(90deg,rgba(200,155,60,0.20) 0%,rgba(200,155,60,0.05) 100%)',
+        color: '#ecebe6',
+        boxShadow: 'inset 2.5px 0 0 #c89b3c',
+      } : { color: 'rgba(236,235,230,0.50)' }}
+    >
+      <Icon
+        className="size-[15px] shrink-0"
+        style={{ color: isActive ? '#c89b3c' : undefined }}
+      />
       <span className="flex-1 truncate">{locale === 'ur' ? n.labelUr : n.label}</span>
       {!!badge && badge > 0 && (
-        <span className="num ml-auto grid min-w-[20px] place-items-center rounded-full bg-[var(--color-gold)] px-1.5 text-[10px] font-semibold text-[var(--color-ink)]">
+        <span className="num ml-auto grid min-w-[20px] place-items-center rounded-full px-1.5 text-[10px] font-bold"
+          style={{ background: '#c89b3c', color: '#0a0f1a' }}>
           {badge > 99 ? '99+' : badge}
         </span>
       )}
