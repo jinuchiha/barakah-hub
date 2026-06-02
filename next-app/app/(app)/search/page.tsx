@@ -133,7 +133,7 @@ export default async function SearchPage({ searchParams }: Props) {
           <CardBody className="p-0">
             {paymentHits.map((p) => (
               <div key={p.id} className="border-b border-[rgba(214,210,199,0.06)] px-3 py-2.5">
-                <div className="text-sm text-[var(--color-cream)]">{memMap.get(p.memberId)?.nameEn ?? '—'} · {fmtRs(p.amount)}</div>
+                <div className="text-sm text-[var(--color-cream)]">{memMap.get(p.memberId)?.nameEn ?? 'Member'} · {fmtRs(p.amount)}</div>
                 <div className="text-[11px] text-[var(--txt-3)]">{p.monthLabel}{p.note ? ` · ${p.note}` : ''}</div>
               </div>
             ))}

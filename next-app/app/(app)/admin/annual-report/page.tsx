@@ -179,7 +179,7 @@ export default async function AnnualReportPage({ searchParams }: Props) {
               return (
                 <tr key={t.memberId} className="border-b border-[rgba(200,155,60,0.06)]">
                   <td className="px-2 py-2 font-[var(--font-en)] text-[var(--color-gold-4)]">{i + 1}</td>
-                  <td className="px-2 py-2 text-[var(--color-cream)]">{m?.nameEn ?? m?.nameUr ?? '—'}</td>
+                  <td className="px-2 py-2 text-[var(--color-cream)]">{m?.nameEn ?? m?.nameUr ?? 'Member'}</td>
                   <td className="px-2 py-2 text-right font-[var(--font-en)] text-[var(--txt-2)]">{Number(t.count)}</td>
                   <td className="px-2 py-2 text-right font-bold text-[var(--color-gold-2)]">{fmtRs(Number(t.total))}</td>
                 </tr>
