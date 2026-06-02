@@ -25,6 +25,7 @@ export default function NewCaseForm() {
     amount: 0,
     reason: '',
     emergency: false,
+    returnDate: '',
   });
 
   function set<K extends keyof typeof form>(k: K, v: (typeof form)[K]) { setForm({ ...form, [k]: v }); }
@@ -33,9 +34,9 @@ export default function NewCaseForm() {
     e.preventDefault();
     start(async () => {
       try {
-        await createCase(form);
+        await createCase({ ...form, returnDate: form.returnDate || null });
         toast.success('Submitted — voting open');
-        setForm({ ...form, beneficiaryName: '', relation: '', city: '', amount: 0, reason: '', emergency: false });
+        setForm({ ...form, beneficiaryName: '', relation: '', city: '', amount: 0, reason: '', emergency: false, returnDate: '' });
         setOpen(false);
       } catch (e: unknown) { toast.error(e instanceof Error ? e.message : 'Submission failed'); }
     });
@@ -62,6 +63,12 @@ export default function NewCaseForm() {
           <option value="qarz">Qarz</option>
         </select>
       </div>
+      {form.caseType === 'qarz' && (
+        <div>
+          <Label>Expected Return Date</Label>
+          <Input type="date" value={form.returnDate} onChange={(e) => set('returnDate', e.target.value)} />
+        </div>
+      )}
       <div>
         <Label>Beneficiary Name *</Label>
         <Input value={form.beneficiaryName} onChange={(e) => set('beneficiaryName', e.target.value)} required />

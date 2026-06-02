@@ -4,6 +4,7 @@ import {
   Modal, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -38,6 +39,7 @@ function QueuePaymentCard({
   isAdmin: boolean;
   actions: CardActions;
 }) {
+  const { t } = useTranslation();
   const { colors } = useTheme();
   const memberName = payment.member?.nameEn ?? 'Member';
   const stripe = poolColor(payment.pool, colors);
@@ -79,8 +81,8 @@ function QueuePaymentCard({
         {/* Awaiting supervisor → supervisor (or admin) approves/rejects */}
         {state === 'awaiting-supervisor' ? (
           <View style={styles.actionRow}>
-            <Button label="Reject" onPress={actions.onSupervisorReject} variant="danger" size="sm" style={styles.actionBtn} />
-            <Button label="Approve" onPress={actions.onApprove} variant="solid" size="sm" style={styles.actionBtn} />
+            <Button label={t('admin.reject')} onPress={actions.onSupervisorReject} variant="danger" size="sm" style={styles.actionBtn} />
+            <Button label={t('admin.approve')} onPress={actions.onApprove} variant="solid" size="sm" style={styles.actionBtn} />
           </View>
         ) : null}
 
@@ -88,8 +90,8 @@ function QueuePaymentCard({
         {state === 'awaiting-admin' ? (
           isAdmin ? (
             <View style={styles.actionRow}>
-              <Button label="Reject" onPress={actions.onSupervisorReject} variant="danger" size="sm" style={styles.actionBtn} />
-              <Button label="Verify" onPress={actions.onVerify} variant="solid" size="sm" style={styles.actionBtn} />
+              <Button label={t('admin.reject')} onPress={actions.onSupervisorReject} variant="danger" size="sm" style={styles.actionBtn} />
+              <Button label={t('admin.verify')} onPress={actions.onVerify} variant="solid" size="sm" style={styles.actionBtn} />
             </View>
           ) : (
             <Text style={[styles.statusHint, { color: colors.text4 }]}>Approved — awaiting admin verification</Text>
@@ -100,8 +102,8 @@ function QueuePaymentCard({
         {state === 'rejected' ? (
           isAdmin ? (
             <View style={styles.actionRow}>
-              <Button label="Delete" onPress={actions.onDelete} variant="danger" size="sm" style={styles.actionBtn} />
-              <Button label="Resend" onPress={actions.onResend} variant="solid" size="sm" style={styles.actionBtn} />
+              <Button label={t('admin.delete')} onPress={actions.onDelete} variant="danger" size="sm" style={styles.actionBtn} />
+              <Button label={t('admin.resend')} onPress={actions.onResend} variant="solid" size="sm" style={styles.actionBtn} />
             </View>
           ) : (
             <Text style={[styles.statusHint, { color: colors.danger }]}>Rejected — admin will resend or delete</Text>
@@ -124,6 +126,7 @@ function Section({ title, count, children }: { title: string; count: number; chi
 }
 
 export default function PaymentsReviewScreen() {
+  const { t } = useTranslation();
   const { colors } = useTheme();
   const { user } = useAuthStore();
   const isAdmin = isAdminOnly(user?.role);
@@ -148,29 +151,29 @@ export default function PaymentsReviewScreen() {
     try {
       await fn();
     } catch (err) {
-      Alert.alert('Error', err instanceof Error ? err.message : 'Action failed');
+      Alert.alert(t('common.error'), err instanceof Error ? err.message : t('admin.actionFailed'));
     }
   };
 
   const handleApprove = (p: Payment) =>
-    Alert.alert('Approve Payment', `Confirm you received ${formatPKR(p.amount)} for ${p.monthLabel}?`, [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Approve', onPress: () => run(() => approveMutation.mutateAsync(p.id), Haptics.NotificationFeedbackType.Success) },
+    Alert.alert(t('admin.approvePayment'), t('admin.approvePaymentConfirm', { amount: formatPKR(p.amount), month: p.monthLabel }), [
+      { text: t('common.cancel'), style: 'cancel' },
+      { text: t('admin.approve'), onPress: () => run(() => approveMutation.mutateAsync(p.id), Haptics.NotificationFeedbackType.Success) },
     ]);
 
   const handleVerify = (p: Payment) =>
-    Alert.alert('Verify Payment', `Give final verification for ${formatPKR(p.amount)}?`, [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Verify', onPress: () => run(() => verifyMutation.mutateAsync(p.id), Haptics.NotificationFeedbackType.Success) },
+    Alert.alert(t('admin.verifyPayment'), t('admin.verifyPaymentConfirm', { amount: formatPKR(p.amount) }), [
+      { text: t('common.cancel'), style: 'cancel' },
+      { text: t('admin.verify'), onPress: () => run(() => verifyMutation.mutateAsync(p.id), Haptics.NotificationFeedbackType.Success) },
     ]);
 
   const handleResend = (p: Payment) =>
     run(() => resendMutation.mutateAsync(p.id), Haptics.NotificationFeedbackType.Success);
 
   const handleDelete = (p: Payment) =>
-    Alert.alert('Delete Payment', 'Permanently delete this payment?', [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Delete', style: 'destructive', onPress: () => run(() => rejectMutation.mutateAsync(p.id), Haptics.NotificationFeedbackType.Error) },
+    Alert.alert(t('admin.deletePayment'), t('admin.deletePaymentConfirm'), [
+      { text: t('common.cancel'), style: 'cancel' },
+      { text: t('admin.delete'), style: 'destructive', onPress: () => run(() => rejectMutation.mutateAsync(p.id), Haptics.NotificationFeedbackType.Error) },
     ]);
 
   const confirmSupervisorReject = () => {
@@ -193,27 +196,27 @@ export default function PaymentsReviewScreen() {
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.bg1 }]} edges={['bottom']}>
       {isLoading ? (
-        <EmptyState icon="loading" title="Loading payments..." />
+        <EmptyState icon="loading" title={t('admin.loadingPayments')} />
       ) : error ? (
-        <EmptyState icon="alert-circle-outline" title="Couldn't load payments" subtitle="Pull to retry" />
+        <EmptyState icon="alert-circle-outline" title={t('common.error')} subtitle="Pull to retry" />
       ) : pending.length === 0 ? (
-        <EmptyState icon="cash-check" title="All payments verified" subtitle="No payments pending review" />
+        <EmptyState icon="cash-check" title={t('admin.allVerified')} subtitle={t('admin.noPendingReview')} />
       ) : (
         <ScrollView
           contentContainerStyle={styles.list}
           refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={colors.primary} />}
         >
-          <Section title="AWAITING SUPERVISOR" count={awaitingSupervisor.length}>
+          <Section title={t('admin.awaitingSupervisor')} count={awaitingSupervisor.length}>
             {awaitingSupervisor.map((p) => (
               <QueuePaymentCard key={p.id} payment={p} state="awaiting-supervisor" isAdmin={isAdmin} actions={makeActions(p)} />
             ))}
           </Section>
-          <Section title="AWAITING ADMIN VERIFICATION" count={awaitingAdmin.length}>
+          <Section title={t('admin.awaitingAdminVerification')} count={awaitingAdmin.length}>
             {awaitingAdmin.map((p) => (
               <QueuePaymentCard key={p.id} payment={p} state="awaiting-admin" isAdmin={isAdmin} actions={makeActions(p)} />
             ))}
           </Section>
-          <Section title="REJECTED BY SUPERVISOR" count={rejected.length}>
+          <Section title={t('admin.rejectedBySupervisor')} count={rejected.length}>
             {rejected.map((p) => (
               <QueuePaymentCard key={p.id} payment={p} state="rejected" isAdmin={isAdmin} actions={makeActions(p)} />
             ))}
@@ -224,9 +227,9 @@ export default function PaymentsReviewScreen() {
       <Modal visible={rejectTarget !== null} transparent animationType="fade" onRequestClose={() => setRejectTarget(null)}>
         <KeyboardAvoidingView style={styles.modalBackdrop} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
           <GlassCard style={styles.modalCard}>
-            <Text style={[styles.modalTitle, { color: colors.text1 }]}>Reject Payment</Text>
+            <Text style={[styles.modalTitle, { color: colors.text1 }]}>{t('admin.rejectPayment')}</Text>
             <Text style={[styles.modalSub, { color: colors.text3 }]}>
-              Add a note so the admin knows why (optional).
+              {t('admin.rejectPaymentNote')}
             </Text>
             <TextInput
               style={[styles.modalInput, { color: colors.text1, borderColor: colors.border1, backgroundColor: colors.glass1 }]}
@@ -238,8 +241,8 @@ export default function PaymentsReviewScreen() {
               maxLength={500}
             />
             <View style={styles.actionRow}>
-              <Button label="Cancel" onPress={() => { setRejectTarget(null); setRejectNote(''); }} variant="primary" size="sm" style={styles.actionBtn} />
-              <Button label="Reject" onPress={confirmSupervisorReject} variant="danger" size="sm" style={styles.actionBtn} />
+              <Button label={t('common.cancel')} onPress={() => { setRejectTarget(null); setRejectNote(''); }} variant="primary" size="sm" style={styles.actionBtn} />
+              <Button label={t('admin.reject')} onPress={confirmSupervisorReject} variant="danger" size="sm" style={styles.actionBtn} />
             </View>
           </GlassCard>
         </KeyboardAvoidingView>

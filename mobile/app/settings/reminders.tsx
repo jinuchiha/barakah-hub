@@ -4,6 +4,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useTheme } from '@/lib/useTheme';
@@ -23,6 +24,7 @@ function formatHour(h: number): string {
 }
 
 export default function RemindersScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const { colors } = useTheme();
   const [prefs, setPrefs] = useState<ReminderPrefs>(() => loadReminderPrefs());
@@ -37,9 +39,9 @@ export default function RemindersScreen() {
     try {
       saveReminderPrefs(prefs);
       await applyReminderPrefs(prefs);
-      Alert.alert('Saved', 'Reminder settings updated.');
+      Alert.alert(t('reminders.saved'), t('reminders.reminderUpdated'));
     } catch {
-      Alert.alert('Error', 'Could not schedule reminders. Check notification permissions.');
+      Alert.alert(t('common.error'), 'Could not schedule reminders. Check notification permissions.');
     } finally {
       setSaving(false);
     }
@@ -51,7 +53,7 @@ export default function RemindersScreen() {
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
           <MaterialCommunityIcons name="arrow-left" size={24} color={colors.text1} />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: colors.text1 }]}>Reminders</Text>
+        <Text style={[styles.headerTitle, { color: colors.text1 }]}>{t('reminders.title')}</Text>
         <View style={styles.backBtn} />
       </View>
 
@@ -62,8 +64,8 @@ export default function RemindersScreen() {
               <View style={styles.rowLeft}>
                 <MaterialCommunityIcons name="cash-lock" size={20} color={colors.gold} />
                 <View>
-                  <Text style={[styles.rowTitle, { color: colors.text1 }]}>Monthly Payment Reminder</Text>
-                  <Text style={[styles.rowDesc, { color: colors.text3 }]}>Remind to pay on selected day</Text>
+                  <Text style={[styles.rowTitle, { color: colors.text1 }]}>{t('reminders.monthlyPayment')}</Text>
+                  <Text style={[styles.rowDesc, { color: colors.text3 }]}>{t('reminders.monthlyPaymentDesc')}</Text>
                 </View>
               </View>
               <Switch
@@ -104,8 +106,8 @@ export default function RemindersScreen() {
               <View style={styles.rowLeft}>
                 <MaterialCommunityIcons name="book-open-variant" size={20} color={colors.accent} />
                 <View>
-                  <Text style={[styles.rowTitle, { color: colors.text1 }]}>Daily Quran Verse</Text>
-                  <Text style={[styles.rowDesc, { color: colors.text3 }]}>Morning reflection notification</Text>
+                  <Text style={[styles.rowTitle, { color: colors.text1 }]}>{t('reminders.dailyVerse')}</Text>
+                  <Text style={[styles.rowDesc, { color: colors.text3 }]}>{t('reminders.dailyVerseDesc')}</Text>
                 </View>
               </View>
               <Switch
@@ -146,8 +148,8 @@ export default function RemindersScreen() {
               <View style={styles.rowLeft}>
                 <MaterialCommunityIcons name="mosque" size={20} color={colors.primary} />
                 <View>
-                  <Text style={[styles.rowTitle, { color: colors.text1 }]}>Prayer Time Notifications</Text>
-                  <Text style={[styles.rowDesc, { color: colors.text3 }]}>Get notified for all 5 prayers</Text>
+                  <Text style={[styles.rowTitle, { color: colors.text1 }]}>{t('reminders.prayerNotifications')}</Text>
+                  <Text style={[styles.rowDesc, { color: colors.text3 }]}>{t('reminders.prayerNotificationsDesc')}</Text>
                 </View>
               </View>
               <Switch
@@ -168,7 +170,7 @@ export default function RemindersScreen() {
           disabled={saving}
           activeOpacity={0.85}
         >
-          <Text style={styles.saveBtnText}>{saving ? 'Saving...' : 'Save Reminders'}</Text>
+          <Text style={styles.saveBtnText}>{saving ? t('reminders.saving') : t('reminders.saveReminders')}</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>

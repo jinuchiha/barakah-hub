@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import {
-  View, Text, StyleSheet, RefreshControl, TouchableOpacity, Pressable,
+  View, Text, StyleSheet, RefreshControl, TouchableOpacity, Pressable, Alert,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { FlashList } from '@shopify/flash-list';
@@ -87,7 +87,11 @@ function PaymentsScreen() {
   const pendingCount = data?.filter((p) => p.pendingVerify).length ?? 0;
 
   const handleSubmit = async (formData: { amount: number; pool: FundPool; monthLabel: string; note?: string; receiptUrl?: string }) => {
-    await submitMutation.mutateAsync(formData);
+    try {
+      await submitMutation.mutateAsync(formData);
+    } catch (err) {
+      Alert.alert('Error', err instanceof Error ? err.message : 'Submission failed');
+    }
   };
 
   return (
