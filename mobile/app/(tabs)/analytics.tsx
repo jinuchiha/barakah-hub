@@ -11,6 +11,7 @@ import { useDashboard } from '@/hooks/useDashboard';
 import { useMyPayments } from '@/hooks/usePayments';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { SkeletonCard } from '@/components/ui/Skeleton';
 import { FundLineChart } from '@/components/charts/FundLineChart';
 import { PoolDonutChart } from '@/components/charts/PoolDonutChart';
 import { PaymentBarChart } from '@/components/charts/PaymentBarChart';
@@ -105,7 +106,11 @@ export default function AnalyticsScreen() {
         </Animated.View>
 
         {isLoading ? (
-          <View style={styles.placeholder} />
+          <>
+            <SkeletonCard style={{ margin: 16 }} />
+            <SkeletonCard style={{ margin: 16, marginTop: 0 }} />
+            <SkeletonCard style={{ margin: 16, marginTop: 0 }} />
+          </>
         ) : (
           <>
             <Animated.View entering={FadeInDown.duration(400).delay(100)}>
@@ -193,7 +198,6 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter_600SemiBold',
     marginBottom: spacing.md,
   },
-  placeholder: { height: 120 },
   summaryCard: {
     padding: spacing.md,
     gap: spacing.sm,

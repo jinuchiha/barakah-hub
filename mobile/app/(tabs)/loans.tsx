@@ -6,12 +6,12 @@ import {
 import { useTranslation } from 'react-i18next';
 import { FlashList } from '@shopify/flash-list';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { SwipeableRow } from '@/components/SwipeableRow';
 import { LoanCard } from '@/components/LoanCard';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { BrandedEmptyState } from '@/components/ui/BrandedEmptyState';
@@ -152,18 +152,16 @@ function LoansScreen() {
           data={loans}
           keyExtractor={(item: Loan) => item.id}
           renderItem={({ item }) => (
-            <View>
+            <SwipeableRow
+              rightAction={isAdmin && item.active ? {
+                icon: 'cash-plus',
+                label: 'Repay',
+                color: colors.accent,
+                onPress: () => setRepayLoan(item),
+              } : undefined}
+            >
               <LoanCard loan={item} />
-              {isAdmin && item.active ? (
-                <TouchableOpacity
-                  style={[styles.repayBtn, { borderColor: colors.accent, backgroundColor: colors.accentDim }]}
-                  onPress={() => setRepayLoan(item)}
-                >
-                  <MaterialCommunityIcons name="cash-plus" size={16} color={colors.accent} />
-                  <Text style={[styles.repayBtnText, { color: colors.accent }]}>{t('loans.recordRepayment')}</Text>
-                </TouchableOpacity>
-              ) : null}
-            </View>
+            </SwipeableRow>
           )}
           estimatedItemSize={180}
           contentContainerStyle={styles.list}
@@ -196,12 +194,6 @@ const styles = StyleSheet.create({
   },
   stat: { flex: 1 },
   list: { padding: spacing.md, paddingTop: spacing.sm, paddingBottom: 100 },
-  repayBtn: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    paddingVertical: 9, borderRadius: radius.full, borderWidth: 1.5,
-    marginBottom: spacing.sm, marginHorizontal: spacing.md, gap: 6,
-  },
-  repayBtnText: { fontSize: 13, fontFamily: 'Inter_600SemiBold' },
   sheetBackdrop: {
     ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.7)',
     justifyContent: 'flex-end', zIndex: 100,

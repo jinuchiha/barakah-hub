@@ -31,6 +31,7 @@ import { spacing } from '@/lib/theme';
 import { formatPKR } from '@/lib/format';
 import { format } from 'date-fns';
 import { LoadingScreen } from '@/components/ui/LoadingScreen';
+import { SkeletonCard, Skeleton } from '@/components/ui/Skeleton';
 
 function DashboardHeader({ displayName, notificationCount, onBell, onSearch }: {
   displayName: string;
@@ -288,7 +289,21 @@ function DashboardScreen() {
   const { data, isLoading, error, refetch, isRefetching } = useDashboard();
   const [searchVisible, setSearchVisible] = useState(false); // kept for potential reuse
 
-  if (isLoading && !data) return <LoadingScreen />;
+  if (isLoading && !data) {
+    return (
+      <SafeAreaView style={[{ flex: 1, backgroundColor: colors.bg0 }]} edges={['top']}>
+        <View style={{ padding: 16, gap: 12 }}>
+          <Skeleton height={120} borderRadius={20} style={{ marginBottom: 4 }} />
+          <View style={{ flexDirection: 'row', gap: 10 }}>
+            <SkeletonCard style={{ flex: 1 }} />
+            <SkeletonCard style={{ flex: 1 }} />
+          </View>
+          <SkeletonCard />
+          <SkeletonCard />
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   if (!isLoading && error) {
     return <EmptyState icon="wifi-off" title="Could not load dashboard" subtitle={error.message} actionLabel="Retry" onAction={() => refetch()} />;

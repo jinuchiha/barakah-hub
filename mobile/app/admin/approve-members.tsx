@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, Alert, RefreshControl,
 } from 'react-native';
@@ -17,6 +17,7 @@ import { useAuthStore } from '@/stores/auth.store';
 import { isAdminOnly } from '@/lib/roles';
 import { Redirect } from 'expo-router';
 import { LoadingScreen } from '@/components/ui/LoadingScreen';
+import { SuccessOverlay } from '@/components/ui/SuccessOverlay';
 import { formatDate, formatPKR } from '@/lib/format';
 import { useTheme } from '@/lib/useTheme';
 import { spacing, radius } from '@/lib/theme';
@@ -80,6 +81,7 @@ export default function ApproveMembersScreen() {
   const { data: members, isLoading, refetch, isRefetching } = useMembers();
   const approveMutation = useApproveMember();
   const rejectMutation = useRejectMember();
+  const [showSuccess, setShowSuccess] = useState(false);
 
   const pending = members?.filter((m) => m.status === 'pending') ?? [];
 
@@ -92,6 +94,7 @@ export default function ApproveMembersScreen() {
           try {
             await approveMutation.mutateAsync(member.id);
             void haptic.confirm();
+            setShowSuccess(true);
           } catch (err) {
             void haptic.error();
             Alert.alert(t('common.error'), err instanceof Error ? err.message : 'Failed');
@@ -125,6 +128,7 @@ export default function ApproveMembersScreen() {
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.bg1 }]} edges={['bottom']}>
+      <SuccessOverlay visible={showSuccess} type="success" message="Approved!" onDone={() => setShowSuccess(false)} />
       {isLoading ? (
         <EmptyState icon="loading" title={t('common.loading')} />
       ) : (
