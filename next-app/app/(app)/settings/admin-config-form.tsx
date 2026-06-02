@@ -14,12 +14,19 @@ export default function AdminConfigForm({ config }: { config: Config }) {
   const [goalLabelEn, setGoalLabelEn] = useState(config.goalLabelEn || '');
   const [goalLabelUr, setGoalLabelUr] = useState(config.goalLabelUr || '');
   const [goalDeadline, setGoalDeadline] = useState((config.goalDeadline || '').toString());
+  const [easyPaiseName, setEasyPaiseName] = useState(config.easyPaiseName || '');
+  const [easyPaiseNumber, setEasyPaiseNumber] = useState(config.easyPaiseNumber || '');
 
   function save(e: React.FormEvent) {
     e.preventDefault();
     start(async () => {
       try {
-        await updateAdminConfig({ voteThresholdPct: thresh, defaultMonthlyPledge: defaultMonthly });
+        await updateAdminConfig({
+          voteThresholdPct: thresh,
+          defaultMonthlyPledge: defaultMonthly,
+          easyPaiseName: easyPaiseName.trim() || null,
+          easyPaiseNumber: easyPaiseNumber.trim() || null,
+        });
         await updateGoal({ goalAmount, goalLabelEn, goalLabelUr, goalDeadline: goalDeadline || null });
         toast.success('Configuration saved ✓');
       } catch (e: unknown) { toast.error(e instanceof Error ? e.message : 'Failed'); }
@@ -46,6 +53,24 @@ export default function AdminConfigForm({ config }: { config: Config }) {
           <div><Label>Deadline</Label><Input type="date" value={goalDeadline} onChange={(e) => setGoalDeadline(e.target.value)} /></div>
         </div>
       </div>
+      {/* EasyPaisa Collection Account */}
+      <div className="mt-5 border-t border-dashed border-[var(--border)] pt-4">
+        <div className="mb-2 font-[var(--font-display)] text-[10px] uppercase tracking-[2px] text-[var(--color-gold-4)]">📱 EASYPAISE COLLECTION ACCOUNT</div>
+        <p className="mb-3 text-[11px] text-[var(--txt-3)]">
+          Supervisor ka personal EasyPaisa number yahan set karo. Members ko payment karte waqt yeh details dikhengi taaki woh seedha bhej sakein phir receipt upload karein.
+        </p>
+        <div className="grid gap-3 md:grid-cols-2">
+          <div>
+            <Label>Account Holder Name</Label>
+            <Input value={easyPaiseName} onChange={(e) => setEasyPaiseName(e.target.value)} placeholder="e.g. Muhammad Ali" />
+          </div>
+          <div>
+            <Label>EasyPaisa Number</Label>
+            <Input value={easyPaiseNumber} onChange={(e) => setEasyPaiseNumber(e.target.value)} placeholder="e.g. 0300-1234567" type="tel" />
+          </div>
+        </div>
+      </div>
+
       <Button type="submit" variant="gold" className="mt-4" disabled={pending}>{pending ? 'Saving…' : 'Save Configuration'}</Button>
     </form>
   );

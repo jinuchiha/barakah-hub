@@ -1,0 +1,21 @@
+<!--
+  Barakah Hub — logo mark concept C: Crescent + Pivot Star
+  Same crescent geometry as A/B; small 5-point star sits at φ along the
+  inner concave arc (the visual "weight point" of the crescent).
+  Star is filled `currentColor`; crescent is `currentColor` at 95%.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Barakah Hub mark">
+  <defs>
+    <mask id="crescent-C">
+      <rect width="128" height="128" fill="black"/>
+      <circle cx="64" cy="64" r="48" fill="white"/>
+      <circle cx="84.4" cy="56.5" r="42" fill="black"/>
+    </mask>
+  </defs>
+  <circle cx="64" cy="64" r="48" fill="currentColor" fill-opacity="0.95" mask="url(#crescent-C)"/>
+  <!-- 5-point star, centered at (88, 64), outer r=8, inner r=3.2 -->
+  <polygon
+    points="88,56 90.5,61.7 96,62.6 92,66.7 92.9,72.4 88,69.7 83.1,72.4 84,66.7 80,62.6 85.5,61.7"
+    fill="currentColor"
+  />
+</svg>

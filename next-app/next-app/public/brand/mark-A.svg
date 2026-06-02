@@ -1,0 +1,18 @@
+<!--
+  Barakah Hub — logo mark concept A: Pure Geometric Crescent
+  Construction: outer circle r=64 at (64,64); inner circle r=64 at (88.4,52.2)
+  where 88.4 - 64 = r * (1 - 1/φ) ≈ 24.4 (golden-ratio offset)
+  and the y-shift 52.2 = 64 - r/φ³ tilts the crescent ~12° clockwise.
+  Single colour, single stroke weight — works at favicon size.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Barakah Hub mark">
+  <defs>
+    <mask id="crescent-A">
+      <rect width="128" height="128" fill="black"/>
+      <circle cx="64" cy="64" r="48" fill="white"/>
+      <circle cx="84.4" cy="56.5" r="42" fill="black"/>
+    </mask>
+  </defs>
+  <rect width="128" height="128" fill="transparent"/>
+  <circle cx="64" cy="64" r="48" fill="currentColor" mask="url(#crescent-A)"/>
+</svg>

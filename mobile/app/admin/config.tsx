@@ -19,6 +19,8 @@ interface FundConfig {
   goalAmount?: number;
   goalLabelEn?: string;
   goalLabelUr?: string;
+  easyPaiseName?: string | null;
+  easyPaiseNumber?: string | null;
 }
 
 export default function AdminConfigScreen() {
@@ -29,6 +31,8 @@ export default function AdminConfigScreen() {
   const [pledge, setPledge] = useState('1000');
   const [goalAmount, setGoalAmount] = useState('');
   const [goalEn, setGoalEn] = useState('');
+  const [easyPaiseName, setEasyPaiseName] = useState('');
+  const [easyPaiseNumber, setEasyPaiseNumber] = useState('');
   const [loading, setLoading] = useState(false);
   const [loaded, setLoaded] = useState(false);
 
@@ -39,6 +43,8 @@ export default function AdminConfigScreen() {
       setPledge(String(data.defaultMonthlyPledge ?? 1000));
       setGoalAmount(data.goalAmount ? String(data.goalAmount) : '');
       setGoalEn(data.goalLabelEn ?? '');
+      setEasyPaiseName(data.easyPaiseName ?? '');
+      setEasyPaiseNumber(data.easyPaiseNumber ?? '');
       setLoaded(true);
     }).catch(() => Alert.alert('Error', 'Could not load configuration'));
   }, []);
@@ -53,6 +59,8 @@ export default function AdminConfigScreen() {
         defaultMonthlyPledge: parseInt(pledge, 10) || 1000,
         goalAmount: parseInt(goalAmount, 10) || 0,
         goalLabelEn: goalEn.trim() || undefined,
+        easyPaiseName: easyPaiseName.trim() || null,
+        easyPaiseNumber: easyPaiseNumber.trim() || null,
       });
       Alert.alert('Saved', 'Configuration updated successfully.');
     } catch (err) {
@@ -110,6 +118,16 @@ export default function AdminConfigScreen() {
         </GlassCard>
 
         {/* Goal */}
+        {/* EasyPaisa */}
+        <Text style={[styles.section, { color: colors.text4 }]}>EASYPAISE COLLECTION ACCOUNT</Text>
+        <GlassCard style={styles.card}>
+          <Text style={{ color: colors.text3, fontSize: 12, marginBottom: spacing.md }}>
+            Supervisor ka personal EasyPaisa number — members ko payment submit karte waqt dikhe ga.
+          </Text>
+          <Input label="Account Holder Name" value={easyPaiseName} onChangeText={setEasyPaiseName} placeholder="e.g. Muhammad Ali" autoCapitalize="words" />
+          <Input label="EasyPaisa Number" value={easyPaiseNumber} onChangeText={setEasyPaiseNumber} placeholder="e.g. 0300-1234567" keyboardType="phone-pad" />
+        </GlassCard>
+
         <Text style={[styles.section, { color: colors.text4 }]}>FAMILY GOAL</Text>
         <GlassCard style={styles.card}>
           <Input

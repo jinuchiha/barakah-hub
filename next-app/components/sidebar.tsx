@@ -4,7 +4,7 @@ import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import {
   LayoutDashboard, User, Users, GitBranch, Bell, Mail, Settings, Wallet,
-  AlertTriangle, FileText, Megaphone, ScrollText, UserPlus,
+  AlertTriangle, FileText, Megaphone, ScrollText, UserPlus, BookOpen,
 } from 'lucide-react';
 
 const NAV: { href: string; label: string; labelUr: string; icon: React.ComponentType<{ className?: string }>; admin?: boolean; supervisor?: boolean }[] = [
@@ -16,6 +16,7 @@ const NAV: { href: string; label: string; labelUr: string; icon: React.Component
   { href: '/notifications',       label: 'Notifications',   labelUr: 'اطلاعات',        icon: Bell },
   { href: '/messages',            label: 'Messages',        labelUr: 'پیغامات',        icon: Mail },
   { href: '/settings',            label: 'Settings',        labelUr: 'ترتیبات',        icon: Settings },
+  { href: '/about',               label: 'About Fund',      labelUr: 'اس فنڈ کے بارے میں', icon: BookOpen },
   { href: '/admin/members',       label: 'Members',         labelUr: 'اراکین',         icon: Users,    admin: true },
   { href: '/admin/invites',       label: 'Invites',         labelUr: 'دعوت نامے',     icon: UserPlus, admin: true },
   { href: '/admin/fund',          label: 'Fund Register',   labelUr: 'فنڈ رجسٹر',      icon: Wallet,   admin: true },

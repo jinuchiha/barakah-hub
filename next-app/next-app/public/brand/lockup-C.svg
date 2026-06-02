@@ -1,0 +1,26 @@
+<!--
+  Barakah Hub — full lockup, concept C.
+  Crescent + star, with the star doubling as the separator dot in the wordmark.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 380 96" role="img" aria-label="Barakah Hub">
+  <defs>
+    <mask id="crescent-CL">
+      <rect width="380" height="96" fill="black"/>
+      <circle cx="48" cy="48" r="32" fill="white"/>
+      <circle cx="61.6" cy="43" r="28" fill="black"/>
+    </mask>
+  </defs>
+  <circle cx="48" cy="48" r="32" fill="currentColor" fill-opacity="0.95" mask="url(#crescent-CL)"/>
+  <polygon
+    points="64,42.5 65.7,46.4 70,46.9 66.9,49.7 67.7,53.7 64,51.6 60.3,53.7 61.1,49.7 58,46.9 62.3,46.4"
+    fill="currentColor"
+  />
+  <text
+    x="100" y="58"
+    font-family="Inter, 'Geist Sans', system-ui, sans-serif"
+    font-size="32"
+    font-weight="600"
+    letter-spacing="-0.5"
+    fill="currentColor"
+  >Barakah Hub</text>
+</svg>

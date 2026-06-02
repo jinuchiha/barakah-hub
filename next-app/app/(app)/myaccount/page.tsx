@@ -1,7 +1,7 @@
 import { eq, desc, and } from 'drizzle-orm';
 import { getMeOrRedirect } from '@/lib/auth-server';
 import { db } from '@/lib/db';
-import { payments, loans } from '@/lib/db/schema';
+import { payments, loans, config as configTbl } from '@/lib/db/schema';
 import { Card, CardHeader, CardTitle, CardBody } from '@/components/ui/card';
 import { fmtRs } from '@/lib/i18n/dict';
 import { ini } from '@/lib/utils';
@@ -10,10 +10,12 @@ import DonationForm from './donation-form';
 export default async function MyAccountPage() {
   const me = await getMeOrRedirect();
 
-  const [myPayments, myLoans] = await Promise.all([
+  const [myPayments, myLoans, cfgRows] = await Promise.all([
     db.select().from(payments).where(eq(payments.memberId, me.id)).orderBy(desc(payments.paidOn)).limit(50),
     db.select().from(loans).where(and(eq(loans.memberId, me.id), eq(loans.active, true))),
+    db.select({ easyPaiseName: configTbl.easyPaiseName, easyPaiseNumber: configTbl.easyPaiseNumber }).from(configTbl).where(eq(configTbl.id, 1)).limit(1),
   ]);
+  const cfg = cfgRows[0];
 
   const verifiedTotal = myPayments
     .filter((p) => !p.pendingVerify)
@@ -73,7 +75,7 @@ export default async function MyAccountPage() {
       <Card className="mb-4">
         <CardHeader><CardTitle>🤲 Submit a Donation</CardTitle></CardHeader>
         <CardBody>
-          <DonationForm />
+          <DonationForm easyPaiseName={cfg?.easyPaiseName ?? null} easyPaiseNumber={cfg?.easyPaiseNumber ?? null} />
         </CardBody>
       </Card>
 

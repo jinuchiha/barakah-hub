@@ -299,6 +299,10 @@ export const config = pgTable('config', {
   themePalette: text('theme_palette').notNull().default('gold'),
   orgNameUr: text('org_name_ur').notNull().default('بَرَكَة ہب'),
   orgNameEn: text('org_name_en').notNull().default('Barakah Hub'),
+  // EasyPaisa personal account — supervisor enters their number so members
+  // know exactly where to send money before uploading the receipt.
+  easyPaiseName: text('easypaise_name'),
+  easyPaiseNumber: text('easypaise_number'),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
