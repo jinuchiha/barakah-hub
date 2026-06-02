@@ -10,6 +10,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
+import { useTranslation } from 'react-i18next';
 import { changePassword } from '@/lib/auth';
 import { useTheme } from '@/lib/useTheme';
 import { spacing, radius } from '@/lib/theme';
@@ -38,6 +39,7 @@ type FormData = z.infer<typeof schema>;
 export default function ChangePasswordScreen() {
   const router = useRouter();
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const [saving, setSaving] = useState(false);
   const [revokeOthers, setRevokeOthers] = useState(true);
 
@@ -57,7 +59,7 @@ export default function ChangePasswordScreen() {
       });
       reset();
       Alert.alert(
-        'Password changed',
+        t('auth.passwordChanged'),
         revokeOthers
           ? 'Your password has been updated. Other devices have been signed out.'
           : 'Your password has been updated.',
@@ -70,7 +72,7 @@ export default function ChangePasswordScreen() {
       const friendly = /invalid|incorrect/i.test(raw)
         ? 'Current password is incorrect'
         : raw;
-      Alert.alert('Could not change password', friendly);
+      Alert.alert(t('auth.couldNotChangePassword'), friendly);
     } finally {
       setSaving(false);
     }
@@ -87,7 +89,7 @@ export default function ChangePasswordScreen() {
         <TouchableOpacity onPress={() => router.back()} style={styles.headerBtn}>
           <MaterialCommunityIcons name="arrow-left" size={24} color={colors.text1} />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: colors.text1 }]}>Change Password</Text>
+        <Text style={[styles.headerTitle, { color: colors.text1 }]}>{t('auth.changePassword')}</Text>
         <View style={styles.headerBtn} />
       </View>
 
@@ -108,7 +110,7 @@ export default function ChangePasswordScreen() {
             name="currentPassword"
             render={({ field: { onChange, value } }) => (
               <Input
-                label="Current Password"
+                label={t('auth.currentPassword')}
                 value={value}
                 onChangeText={onChange}
                 isPassword
@@ -124,7 +126,7 @@ export default function ChangePasswordScreen() {
             name="newPassword"
             render={({ field: { onChange, value } }) => (
               <Input
-                label="New Password"
+                label={t('auth.newPassword')}
                 value={value}
                 onChangeText={onChange}
                 isPassword
@@ -140,7 +142,7 @@ export default function ChangePasswordScreen() {
             name="confirmPassword"
             render={({ field: { onChange, value } }) => (
               <Input
-                label="Confirm New Password"
+                label={t('auth.confirmNewPassword')}
                 value={value}
                 onChangeText={onChange}
                 isPassword
@@ -167,9 +169,9 @@ export default function ChangePasswordScreen() {
           </View>
 
           <View style={styles.btnRow}>
-            <Button label="Cancel" onPress={() => router.back()} variant="ghost" style={styles.btn} />
+            <Button label={t('common.cancel')} onPress={() => router.back()} variant="ghost" style={styles.btn} />
             <Button
-              label={saving ? 'Updating…' : 'Update Password'}
+              label={saving ? t('common.saving') ?? 'Updating…' : t('auth.updatePassword')}
               onPress={handleSubmit(onSubmit, onInvalid)}
               loading={saving}
               disabled={saving}

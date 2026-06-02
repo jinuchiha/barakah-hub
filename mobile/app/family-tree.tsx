@@ -10,6 +10,7 @@ import { GestureDetector, Gesture } from 'react-native-gesture-handler';
 import Animated, {
   useSharedValue, useAnimatedStyle, withSpring,
 } from 'react-native-reanimated';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/lib/useTheme';
 import { spacing, radius } from '@/lib/theme';
 import { LoadingScreen } from '@/components/ui/LoadingScreen';
@@ -54,6 +55,7 @@ function MemberSheet({ node, onClose }: { node: LayoutNode; onClose: () => void 
 export default function FamilyTreeScreen() {
   const router = useRouter();
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const { data: members, isLoading } = useMembers();
   const [selected, setSelected] = useState<LayoutNode | null>(null);
   const [search, setSearch] = useState('');
@@ -125,11 +127,11 @@ export default function FamilyTreeScreen() {
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.bg1 }]} edges={['top']}>
       <View style={[styles.header, { borderBottomColor: colors.border1 }]}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn} accessibilityLabel="Go back" accessibilityRole="button">
           <MaterialCommunityIcons name="arrow-left" size={24} color={colors.text1} />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: colors.text1 }]}>Family Tree</Text>
-        <TouchableOpacity onPress={resetView} style={styles.backBtn}>
+        <Text style={[styles.headerTitle, { color: colors.text1 }]}>{t('tree.title')}</Text>
+        <TouchableOpacity onPress={resetView} style={styles.backBtn} accessibilityLabel="Reset tree view" accessibilityRole="button">
           <MaterialCommunityIcons name="fit-to-screen" size={22} color={colors.text2} />
         </TouchableOpacity>
       </View>
@@ -140,8 +142,9 @@ export default function FamilyTreeScreen() {
           style={[styles.searchInput, { color: colors.text1 }]}
           value={search}
           onChangeText={setSearch}
-          placeholder="Search member..."
+          placeholder={t('tree.searchPlaceholder')}
           placeholderTextColor={colors.text4}
+          accessibilityLabel="Search family members"
         />
       </View>
 
@@ -186,7 +189,7 @@ export default function FamilyTreeScreen() {
 
       {allNodes.length === 0 ? (
         <View style={styles.empty}>
-          <Text style={[styles.emptyText, { color: colors.text3 }]}>No family members yet</Text>
+          <Text style={[styles.emptyText, { color: colors.text3 }]}>{t('tree.noMembers')}</Text>
         </View>
       ) : null}
 

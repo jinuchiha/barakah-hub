@@ -75,8 +75,8 @@ export default async function AboutPage() {
                 </span>
                 <span className="text-[10px] text-[var(--txt-4)]">{r.ref}</span>
               </div>
-              <p className="mb-2 font-[var(--font-arabic)] text-right text-[15px] leading-8 text-[var(--color-gold-2)]" dir="rtl">
-                {r.arabic}…
+              <p dir="rtl" className="mb-3 font-[var(--font-arabic)] text-[15px] leading-8 text-[var(--color-gold-2)] overflow-hidden" style={{ display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical' }}>
+                {r.arabic}
               </p>
               <p className="text-[12px] italic text-[var(--txt-3)]">&ldquo;{r.english}&rdquo;</p>
               <p className="mt-1.5 font-[var(--font-arabic)] text-[11px] text-[var(--txt-4)]" dir="rtl">{r.urdu}</p>

@@ -24,7 +24,35 @@
     "financial": "Financial",
     "security": "Security",
     "emailSent": "Reset link sent to your email",
-    "islamicGreeting": "السلام عليكم"
+    "islamicGreeting": "السلام عليكم",
+    "joinSubtitle": "Join the family treasury",
+    "fatherDeceased": "Father has passed away (Marhoom)",
+    "phoneOptional": "Phone Number (optional)",
+    "enableBiometric": "Enable {{label}}?",
+    "biometricSignInFaster": "Sign in faster and more securely using {{label}}. Your biometric data never leaves your device.",
+    "enableBiometricBtn": "Enable {{label}}",
+    "biometricUnavailable": "Biometric authentication is not available or not enrolled on this device.",
+    "skipForNow": "Skip for now",
+    "createPin": "Create PIN",
+    "confirmPin": "Confirm PIN",
+    "choosePinHint": "Choose a 4-digit PIN for quick unlock",
+    "confirmPinHint": "Enter the same PIN again to confirm",
+    "skipPinSetup": "Skip PIN setup",
+    "pinsDoNotMatch": "PINs do not match. Try again.",
+    "changePassword": "Change Password",
+    "currentPassword": "Current Password",
+    "newPassword": "New Password",
+    "confirmNewPassword": "Confirm New Password",
+    "updatePassword": "Update Password",
+    "passwordChanged": "Password changed",
+    "couldNotChangePassword": "Could not change password",
+    "useBiometricToUnlock": "Use biometric to unlock",
+    "enterYourPin": "Enter your PIN",
+    "tooManyAttempts": "Too Many Attempts",
+    "lockedOut": "You have been locked out. Please sign in again.",
+    "useBiometricInstead": "Use {{label}} instead",
+    "usePinInstead": "Use PIN instead",
+    "incorrectPin": "Incorrect PIN. {{count}} attempt{{plural}} remaining."
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -121,7 +149,16 @@
     "caseType": "Case Type",
     "gift": "Gift",
     "emergency": "Emergency",
-    "returnDate": "Expected Return Date"
+    "returnDate": "Expected Return Date",
+    "caseTypeLabel": "TYPE",
+    "poolLabel": "POOL",
+    "markEmergency": "Mark as emergency (urgent)",
+    "returnDateOptional": "Expected return date (optional)",
+    "noCasesFound": "No cases found",
+    "noEmergencyCases": "No emergency cases for this filter",
+    "submitted": "Submitted",
+    "submittedMsg": "Your request is open for community voting. Jazak Allah khair.",
+    "submitting": "Submitting…"
   },
   "loans": {
     "title": "Loans",
@@ -139,7 +176,8 @@
     "noLoans": "No loans",
     "repaymentHistory": "Repayments",
     "recordRepayment": "Record Repayment",
-    "progress": "Repayment Progress"
+    "progress": "Repayment Progress",
+    "noActiveLoans": "No active loans at the moment"
   },
   "profile": {
     "title": "Profile",
@@ -265,7 +303,12 @@
     "required": "This field is required",
     "invalidEmail": "Invalid email address",
     "passwordTooShort": "Password must be at least 8 characters",
-    "passwordMismatch": "Passwords do not match"
+    "passwordMismatch": "Passwords do not match",
+    "next": "Next",
+    "send": "Send",
+    "sending": "Sending…",
+    "reply": "Reply",
+    "saving": "Saving…"
   },
   "islamic": {
     "sadaqah": "Sadaqah",
@@ -313,7 +356,11 @@
     "familyBuilder": "Family Tree Builder",
     "loanRepayer": "Loan Repayer",
     "generousHeart": "Generous Heart",
-    "unlocked": "Achievement Unlocked!"
+    "unlocked": "Achievement Unlocked!",
+    "allAchievements": "ALL ACHIEVEMENTS",
+    "unlocked_count": "Unlocked",
+    "points": "Points",
+    "total": "Total"
   },
   "tools": {
     "title": "Islamic Tools",
@@ -321,5 +368,101 @@
     "qibla": "Qibla Direction",
     "hijriDate": "Hijri Date",
     "zakatCalc": "Zakat Calculator"
+  },
+  "messages": {
+    "title": "Messages",
+    "messageAdmin": "Message Admin",
+    "newMessage": "+ New Message",
+    "loading": "Loading messages...",
+    "noMessages": "No messages",
+    "subjectPlaceholder": "Subject",
+    "bodyPlaceholder": "Your message...",
+    "searchMember": "Search member...",
+    "sent": "Sent",
+    "sentBody": "Your message has been delivered.",
+    "failed": "Failed",
+    "reply": "Reply"
+  },
+  "tree": {
+    "title": "Family Tree",
+    "searchPlaceholder": "Search member...",
+    "noMembers": "No family members yet"
+  },
+  "about": {
+    "scriptureSection": "QURAN & HADITH REFERENCES",
+    "howSection": "HOW THIS FUND WORKS",
+    "features": {
+      "sadaqah": "Monthly voluntary donations. Donor identity is hidden from other members per the principle of giving in secret.",
+      "zakat": "Annual obligatory charity on qualifying wealth. Routed to eligible recipients through the admin.",
+      "qarz": "Interest-free loan to a family member in need. Community votes on approval; repaid without any extra charge.",
+      "emergencyVote": "Cases are submitted and voted on by all approved members. Threshold can be set by admin (30–75%).",
+      "privacy": "Sadaqah donors are never named to other members — only the admin can see who gave what.",
+      "auditTrail": "Every action is logged with actor, timestamp, and detail. The log is append-only and cannot be altered."
+    }
+  },
+  "qr": {
+    "myQrCode": "My QR Code",
+    "scanQr": "Scan QR",
+    "shareHint": "Share this code to let others find you quickly",
+    "shareMyQr": "Share My QR"
+  },
+  "support": {
+    "contactAdmin": "Contact Admin",
+    "subject": "Subject",
+    "message": "Message",
+    "sendToAdmin": "Send to Admin",
+    "messageSent": "Message sent",
+    "messageSentBody": "An admin will read your message shortly. You can also reach them in the Messages tab.",
+    "couldNotSend": "Could not send through the app",
+    "subjectPlaceholder": "e.g. Account approval",
+    "bodyPlaceholder": "Describe your issue or question..."
+  },
+  "help": {
+    "title": "Help & FAQ",
+    "intro": "Common questions about Barakah Hub. Still stuck? Tap Contact Admin below.",
+    "aboutFund": "About This Fund",
+    "contactAdmin": "Contact Admin",
+    "faq": [
+      {
+        "q": "How do I submit a payment?",
+        "a": "Open the Payments tab → tap the + button → fill in the amount, choose the fund pool (Sadaqah / Zakat / Qarz), pick the month, and optionally attach a screenshot. Tap Submit. An admin will verify it shortly."
+      },
+      {
+        "q": "Why is my payment \"Pending\"?",
+        "a": "New payments are visible to admins for verification. Once an admin reviews the screenshot or confirms the deposit, the status changes to Verified and the amount counts toward your monthly pledge."
+      },
+      {
+        "q": "My account says \"Pending approval\" — what do I do?",
+        "a": "After registering, an admin needs to approve your account before you can submit payments or vote. This usually happens within a day. You can speed it up by using \"Contact Admin\" below."
+      },
+      {
+        "q": "How does the Emergency Vote work?",
+        "a": "Any approved member can submit a request (Cases tab). All other members vote yes/no. When 50%+ of eligible members vote yes (or no), the case is auto-resolved. Admins can also force-approve, force-reject, or delete requests when needed."
+      },
+      {
+        "q": "What is Sadaqah / Zakat / Qarz?",
+        "a": "Sadaqah is voluntary charity (anonymized). Zakat is the obligatory 2.5% (also anonymized). Qarz is interest-free loans that the community can lend and receive — repayments are tracked openly."
+      },
+      {
+        "q": "How is my privacy protected?",
+        "a": "Sadaqah and Zakat donations are anonymized in the community feed — only the admin sees the donor. Qarz loans and emergency cases ARE public so the community can verify and help. Set screenshot protection in Profile → Security if you want extra privacy."
+      },
+      {
+        "q": "I changed my password — what happens to my other devices?",
+        "a": "By default, changing your password signs out all your other devices. This is a security best practice — anyone who knew the old password loses access. You can disable this in the Change Password screen if needed."
+      },
+      {
+        "q": "How is the Qibla direction calculated?",
+        "a": "Your phone's GPS gives your location, and we compute the bearing to the Kaaba in Makkah (21.4225° N, 39.8262° E). The compass needle uses your phone's magnetometer to point at Qibla as you rotate the phone. Calibrate by moving the phone in a figure-8 if it seems off."
+      }
+    ]
+  },
+  "admin2": {
+    "supervisorPanel": "Supervisor Panel",
+    "approveFundCollections": "Approve fund collections",
+    "activeLoans": "Active Loans",
+    "votingCases": "Voting Cases",
+    "membersPendingApproval": "{{count}} member{{plural}} pending approval",
+    "paymentsToReview": "{{count}} payment{{plural}} to review"
   }
 }

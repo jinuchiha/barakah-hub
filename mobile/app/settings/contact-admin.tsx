@@ -10,6 +10,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
+import { useTranslation } from 'react-i18next';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/stores/auth.store';
 import { useTheme } from '@/lib/useTheme';
@@ -30,6 +31,7 @@ type FormData = z.infer<typeof schema>;
 export default function ContactAdminScreen() {
   const router = useRouter();
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const user = useAuthStore((s) => s.user);
   const [sending, setSending] = useState(false);
 
@@ -48,14 +50,14 @@ export default function ContactAdminScreen() {
       });
       reset();
       Alert.alert(
-        'Message sent',
-        'An admin will read your message shortly. You can also reach them in the Messages tab.',
+        t('support.messageSent'),
+        t('support.messageSentBody'),
         [{ text: 'OK', onPress: () => router.back() }],
       );
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Failed to send';
       Alert.alert(
-        'Could not send through the app',
+        t('support.couldNotSend'),
         `${msg}\n\nWould you like to open your email app instead?`,
         [
           { text: 'Cancel', style: 'cancel' },
@@ -84,7 +86,7 @@ export default function ContactAdminScreen() {
         <TouchableOpacity onPress={() => router.back()} style={styles.headerBtn}>
           <MaterialCommunityIcons name="arrow-left" size={24} color={colors.text1} />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: colors.text1 }]}>Contact Admin</Text>
+        <Text style={[styles.headerTitle, { color: colors.text1 }]}>{t('support.contactAdmin')}</Text>
         <View style={styles.headerBtn} />
       </View>
 
@@ -106,10 +108,10 @@ export default function ContactAdminScreen() {
             name="subject"
             render={({ field: { onChange, value } }) => (
               <Input
-                label="Subject"
+                label={t('support.subject')}
                 value={value}
                 onChangeText={onChange}
-                placeholder="e.g. Account approval"
+                placeholder={t('support.subjectPlaceholder')}
                 error={errors.subject?.message}
               />
             )}
@@ -120,21 +122,21 @@ export default function ContactAdminScreen() {
             name="body"
             render={({ field: { onChange, value } }) => (
               <Input
-                label="Message"
+                label={t('support.message')}
                 value={value}
                 onChangeText={onChange}
                 multiline
                 numberOfLines={6}
-                placeholder="Describe your issue or question..."
+                placeholder={t('support.bodyPlaceholder')}
                 error={errors.body?.message}
               />
             )}
           />
 
           <View style={styles.btnRow}>
-            <Button label="Cancel" onPress={() => router.back()} variant="ghost" style={styles.btn} />
+            <Button label={t('common.cancel')} onPress={() => router.back()} variant="ghost" style={styles.btn} />
             <Button
-              label={sending ? 'Sending…' : 'Send to Admin'}
+              label={sending ? t('common.sending') : t('support.sendToAdmin')}
               onPress={handleSubmit(onSubmit, onInvalid)}
               loading={sending}
               disabled={sending}

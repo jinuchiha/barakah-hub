@@ -7,6 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/lib/useTheme';
 import { spacing, radius } from '@/lib/theme';
 import { useAuthStore } from '@/stores/auth.store';
@@ -19,6 +20,7 @@ type Tab = 'my-qr' | 'scan';
 export default function QRPayScreen() {
   const router = useRouter();
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const { user } = useAuthStore();
   const [tab, setTab] = useState<Tab>('my-qr');
 
@@ -61,14 +63,17 @@ export default function QRPayScreen() {
       </View>
 
       <View style={[styles.tabs, { backgroundColor: colors.glass2 }]}>
-        {(['my-qr', 'scan'] as Tab[]).map((t) => (
+        {(['my-qr', 'scan'] as Tab[]).map((tabKey) => (
           <TouchableOpacity
-            key={t}
-            style={[styles.tab, tab === t && { backgroundColor: colors.primary }]}
-            onPress={() => setTab(t)}
+            key={tabKey}
+            style={[styles.tab, tab === tabKey && { backgroundColor: colors.primary }]}
+            onPress={() => setTab(tabKey)}
+            accessibilityRole="tab"
+            accessibilityState={{ selected: tab === tabKey }}
+            accessibilityLabel={tabKey === 'my-qr' ? t('qr.myQrCode') : t('qr.scanQr')}
           >
-            <Text style={[styles.tabText, { color: tab === t ? '#000' : colors.text3 }]}>
-              {t === 'my-qr' ? 'My QR Code' : 'Scan QR'}
+            <Text style={[styles.tabText, { color: tab === tabKey ? '#000' : colors.text3 }]}>
+              {tabKey === 'my-qr' ? t('qr.myQrCode') : t('qr.scanQr')}
             </Text>
           </TouchableOpacity>
         ))}
@@ -85,7 +90,7 @@ export default function QRPayScreen() {
               <QRCode value={memberQR} size={200} />
             </View>
             <Text style={[styles.hint, { color: colors.text3 }]}>
-              Share this code to let others find you quickly
+              {t('qr.shareHint')}
             </Text>
           </View>
           <TouchableOpacity
@@ -94,7 +99,7 @@ export default function QRPayScreen() {
             activeOpacity={0.85}
           >
             <MaterialCommunityIcons name="share-variant" size={18} color="#000" />
-            <Text style={styles.shareBtnText}>Share My QR</Text>
+            <Text style={styles.shareBtnText}>{t('qr.shareMyQr')}</Text>
           </TouchableOpacity>
         </Animated.View>
       ) : (

@@ -6,6 +6,7 @@ import {
 import { useRouter, Stack } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { Button } from '@/components/ui/Button';
 import { Avatar } from '@/components/ui/Avatar';
@@ -24,6 +25,7 @@ interface ComposeTarget { toId?: string; name: string; subject: string }
 
 function MessageItem({ msg, onReply }: { msg: Message; onReply: (m: Message) => void }) {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const other = msg.incoming ? msg.from : msg.to;
   return (
     <GlassCard style={styles.msgCard}>
@@ -42,7 +44,7 @@ function MessageItem({ msg, onReply }: { msg: Message; onReply: (m: Message) => 
       {msg.incoming ? (
         <TouchableOpacity onPress={() => onReply(msg)} style={styles.replyBtn}>
           <MaterialCommunityIcons name="reply" size={14} color={colors.primary} />
-          <Text style={[styles.replyText, { color: colors.primary }]}>Reply</Text>
+          <Text style={[styles.replyText, { color: colors.primary }]}>{t('common.reply')}</Text>
         </TouchableOpacity>
       ) : null}
     </GlassCard>
@@ -51,6 +53,7 @@ function MessageItem({ msg, onReply }: { msg: Message; onReply: (m: Message) => 
 
 export default function MessagesScreen() {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const { user } = useAuthStore();
   const isAdmin = isAdminOnly(user?.role);
   const { data, isLoading, refetch, isRefetching } = useMessages();
@@ -114,9 +117,9 @@ export default function MessagesScreen() {
         await toAdmin.mutateAsync({ subject: subject.trim(), body: body.trim() });
       }
       setCompose(null);
-      Alert.alert('Sent', 'Your message has been delivered.');
+      Alert.alert(t('messages.sent'), t('messages.sentBody'));
     } catch (err) {
-      Alert.alert('Failed', err instanceof Error ? err.message : 'Could not send');
+      Alert.alert(t('messages.failed'), err instanceof Error ? err.message : 'Could not send');
     }
   };
 
@@ -124,26 +127,26 @@ export default function MessagesScreen() {
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.bg1 }]} edges={['top', 'bottom']}>
-      <Stack.Screen options={{ title: 'Messages' }} />
+      <Stack.Screen options={{ title: t('messages.title') }} />
       {!isAdmin ? (
         <View style={styles.composeBar}>
-          <Button label="✉  Message Admin" onPress={() => openCompose({ name: 'Admin', subject: '' })} variant="solid" fullWidth />
+          <Button label={t('messages.messageAdmin')} onPress={() => openCompose({ name: 'Admin', subject: '' })} variant={'solid'} fullWidth />
         </View>
       ) : (
         <View style={styles.composeBar}>
-          <Button label="+ New Message" onPress={openAdminCompose} variant="solid" fullWidth />
+          <Button label={t('messages.newMessage')} onPress={openAdminCompose} variant={'solid'} fullWidth />
         </View>
       )}
 
       {isLoading ? (
-        <EmptyState icon="loading" title="Loading messages..." />
+        <EmptyState icon={'loading'} title={t('messages.loading')} />
       ) : (
         <ScrollView
           contentContainerStyle={styles.list}
           refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={colors.primary} />}
         >
           {(data ?? []).length === 0 ? (
-            <EmptyState icon="message-outline" title="No messages" subtitle={isAdmin ? 'Member messages appear here' : 'Tap “Message Admin” to start'} />
+            <EmptyState icon={'message-outline'} title={t('messages.noMessages')} subtitle={isAdmin ? 'Member messages appear here' : 'Tap Message Admin to start'} />
           ) : (
             (data ?? []).map((m) => (
               <MessageItem key={m.id} msg={m} onReply={(msg) => openCompose({ toId: msg.from?.id, name: msg.from?.nameEn ?? 'Member', subject: `Re: ${msg.subject}` })} />
@@ -169,7 +172,7 @@ export default function MessagesScreen() {
               <>
                 <TextInput
                   style={[styles.input, { color: colors.text1, borderColor: colors.border1, backgroundColor: colors.glass1 }]}
-                  placeholder="Search member..." placeholderTextColor={colors.text4}
+                  placeholder={t('messages.searchMember')} placeholderTextColor={colors.text4}
                   value={memberSearch} onChangeText={setMemberSearch}
                 />
                 {!selectedMemberId ? (
@@ -199,17 +202,17 @@ export default function MessagesScreen() {
 
             <TextInput
               style={[styles.input, { color: colors.text1, borderColor: colors.border1, backgroundColor: colors.glass1 }]}
-              placeholder="Subject" placeholderTextColor={colors.text4}
+              placeholder={t('messages.subjectPlaceholder')} placeholderTextColor={colors.text4}
               value={subject} onChangeText={setSubject}
             />
             <TextInput
               style={[styles.input, styles.bodyInput, { color: colors.text1, borderColor: colors.border1, backgroundColor: colors.glass1 }]}
-              placeholder="Your message..." placeholderTextColor={colors.text4}
+              placeholder={t('messages.bodyPlaceholder')} placeholderTextColor={colors.text4}
               value={body} onChangeText={setBody} multiline
             />
             <View style={styles.sheetBtns}>
-              <Button label="Cancel" onPress={() => setCompose(null)} variant="ghost" style={styles.flex} />
-              <Button label={sending ? 'Sending…' : 'Send'} onPress={send} loading={sending} variant="solid" style={styles.flex} />
+              <Button label={t('common.cancel')} onPress={() => setCompose(null)} variant="ghost" style={styles.flex} />
+              <Button label={sending ? t('common.sending') : t('common.send')} onPress={send} loading={sending} variant="solid" style={styles.flex} />
             </View>
           </GlassCard>
         </KeyboardAvoidingView>

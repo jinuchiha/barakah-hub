@@ -56,6 +56,8 @@ function AdminActionCard({ icon, label, badge, color, onPress }: AdminActionProp
         onPressIn={() => { scale.value = withSpring(0.95, { damping: 12, stiffness: 400 }); }}
         onPressOut={() => { scale.value = withSpring(1, { damping: 12, stiffness: 400 }); }}
         onPress={handlePress}
+        accessibilityLabel={label}
+        accessibilityRole="button"
       >
         <GlassCard elevated style={styles.actionCard}>
           <View style={[styles.actionIconCircle, { backgroundColor: `${color}20` }]}>
@@ -109,9 +111,9 @@ export default function AdminDashboard() {
             <MaterialCommunityIcons name="shield-crown-outline" size={28} color={colors.danger} />
           </View>
           <View>
-            <Text style={[styles.pageTitle, { color: colors.text1 }]}>{isAdmin ? t('admin.title') : 'Supervisor Panel'}</Text>
+            <Text style={[styles.pageTitle, { color: colors.text1 }]}>{isAdmin ? t('admin.title') : t('admin2.supervisorPanel')}</Text>
             <Text style={[styles.pageSub, { color: colors.text3 }]}>
-              {isAdmin ? 'Manage Barakah Hub' : 'Approve fund collections'}
+              {isAdmin ? 'Manage Barakah Hub' : t('admin2.approveFundCollections')}
             </Text>
           </View>
         </Animated.View>
@@ -123,12 +125,12 @@ export default function AdminDashboard() {
               <View style={styles.pendingText}>
                 {(data?.pendingMembers ?? 0) > 0 ? (
                   <Text style={[styles.pendingItem, { color: colors.gold }]}>
-                    {data?.pendingMembers} member{data?.pendingMembers !== 1 ? 's' : ''} pending approval
+                    {t('admin2.membersPendingApproval', { count: data?.pendingMembers, plural: (data?.pendingMembers ?? 0) !== 1 ? 's' : '' })}
                   </Text>
                 ) : null}
                 {(data?.pendingPayments ?? 0) > 0 ? (
                   <Text style={[styles.pendingItem, { color: colors.gold }]}>
-                    {data?.pendingPayments} payment{data?.pendingPayments !== 1 ? 's' : ''} to review
+                    {t('admin2.paymentsToReview', { count: data?.pendingPayments, plural: (data?.pendingPayments ?? 0) !== 1 ? 's' : '' })}
                   </Text>
                 ) : null}
               </View>
@@ -139,8 +141,8 @@ export default function AdminDashboard() {
         <Animated.View entering={FadeInDown.duration(400).delay(120)} style={styles.statsGrid}>
           <StatCard icon="account-clock-outline" value={isLoading ? '...' : `${data?.pendingMembers ?? 0}`} label={t('admin.pendingApprovals')} iconColor={colors.gold} style={styles.stat} />
           <StatCard icon="cash-lock" value={isLoading ? '...' : `${data?.pendingPayments ?? 0}`} label={t('admin.pendingPayments')} iconColor={colors.danger} style={styles.stat} />
-          <StatCard icon="handshake-outline" value={isLoading ? '...' : `${data?.activeLoans ?? 0}`} label="Active Loans" iconColor={colors.accent} style={styles.stat} />
-          <StatCard icon="vote-outline" value={isLoading ? '...' : `${data?.votingCases ?? 0}`} label="Voting Cases" iconColor={colors.primary} style={styles.stat} />
+          <StatCard icon="handshake-outline" value={isLoading ? '...' : `${data?.activeLoans ?? 0}`} label={t('admin2.activeLoans')} iconColor={colors.accent} style={styles.stat} />
+          <StatCard icon="vote-outline" value={isLoading ? '...' : `${data?.votingCases ?? 0}`} label={t('admin2.votingCases')} iconColor={colors.primary} style={styles.stat} />
         </Animated.View>
 
         <Animated.View entering={FadeInDown.duration(400).delay(160)}>

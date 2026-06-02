@@ -8,6 +8,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/lib/useTheme';
 import { spacing, radius } from '@/lib/theme';
 import { ACHIEVEMENTS, getUnlockedIds, getTotalPoints } from '@/lib/achievements';
@@ -16,6 +17,7 @@ import { AchievementBadge } from '@/components/AchievementBadge';
 export default function AchievementsScreen() {
   const router = useRouter();
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const unlockedIds = useMemo(() => getUnlockedIds(), []);
   const totalPoints = useMemo(() => getTotalPoints(), []);
   const unlockedCount = unlockedIds.length;
@@ -26,7 +28,7 @@ export default function AchievementsScreen() {
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
           <MaterialCommunityIcons name="arrow-left" size={24} color={colors.text1} />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: colors.text1 }]}>Achievements</Text>
+        <Text style={[styles.headerTitle, { color: colors.text1 }]}>{t('achievements.title')}</Text>
         <View style={styles.backBtn} />
       </View>
 
@@ -41,22 +43,22 @@ export default function AchievementsScreen() {
             />
             <View style={styles.statItem}>
               <Text style={[styles.statValue, { color: colors.primary }]}>{unlockedCount}</Text>
-              <Text style={[styles.statLabel, { color: colors.text3 }]}>Unlocked</Text>
+              <Text style={[styles.statLabel, { color: colors.text3 }]}>{t('achievements.unlocked_count')}</Text>
             </View>
             <View style={[styles.divider, { backgroundColor: colors.border1 }]} />
             <View style={styles.statItem}>
               <Text style={[styles.statValue, { color: colors.gold }]}>{totalPoints}</Text>
-              <Text style={[styles.statLabel, { color: colors.text3 }]}>Points</Text>
+              <Text style={[styles.statLabel, { color: colors.text3 }]}>{t('achievements.points')}</Text>
             </View>
             <View style={[styles.divider, { backgroundColor: colors.border1 }]} />
             <View style={styles.statItem}>
               <Text style={[styles.statValue, { color: colors.accent }]}>{ACHIEVEMENTS.length}</Text>
-              <Text style={[styles.statLabel, { color: colors.text3 }]}>Total</Text>
+              <Text style={[styles.statLabel, { color: colors.text3 }]}>{t('achievements.total')}</Text>
             </View>
           </View>
         </Animated.View>
 
-        <Text style={[styles.sectionTitle, { color: colors.text4 }]}>ALL ACHIEVEMENTS</Text>
+        <Text style={[styles.sectionTitle, { color: colors.text4 }]}>{t('achievements.allAchievements')}</Text>
 
         {ACHIEVEMENTS.map((achievement, i) => (
           <Animated.View key={achievement.id} entering={FadeInDown.duration(300).delay(i * 50)}>

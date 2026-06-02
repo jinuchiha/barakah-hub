@@ -13,6 +13,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/lib/useTheme';
 import { setPin } from '@/lib/pin';
 import { spacing, radius } from '@/lib/theme';
@@ -29,6 +30,7 @@ function PinDot({ filled, color }: { filled: boolean; color: string }) {
 export default function PinSetupScreen() {
   const { colors } = useTheme();
   const router = useRouter();
+  const { t } = useTranslation();
   const [step, setStep] = useState<'create' | 'confirm'>('create');
   const [firstPin, setFirstPin] = useState('');
   const [current, setCurrent] = useState('');
@@ -67,7 +69,7 @@ export default function PinSetupScreen() {
           router.replace('/(auth)/biometric-setup');
         } else {
           setCurrent('');
-          setError('PINs do not match. Try again.');
+          setError(t('auth.pinsDoNotMatch'));
           shake();
         }
       }
@@ -87,12 +89,10 @@ export default function PinSetupScreen() {
       <LinearGradient colors={[colors.bg0, colors.bg1]} style={StyleSheet.absoluteFillObject} />
       <Animated.View entering={FadeInDown.duration(400)} style={styles.container}>
         <Text style={[styles.title, { color: colors.text1 }]}>
-          {step === 'create' ? 'Create PIN' : 'Confirm PIN'}
+          {step === 'create' ? t('auth.createPin') : t('auth.confirmPin')}
         </Text>
         <Text style={[styles.subtitle, { color: colors.text3 }]}>
-          {step === 'create'
-            ? 'Choose a 4-digit PIN for quick unlock'
-            : 'Enter the same PIN again to confirm'}
+          {step === 'create' ? t('auth.choosePinHint') : t('auth.confirmPinHint')}
         </Text>
 
         <Animated.View style={[styles.dotsRow, shakeStyle]}>
@@ -123,7 +123,7 @@ export default function PinSetupScreen() {
         </View>
 
         <TouchableOpacity onPress={handleSkip} style={styles.skipBtn}>
-          <Text style={[styles.skipText, { color: colors.text3 }]}>Skip PIN setup</Text>
+          <Text style={[styles.skipText, { color: colors.text3 }]}>{t('auth.skipPinSetup')}</Text>
         </TouchableOpacity>
       </Animated.View>
     </SafeAreaView>

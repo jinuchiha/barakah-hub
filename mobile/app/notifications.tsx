@@ -35,7 +35,7 @@ export default function NotificationsScreen() {
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.text1 }]}>{t('notifications.title')}</Text>
         {unreadCount > 0 ? (
-          <TouchableOpacity onPress={() => markAllRead()} disabled={isMarkingRead} style={styles.markReadBtn}>
+          <TouchableOpacity onPress={() => markAllRead()} disabled={isMarkingRead} style={styles.markReadBtn} accessibilityLabel={t('notifications.markAllRead')} accessibilityRole="button">
             <Text style={[styles.markReadText, { color: colors.primary }]}>{t('notifications.markAllRead')}</Text>
           </TouchableOpacity>
         ) : (

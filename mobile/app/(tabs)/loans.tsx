@@ -167,7 +167,7 @@ function LoansScreen() {
           estimatedItemSize={180}
           contentContainerStyle={styles.list}
           refreshControl={<RefreshControl refreshing={activeQuery.isRefetching} onRefresh={activeQuery.refetch} tintColor={colors.primary} />}
-          ListEmptyComponent={<EmptyState icon="handshake-outline" title={t('loans.noLoans')} subtitle="No active loans at the moment" />}
+          ListEmptyComponent={<EmptyState icon="handshake-outline" title={t('loans.noLoans')} subtitle={t('loans.noActiveLoans')} />}
         />
       )}
 

@@ -26,13 +26,13 @@ export default async function MessagesPage() {
   return (
     <div className="grid max-w-5xl gap-4 lg:grid-cols-2">
       <Card>
-        <CardHeader><CardTitle>✉️ Send Message</CardTitle></CardHeader>
+        <CardHeader><CardTitle>Send Message</CardTitle></CardHeader>
         <CardBody><MessageForm recipients={recipients} /></CardBody>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle>📥 Inbox ({unread} unread / {inbox.length})</CardTitle>
+          <CardTitle>Inbox ({unread} unread / {inbox.length})</CardTitle>
           {unread > 0 && <MarkAllRead />}
         </CardHeader>
         <CardBody className="p-0">

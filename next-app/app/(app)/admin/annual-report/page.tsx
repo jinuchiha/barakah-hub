@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation';
 import { and, asc, eq, gte, lte, sql, inArray } from 'drizzle-orm';
 import { getMeOrRedirect } from '@/lib/auth-server';
 import { db } from '@/lib/db';
-import { members, payments, cases, loans } from '@/lib/db/schema';
+import { members, payments, cases, loans, repayments } from '@/lib/db/schema';
 import { fmtRs } from '@/lib/i18n/dict';
 import { gregorianToHijriYear, hijriYearRange, formatHijriDate } from '@/lib/hijri';
 import PrintButton from './print-button';
@@ -42,10 +42,11 @@ export default async function AnnualReportPage({ searchParams }: Props) {
     .select({ total: sql<number>`COALESCE(SUM(${loans.amount}),0)::int`, count: sql<number>`COUNT(*)::int` })
     .from(loans)
     .where(and(gte(loans.issuedOn, sql`${from.toISOString().slice(0, 10)}::date`), lte(loans.issuedOn, sql`${to.toISOString().slice(0, 10)}::date`)));
+  // repayments made during this Hijri year
   const [loansRepaidAgg] = await db
-    .select({ total: sql<number>`COALESCE(SUM(${loans.paid}),0)::int` })
-    .from(loans)
-    .where(and(gte(loans.issuedOn, sql`${from.toISOString().slice(0, 10)}::date`), lte(loans.issuedOn, sql`${to.toISOString().slice(0, 10)}::date`)));
+    .select({ total: sql<number>`COALESCE(SUM(${repayments.amount}),0)::int` })
+    .from(repayments)
+    .where(and(gte(repayments.paidOn, sql`${from.toISOString().slice(0, 10)}::date`), lte(repayments.paidOn, sql`${to.toISOString().slice(0, 10)}::date`)));
 
   // Member milestones
   const [newMembersAgg] = await db

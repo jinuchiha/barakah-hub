@@ -197,8 +197,8 @@ export default function TreeView({ members, paidBy, viewerId, viewerIsAdmin }: P
           <option value="">All Cities</option>
           {cities.map((c) => <option key={c} value={c}>{c}</option>)}
         </select>
-        <button onClick={() => setExpanded(new Set(members.map((m) => m.id)))} className="rounded-md border border-[var(--border)] px-3 py-2 text-xs hover:bg-[var(--surf-3)]">⊞ Expand all</button>
-        <button onClick={() => setExpanded(new Set())} className="rounded-md border border-[var(--border)] px-3 py-2 text-xs hover:bg-[var(--surf-3)]">⊟ Collapse all</button>
+        <button onClick={() => setExpanded(new Set(members.map((m) => m.id)))} aria-label="Expand all members" className="rounded-md border border-[var(--border)] px-3 py-2 text-xs hover:bg-[var(--surf-3)]">⊞ Expand all</button>
+        <button onClick={() => setExpanded(new Set())} aria-label="Collapse all members" className="rounded-md border border-[var(--border)] px-3 py-2 text-xs hover:bg-[var(--surf-3)]">⊟ Collapse all</button>
         {(q || cityFilter) && (
           <button onClick={() => { setQ(''); setCityFilter(''); }} className="rounded-md border border-[var(--border)] px-3 py-2 text-xs text-[var(--color-gold-4)] hover:bg-[var(--surf-3)]">↺ Reset</button>
         )}
@@ -302,6 +302,7 @@ function NodeCard({
   return (
     <div
       onClick={onSelect}
+      role="treeitem"
       aria-selected={isSelected}
       className={cn(
         'relative flex w-40 cursor-pointer flex-col items-center rounded-lg border bg-gradient-to-br from-[var(--surf-1)] to-[var(--surf-2)] p-3 text-center transition-all hover:border-[var(--color-gold)]',
