@@ -4,31 +4,35 @@ import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withSpring,
+  withTiming,
+  interpolate,
 } from 'react-native-reanimated';
 import { BlurView } from 'expo-blur';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import { useTranslation } from 'react-i18next';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '@/lib/useTheme';
-import { radius, spacing } from '@/lib/theme';
+import { radius } from '@/lib/theme';
 
 export type TabRoute = 'index' | 'payments' | 'cases' | 'loans' | 'analytics' | 'profile';
 
 interface TabDef {
   name: TabRoute;
   icon: keyof typeof MaterialCommunityIcons.glyphMap;
+  activeIcon?: keyof typeof MaterialCommunityIcons.glyphMap;
   labelKey: string;
   adminOnly?: boolean;
 }
 
 const TABS: TabDef[] = [
-  { name: 'index', icon: 'view-dashboard-outline', labelKey: 'nav.dashboard' },
+  { name: 'index', icon: 'view-dashboard-outline', activeIcon: 'view-dashboard', labelKey: 'nav.dashboard' },
   { name: 'payments', icon: 'cash-multiple', labelKey: 'nav.payments' },
-  { name: 'cases', icon: 'alert-circle-outline', labelKey: 'nav.cases' },
-  { name: 'loans', icon: 'handshake-outline', labelKey: 'nav.loans' },
+  { name: 'cases', icon: 'alert-circle-outline', activeIcon: 'alert-circle', labelKey: 'nav.cases' },
+  { name: 'loans', icon: 'handshake-outline', activeIcon: 'handshake', labelKey: 'nav.loans' },
   { name: 'analytics', icon: 'chart-line', labelKey: 'nav.analytics', adminOnly: true },
-  { name: 'profile', icon: 'account-circle-outline', labelKey: 'nav.profile' },
+  { name: 'profile', icon: 'account-circle-outline', activeIcon: 'account-circle', labelKey: 'nav.profile' },
 ];
 
 interface TabItemProps {
@@ -41,67 +45,103 @@ interface TabItemProps {
 function TabItem({ tab, active, badge, onPress }: TabItemProps) {
   const { colors } = useTheme();
   const { t } = useTranslation();
+  const progress = useSharedValue(active ? 1 : 0);
   const scale = useSharedValue(1);
 
-  const animStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
+  React.useEffect(() => {
+    progress.value = withSpring(active ? 1 : 0, { damping: 18, stiffness: 200 });
+  }, [active, progress]);
+
+  const pillStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(progress.value, [0, 1], [0, 1]),
+    transform: [{ scaleX: interpolate(progress.value, [0, 1], [0.7, 1]) }],
   }));
 
+  const iconStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: interpolate(progress.value, [0, 1], [1, 1.08]) }],
+  }));
+
+  const scaleStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
+
   const handlePress = () => {
-    scale.value = withSpring(0.88, { damping: 12, stiffness: 500 });
-    setTimeout(() => {
-      scale.value = withSpring(1, { damping: 12, stiffness: 500 });
-    }, 100);
+    scale.value = withSpring(0.85, { damping: 10, stiffness: 500 });
+    setTimeout(() => { scale.value = withSpring(1, { damping: 12, stiffness: 400 }); }, 80);
     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     onPress();
   };
 
+  const iconName = (active ? (tab.activeIcon ?? tab.icon) : tab.icon) as keyof typeof MaterialCommunityIcons.glyphMap;
+
   return (
-    <Pressable style={styles.tabItem} onPress={handlePress}>
-      <Animated.View style={animStyle}>
-        <View style={[styles.tabInner, active && { backgroundColor: colors.primaryDim }]}>
-          <View style={styles.iconWrapper}>
-            <MaterialCommunityIcons
-              name={active ? (tab.icon.replace('-outline', '') as keyof typeof MaterialCommunityIcons.glyphMap) : tab.icon}
-              size={22}
-              color={active ? colors.primary : colors.text3}
-            />
-            {badge && badge > 0 ? (
-              <View style={[styles.badge, { backgroundColor: colors.danger }]}>
-                <Text style={styles.badgeText}>{badge > 99 ? '99+' : badge}</Text>
-              </View>
-            ) : null}
-          </View>
-          {active ? (
-            <Text style={[styles.tabLabel, { color: colors.primary }]}>{t(tab.labelKey)}</Text>
+    <Pressable
+      style={styles.tabItem}
+      onPress={handlePress}
+      accessibilityRole="tab"
+      accessibilityState={{ selected: active }}
+      accessibilityLabel={t(tab.labelKey)}
+    >
+      <Animated.View style={[styles.tabContent, scaleStyle]}>
+        {/* Animated pill background */}
+        <Animated.View style={[styles.activePill, pillStyle]}>
+          <LinearGradient
+            colors={[`${colors.primary}22`, `${colors.primary}10`]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={StyleSheet.absoluteFillObject}
+          />
+        </Animated.View>
+
+        {/* Icon */}
+        <Animated.View style={[styles.iconWrap, iconStyle]}>
+          <MaterialCommunityIcons
+            name={iconName}
+            size={active ? 22 : 21}
+            color={active ? colors.primary : colors.text3}
+          />
+          {badge && badge > 0 ? (
+            <View style={[styles.badge, { backgroundColor: colors.danger }]}>
+              <Text style={styles.badgeText}>{badge > 9 ? '9+' : badge}</Text>
+            </View>
           ) : null}
-        </View>
+        </Animated.View>
+
+        {/* Label — slides in when active */}
+        {active ? (
+          <Animated.Text style={[styles.tabLabel, { color: colors.primary }, pillStyle]} numberOfLines={1}>
+            {t(tab.labelKey)}
+          </Animated.Text>
+        ) : null}
       </Animated.View>
     </Pressable>
   );
 }
 
-interface BottomNavProps {
+export function BottomNav({ activeTab, onTabPress, notificationCount = 0, isAdmin = false }: {
   activeTab: TabRoute;
   onTabPress: (tab: TabRoute) => void;
   notificationCount?: number;
   isAdmin?: boolean;
-}
-
-export function BottomNav({ activeTab, onTabPress, notificationCount = 0, isAdmin = false }: BottomNavProps) {
+}) {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
-  const bottomPad = Math.max(insets.bottom, 8);
   const visibleTabs = TABS.filter((t) => !t.adminOnly || isAdmin);
 
   return (
-    <View style={[styles.container, { paddingBottom: bottomPad }]}>
+    <View style={[styles.container, { paddingBottom: Math.max(insets.bottom, 6) }]}>
       {Platform.OS === 'ios' ? (
-        <BlurView intensity={40} tint="dark" style={StyleSheet.absoluteFillObject} />
+        <BlurView intensity={60} tint="dark" style={StyleSheet.absoluteFillObject} />
       ) : (
-        <View style={[StyleSheet.absoluteFillObject, { backgroundColor: colors.bg2 }]} />
+        <View style={[StyleSheet.absoluteFillObject, { backgroundColor: `${colors.bg2}F5` }]} />
       )}
-      <View style={[styles.border, { backgroundColor: colors.glassBorder }]} />
+      {/* Top border with gold tint */}
+      <View style={[styles.topBorder, { backgroundColor: colors.glassBorder }]} />
+      <LinearGradient
+        colors={['rgba(200,155,60,0.06)', 'transparent']}
+        start={{ x: 0.5, y: 0 }}
+        end={{ x: 0.5, y: 1 }}
+        style={[StyleSheet.absoluteFillObject]}
+        pointerEvents="none"
+      />
       <View style={styles.row}>
         {visibleTabs.map((tab) => (
           <TabItem
@@ -118,55 +158,14 @@ export function BottomNav({ activeTab, onTabPress, notificationCount = 0, isAdmi
 }
 
 const styles = StyleSheet.create({
-  container: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    overflow: 'hidden',
-  },
-  border: {
-    height: 1,
-  },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: spacing.sm,
-    paddingTop: spacing.sm,
-  },
-  tabItem: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  tabInner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 7,
-    paddingHorizontal: 12,
-    borderRadius: radius.full,
-    gap: 6,
-  },
-  iconWrapper: {
-    position: 'relative',
-  },
-  badge: {
-    position: 'absolute',
-    top: -5,
-    right: -8,
-    borderRadius: 8,
-    minWidth: 16,
-    height: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 3,
-  },
-  badgeText: {
-    color: '#fff',
-    fontSize: 9,
-    fontFamily: 'Inter_700Bold',
-  },
-  tabLabel: {
-    fontSize: 12,
-    fontFamily: 'Inter_600SemiBold',
-  },
+  container: { position: 'absolute', bottom: 0, left: 0, right: 0, overflow: 'hidden' },
+  topBorder: { height: 0.5 },
+  row: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 6, paddingTop: 8 },
+  tabItem: { flex: 1, alignItems: 'center', paddingVertical: 4 },
+  tabContent: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 10, paddingVertical: 6, borderRadius: radius.full, gap: 5, minHeight: 38 },
+  activePill: { ...StyleSheet.absoluteFillObject, borderRadius: radius.full, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(200,155,60,0.12)' },
+  iconWrap: { position: 'relative' },
+  badge: { position: 'absolute', top: -5, right: -7, borderRadius: 8, minWidth: 15, height: 15, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 3 },
+  badgeText: { color: '#fff', fontSize: 8, fontFamily: 'Inter_700Bold' },
+  tabLabel: { fontSize: 11.5, fontFamily: 'Inter_600SemiBold', letterSpacing: -0.2 },
 });

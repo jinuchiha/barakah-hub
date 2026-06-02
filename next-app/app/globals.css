@@ -257,26 +257,34 @@ a:focus-visible {
 .sc-rail-violet   { box-shadow: inset 3px 0 0 0 #8b6ec9, 0 6px 20px rgba(0,0,0,0.22); }
 .sc-rail-ocean    { box-shadow: inset 3px 0 0 0 #4ab8d6, 0 6px 20px rgba(0,0,0,0.22); }
 
-/* ── Modern card system ── */
+/* ── Ultra-modern card system (Mercury / Linear level) ── */
 .card-premium {
-  background: linear-gradient(145deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.01) 100%),
-              #0d1625;
-  /* Gold tinted border — ALWAYS visible, not just on hover */
-  border: 1px solid rgba(200,155,60,0.14);
+  /* Multi-layer background: subtle diagonal highlight + deep base */
+  background:
+    linear-gradient(145deg, rgba(255,255,255,0.038) 0%, rgba(255,255,255,0.008) 60%, transparent 100%),
+    #0c1422;
+  border: 1px solid rgba(200,155,60,0.12);
   border-radius: var(--radius-r);
+  /* Layered shadows: crisp inner highlight + soft ambient + gold glow on hover */
   box-shadow:
-    0 1px 0 rgba(255,255,255,0.025) inset,
-    0 8px 32px rgba(0,0,0,0.32),
-    0 0 0 0px rgba(200,155,60,0);
-  transition: box-shadow 0.22s ease, border-color 0.22s ease, transform 0.16s ease;
+    0 1px 0 rgba(255,255,255,0.030) inset,
+    0 -1px 0 rgba(0,0,0,0.20) inset,
+    0 4px 16px rgba(0,0,0,0.24),
+    0 1px 3px rgba(0,0,0,0.18);
+  transition: box-shadow 0.20s cubic-bezier(0.16,1,0.3,1),
+              border-color 0.20s ease,
+              transform 0.18s cubic-bezier(0.16,1,0.3,1);
+  will-change: transform, box-shadow;
 }
 .card-premium:hover {
-  border-color: rgba(200,155,60,0.28);
+  border-color: rgba(200,155,60,0.22);
   box-shadow:
-    0 1px 0 rgba(255,255,255,0.035) inset,
-    0 16px 40px rgba(0,0,0,0.38),
-    0 0 0 3px rgba(200,155,60,0.06);
-  transform: translateY(-2px);
+    0 1px 0 rgba(255,255,255,0.040) inset,
+    0 -1px 0 rgba(0,0,0,0.22) inset,
+    0 8px 24px rgba(0,0,0,0.30),
+    0 2px 6px rgba(0,0,0,0.20),
+    0 0 0 3px rgba(200,155,60,0.055);
+  transform: translateY(-1px);
 }
 
 /* Page-entry animation */
@@ -292,6 +300,83 @@ a:focus-visible {
 /* Brand-mark gold radial — used behind logos / hero numbers */
 .gold-glow {
   background: radial-gradient(ellipse at center, rgba(200,155,60,0.12), transparent 70%);
+}
+
+/* ── Skeleton loading (Mercury-style shimmer) ── */
+@keyframes skeleton-shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    rgba(255,255,255,0.04) 25%,
+    rgba(255,255,255,0.09) 50%,
+    rgba(255,255,255,0.04) 75%
+  );
+  background-size: 800px 100%;
+  animation: skeleton-shimmer 1.6s ease-in-out infinite;
+  border-radius: 6px;
+}
+.skeleton-text { height: 12px; border-radius: 4px; }
+.skeleton-title { height: 20px; border-radius: 5px; }
+.skeleton-value { height: 28px; width: 120px; border-radius: 6px; }
+.skeleton-avatar { width: 36px; height: 36px; border-radius: 50%; }
+.skeleton-card {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: var(--radius-r);
+  padding: 20px;
+}
+
+/* ── Ultra-modern inputs ── */
+input[type="text"],
+input[type="email"],
+input[type="number"],
+input[type="password"],
+input[type="search"],
+input[type="tel"],
+textarea,
+select {
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+}
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: none;
+  border-color: rgba(200,155,60,0.50) !important;
+  box-shadow: 0 0 0 3px rgba(200,155,60,0.10), 0 1px 3px rgba(0,0,0,0.12) !important;
+  background-color: rgba(200,155,60,0.04) !important;
+}
+
+/* ── Interactive table rows ── */
+.table-row-hover {
+  transition: background-color 0.10s ease;
+}
+.table-row-hover:hover {
+  background-color: rgba(255,255,255,0.025);
+}
+
+/* ── Smooth page transitions ── */
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.animate-enter         { animation: fadeSlideUp 0.28s cubic-bezier(0.16,1,0.3,1) both; }
+.animate-enter-delay-1 { animation: fadeSlideUp 0.28s 0.05s cubic-bezier(0.16,1,0.3,1) both; }
+.animate-enter-delay-2 { animation: fadeSlideUp 0.28s 0.10s cubic-bezier(0.16,1,0.3,1) both; }
+.animate-enter-delay-3 { animation: fadeSlideUp 0.28s 0.15s cubic-bezier(0.16,1,0.3,1) both; }
+.animate-fade-in { animation: fadeIn 0.20s ease both; }
+
+/* ── Button pressed state ── */
+button:active:not(:disabled),
+[role="button"]:active {
+  transform: scale(0.98);
+  transition: transform 0.06s ease;
 }
 
 /* ─────────────────────────────────────────

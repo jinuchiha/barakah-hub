@@ -5,11 +5,7 @@ export const Card = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDi
   ({ className, ...props }, ref) => (
     <div
       ref={ref}
-      className={cn(
-        // card-premium defined in globals.css: gradient bg + hover glow + depth
-        'relative overflow-hidden card-premium',
-        className,
-      )}
+      className={cn('relative overflow-hidden card-premium animate-enter', className)}
       {...props}
     />
   ),
@@ -17,7 +13,11 @@ export const Card = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDi
 Card.displayName = 'Card';
 
 export const CardHeader = ({ className, ...p }: React.HTMLAttributes<HTMLDivElement>) => (
-  <div className={cn('flex items-center justify-between gap-3 border-b border-[rgba(200,155,60,0.08)] px-5 py-3.5', className)} {...p} />
+  <div
+    className={cn('flex items-center justify-between gap-3 px-5 py-4', className)}
+    style={{ borderBottom: '1px solid rgba(255,255,255,0.055)' }}
+    {...p}
+  />
 );
 
 export const CardTitle = ({ className, ...p }: React.HTMLAttributes<HTMLDivElement>) => (

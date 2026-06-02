@@ -5,10 +5,11 @@ import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withSpring,
+  withTiming,
 } from 'react-native-reanimated';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTheme } from '@/lib/useTheme';
-import { spacing, radius } from '@/lib/theme';
+import { radius } from '@/lib/theme';
 
 interface StatCardProps {
   icon: keyof typeof MaterialCommunityIcons.glyphMap;
@@ -17,72 +18,44 @@ interface StatCardProps {
   iconColor?: string;
   style?: ViewStyle;
   trend?: { direction: 'up' | 'down'; percent: number };
+  onPress?: () => void;
 }
 
-export function StatCard({ icon, value, label, iconColor, style, trend }: StatCardProps) {
+export function StatCard({ icon, value, label, iconColor, style, trend, onPress }: StatCardProps) {
   const { colors } = useTheme();
-  const scale = useSharedValue(1);
   const color = iconColor ?? colors.primary;
+  const scale = useSharedValue(1);
+  const glow = useSharedValue(0);
 
   const animStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
+    shadowOpacity: 0.12 + glow.value * 0.18,
   }));
 
-  const handlePressIn = () => {
-    scale.value = withSpring(0.985, { damping: 20, stiffness: 400 });
-  };
-
-  const handlePressOut = () => {
-    scale.value = withSpring(1, { damping: 20, stiffness: 400 });
-  };
-
   return (
-    <Animated.View style={[animStyle, style]}>
-      <Pressable onPressIn={handlePressIn} onPressOut={handlePressOut}>
-        <View
-          style={[
-            styles.card,
-            { backgroundColor: colors.bg1, borderColor: colors.border1, shadowColor: color, shadowOpacity: 0.18, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 4 },
-          ]}
-        >
-          <LinearGradient
-            colors={[`${color}1A`, 'transparent']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1.2, y: 1 }}
-            style={StyleSheet.absoluteFillObject}
-          />
-          <View style={[styles.rail, { backgroundColor: color }]} pointerEvents="none" />
-
-          <View style={styles.headerRow}>
-            <Text style={[styles.label, { color: colors.text3 }]} numberOfLines={1}>
-              {label}
-            </Text>
-            <View style={[styles.iconBox, { backgroundColor: `${color}1F` }]}>
-              <MaterialCommunityIcons name={icon} size={15} color={color} />
+    <Animated.View style={[style, animStyle, { shadowColor: color, shadowRadius: 16, shadowOffset: { width: 0, height: 4 }, elevation: 6 }]}>
+      <Pressable
+        onPressIn={() => { scale.value = withSpring(0.97, { damping: 20, stiffness: 400 }); glow.value = withTiming(1, { duration: 150 }); }}
+        onPressOut={() => { scale.value = withSpring(1, { damping: 20, stiffness: 400 }); glow.value = withTiming(0, { duration: 300 }); }}
+        onPress={onPress}
+        style={{ borderRadius: radius.lg, overflow: 'hidden' }}
+      >
+        <View style={[styles.card, { backgroundColor: colors.bg1, borderColor: `${color}22` }]}>
+          <LinearGradient colors={[`${color}15`, 'transparent']} start={{ x: 0, y: 0 }} end={{ x: 1.5, y: 1.5 }} style={StyleSheet.absoluteFillObject} />
+          <View style={styles.header}>
+            <Text style={[styles.label, { color: colors.text3 }]} numberOfLines={1}>{label}</Text>
+            <View style={[styles.iconPill, { backgroundColor: `${color}18`, borderColor: `${color}28` }]}>
+              <MaterialCommunityIcons name={icon} size={13} color={color} />
             </View>
           </View>
-
-          <Text style={[styles.value, { color: colors.text1 }]} numberOfLines={1}>
-            {String(value)}
-          </Text>
-
+          <Text style={[styles.value, { color: colors.text1 }]} numberOfLines={1}>{String(value)}</Text>
           {trend ? (
-            <View style={styles.trendRow}>
-              <MaterialCommunityIcons
-                name={trend.direction === 'up' ? 'trending-up' : 'trending-down'}
-                size={12}
-                color={trend.direction === 'up' ? colors.success : colors.danger}
-              />
-              <Text
-                style={[
-                  styles.trendText,
-                  { color: trend.direction === 'up' ? colors.success : colors.danger },
-                ]}
-              >
-                {trend.percent}%
-              </Text>
+            <View style={[styles.trendPill, { backgroundColor: trend.direction === 'up' ? 'rgba(45,138,95,0.15)' : 'rgba(220,82,82,0.15)', marginTop: 8 }]}>
+              <MaterialCommunityIcons name={trend.direction === 'up' ? 'arrow-up' : 'arrow-down'} size={10} color={trend.direction === 'up' ? colors.success : colors.danger} />
+              <Text style={[styles.trendText, { color: trend.direction === 'up' ? colors.success : colors.danger }]}>{trend.percent}%</Text>
             </View>
           ) : null}
+          <View style={[styles.bottomLine, { backgroundColor: color }]} />
         </View>
       </Pressable>
     </Animated.View>
@@ -90,62 +63,12 @@ export function StatCard({ icon, value, label, iconColor, style, trend }: StatCa
 }
 
 const styles = StyleSheet.create({
-  card: {
-    minHeight: 104,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    paddingTop: spacing.md,
-    paddingBottom: spacing.md,
-    paddingLeft: spacing.md + 3,
-    paddingRight: spacing.md,
-    overflow: 'hidden',
-    position: 'relative',
-  },
-  rail: {
-    position: 'absolute',
-    left: 0,
-    top: 10,
-    bottom: 10,
-    width: 3,
-    borderTopRightRadius: 2,
-    borderBottomRightRadius: 2,
-  },
-  headerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 8,
-    marginBottom: spacing.sm,
-  },
-  label: {
-    flex: 1,
-    fontSize: 10,
-    fontFamily: 'Inter_600SemiBold',
-    letterSpacing: 1.2,
-    textTransform: 'uppercase',
-  },
-  iconBox: {
-    width: 26,
-    height: 26,
-    borderRadius: 7,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  value: {
-    fontSize: 20,
-    fontFamily: 'SpaceMono_400Regular',
-    fontWeight: '600',
-    letterSpacing: -0.4,
-  },
-  trendRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 3,
-    marginTop: 6,
-  },
-  trendText: {
-    fontSize: 11,
-    fontFamily: 'SpaceMono_400Regular',
-    fontWeight: '600',
-  },
+  card: { minHeight: 96, borderRadius: radius.lg, borderWidth: 1, padding: 14, overflow: 'hidden', position: 'relative' },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 },
+  label: { fontSize: 10.5, fontFamily: 'Inter_600SemiBold', letterSpacing: 0.8, textTransform: 'uppercase', flex: 1 },
+  iconPill: { width: 24, height: 24, borderRadius: 7, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
+  value: { fontSize: 22, fontFamily: 'SpaceMono_400Regular', fontWeight: '600', letterSpacing: -0.5, lineHeight: 28 },
+  trendPill: { flexDirection: 'row', alignItems: 'center', gap: 2, alignSelf: 'flex-start', paddingHorizontal: 6, paddingVertical: 3, borderRadius: 20 },
+  trendText: { fontSize: 10, fontFamily: 'Inter_600SemiBold' },
+  bottomLine: { position: 'absolute', bottom: 0, left: 0, right: 0, height: 2, opacity: 0.6 },
 });
