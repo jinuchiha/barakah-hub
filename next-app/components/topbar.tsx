@@ -76,7 +76,11 @@ export function Topbar({ user, unreadCount = 0, isAdmin = false, isSupervisor = 
   }, [langOpen]);
 
   async function logout() {
-    await signOut();
+    try {
+      await signOut();
+    } catch {
+      // Force navigation even if signOut throws
+    }
     router.push('/login');
     router.refresh();
   }

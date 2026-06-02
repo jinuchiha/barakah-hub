@@ -5,6 +5,10 @@
     "login": "Login",
     "register": "Register",
     "logout": "Logout",
+    "welcomeBack": "Welcome Back",
+    "checkInbox": "Check Your Inbox",
+    "checkInboxBody": "A password reset link has been sent to your email address.",
+    "forgotSubtitle": "Enter your email and we'll send a reset link.",
     "email": "Email Address",
     "password": "Password",
     "confirmPassword": "Confirm Password",
@@ -187,6 +191,8 @@
     "admin": "Admin",
     "member": "Member",
     "totalDonated": "Total Donated",
+    "monthlyPledge": "Monthly Pledge",
+    "activeLoans": "Active Loans",
     "loansTaken": "Loans Taken",
     "votesCast": "Votes Cast",
     "language": "Language",
@@ -200,7 +206,33 @@
     "account": "ACCOUNT",
     "security": "SECURITY",
     "preferences": "PREFERENCES",
-    "support": "SUPPORT"
+    "support": "SUPPORT",
+    "changePassword": "Change Password",
+    "familyTree": "Family Tree",
+    "achievements": "Achievements",
+    "myQrCode": "My QR Code",
+    "islamicTools": "Islamic Tools",
+    "aiAssistant": "AI Assistant",
+    "appearance": "Appearance",
+    "notifications": "Notifications",
+    "messages": "Messages",
+    "reminders": "Reminders",
+    "pinLock": "PIN Lock",
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "screenshotProtection": "Screenshot Protection",
+    "offlineCache": "Offline Cache",
+    "adminGroup": "ADMIN",
+    "supervisorGroup": "SUPERVISOR",
+    "adminPanel": "Admin Panel",
+    "supervisorPanel": "Supervisor Panel",
+    "membersDirectory": "Members Directory",
+    "helpFaq": "Help & FAQ",
+    "contactAdmin": "Contact Admin",
+    "signOut": "Sign Out",
+    "signOutConfirm": "Are you sure you want to sign out?",
+    "screenshotError": "Could not change screenshot protection.",
+    "biometricError": "Could not update biometric lock."
   },
   "members": {
     "title": "Members",
@@ -292,6 +324,7 @@
     "error": "Something went wrong",
     "retry": "Retry",
     "cancel": "Cancel",
+    "or": "or",
     "save": "Save",
     "confirm": "Confirm",
     "back": "Back",
@@ -323,10 +356,14 @@
     "title": "Barakah Assistant",
     "placeholder": "Ask about donations, Zakat, loans...",
     "thinking": "Thinking...",
+    "emptySubtitle": "Ask about Zakat, Sadaqah, Qarz-e-Hasana, or any Islamic finance question.",
+    "clearChat": "Clear Chat",
+    "clearChatConfirm": "Delete all chat history?",
+    "clear": "Clear",
     "suggestions": {
       "zakat": "What is my Zakat for this month?",
       "qarz": "How does Qarz-e-Hasana work?",
-      "contributions": "Show my contributions"
+      "contributions": "Explain Sadaqah types"
     }
   },
   "language": {
@@ -360,7 +397,8 @@
     "allAchievements": "ALL ACHIEVEMENTS",
     "unlocked_count": "Unlocked",
     "points": "Points",
-    "total": "Total"
+    "total": "Total",
+    "lockedDesc": "Keep contributing to unlock"
   },
   "tools": {
     "title": "Islamic Tools",

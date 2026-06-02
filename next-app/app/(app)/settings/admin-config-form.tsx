@@ -21,15 +21,17 @@ export default function AdminConfigForm({ config }: { config: Config }) {
     e.preventDefault();
     start(async () => {
       try {
-        await updateAdminConfig({
-          voteThresholdPct: thresh,
-          defaultMonthlyPledge: defaultMonthly,
-          easyPaiseName: easyPaiseName.trim() || null,
-          easyPaiseNumber: easyPaiseNumber.trim() || null,
-        });
-        await updateGoal({ goalAmount, goalLabelEn, goalLabelUr, goalDeadline: goalDeadline || null });
+        await Promise.all([
+          updateAdminConfig({
+            voteThresholdPct: thresh,
+            defaultMonthlyPledge: defaultMonthly,
+            easyPaiseName: easyPaiseName.trim() || null,
+            easyPaiseNumber: easyPaiseNumber.trim() || null,
+          }),
+          updateGoal({ goalAmount, goalLabelEn, goalLabelUr, goalDeadline: goalDeadline || null }),
+        ]);
         toast.success('Configuration saved ✓');
-      } catch (e: unknown) { toast.error(e instanceof Error ? e.message : 'Failed'); }
+      } catch (e: unknown) { toast.error(e instanceof Error ? e.message : 'Failed to save'); }
     });
   }
 

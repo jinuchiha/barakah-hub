@@ -459,7 +459,8 @@ export async function verifyPayment(paymentId: string) {
   revalidatePath('/myaccount');
 }
 
-export async function rejectPayment(paymentId: string) {
+// Deprecated: use adminDeletePayment instead — this function is not called from any UI.
+async function rejectPayment(paymentId: string) {
   const me = await meOrThrow();
   if (!/^[0-9a-f-]{36}$/i.test(paymentId)) throw new Error('Invalid id');
   if (me.role !== 'admin') throw new Error('Admin only');
@@ -541,16 +542,17 @@ export async function updateGoal(input: z.infer<typeof goalSchema>) {
 }
 
 /* ─── update profile (self) */
+// Name and father fields are intentionally excluded — only admins can change
+// those via editMember to prevent members from spoofing their identity.
 const profileSchema = z.object({
-  nameUr: z.string().min(1).max(80).optional(),
-  nameEn: z.string().min(1).max(80).optional(),
-  fatherName: z.string().min(2).max(80).optional(),
-  fatherDeceased: z.boolean().optional(),
   phone: z.string().max(30).optional().nullable(),
   city: z.string().max(60).optional().nullable(),
   province: z.string().max(40).optional().nullable(),
   color: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional(),
-  photoUrl: z.string().url().startsWith('https://').nullable().optional(),
+  photoUrl: z.string()
+    .refine(v => !v || v.startsWith('https://') || v.startsWith('/uploads/'), 'Invalid photo URL')
+    .nullable()
+    .optional(),
 });
 
 export async function updateProfile(input: z.infer<typeof profileSchema>) {
@@ -612,6 +614,9 @@ export async function editMember(input: z.infer<typeof editMemberSchema>) {
   // Refuse self-demotion to avoid lockout
   if (id === me.id && rest.role && rest.role !== 'admin') {
     throw new Error('Cannot demote yourself — promote another admin first');
+  }
+  if (id === me.id && rest.status && rest.status !== 'approved') {
+    throw new Error('Cannot change your own status — contact another admin');
   }
 
   await db.update(members).set(rest).where(eq(members.id, id));
@@ -679,6 +684,8 @@ export async function hardDeleteMember(memberId: string) {
     if (adminCount <= 1) throw new Error('Cannot delete the last admin — promote another member first');
   }
 
+  // Clear spouse pointer to prevent dangling references in tree
+  await db.update(members).set({ spouseId: null }).where(eq(members.spouseId, memberId));
   // Re-parent any children to the admin
   await db.update(members).set({ parentId: me.id }).where(eq(members.parentId, memberId));
   await db.delete(members).where(eq(members.id, memberId));

@@ -135,7 +135,9 @@ export async function schedulePrayerNotifications(): Promise<void> {
 
   await Promise.all(
     PRAYER_META.map(({ id, key, title }) => {
-      const [hourStr, minuteStr] = timings[key].split(':');
+      const raw = timings[key];
+      if (!raw) return Promise.resolve(); // skip if prayer time not available
+      const [hourStr, minuteStr] = raw.split(':');
       const hour = parseInt(hourStr ?? '0', 10);
       const minute = parseInt(minuteStr ?? '0', 10);
       return Notifications.scheduleNotificationAsync({

@@ -15,6 +15,7 @@ import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { api } from '@/lib/api';
+import { LoadingScreen } from '@/components/ui/LoadingScreen';
 import { useAuthStore } from '@/stores/auth.store';
 import { isAdminOnly } from '@/lib/roles';
 import { useTheme } from '@/lib/useTheme';
@@ -52,7 +53,7 @@ function SuccessView({ onDismiss }: { onDismiss: () => void }) {
 
 export default function BroadcastScreen() {
   const { colors } = useTheme();
-  const { user } = useAuthStore();
+  const { user, isLoading: authLoading } = useAuthStore();
   const [sent, setSent] = useState(false);
 
   const mutation = useMutation({ mutationFn: sendBroadcast });
@@ -78,6 +79,7 @@ export default function BroadcastScreen() {
     ]);
   };
 
+  if (authLoading) return <LoadingScreen />;
   if (!isAdminOnly(user?.role)) return <Redirect href="/admin" />;
 
   if (sent) return (

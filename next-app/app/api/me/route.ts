@@ -25,16 +25,17 @@ export async function GET() {
  * are individually optional so the client can submit partial updates
  * (e.g. just the phone number) without re-sending the whole profile.
  */
+// Name and father fields are intentionally excluded — only admins can change
+// those via editMember to prevent members from spoofing their identity.
 const patchSchema = z.object({
-  nameUr: z.string().min(1).max(80).optional(),
-  nameEn: z.string().min(1).max(80).optional(),
-  fatherName: z.string().max(80).optional(),
-  fatherDeceased: z.boolean().optional(),
   phone: z.string().max(30).optional().nullable(),
   city: z.string().max(60).optional().nullable(),
   province: z.string().max(40).optional().nullable(),
   color: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional(),
-  photoUrl: z.string().url().startsWith('https://').nullable().optional(),
+  photoUrl: z.string()
+    .refine(v => !v || v.startsWith('https://') || v.startsWith('/uploads/'), 'Invalid photo URL')
+    .nullable()
+    .optional(),
 });
 
 export async function PATCH(req: NextRequest) {

@@ -16,6 +16,7 @@ import { PoolDonutChart } from '@/components/charts/PoolDonutChart';
 import { PaymentBarChart } from '@/components/charts/PaymentBarChart';
 import { spacing } from '@/lib/theme';
 import { format } from 'date-fns';
+import { formatPKR } from '@/lib/format';
 
 function SectionTitle({ label }: { label: string }) {
   const { colors } = useTheme();
@@ -141,7 +142,7 @@ export default function AnalyticsScreen() {
             <View style={styles.summaryRow}>
               <Text style={[styles.summaryLabel, { color: colors.text3 }]}>{t('analytics.totalFund')}</Text>
               <Text style={[styles.summaryValue, { color: colors.primary }]}>
-                PKR {((data?.fund?.sadaqah ?? 0) + (data?.fund?.zakat ?? 0) + (data?.fund?.qarz ?? 0)).toLocaleString()}
+                {formatPKR((data?.fund?.sadaqah ?? 0) + (data?.fund?.zakat ?? 0) + (data?.fund?.qarz ?? 0))}
               </Text>
             </View>
             <View style={styles.summaryRow}>

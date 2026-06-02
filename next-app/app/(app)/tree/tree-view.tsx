@@ -268,10 +268,12 @@ export default function TreeView({ members, paidBy, viewerId, viewerIsAdmin }: P
   );
 }
 
-function hasVisibleDescendant(id: string, childrenOf: Map<string, Member[]>, visible: Set<string>): boolean {
+function hasVisibleDescendant(id: string, childrenOf: Map<string, Member[]>, visible: Set<string>, visited = new Set<string>()): boolean {
+  if (visited.has(id)) return false; // cycle guard
+  visited.add(id);
   if (visible.has(id)) return true;
-  for (const child of childrenOf.get(id) ?? []) {
-    if (hasVisibleDescendant(child.id, childrenOf, visible)) return true;
+  for (const child of (childrenOf.get(id) ?? [])) {
+    if (visible.has(child.id) || hasVisibleDescendant(child.id, childrenOf, visible, visited)) return true;
   }
   return false;
 }

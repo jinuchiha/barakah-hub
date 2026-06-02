@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 
+// Based on 85g gold × ~PKR 27,000/g — last updated June 2026
 const NISAB_PKR = 2_295_000;
 
 function fmt(n: number) {
@@ -26,7 +27,7 @@ export default function ZakatCalc() {
         className="w-full rounded-lg border border-[var(--border)] bg-[var(--surf-3)] px-3 py-2 text-sm text-[var(--color-cream)] outline-none focus:border-[var(--border-accent)] focus:ring-2 focus:ring-[rgba(200,155,60,0.12)]"
       />
       <div className="text-[10px] text-[var(--txt-4)]">
-        Nisab threshold: {fmt(NISAB_PKR)} (85g gold equivalent)
+        Nisab (June 2026): {fmt(NISAB_PKR)} · 85g gold equivalent
       </div>
       {amount && (
         <div className={`rounded-lg p-3 text-sm ${meetsNisab ? 'bg-[rgba(200,155,60,0.08)]' : 'bg-[rgba(255,255,255,0.03)]'}`}>

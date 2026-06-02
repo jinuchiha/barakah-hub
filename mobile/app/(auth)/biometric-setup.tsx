@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
-  View, Text, StyleSheet, TouchableOpacity,
+  View, Text, StyleSheet, TouchableOpacity, Alert,
 } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -42,6 +42,8 @@ export default function BiometricSetupScreen() {
         await setBiometricEnabled(true);
         router.replace('/(tabs)/');
       }
+    } catch (err) {
+      Alert.alert(t('common.error'), err instanceof Error ? err.message : 'Failed to enable biometric');
     } finally {
       setLoading(false);
     }

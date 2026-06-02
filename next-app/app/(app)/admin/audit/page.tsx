@@ -77,7 +77,7 @@ export default async function AuditPage({ searchParams }: PageProps) {
     endDate.setHours(23, 59, 59, 999);
     where.push(lte(auditLog.createdAt, endDate));
   }
-  if (filterQ) where.push(ilike(auditLog.detail, `%${filterQ.replace(/[%_]/g, '\\$&')}%`));
+  if (filterQ) where.push(ilike(auditLog.detail, `%${filterQ.replace(/[%_\\]/g, (c) => `\\${c}`)}%`));
 
   const entries = await db
     .select()

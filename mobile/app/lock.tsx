@@ -44,6 +44,7 @@ export default function LockScreen() {
   const [pin, setPin] = useState('');
   const [pinError, setPinError] = useState('');
   const [biometricLabel, setBiometricLabel] = useState('Biometric');
+  const [biometricAvailable, setBiometricAvailable] = useState(false);
   const shakeX = useSharedValue(0);
 
   useEffect(() => {
@@ -58,6 +59,7 @@ export default function LockScreen() {
       router.replace('/(tabs)/');
       return;
     }
+    setBiometricAvailable(biometric);
     if (!biometric) {
       setView('pin');
       return;
@@ -168,14 +170,16 @@ export default function LockScreen() {
               ))}
             </View>
 
-            <TouchableOpacity
-              onPress={() => setView('biometric')}
-              style={styles.switchBtn}
-            >
-              <Text style={[styles.switchText, { color: colors.text3 }]}>
-                {t('auth.useBiometricInstead', { label: biometricLabel })}
-              </Text>
-            </TouchableOpacity>
+            {biometricAvailable ? (
+              <TouchableOpacity
+                onPress={() => setView('biometric')}
+                style={styles.switchBtn}
+              >
+                <Text style={[styles.switchText, { color: colors.text3 }]}>
+                  {t('auth.useBiometricInstead', { label: biometricLabel })}
+                </Text>
+              </TouchableOpacity>
+            ) : null}
           </>
         )}
 

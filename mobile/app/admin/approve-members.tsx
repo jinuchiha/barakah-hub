@@ -16,6 +16,7 @@ import { useMembers, useApproveMember, useRejectMember } from '@/hooks/useMember
 import { useAuthStore } from '@/stores/auth.store';
 import { isAdminOnly } from '@/lib/roles';
 import { Redirect } from 'expo-router';
+import { LoadingScreen } from '@/components/ui/LoadingScreen';
 import { formatDate, formatPKR } from '@/lib/format';
 import { useTheme } from '@/lib/useTheme';
 import { spacing, radius } from '@/lib/theme';
@@ -75,7 +76,7 @@ function PendingMemberCard({
 export default function ApproveMembersScreen() {
   const { t } = useTranslation();
   const { colors } = useTheme();
-  const { user } = useAuthStore();
+  const { user, isLoading: authLoading } = useAuthStore();
   const { data: members, isLoading, refetch, isRefetching } = useMembers();
   const approveMutation = useApproveMember();
   const rejectMutation = useRejectMember();
@@ -111,6 +112,7 @@ export default function ApproveMembersScreen() {
     ]);
   };
 
+  if (authLoading) return <LoadingScreen />;
   if (!isAdminOnly(user?.role)) return <Redirect href="/admin" />;
 
   return (

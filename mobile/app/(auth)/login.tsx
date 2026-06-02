@@ -73,7 +73,7 @@ function FormSection({ onLoginSuccess }: { onLoginSuccess: () => void }) {
     <Animated.View entering={FadeInDown.duration(600).delay(200).springify()}>
       <GlassCard elevated style={styles.formCard}>
         <Text style={[styles.greeting, { color: colors.gold }]}>السلام عليكم</Text>
-        <Text style={[styles.welcomeText, { color: colors.text1 }]}>Welcome Back</Text>
+        <Text style={[styles.welcomeText, { color: colors.text1 }]}>{t('auth.welcomeBack')}</Text>
 
         <View style={styles.formFields}>
           <Controller
@@ -125,7 +125,7 @@ function FormSection({ onLoginSuccess }: { onLoginSuccess: () => void }) {
 
         <View style={styles.dividerRow}>
           <View style={[styles.divider, { backgroundColor: colors.border1 }]} />
-          <Text style={[styles.dividerText, { color: colors.text4 }]}>or</Text>
+          <Text style={[styles.dividerText, { color: colors.text4 }]}>{t('common.or')}</Text>
           <View style={[styles.divider, { backgroundColor: colors.border1 }]} />
         </View>
 

@@ -17,7 +17,6 @@ api.interceptors.request.use(async (config: InternalAxiosRequestConfig) => {
   const token = await getSessionToken();
   if (token && config.headers) {
     config.headers['Authorization'] = `Bearer ${token}`;
-    config.headers['Cookie'] = `better-auth.session_token=${token}`;
   }
   return config;
 });
