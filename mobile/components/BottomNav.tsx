@@ -9,6 +9,7 @@ import { BlurView } from 'expo-blur';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/lib/useTheme';
 import { radius, spacing } from '@/lib/theme';
 
@@ -17,17 +18,17 @@ export type TabRoute = 'index' | 'payments' | 'cases' | 'loans' | 'analytics' | 
 interface TabDef {
   name: TabRoute;
   icon: keyof typeof MaterialCommunityIcons.glyphMap;
-  label: string;
+  labelKey: string;
   adminOnly?: boolean;
 }
 
 const TABS: TabDef[] = [
-  { name: 'index', icon: 'view-dashboard-outline', label: 'Home' },
-  { name: 'payments', icon: 'cash-multiple', label: 'Payments' },
-  { name: 'cases', icon: 'alert-circle-outline', label: 'Cases' },
-  { name: 'loans', icon: 'handshake-outline', label: 'Loans' },
-  { name: 'analytics', icon: 'chart-line', label: 'Analytics', adminOnly: true },
-  { name: 'profile', icon: 'account-circle-outline', label: 'Profile' },
+  { name: 'index', icon: 'view-dashboard-outline', labelKey: 'nav.dashboard' },
+  { name: 'payments', icon: 'cash-multiple', labelKey: 'nav.payments' },
+  { name: 'cases', icon: 'alert-circle-outline', labelKey: 'nav.cases' },
+  { name: 'loans', icon: 'handshake-outline', labelKey: 'nav.loans' },
+  { name: 'analytics', icon: 'chart-line', labelKey: 'nav.analytics', adminOnly: true },
+  { name: 'profile', icon: 'account-circle-outline', labelKey: 'nav.profile' },
 ];
 
 interface TabItemProps {
@@ -39,6 +40,7 @@ interface TabItemProps {
 
 function TabItem({ tab, active, badge, onPress }: TabItemProps) {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const scale = useSharedValue(1);
 
   const animStyle = useAnimatedStyle(() => ({
@@ -71,7 +73,7 @@ function TabItem({ tab, active, badge, onPress }: TabItemProps) {
             ) : null}
           </View>
           {active ? (
-            <Text style={[styles.tabLabel, { color: colors.primary }]}>{tab.label}</Text>
+            <Text style={[styles.tabLabel, { color: colors.primary }]}>{t(tab.labelKey)}</Text>
           ) : null}
         </View>
       </Animated.View>

@@ -11,6 +11,7 @@
     "forgotPassword": "Forgot Password?",
     "sendResetLink": "Send Reset Link",
     "fullName": "Full Name",
+    "fatherName": "Father's Name",
     "phone": "Phone Number",
     "monthlyPledge": "Monthly Pledge (PKR)",
     "joinCode": "Join Code (optional)",
@@ -19,6 +20,9 @@
     "alreadyHaveAccount": "Already have an account?",
     "noAccount": "Don't have an account?",
     "backToLogin": "Back to Login",
+    "personal": "Personal",
+    "financial": "Financial",
+    "security": "Security",
     "emailSent": "Reset link sent to your email",
     "islamicGreeting": "السلام عليكم"
   },
@@ -27,7 +31,8 @@
     "payments": "Payments",
     "cases": "Cases",
     "loans": "Loans",
-    "profile": "Profile"
+    "profile": "Profile",
+    "analytics": "Analytics"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -43,7 +48,17 @@
     "pending": "Pending",
     "thisMonth": "This Month",
     "totalMembers": "Members",
-    "pendingPayments": "Pending"
+    "pendingPayments": "Pending",
+    "fundOverview": "FUND OVERVIEW",
+    "fundComposition": "FUND COMPOSITION",
+    "fundDistribution": "FUND DISTRIBUTION",
+    "communityActivity": "COMMUNITY ACTIVITY",
+    "totalFamilyFund": "TOTAL FAMILY FUND",
+    "sadaqahZakatQarz": "Sadaqah · Zakat · Qarz combined",
+    "seeAll": "See All",
+    "paymentDue": "Payment Due",
+    "thisMontPaid": "This Month: Paid",
+    "myPayments": "MY PAYMENTS"
   },
   "payments": {
     "title": "My Payments",
@@ -63,7 +78,9 @@
     "sadaqah": "Sadaqah",
     "zakat": "Zakat",
     "qarz": "Qarz",
-    "submit": "Submit Payment"
+    "submit": "Submit Payment",
+    "all": "All",
+    "totalVerified": "Total Verified"
   },
   "cases": {
     "title": "Emergency Cases",
@@ -125,7 +142,11 @@
     "parent": "Parent",
     "children": "Children",
     "logout": "Logout",
-    "settings": "Settings"
+    "settings": "Settings",
+    "account": "ACCOUNT",
+    "security": "SECURITY",
+    "preferences": "PREFERENCES",
+    "support": "SUPPORT"
   },
   "members": {
     "title": "Members",

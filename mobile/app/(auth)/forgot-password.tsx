@@ -14,6 +14,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { GlassCard } from '@/components/ui/GlassCard';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/hooks/useAuth';
 import { useTheme } from '@/lib/useTheme';
 import { spacing } from '@/lib/theme';
@@ -26,6 +27,7 @@ type FormData = z.infer<typeof schema>;
 
 function SuccessView({ onBack }: { onBack: () => void }) {
   const { colors } = useTheme();
+  const { t } = useTranslation();
 
   return (
     <Animated.View entering={ZoomIn.springify()}>
@@ -38,7 +40,7 @@ function SuccessView({ onBack }: { onBack: () => void }) {
           <Text style={[styles.successBody, { color: colors.text3 }]}>
             A password reset link has been sent to your email address.
           </Text>
-          <Button label="Back to Login" onPress={onBack} variant="primary" fullWidth style={styles.backBtn} />
+          <Button label={t('auth.backToLogin')} onPress={onBack} variant="primary" fullWidth style={styles.backBtn} />
         </Animated.View>
       </GlassCard>
     </Animated.View>
@@ -49,6 +51,7 @@ export default function ForgotPasswordScreen() {
   const router = useRouter();
   const { sendForgotPassword } = useAuth();
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
 
@@ -83,7 +86,7 @@ export default function ForgotPasswordScreen() {
                 <View style={[styles.iconBox, { backgroundColor: colors.primaryDim, borderColor: colors.primary }]}>
                   <MaterialCommunityIcons name="lock-reset" size={36} color={colors.primary} />
                 </View>
-                <Text style={[styles.title, { color: colors.text1 }]}>Reset Password</Text>
+                <Text style={[styles.title, { color: colors.text1 }]}>{t('auth.forgotPassword')}</Text>
                 <Text style={[styles.subtitle, { color: colors.text3 }]}>
                   Enter your email and we'll send a reset link.
                 </Text>
@@ -96,7 +99,7 @@ export default function ForgotPasswordScreen() {
                     name="email"
                     render={({ field: { onChange, value } }) => (
                       <Input
-                        label="Email Address"
+                        label={t('auth.email')}
                         value={value ?? ''}
                         onChangeText={onChange}
                         keyboardType="email-address"
@@ -107,7 +110,7 @@ export default function ForgotPasswordScreen() {
                     )}
                   />
                   <Button
-                    label="Send Reset Link"
+                    label={t('auth.sendResetLink')}
                     onPress={handleSubmit(onSubmit)}
                     loading={loading}
                     variant="solid"

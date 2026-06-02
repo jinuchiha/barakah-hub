@@ -12,6 +12,7 @@ import { Badge } from '@/components/ui/Badge';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { useMembers } from '@/hooks/useMembers';
 import { useAuthStore } from '@/stores/auth.store';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/lib/useTheme';
 import { spacing, radius } from '@/lib/theme';
 import type { Member } from '@/types';
@@ -57,6 +58,7 @@ function MemberCard({ member, isAdmin, onPress }: { member: Member; isAdmin: boo
 
 export default function MembersScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { user } = useAuthStore();
   const { colors } = useTheme();
   const [search, setSearch] = useState('');
@@ -95,7 +97,7 @@ export default function MembersScreen() {
           <MaterialCommunityIcons name="magnify" size={20} color={searchFocused ? colors.primary : colors.text3} />
           <TextInput
             style={[styles.searchInput, { color: colors.text1 }]}
-            placeholder="Search members..."
+            placeholder={t('members.directory')}
             placeholderTextColor={colors.text4}
             value={search}
             onChangeText={setSearch}
@@ -128,7 +130,7 @@ export default function MembersScreen() {
       </Animated.View>
 
       {isLoading ? (
-        <EmptyState icon="loading" title="Loading members..." />
+        <EmptyState icon="loading" title={t('common.loading')} />
       ) : (
         <FlashList
           data={filtered}
@@ -147,7 +149,7 @@ export default function MembersScreen() {
             <Text style={[styles.count, { color: colors.text4 }]}>{filtered.length} members</Text>
           }
           ListEmptyComponent={
-            <EmptyState icon="account-search-outline" title="No members found" subtitle="Try a different search term" />
+            <EmptyState icon="account-search-outline" title={t('members.noMembers')} subtitle="Try a different search term" />
           }
         />
       )}

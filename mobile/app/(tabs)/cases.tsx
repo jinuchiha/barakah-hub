@@ -3,6 +3,7 @@ import {
   View, Text, StyleSheet, RefreshControl, ScrollView, Alert,
   KeyboardAvoidingView, Platform, TouchableOpacity, Switch,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { FlashList } from '@shopify/flash-list';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -40,12 +41,6 @@ const caseSchema = z.object({
 type CaseFormData = z.infer<typeof caseSchema>;
 type StatusFilter = CaseStatus | 'all';
 
-const FILTERS: Array<{ value: StatusFilter; label: string }> = [
-  { value: 'voting', label: 'Active' },
-  { value: 'approved', label: 'Approved' },
-  { value: 'rejected', label: 'Rejected' },
-  { value: 'disbursed', label: 'Disbursed' },
-];
 
 function FilterTabs({ active, onChange, activeCaseCount }: {
   active: StatusFilter;
@@ -53,6 +48,14 @@ function FilterTabs({ active, onChange, activeCaseCount }: {
   activeCaseCount: number;
 }) {
   const { colors } = useTheme();
+  const { t } = useTranslation();
+
+  const FILTERS: Array<{ value: StatusFilter; label: string }> = [
+    { value: 'voting', label: t('cases.active') },
+    { value: 'approved', label: t('cases.approved') },
+    { value: 'rejected', label: t('cases.rejected') },
+    { value: 'disbursed', label: t('cases.disbursed') },
+  ];
 
   return (
     <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterScroll} contentContainerStyle={styles.filterContent}>
@@ -79,6 +82,7 @@ function FilterTabs({ active, onChange, activeCaseCount }: {
 
 function CreateCaseSheet({ visible, onClose }: { visible: boolean; onClose: () => void }) {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const createMutation = useCreateCase();
   const [creating, setCreating] = useState(false);
 
@@ -116,13 +120,13 @@ function CreateCaseSheet({ visible, onClose }: { visible: boolean; onClose: () =
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.sheetContainer}>
         <GlassCard style={styles.sheet}>
           <View style={[styles.handle, { backgroundColor: colors.border2 }]} />
-          <Text style={[styles.sheetTitle, { color: colors.text1 }]}>New Emergency Case</Text>
+          <Text style={[styles.sheetTitle, { color: colors.text1 }]}>{t('cases.createCase')}</Text>
           <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
             <Controller control={control} name="beneficiaryName"
-              render={({ field: { onChange, value } }) => <Input label="Beneficiary Name" value={value} onChangeText={onChange} error={errors.beneficiaryName?.message} />}
+              render={({ field: { onChange, value } }) => <Input label={t('cases.beneficiary')} value={value} onChangeText={onChange} error={errors.beneficiaryName?.message} />}
             />
             <Controller control={control} name="amount"
-              render={({ field: { onChange, value } }) => <Input label="Amount (PKR)" value={value?.toString() ?? ''} onChangeText={onChange} keyboardType="numeric" error={errors.amount?.message} />}
+              render={({ field: { onChange, value } }) => <Input label={t('loans.amount')} value={value?.toString() ?? ''} onChangeText={onChange} keyboardType="numeric" error={errors.amount?.message} />}
             />
             <Controller control={control} name="reason"
               render={({ field: { onChange, value } }) => (
@@ -195,9 +199,9 @@ function CreateCaseSheet({ visible, onClose }: { visible: boolean; onClose: () =
             />
 
             <View style={styles.sheetBtns}>
-              <Button label="Cancel" onPress={onClose} variant="ghost" style={styles.halfBtn} />
+              <Button label={t('common.cancel')} onPress={onClose} variant="ghost" style={styles.halfBtn} />
               <Button
-                label={creating ? 'Submitting…' : 'Submit Case'}
+                label={creating ? 'Submitting…' : t('common.submit')}
                 onPress={handleSubmit(onSubmit, onInvalid)}
                 loading={creating}
                 disabled={creating}
@@ -215,6 +219,7 @@ function CreateCaseSheet({ visible, onClose }: { visible: boolean; onClose: () =
 function CasesScreen() {
   const { user } = useAuthStore();
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('voting');
   const [voteTarget, setVoteTarget] = useState<EmergencyCase | null>(null);
   const [voteDir, setVoteDir] = useState<boolean | null>(null);
@@ -310,20 +315,20 @@ function CasesScreen() {
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.bg1 }]} edges={['top']}>
       <Animated.View entering={FadeInDown.duration(400)} style={styles.header}>
-        <Text style={[styles.title, { color: colors.text1 }]}>Emergency Cases</Text>
+        <Text style={[styles.title, { color: colors.text1 }]}>{t('cases.title')}</Text>
         <TouchableOpacity
           style={[styles.createBtn, { backgroundColor: colors.primaryDim, borderColor: colors.primary }]}
           onPress={() => setShowCreate(true)}
         >
           <MaterialCommunityIcons name="plus" size={18} color={colors.primary} />
-          <Text style={[styles.createBtnText, { color: colors.primary }]}>New</Text>
+          <Text style={[styles.createBtnText, { color: colors.primary }]}>{t('cases.createCase')}</Text>
         </TouchableOpacity>
       </Animated.View>
 
       <FilterTabs active={statusFilter} onChange={setStatusFilter} activeCaseCount={activeCaseCount} />
 
       {isLoading ? (
-        <EmptyState icon="loading" title="Loading cases..." />
+        <EmptyState icon="loading" title={t('common.loading')} />
       ) : (
         <FlashList
           data={data ?? []}

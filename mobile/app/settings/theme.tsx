@@ -7,6 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Animated, { FadeInDown, ZoomIn } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/lib/useTheme';
 import { spacing, radius, type ThemeName } from '@/lib/theme';
 
@@ -67,7 +68,9 @@ function ThemeCard({
   index: number;
   onPress: () => void;
 }) {
+  const { t } = useTranslation();
   const { colors } = useTheme();
+  const translatedLabel = (t(`themes.${preview.name}`, { defaultValue: preview.label }) as string);
 
   return (
     <Animated.View entering={FadeInDown.duration(300).delay(index * 70)}>
@@ -87,7 +90,7 @@ function ThemeCard({
             <MaterialCommunityIcons name={preview.icon as never} size={22} color={colors.primary} />
           </View>
           <View>
-            <Text style={[styles.themeName, { color: colors.text1 }]}>{preview.label}</Text>
+            <Text style={[styles.themeName, { color: colors.text1 }]}>{translatedLabel}</Text>
             <Text style={[styles.themeDesc, { color: colors.text3 }]}>{preview.description}</Text>
           </View>
         </View>
@@ -110,6 +113,7 @@ function ThemeCard({
 
 export default function ThemeScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { colors, themeName, setTheme } = useTheme();
 
   const handleSelect = async (name: ThemeName) => {
@@ -123,7 +127,7 @@ export default function ThemeScreen() {
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
           <MaterialCommunityIcons name="arrow-left" size={24} color={colors.text1} />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: colors.text1 }]}>Appearance</Text>
+        <Text style={[styles.headerTitle, { color: colors.text1 }]}>{t('themes.title')}</Text>
         <View style={styles.backBtn} />
       </View>
 

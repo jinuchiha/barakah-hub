@@ -7,6 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Animated, { FadeInDown, ZoomIn } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/lib/useTheme';
 import { spacing, radius } from '@/lib/theme';
 import { LANGUAGES, type SupportedLanguage } from '@/lib/i18n';
@@ -55,6 +56,7 @@ function LanguageCard({
 
 export default function LanguageScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { colors } = useTheme();
   const { language, switchLanguage } = useAuth();
   const [selected, setSelected] = useState<SupportedLanguage>(language as SupportedLanguage ?? 'en');
@@ -72,7 +74,7 @@ export default function LanguageScreen() {
       await switchLanguage(selected);
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       Alert.alert(
-        'Language Updated',
+        t('language.saved'),
         'Restart the app to fully apply the new language direction.',
         [{ text: 'OK', onPress: () => router.back() }],
       );
@@ -89,7 +91,7 @@ export default function LanguageScreen() {
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
           <MaterialCommunityIcons name="arrow-left" size={24} color={colors.text1} />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: colors.text1 }]}>Select Language</Text>
+        <Text style={[styles.headerTitle, { color: colors.text1 }]}>{t('language.select')}</Text>
         <View style={styles.backBtn} />
       </View>
 

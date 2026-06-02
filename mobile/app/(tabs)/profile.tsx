@@ -3,6 +3,7 @@ import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Switch,
   // Switch retained for biometric/screenshot/pin toggles below
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -78,6 +79,7 @@ function ProfileScreen() {
   const router = useRouter();
   const { user, logout, language, switchLanguage } = useAuth();
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const { data: payments } = useMyPayments();
   const { data: loans } = useMyLoans();
   const { enabled: biometricEnabled, label: biometricLabel, enable: enableBiometric, disable: disableBiometric } = useBiometric();
@@ -154,8 +156,8 @@ function ProfileScreen() {
           <StatCard icon="handshake-outline" value={`${activeLoans}`} label="Active Loans" iconColor={colors.accent} style={styles.stat} />
         </Animated.View>
 
-        <SettingsGroup title="ACCOUNT">
-          <SettingsRow icon="account-edit-outline" label="Edit Profile" onPress={() => router.push('/settings/edit-profile')} />
+        <SettingsGroup title={t('profile.account')}>
+          <SettingsRow icon="account-edit-outline" label={t('profile.editProfile')} onPress={() => router.push('/settings/edit-profile')} />
           <SettingsRow icon="lock-reset" label="Change Password" onPress={() => router.push('/settings/change-password')} />
           <SettingsRow icon="family-tree" label="Family Tree" onPress={() => router.push('/family-tree')} />
           <SettingsRow icon="trophy-outline" label="Achievements" onPress={() => router.push('/achievements')} />
@@ -164,7 +166,7 @@ function ProfileScreen() {
           <SettingsRow icon="robot-outline" label="AI Assistant" onPress={() => router.push('/ai-assistant')} />
         </SettingsGroup>
 
-        <SettingsGroup title="PREFERENCES">
+        <SettingsGroup title={t('profile.preferences')}>
           <SettingsRow
             icon="translate"
             label="Language"
@@ -181,7 +183,7 @@ function ProfileScreen() {
           <SettingsRow icon="alarm" label="Reminders" onPress={() => router.push('/settings/reminders')} />
         </SettingsGroup>
 
-        <SettingsGroup title="SECURITY">
+        <SettingsGroup title={t('profile.security')}>
           <SettingsRow
             icon="fingerprint"
             label={`${biometricLabel} Lock`}
@@ -235,14 +237,14 @@ function ProfileScreen() {
           </SettingsGroup>
         ) : null}
 
-        <SettingsGroup title="SUPPORT">
+        <SettingsGroup title={t('profile.support')}>
           <SettingsRow icon="help-circle-outline" label="Help & FAQ" onPress={() => router.push('/settings/help')} />
           <SettingsRow icon="message-outline" label="Contact Admin" onPress={() => router.push('/settings/contact-admin')} />
         </SettingsGroup>
 
         <View style={styles.dangerZone}>
           <Button
-            label={loggingOut ? 'Signing out...' : 'Sign Out'}
+            label={t('auth.logout')}
             onPress={handleLogout}
             variant="danger"
             fullWidth

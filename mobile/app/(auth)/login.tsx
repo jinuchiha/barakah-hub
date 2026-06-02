@@ -20,6 +20,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { GlassCard } from '@/components/ui/GlassCard';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/hooks/useAuth';
 import { useTheme } from '@/lib/useTheme';
 import { spacing, radius } from '@/lib/theme';
@@ -47,6 +48,7 @@ function LogoSection() {
 
 function FormSection({ onLoginSuccess }: { onLoginSuccess: () => void }) {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const router = useRouter();
   const { login } = useAuth();
   const [loading, setLoading] = React.useState(false);
@@ -79,7 +81,7 @@ function FormSection({ onLoginSuccess }: { onLoginSuccess: () => void }) {
             name="email"
             render={({ field: { onChange, value } }) => (
               <Input
-                label="Email Address"
+                label={t('auth.email')}
                 value={value ?? ''}
                 onChangeText={onChange}
                 keyboardType="email-address"
@@ -94,7 +96,7 @@ function FormSection({ onLoginSuccess }: { onLoginSuccess: () => void }) {
             name="password"
             render={({ field: { onChange, value } }) => (
               <Input
-                label="Password"
+                label={t('auth.password')}
                 value={value ?? ''}
                 onChangeText={onChange}
                 isPassword
@@ -109,11 +111,11 @@ function FormSection({ onLoginSuccess }: { onLoginSuccess: () => void }) {
           onPress={() => router.push('/(auth)/forgot-password')}
           style={styles.forgotBtn}
         >
-          <Text style={[styles.forgotText, { color: colors.primary }]}>Forgot Password?</Text>
+          <Text style={[styles.forgotText, { color: colors.primary }]}>{t('auth.forgotPassword')}</Text>
         </TouchableOpacity>
 
         <Button
-          label="Sign In"
+          label={t('auth.signIn')}
           onPress={handleSubmit(onSubmit)}
           loading={loading}
           variant="solid"
@@ -128,8 +130,8 @@ function FormSection({ onLoginSuccess }: { onLoginSuccess: () => void }) {
         </View>
 
         <TouchableOpacity onPress={() => router.push('/(auth)/register')} style={styles.registerRow}>
-          <Text style={[styles.registerLabel, { color: colors.text3 }]}>No account? </Text>
-          <Text style={[styles.registerLink, { color: colors.primary }]}>Create Account</Text>
+          <Text style={[styles.registerLabel, { color: colors.text3 }]}>{t('auth.noAccount')} </Text>
+          <Text style={[styles.registerLink, { color: colors.primary }]}>{t('auth.register')}</Text>
         </TouchableOpacity>
       </GlassCard>
     </Animated.View>
