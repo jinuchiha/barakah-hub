@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView, Alert, RefreshControl,
+  View, Text, StyleSheet, ScrollView, Alert, RefreshControl, TouchableOpacity,
 } from 'react-native';
 import { Redirect, Stack } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -14,9 +14,11 @@ import { isAdminOnly } from '@/lib/roles';
 import { shareCsv } from '@/lib/share';
 import { formatPKR, formatRelativeTime } from '@/lib/format';
 import { useTheme } from '@/lib/useTheme';
-import { spacing } from '@/lib/theme';
+import { spacing, radius } from '@/lib/theme';
 
-const CURRENT_YEAR = new Date().getFullYear();
+const MIN_YEAR = 2020;
+const AUDIT_FILTERS = ['All', 'payment', 'member', 'case', 'loan'] as const;
+
 const EXPORTS: Array<{ kind: 'members' | 'fund' | 'loans' | 'audit'; label: string }> = [
   { kind: 'fund', label: 'Fund' },
   { kind: 'members', label: 'Members' },
@@ -27,23 +29,31 @@ const EXPORTS: Array<{ kind: 'members' | 'fund' | 'loans' | 'audit'; label: stri
 export default function ReportsScreen() {
   const { colors } = useTheme();
   const { user } = useAuthStore();
-  const annual = useAnnualReport(CURRENT_YEAR);
+  const [year, setYear] = useState(new Date().getFullYear());
+  const [actionFilter, setActionFilter] = useState('');
+  const annual = useAnnualReport(year);
   const audit = useAuditLog();
   const [exporting, setExporting] = useState<string | null>(null);
 
   if (!isAdminOnly(user?.role)) return <Redirect href="/admin" />;
 
+  const currentYear = new Date().getFullYear();
+
   const doExport = async (kind: 'members' | 'fund' | 'loans' | 'audit') => {
     setExporting(kind);
     try {
       const csv = await fetchExportCsv(kind);
-      await shareCsv(`barakah-${kind}-${CURRENT_YEAR}.csv`, csv);
+      await shareCsv(`barakah-${kind}-${year}.csv`, csv);
     } catch (err) {
       Alert.alert('Export failed', err instanceof Error ? err.message : 'Could not export');
     } finally {
       setExporting(null);
     }
   };
+
+  const filtered = (audit.data ?? [])
+    .filter((a) => !actionFilter || a.action.startsWith(actionFilter))
+    .slice(0, 50);
 
   const r = annual.data;
 
@@ -54,7 +64,26 @@ export default function ReportsScreen() {
         contentContainerStyle={styles.scroll}
         refreshControl={<RefreshControl refreshing={annual.isRefetching} onRefresh={annual.refetch} tintColor={colors.primary} />}
       >
-        <Text style={[styles.section, { color: colors.text4 }]}>{CURRENT_YEAR} ANNUAL SUMMARY</Text>
+        {/* Year selector */}
+        <View style={styles.yearRow}>
+          <TouchableOpacity
+            onPress={() => setYear((y) => Math.max(MIN_YEAR, y - 1))}
+            style={[styles.yearBtn, { backgroundColor: colors.glass2, borderColor: colors.border1 }]}
+            disabled={year <= MIN_YEAR}
+          >
+            <Text style={[styles.yearBtnText, { color: year <= MIN_YEAR ? colors.text4 : colors.text1 }]}>◀ prev</Text>
+          </TouchableOpacity>
+          <Text style={[styles.yearLabel, { color: colors.text1 }]}>{year}</Text>
+          <TouchableOpacity
+            onPress={() => setYear((y) => Math.min(currentYear, y + 1))}
+            style={[styles.yearBtn, { backgroundColor: colors.glass2, borderColor: colors.border1 }]}
+            disabled={year >= currentYear}
+          >
+            <Text style={[styles.yearBtnText, { color: year >= currentYear ? colors.text4 : colors.text1 }]}>next ▶</Text>
+          </TouchableOpacity>
+        </View>
+
+        <Text style={[styles.section, { color: colors.text4 }]}>{year} ANNUAL SUMMARY</Text>
         {annual.isLoading ? (
           <EmptyState icon="loading" title="Loading…" />
         ) : r ? (
@@ -93,12 +122,33 @@ export default function ReportsScreen() {
         </View>
 
         <Text style={[styles.section, { color: colors.text4 }]}>RECENT AUDIT LOG</Text>
+        {/* Audit filter chips */}
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipScroll} contentContainerStyle={styles.chipRow}>
+          {AUDIT_FILTERS.map((f) => {
+            const active = f === 'All' ? actionFilter === '' : actionFilter === f;
+            return (
+              <TouchableOpacity
+                key={f}
+                onPress={() => setActionFilter(f === 'All' ? '' : f)}
+                style={[
+                  styles.chip,
+                  {
+                    backgroundColor: active ? colors.primaryDim : colors.glass2,
+                    borderColor: active ? colors.primary : colors.border1,
+                  },
+                ]}
+              >
+                <Text style={[styles.chipText, { color: active ? colors.primary : colors.text3 }]}>{f}</Text>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
         {audit.isLoading ? (
           <EmptyState icon="loading" title="Loading…" />
-        ) : (audit.data ?? []).length === 0 ? (
+        ) : filtered.length === 0 ? (
           <EmptyState icon="history" title="No activity" />
         ) : (
-          (audit.data ?? []).slice(0, 40).map((a) => (
+          filtered.map((a) => (
             <View key={a.id} style={[styles.auditRow, { borderBottomColor: colors.border1 }]}>
               <View style={styles.flex}>
                 <Text style={[styles.auditAction, { color: colors.text1 }]}>
@@ -123,6 +173,10 @@ const styles = StyleSheet.create({
   flex: { flex: 1 },
   scroll: { padding: spacing.md, paddingBottom: 60 },
   section: { fontSize: 11, fontFamily: 'Inter_600SemiBold', letterSpacing: 1, marginTop: spacing.lg, marginBottom: spacing.sm },
+  yearRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.sm },
+  yearBtn: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: radius.full, borderWidth: 1 },
+  yearBtnText: { fontSize: 12, fontFamily: 'Inter_600SemiBold' },
+  yearLabel: { fontSize: 20, fontFamily: 'SpaceMono_400Regular', fontWeight: '700' },
   totalCard: { padding: spacing.lg, alignItems: 'center', marginBottom: spacing.sm },
   totalLabel: { fontSize: 12, fontFamily: 'Inter_400Regular' },
   totalValue: { fontSize: 28, fontFamily: 'SpaceMono_400Regular', fontWeight: '700', marginVertical: 4 },
@@ -131,6 +185,10 @@ const styles = StyleSheet.create({
   stat: { flexBasis: '47%', flexGrow: 1 },
   exportRow: { flexDirection: 'row', gap: spacing.sm },
   exportBtn: { flex: 1 },
+  chipScroll: { marginBottom: spacing.sm },
+  chipRow: { flexDirection: 'row', gap: spacing.sm, paddingBottom: 2 },
+  chip: { paddingHorizontal: 14, paddingVertical: 7, borderRadius: radius.full, borderWidth: 1.5 },
+  chipText: { fontSize: 12, fontFamily: 'Inter_600SemiBold' },
   auditRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.sm, borderBottomWidth: 1 },
   auditAction: { fontSize: 13, fontFamily: 'Inter_600SemiBold', textTransform: 'capitalize' },
   auditDetail: { fontSize: 11, fontFamily: 'Inter_400Regular', marginTop: 1 },

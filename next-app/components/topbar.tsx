@@ -1,5 +1,5 @@
 'use client';
-import { Search, Bell, Sun, Moon, LogOut, User as UserIcon, Settings as SettingsIcon } from 'lucide-react';
+import { Search, Bell, Sun, Moon, LogOut, User as UserIcon, Settings as SettingsIcon, Globe } from 'lucide-react';
 import { useEffect, useState, useSyncExternalStore } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -25,6 +25,7 @@ interface TopbarProps {
 }
 
 const THEME_KEY = 'barakah_theme';
+const LANG_KEY = 'barakah_lang';
 
 const themeStore = {
   subscribe: (cb: () => void) => {
@@ -39,9 +40,24 @@ const themeStore = {
   getServerSnapshot: (): 'dark' | 'light' => 'dark',
 };
 
+const langStore = {
+  subscribe: (cb: () => void) => {
+    if (typeof window === 'undefined') return () => {};
+    window.addEventListener('storage', cb);
+    return () => window.removeEventListener('storage', cb);
+  },
+  getSnapshot: (): 'en' | 'ur' => {
+    if (typeof window === 'undefined') return 'en';
+    return (localStorage.getItem(LANG_KEY) as 'en' | 'ur' | null) ?? 'en';
+  },
+  getServerSnapshot: (): 'en' | 'ur' => 'en',
+};
+
 export function Topbar({ user, unreadCount = 0, isAdmin = false, isSupervisor = false, badges = {} }: TopbarProps) {
   const [q, setQ] = useState('');
   const mode = useSyncExternalStore(themeStore.subscribe, themeStore.getSnapshot, themeStore.getServerSnapshot);
+  const lang = useSyncExternalStore(langStore.subscribe, langStore.getSnapshot, langStore.getServerSnapshot);
+  const [langOpen, setLangOpen] = useState(false);
   const router = useRouter();
 
   // DOM-only side effect: keep <html> classList synced with the persisted theme.
@@ -49,6 +65,14 @@ export function Topbar({ user, unreadCount = 0, isAdmin = false, isSupervisor = 
     document.documentElement.classList.toggle('light', mode === 'light');
     document.documentElement.classList.toggle('dark', mode === 'dark');
   }, [mode]);
+
+  // Close language dropdown on outside click.
+  useEffect(() => {
+    if (!langOpen) return;
+    function handleClick() { setLangOpen(false); }
+    document.addEventListener('click', handleClick, { capture: true, once: true });
+    return () => document.removeEventListener('click', handleClick, true);
+  }, [langOpen]);
 
   async function logout() {
     await signOut();
@@ -112,6 +136,53 @@ export function Topbar({ user, unreadCount = 0, isAdmin = false, isSupervisor = 
         >
           <Search className="size-[18px]" />
         </Link>
+        {/* Language picker */}
+        <div className="relative hidden sm:block">
+          <button
+            type="button"
+            onClick={() => setLangOpen((v) => !v)}
+            aria-label="Language settings"
+            aria-expanded={langOpen}
+            className="flex h-9 items-center gap-1 rounded-lg px-2 text-[var(--txt-2)] transition-colors hover:bg-[var(--surf-3)] hover:text-[var(--color-cream)]"
+          >
+            <Globe className="size-[16px]" />
+            <span className="text-[11px] font-medium">{lang === 'ur' ? 'اردو' : 'EN'}</span>
+          </button>
+          {langOpen && (
+            <div
+              className="absolute right-0 top-full z-50 mt-1 min-w-[160px] rounded-xl border border-[var(--border)] bg-[var(--surf-1)] py-1 shadow-[0_8px_24px_rgba(0,0,0,0.4)]"
+              role="menu"
+            >
+              <button
+                type="button"
+                role="menuitem"
+                onClick={() => {
+                  localStorage.setItem(LANG_KEY, 'en');
+                  window.dispatchEvent(new StorageEvent('storage', { key: LANG_KEY, newValue: 'en' }));
+                  setLangOpen(false);
+                }}
+                className={`flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] transition-colors hover:bg-[var(--surf-3)] ${lang === 'en' ? 'text-[var(--color-gold)]' : 'text-[var(--txt-2)]'}`}
+              >
+                English {lang === 'en' && <span className="ml-auto text-[10px]">✓</span>}
+              </button>
+              <button
+                type="button"
+                role="menuitem"
+                onClick={() => {
+                  localStorage.setItem(LANG_KEY, 'ur');
+                  window.dispatchEvent(new StorageEvent('storage', { key: LANG_KEY, newValue: 'ur' }));
+                  setLangOpen(false);
+                }}
+                className={`flex w-full items-center gap-2 px-3 py-2 text-left font-[var(--font-arabic)] text-[13px] transition-colors hover:bg-[var(--surf-3)] ${lang === 'ur' ? 'text-[var(--color-gold)]' : 'text-[var(--txt-2)]'}`}
+              >
+                اردو {lang === 'ur' && <span className="ml-auto text-[10px]">✓</span>}
+              </button>
+              <div className="mt-1 border-t border-[var(--border)] px-3 py-2 text-[10px] text-[var(--txt-4)]">
+                Full Urdu UI available in mobile app
+              </div>
+            </div>
+          )}
+        </div>
         <button
           type="button"
           onClick={toggleMode}

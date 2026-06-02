@@ -1,4 +1,5 @@
 import * as Notifications from 'expo-notifications';
+import * as SecureStore from 'expo-secure-store';
 import { MMKV } from 'react-native-mmkv';
 import { getDailyVerse } from './quran';
 
@@ -87,6 +88,60 @@ export async function cancelReminder(id: string): Promise<void> {
   await Notifications.cancelScheduledNotificationAsync(id).catch(() => undefined);
 }
 
+const PRAYER_IDS = ['prayer-fajr', 'prayer-dhuhr', 'prayer-asr', 'prayer-maghrib', 'prayer-isha'] as const;
+type PrayerId = typeof PRAYER_IDS[number];
+
+interface AlAdhanTimings { Fajr: string; Dhuhr: string; Asr: string; Maghrib: string; Isha: string }
+interface AlAdhanResponse { data: { timings: AlAdhanTimings } }
+
+const PRAYER_META: { id: PrayerId; key: keyof AlAdhanTimings; title: string }[] = [
+  { id: 'prayer-fajr',    key: 'Fajr',    title: 'Fajr Prayer'    },
+  { id: 'prayer-dhuhr',   key: 'Dhuhr',   title: 'Dhuhr Prayer'   },
+  { id: 'prayer-asr',     key: 'Asr',     title: 'Asr Prayer'     },
+  { id: 'prayer-maghrib', key: 'Maghrib', title: 'Maghrib Prayer' },
+  { id: 'prayer-isha',    key: 'Isha',    title: 'Isha Prayer'    },
+];
+
+async function cancelAllPrayerNotifications(): Promise<void> {
+  await Promise.all(PRAYER_IDS.map((id) => cancelReminder(id)));
+}
+
+export async function schedulePrayerNotifications(): Promise<void> {
+  if (!(await ensurePermission())) return;
+  await cancelAllPrayerNotifications();
+
+  const city = (await SecureStore.getItemAsync('bh_city').catch(() => null)) ?? 'Karachi';
+  const today = new Date();
+  const datePath = `${today.getDate()}-${today.getMonth() + 1}-${today.getFullYear()}`;
+  const url = `https://api.aladhan.com/v1/timingsByCity/${datePath}?city=${encodeURIComponent(city)}&country=Pakistan&method=1`;
+
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`AlAdhan API error: ${res.status}`);
+  const json: AlAdhanResponse = await res.json();
+  const timings = json.data.timings;
+
+  await Promise.all(
+    PRAYER_META.map(({ id, key, title }) => {
+      const [hourStr, minuteStr] = timings[key].split(':');
+      const hour = parseInt(hourStr ?? '0', 10);
+      const minute = parseInt(minuteStr ?? '0', 10);
+      return Notifications.scheduleNotificationAsync({
+        identifier: id,
+        content: {
+          title,
+          body: 'It is time for prayer. May Allah accept your ibadah.',
+          data: { screen: '/', type: 'prayer' },
+        },
+        trigger: {
+          type: Notifications.SchedulableTriggerInputTypes.DAILY,
+          hour,
+          minute,
+        },
+      });
+    }),
+  );
+}
+
 export async function applyReminderPrefs(prefs: ReminderPrefs): Promise<void> {
   if (prefs.paymentReminder) {
     await schedulePaymentReminder(prefs.paymentDay);
@@ -97,5 +152,10 @@ export async function applyReminderPrefs(prefs: ReminderPrefs): Promise<void> {
     await scheduleDailyVerse(prefs.dailyVerseHour, prefs.dailyVerseMinute);
   } else {
     await cancelReminder('daily-verse');
+  }
+  if (prefs.prayerNotifications) {
+    await schedulePrayerNotifications();
+  } else {
+    await cancelAllPrayerNotifications();
   }
 }
