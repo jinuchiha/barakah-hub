@@ -171,32 +171,38 @@ export default async function DashboardPage() {
         )}
       </div>
 
-      {isAdmin && (poolSlices.length > 0 || caseSlices.length > 0) && (
+      {/* Fund Breakdown — only shown when there are 2+ active pools or disbursements.
+          When everyone gives Sadaqah (1 pool), showing a chart is redundant. */}
+      {isAdmin && (poolSlices.length > 1 || caseSlices.length > 0) && (
         <div className="mb-6 grid gap-3 md:grid-cols-2">
-          <Card>
-            <CardHeader>
-              <div className="flex items-center gap-2.5">
-                <PieIcon className="size-4 text-[var(--color-gold)]" />
-                <CardTitle>Fund Composition</CardTitle>
-              </div>
-              <span className="text-[10px] uppercase tracking-[1.5px] text-[var(--txt-3)]">By pool</span>
-            </CardHeader>
-            <CardBody>
-              <SpendingDonut title="Fund composition" slices={poolSlices} />
-            </CardBody>
-          </Card>
-          <Card>
-            <CardHeader>
-              <div className="flex items-center gap-2.5">
-                <Target className="size-4 text-[var(--color-gold)]" />
-                <CardTitle>Disbursements</CardTitle>
-              </div>
-              <span className="text-[10px] uppercase tracking-[1.5px] text-[var(--txt-3)]">Approved cases</span>
-            </CardHeader>
-            <CardBody>
-              <SpendingDonut title="Disbursements by category" slices={caseSlices} />
-            </CardBody>
-          </Card>
+          {poolSlices.length > 1 && (
+            <Card>
+              <CardHeader>
+                <div className="flex items-center gap-2.5">
+                  <PieIcon className="size-4 text-[var(--color-gold)]" />
+                  <CardTitle>Fund Breakdown</CardTitle>
+                </div>
+                <span className="text-[10px] uppercase tracking-[1.5px] text-[var(--txt-3)]">By pool</span>
+              </CardHeader>
+              <CardBody>
+                <SpendingDonut title="Fund breakdown" slices={poolSlices} />
+              </CardBody>
+            </Card>
+          )}
+          {caseSlices.length > 0 && (
+            <Card>
+              <CardHeader>
+                <div className="flex items-center gap-2.5">
+                  <Target className="size-4 text-[var(--color-gold)]" />
+                  <CardTitle>Disbursements</CardTitle>
+                </div>
+                <span className="text-[10px] uppercase tracking-[1.5px] text-[var(--txt-3)]">Approved cases</span>
+              </CardHeader>
+              <CardBody>
+                <SpendingDonut title="Disbursements by category" slices={caseSlices} />
+              </CardBody>
+            </Card>
+          )}
         </div>
       )}
 
