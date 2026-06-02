@@ -255,9 +255,9 @@ export default function TreeView({ members, paidBy, viewerId, viewerIsAdmin }: P
             {selectedMember.relation && (
               <div><dt className="text-[10px] uppercase text-[var(--color-gold-4)]">Relation</dt><dd className="mt-0.5">{selectedMember.relation}</dd></div>
             )}
-            <div><dt className="text-[10px] uppercase text-[var(--color-gold-4)]">City</dt><dd className="mt-0.5">{selectedMember.city || '—'}</dd></div>
-            <div><dt className="text-[10px] uppercase text-[var(--color-gold-4)]">Province</dt><dd className="mt-0.5">{selectedMember.province || '—'}</dd></div>
-            <div><dt className="text-[10px] uppercase text-[var(--color-gold-4)]">Phone</dt><dd className="mt-0.5">{selectedMember.phone || '—'}</dd></div>
+            {selectedMember.city && <div><dt className="text-[10px] uppercase text-[var(--color-gold-4)]">City</dt><dd className="mt-0.5">{selectedMember.city}</dd></div>}
+            {selectedMember.province && <div><dt className="text-[10px] uppercase text-[var(--color-gold-4)]">Province</dt><dd className="mt-0.5">{selectedMember.province}</dd></div>}
+            {selectedMember.phone && <div><dt className="text-[10px] uppercase text-[var(--color-gold-4)]">Phone</dt><dd className="mt-0.5">{selectedMember.phone}</dd></div>}
             {(viewerIsAdmin || selectedMember.id === viewerId) && (
               <div><dt className="text-[10px] uppercase text-[var(--color-gold-4)]">Total Paid</dt><dd className="mt-0.5 font-[var(--font-display)] text-[var(--color-gold)]">{fmtRs(paidBy[selectedMember.id] || 0)}</dd></div>
             )}
