@@ -1,7 +1,7 @@
-import { eq, desc } from 'drizzle-orm';
+import { eq, desc, and } from 'drizzle-orm';
 import { getMeOrRedirect } from '@/lib/auth-server';
 import { db } from '@/lib/db';
-import { payments } from '@/lib/db/schema';
+import { payments, loans } from '@/lib/db/schema';
 import { Card, CardHeader, CardTitle, CardBody } from '@/components/ui/card';
 import { fmtRs } from '@/lib/i18n/dict';
 import { ini } from '@/lib/utils';
@@ -10,12 +10,10 @@ import DonationForm from './donation-form';
 export default async function MyAccountPage() {
   const me = await getMeOrRedirect();
 
-  const myPayments = await db
-    .select()
-    .from(payments)
-    .where(eq(payments.memberId, me.id))
-    .orderBy(desc(payments.paidOn))
-    .limit(50);
+  const [myPayments, myLoans] = await Promise.all([
+    db.select().from(payments).where(eq(payments.memberId, me.id)).orderBy(desc(payments.paidOn)).limit(50),
+    db.select().from(loans).where(and(eq(loans.memberId, me.id), eq(loans.active, true))),
+  ]);
 
   const verifiedTotal = myPayments
     .filter((p) => !p.pendingVerify)
@@ -78,6 +76,39 @@ export default async function MyAccountPage() {
           <DonationForm />
         </CardBody>
       </Card>
+
+      {myLoans.length > 0 && (
+        <Card className="mb-4">
+          <CardHeader><CardTitle>My Active Loans</CardTitle></CardHeader>
+          <CardBody className="p-0">
+            <div className="divide-y divide-[rgba(214,210,199,0.06)]">
+              {myLoans.map((loan) => {
+                const remaining = loan.amount - loan.paid;
+                const pct = loan.amount > 0 ? Math.round((loan.paid / loan.amount) * 100) : 0;
+                return (
+                  <div key={loan.id} className="px-4 py-3">
+                    <div className="mb-1 flex items-start justify-between gap-3">
+                      <div className="text-sm font-medium text-[var(--color-cream)]">{loan.purpose}</div>
+                      <div className="text-right">
+                        <div className="font-[var(--font-display)] text-base font-bold text-[var(--color-gold)]">{fmtRs(loan.amount)}</div>
+                        <div className="text-[10px] text-[var(--txt-3)]">total</div>
+                      </div>
+                    </div>
+                    <div className="mb-1.5 h-1.5 w-full overflow-hidden rounded-full bg-black/20">
+                      <div className="h-full bg-gradient-to-r from-[var(--color-emerald-2)] to-[var(--color-gold)]" style={{ width: `${pct}%` }} />
+                    </div>
+                    <div className="flex justify-between text-xs text-[var(--txt-3)]">
+                      <span>Paid: <span className="text-[var(--color-gold-2)]">{fmtRs(loan.paid)}</span></span>
+                      <span>Remaining: <span className="text-[#f08585]">{fmtRs(remaining)}</span></span>
+                      <span>{pct}%</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </CardBody>
+        </Card>
+      )}
 
       <Card>
         <CardHeader>

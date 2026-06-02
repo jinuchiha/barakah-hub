@@ -4,6 +4,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useForm, Controller, type FieldErrors } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -36,6 +37,7 @@ type FormData = z.infer<typeof schema>;
  * a server error we restore the previous user object.
  */
 export default function EditProfileScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const { colors } = useTheme();
   const user = useAuthStore((s) => s.user);
@@ -78,12 +80,12 @@ export default function EditProfileScreen() {
         province: data.province || null,
       });
       setUser({ ...previous, ...updated });
-      Alert.alert('Saved', 'Your profile has been updated.', [
+      Alert.alert(t('editProfile.saved'), t('editProfile.profileUpdated'), [
         { text: 'OK', onPress: () => router.back() },
       ]);
     } catch (err) {
       setUser(previous);
-      Alert.alert('Failed to save', err instanceof Error ? err.message : 'Unknown error');
+      Alert.alert(t('editProfile.failedToSave'), err instanceof Error ? err.message : 'Unknown error');
     } finally {
       setSaving(false);
     }
@@ -111,7 +113,7 @@ export default function EditProfileScreen() {
         <TouchableOpacity onPress={() => router.back()} style={styles.headerBtn}>
           <MaterialCommunityIcons name="arrow-left" size={24} color={colors.text1} />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: colors.text1 }]}>Edit Profile</Text>
+        <Text style={[styles.headerTitle, { color: colors.text1 }]}>{t('editProfile.title')}</Text>
         <View style={styles.headerBtn} />
       </View>
 
@@ -127,7 +129,7 @@ export default function EditProfileScreen() {
               currentUrl={user.photoUrl}
               onUploadComplete={handleAvatarUploaded}
             />
-            <Text style={[styles.avatarHint, { color: colors.text4 }]}>Tap avatar to change photo</Text>
+            <Text style={[styles.avatarHint, { color: colors.text4 }]}>{t('editProfile.tapAvatarHint')}</Text>
           </View>
 
           <Controller
@@ -135,7 +137,7 @@ export default function EditProfileScreen() {
             name="nameEn"
             render={({ field: { onChange, value } }) => (
               <Input
-                label="Full Name (English)"
+                label={t('editProfile.fullNameEn')}
                 value={value}
                 onChangeText={onChange}
                 error={errors.nameEn?.message}
@@ -163,7 +165,7 @@ export default function EditProfileScreen() {
             name="fatherName"
             render={({ field: { onChange, value } }) => (
               <Input
-                label="Father's Name"
+                label={t('editProfile.fatherName')}
                 value={value ?? ''}
                 onChangeText={onChange}
                 error={errors.fatherName?.message}
@@ -178,7 +180,7 @@ export default function EditProfileScreen() {
             name="fatherDeceased"
             render={({ field: { onChange, value } }) => (
               <View style={styles.switchRow}>
-                <Text style={[styles.switchLabel, { color: colors.text2 }]}>Father has passed away (Marhoom)</Text>
+                <Text style={[styles.switchLabel, { color: colors.text2 }]}>{t('editProfile.fatherDeceased')}</Text>
                 <Switch
                   value={!!value}
                   onValueChange={onChange}
@@ -194,7 +196,7 @@ export default function EditProfileScreen() {
             name="phone"
             render={({ field: { onChange, value } }) => (
               <Input
-                label="Phone"
+                label={t('editProfile.phone')}
                 value={value ?? ''}
                 onChangeText={onChange}
                 keyboardType="phone-pad"
@@ -224,7 +226,7 @@ export default function EditProfileScreen() {
             name="province"
             render={({ field: { onChange, value } }) => (
               <Input
-                label="Province"
+                label={t('editProfile.province')}
                 value={value ?? ''}
                 onChangeText={onChange}
                 error={errors.province?.message}
@@ -235,9 +237,9 @@ export default function EditProfileScreen() {
           />
 
           <View style={styles.btnRow}>
-            <Button label="Cancel" onPress={() => router.back()} variant="ghost" style={styles.btn} />
+            <Button label={t('common.cancel')} onPress={() => router.back()} variant="ghost" style={styles.btn} />
             <Button
-              label={saving ? 'Saving…' : 'Save Changes'}
+              label={saving ? t('editProfile.saving') : t('editProfile.saveChanges')}
               onPress={handleSubmit(onSubmit, onInvalid)}
               loading={saving}
               disabled={saving}

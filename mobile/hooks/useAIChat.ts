@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { MMKV } from 'react-native-mmkv';
 import type { ChatMessage } from '@/lib/ai';
 import { sendChatMessage } from '@/lib/ai';
@@ -41,6 +41,11 @@ export function useAIChat(): AIChatState {
   const [error, setError] = useState<string | null>(null);
   const { language } = useAuthStore();
   const streamingRef = useRef<string>('');
+  const messagesRef = useRef<ChatMessage[]>(messages);
+
+  useEffect(() => {
+    messagesRef.current = messages;
+  }, [messages]);
 
   const appendChunk = useCallback((chunk: string) => {
     streamingRef.current += chunk;
@@ -58,6 +63,8 @@ export function useAIChat(): AIChatState {
     setIsStreaming(true);
     streamingRef.current = '';
 
+    const currentMessages = messagesRef.current;
+
     const userMsg: ChatMessage = {
       id: makeId(),
       role: 'user',
@@ -72,12 +79,11 @@ export function useAIChat(): AIChatState {
       createdAt: Date.now(),
     };
 
-    const updated = [...messages, userMsg, assistantMsg];
-    setMessages(updated);
+    setMessages([...currentMessages, userMsg, assistantMsg]);
 
     try {
       await sendChatMessage(
-        [...messages, userMsg],
+        [...currentMessages, userMsg],
         (language as SupportedLanguage) ?? 'en',
         appendChunk,
       );
@@ -87,12 +93,12 @@ export function useAIChat(): AIChatState {
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to send message');
-      setMessages((prev) => prev.slice(0, -1));
+      setMessages((prev) => prev.slice(0, -2));
     } finally {
       setIsStreaming(false);
       streamingRef.current = '';
     }
-  }, [isStreaming, messages, language, appendChunk]);
+  }, [isStreaming, language, appendChunk]);
 
   const clearHistory = useCallback(() => {
     setMessages([]);

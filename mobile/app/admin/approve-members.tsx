@@ -4,6 +4,7 @@ import {
 } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { Avatar } from '@/components/ui/Avatar';
@@ -29,6 +30,7 @@ function PendingMemberCard({
   onApprove: () => void;
   onReject: () => void;
 }) {
+  const { t } = useTranslation();
   const { colors } = useTheme();
 
   return (
@@ -38,9 +40,9 @@ function PendingMemberCard({
         <View style={styles.memberInfo}>
           <Text style={[styles.memberName, { color: colors.text1 }]}>{member.nameEn}</Text>
           {member.nameUr ? <Text style={[styles.memberNameUr, { color: colors.text3 }]}>{member.nameUr}</Text> : null}
-          <Text style={[styles.memberMeta, { color: colors.text4 }]}>Registered {formatDate(member.createdAt)}</Text>
+          <Text style={[styles.memberMeta, { color: colors.text4 }]}>{t('admin.registered')} {formatDate(member.createdAt)}</Text>
         </View>
-        <Badge label="Pending" variant="warning" pulse />
+        <Badge label={t('members.pending')} variant="warning" pulse />
       </View>
 
       <View style={[styles.detailsRow, { backgroundColor: colors.glass1, borderRadius: radius.sm }]}>
@@ -63,14 +65,15 @@ function PendingMemberCard({
       </View>
 
       <View style={styles.actionRow}>
-        <Button label="Reject" onPress={onReject} variant="danger" size="md" style={styles.actionBtn} />
-        <Button label="Approve" onPress={onApprove} variant="solid" size="md" style={styles.actionBtn} />
+        <Button label={t('admin.reject')} onPress={onReject} variant="danger" size="md" style={styles.actionBtn} />
+        <Button label={t('admin.approve')} onPress={onApprove} variant="solid" size="md" style={styles.actionBtn} />
       </View>
     </GlassCard>
   );
 }
 
 export default function ApproveMembersScreen() {
+  const { t } = useTranslation();
   const { colors } = useTheme();
   const { user } = useAuthStore();
   const { data: members, isLoading, refetch, isRefetching } = useMembers();
@@ -81,13 +84,13 @@ export default function ApproveMembersScreen() {
 
   const handleApprove = (member: Member) => {
     void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    Alert.alert('Approve Member', `Approve ${member.nameEn}?`, [
-      { text: 'Cancel', style: 'cancel' },
+    Alert.alert(t('admin.approveMember'), `Approve ${member.nameEn}?`, [
+      { text: t('common.cancel'), style: 'cancel' },
       {
-        text: 'Approve',
+        text: t('admin.approve'),
         onPress: async () => {
           try { await approveMutation.mutateAsync(member.id); }
-          catch (err) { Alert.alert('Error', err instanceof Error ? err.message : 'Failed'); }
+          catch (err) { Alert.alert(t('common.error'), err instanceof Error ? err.message : 'Failed'); }
         },
       },
     ]);
@@ -95,14 +98,14 @@ export default function ApproveMembersScreen() {
 
   const handleReject = (member: Member) => {
     void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-    Alert.alert('Reject Member', `Reject ${member.nameEn}? This cannot be undone.`, [
-      { text: 'Cancel', style: 'cancel' },
+    Alert.alert(t('admin.rejectMember'), `Reject ${member.nameEn}? This cannot be undone.`, [
+      { text: t('common.cancel'), style: 'cancel' },
       {
-        text: 'Reject',
+        text: t('admin.reject'),
         style: 'destructive',
         onPress: async () => {
           try { await rejectMutation.mutateAsync(member.id); }
-          catch (err) { Alert.alert('Error', err instanceof Error ? err.message : 'Failed'); }
+          catch (err) { Alert.alert(t('common.error'), err instanceof Error ? err.message : 'Failed'); }
         },
       },
     ]);
@@ -113,7 +116,7 @@ export default function ApproveMembersScreen() {
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.bg1 }]} edges={['bottom']}>
       {isLoading ? (
-        <EmptyState icon="loading" title="Loading..." />
+        <EmptyState icon="loading" title={t('common.loading')} />
       ) : (
         <FlashList
           data={pending}
@@ -122,10 +125,10 @@ export default function ApproveMembersScreen() {
           contentContainerStyle={styles.list}
           refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={colors.primary} />}
           ListHeaderComponent={
-            <Text style={[styles.count, { color: colors.text4 }]}>{pending.length} pending approval</Text>
+            <Text style={[styles.count, { color: colors.text4 }]}>{t('admin.pendingApprovalCount', { count: pending.length })}</Text>
           }
           ListEmptyComponent={
-            <EmptyState icon="account-check-outline" title="No pending members" subtitle="All applications have been reviewed" />
+            <EmptyState icon="account-check-outline" title={t('admin.noPendingMembers')} subtitle={t('admin.allReviewed')} />
           }
           renderItem={({ item }) => (
             <PendingMemberCard member={item} onApprove={() => handleApprove(item)} onReject={() => handleReject(item)} />

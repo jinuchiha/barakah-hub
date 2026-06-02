@@ -4,6 +4,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, { FadeInDown } from 'react-native-reanimated';
+import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/stores/auth.store';
 import { useTheme } from '@/lib/useTheme';
 import { useDashboard } from '@/hooks/useDashboard';
@@ -43,6 +44,7 @@ function ChartCard({
 }
 
 export default function AnalyticsScreen() {
+  const { t } = useTranslation();
   const { user } = useAuthStore();
   const { colors } = useTheme();
   const { data, isLoading, refetch, isRefetching } = useDashboard();
@@ -76,8 +78,8 @@ export default function AnalyticsScreen() {
     return (
       <EmptyState
         icon="shield-lock-outline"
-        title="Admin Only"
-        subtitle="Analytics are available to admins only."
+        title={t('analytics.adminOnly')}
+        subtitle={t('analytics.adminOnlySub')}
       />
     );
   }
@@ -90,8 +92,8 @@ export default function AnalyticsScreen() {
         showsVerticalScrollIndicator={false}
       >
         <Animated.View entering={FadeInDown.duration(400)} style={styles.header}>
-          <Text style={[styles.title, { color: colors.text1 }]}>Analytics</Text>
-          <Text style={[styles.sub, { color: colors.text4 }]}>Fund performance & insights</Text>
+          <Text style={[styles.title, { color: colors.text1 }]}>{t('analytics.title')}</Text>
+          <Text style={[styles.sub, { color: colors.text4 }]}>{t('analytics.subtitle')}</Text>
         </Animated.View>
 
         {isLoading ? (
@@ -99,8 +101,8 @@ export default function AnalyticsScreen() {
         ) : (
           <>
             <Animated.View entering={FadeInDown.duration(400).delay(100)}>
-              <SectionTitle label="FUND DISTRIBUTION" />
-              <ChartCard title="Pool Breakdown">
+              <SectionTitle label={t('analytics.fundDistribution')} />
+              <ChartCard title={t('analytics.poolBreakdown')}>
                 <PoolDonutChart
                   sadaqah={data?.fund.sadaqah ?? 0}
                   zakat={data?.fund.zakat ?? 0}
@@ -110,15 +112,15 @@ export default function AnalyticsScreen() {
             </Animated.View>
 
             <Animated.View entering={FadeInDown.duration(400).delay(200)}>
-              <SectionTitle label="MY PAYMENTS (LAST 6 MONTHS)" />
-              <ChartCard title="Monthly Contributions">
+              <SectionTitle label={t('analytics.myPayments')} />
+              <ChartCard title={t('analytics.monthlyContributions')}>
                 <PaymentBarChart data={paymentBarData} />
               </ChartCard>
             </Animated.View>
 
             <Animated.View entering={FadeInDown.duration(400).delay(300)}>
-              <SectionTitle label="FUND BREAKDOWN BY POOL" />
-              <ChartCard title="Sadaqah · Zakat · Qarz">
+              <SectionTitle label={t('analytics.fundBreakdown')} />
+              <ChartCard title={t('analytics.sadaqahZakatQarz')}>
                 <FundLineChart data={fundLineData} />
               </ChartCard>
             </Animated.View>
@@ -126,20 +128,20 @@ export default function AnalyticsScreen() {
         )}
 
         <Animated.View entering={FadeInDown.duration(400).delay(400)}>
-          <SectionTitle label="SUMMARY" />
+          <SectionTitle label={t('analytics.summary')} />
           <GlassCard style={styles.summaryCard}>
             <View style={styles.summaryRow}>
-              <Text style={[styles.summaryLabel, { color: colors.text3 }]}>Total Fund</Text>
+              <Text style={[styles.summaryLabel, { color: colors.text3 }]}>{t('analytics.totalFund')}</Text>
               <Text style={[styles.summaryValue, { color: colors.primary }]}>
                 PKR {((data?.fund.sadaqah ?? 0) + (data?.fund.zakat ?? 0) + (data?.fund.qarz ?? 0)).toLocaleString()}
               </Text>
             </View>
             <View style={styles.summaryRow}>
-              <Text style={[styles.summaryLabel, { color: colors.text3 }]}>Pending Payments</Text>
+              <Text style={[styles.summaryLabel, { color: colors.text3 }]}>{t('analytics.pendingPayments')}</Text>
               <Text style={[styles.summaryValue, { color: colors.text1 }]}>{data?.fund.pendingCount ?? 0}</Text>
             </View>
             <View style={styles.summaryRow}>
-              <Text style={[styles.summaryLabel, { color: colors.text3 }]}>My Payments</Text>
+              <Text style={[styles.summaryLabel, { color: colors.text3 }]}>{t('analytics.myPaymentsCount')}</Text>
               <Text style={[styles.summaryValue, { color: colors.text1 }]}>{payments?.length ?? 0}</Text>
             </View>
           </GlassCard>

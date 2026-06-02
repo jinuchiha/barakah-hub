@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity,
-  Alert, RefreshControl, Modal, KeyboardAvoidingView, Platform,
+  Alert, RefreshControl, Modal, KeyboardAvoidingView, Platform, FlatList,
 } from 'react-native';
 import { useRouter, Stack } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -13,6 +13,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import {
   useMessages, useSendToAdmin, useReplyMessage, useMarkMessagesRead, type Message,
 } from '@/hooks/useMessages';
+import { useMembers } from '@/hooks/useMembers';
 import { useAuthStore } from '@/stores/auth.store';
 import { isAdminOnly } from '@/lib/roles';
 import { formatRelativeTime } from '@/lib/format';
@@ -53,6 +54,7 @@ export default function MessagesScreen() {
   const { user } = useAuthStore();
   const isAdmin = isAdminOnly(user?.role);
   const { data, isLoading, refetch, isRefetching } = useMessages();
+  const { data: members } = useMembers();
   const toAdmin = useSendToAdmin();
   const reply = useReplyMessage();
   const markRead = useMarkMessagesRead();
@@ -60,6 +62,8 @@ export default function MessagesScreen() {
   const [compose, setCompose] = useState<ComposeTarget | null>(null);
   const [subject, setSubject] = useState('');
   const [body, setBody] = useState('');
+  const [memberSearch, setMemberSearch] = useState('');
+  const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null);
 
   // Mark received messages read when the inbox opens.
   useEffect(() => {
@@ -70,17 +74,40 @@ export default function MessagesScreen() {
   const openCompose = (target: ComposeTarget) => {
     setSubject(target.subject);
     setBody('');
+    setMemberSearch('');
+    setSelectedMemberId(target.toId ?? null);
     setCompose(target);
   };
+
+  const openAdminCompose = () => {
+    setSubject('');
+    setBody('');
+    setMemberSearch('');
+    setSelectedMemberId(null);
+    setCompose({ name: '', subject: '' });
+  };
+
+  const approvedMembers = (members ?? []).filter((m) => m.status === 'approved');
+  const filteredMembers = memberSearch.trim()
+    ? approvedMembers.filter((m) =>
+        m.nameEn.toLowerCase().includes(memberSearch.toLowerCase()) ||
+        m.nameUr?.includes(memberSearch),
+      )
+    : approvedMembers;
 
   const send = async () => {
     if (subject.trim().length < 3 || body.trim().length < 3) {
       Alert.alert('Incomplete', 'Add a subject and message.');
       return;
     }
+    const toId = compose?.toId ?? (isAdmin ? selectedMemberId ?? undefined : undefined);
+    if (isAdmin && !toId) {
+      Alert.alert('Incomplete', 'Select a member to message.');
+      return;
+    }
     try {
-      if (compose?.toId) {
-        await reply.mutateAsync({ toId: compose.toId, subject: subject.trim(), body: body.trim() });
+      if (toId) {
+        await reply.mutateAsync({ toId, subject: subject.trim(), body: body.trim() });
       } else {
         await toAdmin.mutateAsync({ subject: subject.trim(), body: body.trim() });
       }
@@ -100,7 +127,11 @@ export default function MessagesScreen() {
         <View style={styles.composeBar}>
           <Button label="✉  Message Admin" onPress={() => openCompose({ name: 'Admin', subject: '' })} variant="solid" fullWidth />
         </View>
-      ) : null}
+      ) : (
+        <View style={styles.composeBar}>
+          <Button label="+ New Message" onPress={openAdminCompose} variant="solid" fullWidth />
+        </View>
+      )}
 
       {isLoading ? (
         <EmptyState icon="loading" title="Loading messages..." />
@@ -123,8 +154,47 @@ export default function MessagesScreen() {
         <KeyboardAvoidingView style={styles.backdrop} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
           <GlassCard style={styles.sheet}>
             <Text style={[styles.sheetTitle, { color: colors.text1 }]}>
-              {compose?.toId ? `Reply to ${compose.name}` : 'Message Admin'}
+              {compose?.toId
+                ? `Reply to ${compose.name}`
+                : isAdmin
+                  ? selectedMemberId
+                    ? `New Message to ${approvedMembers.find((m) => m.id === selectedMemberId)?.nameEn ?? 'Member'}`
+                    : 'New Message'
+                  : 'Message Admin'}
             </Text>
+
+            {isAdmin && !compose?.toId ? (
+              <>
+                <TextInput
+                  style={[styles.input, { color: colors.text1, borderColor: colors.border1, backgroundColor: colors.glass1 }]}
+                  placeholder="Search member..." placeholderTextColor={colors.text4}
+                  value={memberSearch} onChangeText={setMemberSearch}
+                />
+                {!selectedMemberId ? (
+                  <FlatList
+                    data={filteredMembers}
+                    keyExtractor={(m) => m.id}
+                    style={styles.memberList}
+                    keyboardShouldPersistTaps="handled"
+                    renderItem={({ item }) => (
+                      <TouchableOpacity
+                        style={[styles.memberRow, { borderBottomColor: colors.border1 }]}
+                        onPress={() => { setSelectedMemberId(item.id); setMemberSearch(''); }}
+                      >
+                        <Avatar name={item.nameEn} size="sm" />
+                        <Text style={[styles.memberName, { color: colors.text1 }]}>{item.nameEn}</Text>
+                      </TouchableOpacity>
+                    )}
+                  />
+                ) : (
+                  <TouchableOpacity onPress={() => setSelectedMemberId(null)} style={styles.replyBtn}>
+                    <MaterialCommunityIcons name="close-circle-outline" size={14} color={colors.primary} />
+                    <Text style={[styles.replyText, { color: colors.primary }]}>Change member</Text>
+                  </TouchableOpacity>
+                )}
+              </>
+            ) : null}
+
             <TextInput
               style={[styles.input, { color: colors.text1, borderColor: colors.border1, backgroundColor: colors.glass1 }]}
               placeholder="Subject" placeholderTextColor={colors.text4}
@@ -169,4 +239,10 @@ const styles = StyleSheet.create({
   },
   bodyInput: { minHeight: 100, textAlignVertical: 'top' },
   sheetBtns: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.xs },
+  memberList: { maxHeight: 160, marginBottom: spacing.sm },
+  memberRow: {
+    flexDirection: 'row', alignItems: 'center', gap: spacing.sm,
+    paddingVertical: spacing.sm, borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  memberName: { fontSize: 13, fontFamily: 'Inter_400Regular' },
 });

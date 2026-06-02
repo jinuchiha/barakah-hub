@@ -10,6 +10,6 @@
       "schedule": "0 9 1 * *"
     }
   ],
-  "buildCommand": "cd next-app && pnpm build",
-  "installCommand": "cd next-app && pnpm install --frozen-lockfile"
+  "buildCommand": "pnpm build",
+  "installCommand": "pnpm install --frozen-lockfile"
 }
