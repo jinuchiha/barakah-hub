@@ -122,10 +122,7 @@ function NavItem({ n, isActive, locale, onNavigate, badge }: {
         boxShadow: 'inset 2.5px 0 0 #c89b3c',
       } : { color: 'rgba(236,235,230,0.50)' }}
     >
-      <Icon
-        className="size-[15px] shrink-0"
-        style={{ color: isActive ? '#c89b3c' : undefined }}
-      />
+      <Icon className={cn('size-[15px] shrink-0', isActive ? 'text-[#c89b3c]' : 'text-[rgba(236,235,230,0.35)]')} />
       <span className="flex-1 truncate">{locale === 'ur' ? n.labelUr : n.label}</span>
       {!!badge && badge > 0 && (
         <span className="num ml-auto grid min-w-[20px] place-items-center rounded-full px-1.5 text-[10px] font-bold"
