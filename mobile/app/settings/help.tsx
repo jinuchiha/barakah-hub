@@ -101,6 +101,15 @@ export default function HelpScreen() {
         ))}
 
         <TouchableOpacity
+          onPress={() => router.push('/about' as never)}
+          style={[styles.aboutBtn, { backgroundColor: colors.glass2, borderColor: colors.border1 }]}
+        >
+          <MaterialCommunityIcons name="book-open-outline" size={18} color={colors.gold} />
+          <Text style={[styles.aboutBtnText, { color: colors.gold }]}>About This Fund</Text>
+          <MaterialCommunityIcons name="chevron-right" size={18} color={colors.text4} style={styles.chevron} />
+        </TouchableOpacity>
+
+        <TouchableOpacity
           onPress={() => router.push('/settings/contact-admin')}
           style={[styles.contactBtn, { backgroundColor: colors.primaryDim, borderColor: colors.primary }]}
         >
@@ -152,12 +161,24 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter_400Regular',
     lineHeight: 20,
   },
+  aboutBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: spacing.lg,
+    paddingVertical: 14,
+    paddingHorizontal: spacing.md,
+    borderRadius: radius.md,
+    borderWidth: 1,
+  },
+  aboutBtnText: { flex: 1, fontSize: 14, fontFamily: 'Inter_600SemiBold' },
+  chevron: { marginLeft: 'auto' },
   contactBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    marginTop: spacing.lg,
+    marginTop: spacing.sm,
     paddingVertical: 12,
     borderRadius: radius.full,
     borderWidth: 1.5,

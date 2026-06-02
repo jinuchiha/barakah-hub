@@ -19,6 +19,7 @@ interface FundConfig {
   goalAmount?: number;
   goalLabelEn?: string;
   goalLabelUr?: string;
+  goalDeadline?: string | null;
   easyPaiseName?: string | null;
   easyPaiseNumber?: string | null;
 }
@@ -31,6 +32,8 @@ export default function AdminConfigScreen() {
   const [pledge, setPledge] = useState('1000');
   const [goalAmount, setGoalAmount] = useState('');
   const [goalEn, setGoalEn] = useState('');
+  const [goalUr, setGoalUr] = useState('');
+  const [goalDeadline, setGoalDeadline] = useState('');
   const [easyPaiseName, setEasyPaiseName] = useState('');
   const [easyPaiseNumber, setEasyPaiseNumber] = useState('');
   const [loading, setLoading] = useState(false);
@@ -43,6 +46,8 @@ export default function AdminConfigScreen() {
       setPledge(String(data.defaultMonthlyPledge ?? 1000));
       setGoalAmount(data.goalAmount ? String(data.goalAmount) : '');
       setGoalEn(data.goalLabelEn ?? '');
+      setGoalUr(data.goalLabelUr ?? '');
+      setGoalDeadline(data.goalDeadline ?? '');
       setEasyPaiseName(data.easyPaiseName ?? '');
       setEasyPaiseNumber(data.easyPaiseNumber ?? '');
       setLoaded(true);
@@ -59,6 +64,8 @@ export default function AdminConfigScreen() {
         defaultMonthlyPledge: parseInt(pledge, 10) || 1000,
         goalAmount: parseInt(goalAmount, 10) || 0,
         goalLabelEn: goalEn.trim() || undefined,
+        goalLabelUr: goalUr.trim() || undefined,
+        goalDeadline: goalDeadline.trim() || null,
         easyPaiseName: easyPaiseName.trim() || null,
         easyPaiseNumber: easyPaiseNumber.trim() || null,
       });
@@ -135,6 +142,20 @@ export default function AdminConfigScreen() {
             value={goalEn}
             onChangeText={setGoalEn}
             placeholder="e.g. Eid-ul-Fitr Goal"
+          />
+          <Input
+            label="Goal label (Urdu)"
+            value={goalUr}
+            onChangeText={setGoalUr}
+            placeholder="e.g. عید الفطر تک"
+          />
+          <Input
+            label="Goal Deadline (YYYY-MM-DD optional)"
+            value={goalDeadline}
+            onChangeText={setGoalDeadline}
+            placeholder="e.g. 2026-12-31"
+            keyboardType="numbers-and-punctuation"
+            leftIcon="calendar-outline"
           />
           <Input
             label="Target amount (PKR, 0 = no goal)"

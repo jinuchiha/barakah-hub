@@ -104,6 +104,11 @@ export default async function MyAccountPage() {
                       <span>Remaining: <span className="text-[#f08585]">{fmtRs(remaining)}</span></span>
                       <span>{pct}%</span>
                     </div>
+                    {loan.expectedReturn && (
+                      <div className="mt-1.5 text-xs text-[var(--txt-4)]">
+                        Due: <span className="text-[var(--txt-2)]">{new Date(loan.expectedReturn).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                      </div>
+                    )}
                   </div>
                 );
               })}

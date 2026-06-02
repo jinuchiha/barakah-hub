@@ -139,6 +139,8 @@ export default function RootLayout() {
                   <Stack.Screen name="settings/theme" options={{ animation: 'slide_from_right' }} />
                   <Stack.Screen name="settings/reminders" options={{ animation: 'slide_from_right' }} />
                   <Stack.Screen name="tools/index" options={{ animation: 'slide_from_right' }} />
+                  <Stack.Screen name="search" options={{ animation: 'fade' }} />
+                  <Stack.Screen name="about" options={{ animation: 'slide_from_right' }} />
                 </Stack>
                 <OfflineBanner />
               </AuthInitializer>

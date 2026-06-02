@@ -286,7 +286,7 @@ function DashboardScreen() {
   const { colors } = useTheme();
   const { t } = useTranslation();
   const { data, isLoading, error, refetch, isRefetching } = useDashboard();
-  const [searchVisible, setSearchVisible] = useState(false);
+  const [searchVisible, setSearchVisible] = useState(false); // kept for potential reuse
 
   if (!isLoading && error) {
     return <EmptyState icon="wifi-off" title="Could not load dashboard" subtitle={error.message} actionLabel="Retry" onAction={() => refetch()} />;
@@ -320,7 +320,7 @@ function DashboardScreen() {
           displayName={displayName}
           notificationCount={notificationCount}
           onBell={() => router.push('/notifications')}
-          onSearch={() => setSearchVisible(true)}
+          onSearch={() => router.push('/search' as never)}
         />
 
         <TotalFundHero fund={data?.fund} />
