@@ -6,6 +6,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/lib/useTheme';
 import { spacing, radius } from '@/lib/theme';
 import type { Achievement } from '@/lib/achievements';
@@ -83,16 +84,17 @@ function AchievementCard({
   unlocked: boolean;
 }) {
   const { colors } = useTheme();
+  const { t } = useTranslation();
 
   return (
     <View style={[styles.card, { backgroundColor: colors.glass2, borderColor: unlocked ? `${achievement.color}30` : colors.border1 }]}>
       <AchievementBadge achievement={achievement} unlocked={unlocked} />
       <View style={styles.info}>
         <Text style={[styles.title, { color: unlocked ? colors.text1 : colors.text3 }]}>
-          {achievement.titleKey.split('.')[1]?.replace(/([A-Z])/g, ' $1').trim() ?? achievement.id}
+          {t(achievement.titleKey)}
         </Text>
         <Text style={[styles.desc, { color: colors.text4 }]} numberOfLines={2}>
-          {unlocked ? achievement.description : 'Keep contributing to unlock'}
+          {unlocked ? achievement.description : t('achievements.lockedDesc')}
         </Text>
       </View>
     </View>

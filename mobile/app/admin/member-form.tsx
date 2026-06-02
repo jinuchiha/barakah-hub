@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity,
   Alert, KeyboardAvoidingView, Platform, Switch,
@@ -13,6 +13,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { useMembers, useAddMember, useEditMember } from '@/hooks/useMembers';
 import { useAuthStore } from '@/stores/auth.store';
 import { isAdminOnly, roleLabel } from '@/lib/roles';
+import { LoadingScreen } from '@/components/ui/LoadingScreen';
 import { useTheme } from '@/lib/useTheme';
 import { spacing, radius } from '@/lib/theme';
 import type { Member, Role, MemberStatus } from '@/types';
@@ -44,9 +45,9 @@ function Segmented<T extends string>({ options, value, onChange, labelOf }: {
 export default function MemberFormScreen() {
   const router = useRouter();
   const { colors } = useTheme();
-  const { user } = useAuthStore();
+  const { user, isLoading: authLoading } = useAuthStore();
   const { id } = useLocalSearchParams<{ id?: string }>();
-  const { data: members } = useMembers();
+  const { data: members, isLoading: membersLoading } = useMembers();
   const add = useAddMember();
   const edit = useEditMember();
 
@@ -67,6 +68,21 @@ export default function MemberFormScreen() {
   const [spouseSearch, setSpouseSearch] = useState('');
   const [pickingSpouse, setPickingSpouse] = useState(false);
 
+  useEffect(() => {
+    if (!existing) return;
+    setNameEn(existing.nameEn ?? '');
+    setNameUr(existing.nameUr ?? '');
+    setUsername(existing.username ?? '');
+    setFatherName(existing.fatherName && existing.fatherName !== '—' ? existing.fatherName : '');
+    setFatherDeceased(existing.fatherDeceased ?? false);
+    setPhone(existing.phone ?? '');
+    setCity(existing.city ?? '');
+    setPledge(String(existing.monthlyPledge ?? 1000));
+    setRole(existing.role ?? 'member');
+    setStatus(existing.status ?? 'approved');
+    setSpouseId(existing.spouseId ?? null);
+  }, [existing?.id]);
+
   const spouse = members?.find((m) => m.id === spouseId);
   const spouseCandidates = useMemo(() => {
     const q = spouseSearch.trim().toLowerCase();
@@ -76,7 +92,9 @@ export default function MemberFormScreen() {
       .slice(0, 15);
   }, [members, spouseSearch, id]);
 
+  if (authLoading) return <LoadingScreen />;
   if (!isAdminOnly(user?.role)) return <Redirect href="/admin" />;
+  if (isEdit && membersLoading) return <LoadingScreen />;
 
   const submit = async () => {
     if (nameEn.trim().length < 2) { Alert.alert('Name required'); return; }

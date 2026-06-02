@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { getMeOrRedirect } from '@/lib/auth-server';
 import { Card, CardHeader, CardTitle, CardBody } from '@/components/ui/card';
 import { formatHijriDate } from '@/lib/hijri';

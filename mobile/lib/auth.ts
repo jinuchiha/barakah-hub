@@ -34,7 +34,14 @@ export async function signIn(input: SignInInput): Promise<MemberWithSession> {
     await saveSessionToken(data.session.token);
   }
 
-  const member = await fetchMyMember();
+  let member: MemberWithSession;
+  try {
+    member = await fetchMyMember();
+  } catch (err) {
+    // Roll back saved token — don't leave app in half-auth state
+    await clearSessionToken();
+    throw err;
+  }
   await saveUser({ ...member, email: data.user.email });
   return { ...member, email: data.user.email };
 }
@@ -79,6 +86,7 @@ export async function signUp(input: SignUpInput): Promise<void> {
     fatherDeceased: input.fatherDeceased,
     phone: input.phone,
     monthlyPledge: input.monthlyPledge,
+    joinCode: input.joinCode,
   });
 }
 

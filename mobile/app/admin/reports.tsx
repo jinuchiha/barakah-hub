@@ -11,6 +11,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { useAnnualReport, useAuditLog, fetchExportCsv } from '@/hooks/useReports';
 import { useAuthStore } from '@/stores/auth.store';
 import { isAdminOnly } from '@/lib/roles';
+import { LoadingScreen } from '@/components/ui/LoadingScreen';
 import { shareCsv } from '@/lib/share';
 import { formatPKR, formatRelativeTime } from '@/lib/format';
 import { useTheme } from '@/lib/useTheme';
@@ -28,13 +29,14 @@ const EXPORTS: Array<{ kind: 'members' | 'fund' | 'loans' | 'audit'; label: stri
 
 export default function ReportsScreen() {
   const { colors } = useTheme();
-  const { user } = useAuthStore();
+  const { user, isLoading: authLoading } = useAuthStore();
   const [year, setYear] = useState(new Date().getFullYear());
   const [actionFilter, setActionFilter] = useState('');
   const annual = useAnnualReport(year);
   const audit = useAuditLog();
   const [exporting, setExporting] = useState<string | null>(null);
 
+  if (authLoading) return <LoadingScreen />;
   if (!isAdminOnly(user?.role)) return <Redirect href="/admin" />;
 
   const currentYear = new Date().getFullYear();

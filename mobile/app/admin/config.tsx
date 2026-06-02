@@ -7,6 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { LoadingScreen } from '@/components/ui/LoadingScreen';
 import { useAuthStore } from '@/stores/auth.store';
 import { isAdminOnly } from '@/lib/roles';
 import { api } from '@/lib/api';
@@ -26,7 +27,7 @@ interface FundConfig {
 
 export default function AdminConfigScreen() {
   const { colors } = useTheme();
-  const { user } = useAuthStore();
+  const { user, isLoading: authLoading } = useAuthStore();
   const [config, setConfig] = useState<FundConfig>({});
   const [thresh, setThresh] = useState(50);
   const [pledge, setPledge] = useState('1000');
@@ -54,6 +55,7 @@ export default function AdminConfigScreen() {
     }).catch(() => Alert.alert('Error', 'Could not load configuration'));
   }, []);
 
+  if (authLoading) return <LoadingScreen />;
   if (!isAdminOnly(user?.role)) return <Redirect href="/admin" />;
 
   const save = async () => {

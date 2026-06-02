@@ -84,7 +84,7 @@ export default function MembersScreen() {
     if (!data) return [];
     return data.filter((m) => {
       const q = search.toLowerCase();
-      const matchSearch = !q || m.nameEn.toLowerCase().includes(q) || m.nameUr.includes(q) || (m.city ?? '').toLowerCase().includes(q);
+      const matchSearch = !q || m.nameEn.toLowerCase().includes(q) || (m.nameUr ?? '').toLowerCase().includes(q) || (m.city ?? '').toLowerCase().includes(q);
       const matchFilter = filterMode === 'all' || (filterMode === 'admin' ? m.role === 'admin' : filterMode === 'member' ? m.role === 'member' : m.status === 'pending');
       return matchSearch && matchFilter;
     });

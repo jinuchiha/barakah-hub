@@ -36,9 +36,9 @@ function SuccessView({ onBack }: { onBack: () => void }) {
           <View style={[styles.successIconCircle, { backgroundColor: colors.primaryDim }]}>
             <MaterialCommunityIcons name="check-circle" size={44} color={colors.primary} />
           </View>
-          <Text style={[styles.successTitle, { color: colors.text1 }]}>Check Your Inbox</Text>
+          <Text style={[styles.successTitle, { color: colors.text1 }]}>{t('auth.checkInbox')}</Text>
           <Text style={[styles.successBody, { color: colors.text3 }]}>
-            A password reset link has been sent to your email address.
+            {t('auth.checkInboxBody')}
           </Text>
           <Button label={t('auth.backToLogin')} onPress={onBack} variant="primary" fullWidth style={styles.backBtn} />
         </Animated.View>
@@ -88,7 +88,7 @@ export default function ForgotPasswordScreen() {
                 </View>
                 <Text style={[styles.title, { color: colors.text1 }]}>{t('auth.forgotPassword')}</Text>
                 <Text style={[styles.subtitle, { color: colors.text3 }]}>
-                  Enter your email and we'll send a reset link.
+                  {t('auth.forgotSubtitle')}
                 </Text>
               </Animated.View>
 

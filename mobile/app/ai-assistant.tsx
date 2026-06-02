@@ -8,6 +8,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Animated, { FadeInDown, FadeIn } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/lib/useTheme';
 import { spacing, radius } from '@/lib/theme';
 import { useAIChat } from '@/hooks/useAIChat';
@@ -15,14 +16,15 @@ import { ChatBubble } from '@/components/ChatBubble';
 import { ChatInput } from '@/components/ChatInput';
 import type { ChatMessage } from '@/lib/ai';
 
-const SUGGESTIONS = [
-  { key: 'zakat', label: 'What is my Zakat for this month?', icon: 'hand-coin-outline' },
-  { key: 'qarz', label: 'How does Qarz-e-Hasana work?', icon: 'handshake-outline' },
-  { key: 'contributions', label: 'Explain Sadaqah types', icon: 'heart-outline' },
-];
+const SUGGESTION_KEYS = [
+  { key: 'zakat', icon: 'hand-coin-outline' },
+  { key: 'qarz', icon: 'handshake-outline' },
+  { key: 'contributions', icon: 'heart-outline' },
+] as const;
 
 function EmptyState({ onSuggestion }: { onSuggestion: (text: string) => void }) {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   return (
     <Animated.View entering={FadeIn.duration(400)} style={styles.empty}>
       <LinearGradient
@@ -32,25 +34,28 @@ function EmptyState({ onSuggestion }: { onSuggestion: (text: string) => void }) 
       <View style={[styles.emptyIcon, { backgroundColor: colors.primaryDim }]}>
         <MaterialCommunityIcons name="robot-happy-outline" size={40} color={colors.primary} />
       </View>
-      <Text style={[styles.emptyTitle, { color: colors.text1 }]}>Barakah Assistant</Text>
+      <Text style={[styles.emptyTitle, { color: colors.text1 }]}>{t('ai.title')}</Text>
       <Text style={[styles.emptySubtitle, { color: colors.text3 }]}>
-        Ask about Zakat, Sadaqah, Qarz-e-Hasana, or any Islamic finance question.
+        {t('ai.emptySubtitle')}
       </Text>
       <View style={styles.suggestions}>
-        {SUGGESTIONS.map((s, i) => (
-          <Animated.View key={s.key} entering={FadeInDown.duration(300).delay(i * 80)}>
-            <TouchableOpacity
-              style={[styles.suggestionBtn, { backgroundColor: colors.glass2, borderColor: colors.border2 }]}
-              onPress={() => onSuggestion(s.label)}
-              activeOpacity={0.8}
-              accessibilityLabel={s.label}
-              accessibilityRole="button"
-            >
-              <MaterialCommunityIcons name={s.icon as never} size={16} color={colors.primary} />
-              <Text style={[styles.suggestionText, { color: colors.text2 }]}>{s.label}</Text>
-            </TouchableOpacity>
-          </Animated.View>
-        ))}
+        {SUGGESTION_KEYS.map((s, i) => {
+          const label = t(`ai.suggestions.${s.key}`);
+          return (
+            <Animated.View key={s.key} entering={FadeInDown.duration(300).delay(i * 80)}>
+              <TouchableOpacity
+                style={[styles.suggestionBtn, { backgroundColor: colors.glass2, borderColor: colors.border2 }]}
+                onPress={() => onSuggestion(label)}
+                activeOpacity={0.8}
+                accessibilityLabel={label}
+                accessibilityRole="button"
+              >
+                <MaterialCommunityIcons name={s.icon as never} size={16} color={colors.primary} />
+                <Text style={[styles.suggestionText, { color: colors.text2 }]}>{label}</Text>
+              </TouchableOpacity>
+            </Animated.View>
+          );
+        })}
       </View>
     </Animated.View>
   );
@@ -86,12 +91,13 @@ function MessageList({ messages, isStreaming }: { messages: ChatMessage[]; isStr
 export default function AIAssistantScreen() {
   const router = useRouter();
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const { messages, isStreaming, error, send, clearHistory } = useAIChat();
 
   const handleClear = () => {
-    Alert.alert('Clear Chat', 'Delete all chat history?', [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Clear', style: 'destructive', onPress: clearHistory },
+    Alert.alert(t('ai.clearChat'), t('ai.clearChatConfirm'), [
+      { text: t('common.cancel'), style: 'cancel' },
+      { text: t('ai.clear'), style: 'destructive', onPress: clearHistory },
     ]);
   };
 
@@ -103,7 +109,7 @@ export default function AIAssistantScreen() {
         </TouchableOpacity>
         <View style={styles.headerCenter}>
           <View style={[styles.aiDot, { backgroundColor: isStreaming ? colors.gold : colors.primary }]} />
-          <Text style={[styles.headerTitle, { color: colors.text1 }]}>Barakah Assistant</Text>
+          <Text style={[styles.headerTitle, { color: colors.text1 }]}>{t('ai.title')}</Text>
         </View>
         <TouchableOpacity onPress={handleClear} style={styles.iconBtn}>
           <MaterialCommunityIcons name="delete-outline" size={22} color={colors.text3} />
@@ -130,7 +136,7 @@ export default function AIAssistantScreen() {
         <ChatInput
           onSend={send}
           disabled={isStreaming}
-          placeholder="Ask about Zakat, Sadaqah, loans..."
+          placeholder={t('ai.placeholder')}
         />
       </KeyboardAvoidingView>
     </SafeAreaView>

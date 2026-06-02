@@ -46,9 +46,9 @@ export default function VerifyButtons({
   }
 
   function onSupervisorReject() {
-    const note = window.prompt('Reason for rejecting? (optional)') ?? undefined;
+    const note = typeof window !== 'undefined' ? window.prompt('Reason for rejecting? (optional)') : '';
     if (note === null) return;       // user cancelled the prompt
-    call(() => supervisorRejectPayment(paymentId, note), 'Rejected');
+    call(() => supervisorRejectPayment(paymentId, note ?? undefined), 'Rejected');
   }
 
   function onAdminVerify() {
@@ -56,12 +56,14 @@ export default function VerifyButtons({
   }
 
   function onAdminResend() {
-    if (!window.confirm('Send this payment back to supervisor for re-approval?')) return;
+    const ok = typeof window !== 'undefined' ? window.confirm('Send this payment back to supervisor for re-approval?') : true;
+    if (!ok) return;
     call(() => adminResendPaymentToSupervisor(paymentId), 'Sent back to supervisor');
   }
 
   function onAdminDelete() {
-    if (!window.confirm('Permanently delete this payment? This cannot be undone.')) return;
+    const ok = typeof window !== 'undefined' ? window.confirm('Permanently delete this payment? This cannot be undone.') : false;
+    if (!ok) return;
     call(() => adminDeletePayment(paymentId), 'Deleted');
   }
 

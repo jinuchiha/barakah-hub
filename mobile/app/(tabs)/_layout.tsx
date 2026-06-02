@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Tabs, Redirect } from 'expo-router';
 import { useAuthStore } from '@/stores/auth.store';
@@ -25,20 +25,28 @@ function CustomTabBar() {
     return 'index';
   };
 
-  const handleTabPress = (tab: TabRoute) => {
-    if (tab === 'index') router.push('/(tabs)/');
-    else router.push(`/(tabs)/${tab}`);
-  };
+  const activeTab = getActiveTab();
+
+  const handleTabPress = useCallback((tab: TabRoute) => {
+    const target = tab === 'index' ? '/(tabs)/' : `/(tabs)/${tab}`;
+    if (activeTab === tab) {
+      router.replace(target as never); // scroll to top / don't stack
+    } else {
+      router.push(target as never);
+    }
+  }, [activeTab, router]);
 
   return (
     <BottomNav
-      activeTab={getActiveTab()}
+      activeTab={activeTab}
       onTabPress={handleTabPress}
       notificationCount={notificationCount}
       isAdmin={canManageFunds(user?.role)}
     />
   );
 }
+
+const renderTabBar = () => <CustomTabBar />;
 
 export default function TabsLayout() {
   const { isAuthenticated } = useAuthStore();
@@ -52,7 +60,7 @@ export default function TabsLayout() {
     <View style={[styles.container, { backgroundColor: colors.bg1 }]}>
       <Tabs
         screenOptions={{ headerShown: false, tabBarStyle: { display: 'none' } }}
-        tabBar={() => <CustomTabBar />}
+        tabBar={renderTabBar}
       >
         <Tabs.Screen name="index" />
         <Tabs.Screen name="payments" />

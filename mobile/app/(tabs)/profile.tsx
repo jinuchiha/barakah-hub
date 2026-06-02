@@ -100,10 +100,10 @@ function ProfileScreen() {
   const activeLoans = loans?.filter((l) => l.active).length ?? 0;
 
   const handleLogout = () => {
-    Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
-      { text: 'Cancel', style: 'cancel' },
+    Alert.alert(t('profile.signOut'), t('profile.signOutConfirm'), [
+      { text: t('common.cancel'), style: 'cancel' },
       {
-        text: 'Sign Out',
+        text: t('profile.signOut'),
         style: 'destructive',
         onPress: async () => {
           setLoggingOut(true);
@@ -118,7 +118,7 @@ function ProfileScreen() {
       await setScreenshotProtection(val);
       setScreenshotProtected(val);
     } catch {
-      Alert.alert('Error', 'Could not change screenshot protection.');
+      Alert.alert(t('common.error'), t('profile.screenshotError'));
     }
   };
 
@@ -127,7 +127,7 @@ function ProfileScreen() {
       if (val) await enableBiometric();
       else await disableBiometric();
     } catch {
-      Alert.alert('Error', 'Could not update biometric lock.');
+      Alert.alert(t('common.error'), t('profile.biometricError'));
     }
   };
 
@@ -148,41 +148,41 @@ function ProfileScreen() {
             <Badge label={roleLabel(user.role)} variant={canManageFunds(user.role) ? 'info' : 'success'} />
           </View>
           <Text style={[styles.joinDate, { color: colors.text4 }]}>
-            Member since {user.joinedAt ? formatDate(user.joinedAt) : ''} · #{user.id.slice(0, 8).toUpperCase()}
+            {t('profile.memberSince')} {user.joinedAt ? formatDate(user.joinedAt) : ''} · #{user.id.slice(0, 8).toUpperCase()}
           </Text>
         </Animated.View>
 
         <Animated.View entering={FadeInDown.duration(400).delay(80)} style={styles.statsRow}>
-          <StatCard icon="cash-check" value={formatPKR(totalDonated)} label="Total Donated" style={styles.stat} />
-          <StatCard icon="hand-heart-outline" value={formatPKR(user.monthlyPledge)} label="Monthly Pledge" iconColor={colors.gold} style={styles.stat} />
-          <StatCard icon="handshake-outline" value={`${activeLoans}`} label="Active Loans" iconColor={colors.accent} style={styles.stat} />
+          <StatCard icon="cash-check" value={formatPKR(totalDonated)} label={t('profile.totalDonated')} style={styles.stat} />
+          <StatCard icon="hand-heart-outline" value={formatPKR(user.monthlyPledge)} label={t('profile.monthlyPledge')} iconColor={colors.gold} style={styles.stat} />
+          <StatCard icon="handshake-outline" value={`${activeLoans}`} label={t('profile.activeLoans')} iconColor={colors.accent} style={styles.stat} />
         </Animated.View>
 
         <SettingsGroup title={t('profile.account')}>
           <SettingsRow icon="account-edit-outline" label={t('profile.editProfile')} onPress={() => router.push('/settings/edit-profile')} />
-          <SettingsRow icon="lock-reset" label="Change Password" onPress={() => router.push('/settings/change-password')} />
-          <SettingsRow icon="family-tree" label="Family Tree" onPress={() => router.push('/family-tree')} />
-          <SettingsRow icon="trophy-outline" label="Achievements" onPress={() => router.push('/achievements')} />
-          <SettingsRow icon="qrcode-scan" label="My QR Code" onPress={() => router.push('/qr-pay')} />
-          <SettingsRow icon="tools" label="Islamic Tools" onPress={() => router.push('/tools')} />
-          <SettingsRow icon="robot-outline" label="AI Assistant" onPress={() => router.push('/ai-assistant')} />
+          <SettingsRow icon="lock-reset" label={t('profile.changePassword')} onPress={() => router.push('/settings/change-password')} />
+          <SettingsRow icon="family-tree" label={t('profile.familyTree')} onPress={() => router.push('/family-tree')} />
+          <SettingsRow icon="trophy-outline" label={t('profile.achievements')} onPress={() => router.push('/achievements')} />
+          <SettingsRow icon="qrcode-scan" label={t('profile.myQrCode')} onPress={() => router.push('/qr-pay')} />
+          <SettingsRow icon="tools" label={t('profile.islamicTools')} onPress={() => router.push('/tools')} />
+          <SettingsRow icon="robot-outline" label={t('profile.aiAssistant')} onPress={() => router.push('/ai-assistant')} />
         </SettingsGroup>
 
         <SettingsGroup title={t('profile.preferences')}>
           <SettingsRow
             icon="translate"
-            label="Language"
+            label={t('profile.language')}
             value={language?.toUpperCase() ?? 'EN'}
             onPress={() => router.push('/settings/language')}
           />
           <SettingsRow
             icon="palette-outline"
-            label="Appearance"
+            label={t('profile.appearance')}
             onPress={() => router.push('/settings/theme')}
           />
-          <SettingsRow icon="bell-outline" label="Notifications" onPress={() => router.push('/notifications')} />
-          <SettingsRow icon="message-text-outline" label="Messages" onPress={() => router.push('/messages')} />
-          <SettingsRow icon="alarm" label="Reminders" onPress={() => router.push('/settings/reminders')} />
+          <SettingsRow icon="bell-outline" label={t('profile.notifications')} onPress={() => router.push('/notifications')} />
+          <SettingsRow icon="message-text-outline" label={t('profile.messages')} onPress={() => router.push('/messages')} />
+          <SettingsRow icon="alarm" label={t('profile.reminders')} onPress={() => router.push('/settings/reminders')} />
         </SettingsGroup>
 
         <SettingsGroup title={t('profile.security')}>
@@ -201,13 +201,13 @@ function ProfileScreen() {
           />
           <SettingsRow
             icon="dialpad"
-            label="PIN Lock"
-            value={pinEnabled ? 'Enabled' : 'Disabled'}
+            label={t('profile.pinLock')}
+            value={pinEnabled ? t('profile.enabled') : t('profile.disabled')}
             onPress={() => router.push('/(auth)/pin-setup')}
           />
           <SettingsRow
             icon="camera-off"
-            label="Screenshot Protection"
+            label={t('profile.screenshotProtection')}
             rightNode={
               <Switch
                 value={screenshotProtected}
@@ -220,28 +220,28 @@ function ProfileScreen() {
           />
           <SettingsRow
             icon="database-outline"
-            label="Offline Cache"
+            label={t('profile.offlineCache')}
             value={`${(cacheSize / 1024).toFixed(0)} KB`}
             chevron={false}
           />
         </SettingsGroup>
 
         {canManageFunds(user.role) ? (
-          <SettingsGroup title={isAdminOnly(user.role) ? 'ADMIN' : 'SUPERVISOR'}>
+          <SettingsGroup title={isAdminOnly(user.role) ? t('profile.adminGroup') : t('profile.supervisorGroup')}>
             <SettingsRow
               icon="shield-crown-outline"
-              label={isAdminOnly(user.role) ? 'Admin Panel' : 'Supervisor Panel'}
+              label={isAdminOnly(user.role) ? t('profile.adminPanel') : t('profile.supervisorPanel')}
               onPress={() => router.push('/admin/')}
             />
             {isAdminOnly(user.role) ? (
-              <SettingsRow icon="account-group-outline" label="Members Directory" onPress={() => router.push('/members/')} />
+              <SettingsRow icon="account-group-outline" label={t('profile.membersDirectory')} onPress={() => router.push('/members/')} />
             ) : null}
           </SettingsGroup>
         ) : null}
 
         <SettingsGroup title={t('profile.support')}>
-          <SettingsRow icon="help-circle-outline" label="Help & FAQ" onPress={() => router.push('/settings/help')} />
-          <SettingsRow icon="message-outline" label="Contact Admin" onPress={() => router.push('/settings/contact-admin')} />
+          <SettingsRow icon="help-circle-outline" label={t('profile.helpFaq')} onPress={() => router.push('/settings/help')} />
+          <SettingsRow icon="message-outline" label={t('profile.contactAdmin')} onPress={() => router.push('/settings/contact-admin')} />
         </SettingsGroup>
 
         <View style={styles.dangerZone}>

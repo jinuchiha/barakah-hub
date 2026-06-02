@@ -141,6 +141,11 @@ export default function RootLayout() {
                   <Stack.Screen name="tools/index" options={{ animation: 'slide_from_right' }} />
                   <Stack.Screen name="search" options={{ animation: 'fade' }} />
                   <Stack.Screen name="about" options={{ animation: 'slide_from_right' }} />
+                  <Stack.Screen name="messages" />
+                  <Stack.Screen name="settings/edit-profile" options={{ animation: 'slide_from_right' }} />
+                  <Stack.Screen name="settings/change-password" options={{ animation: 'slide_from_right' }} />
+                  <Stack.Screen name="settings/help" options={{ animation: 'slide_from_right' }} />
+                  <Stack.Screen name="settings/contact-admin" options={{ animation: 'slide_from_right' }} />
                 </Stack>
                 <OfflineBanner />
               </AuthInitializer>

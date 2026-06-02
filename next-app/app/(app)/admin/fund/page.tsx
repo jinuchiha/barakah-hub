@@ -127,7 +127,9 @@ export default async function FundPage() {
       .orderBy(desc(payments.supervisorRejectedAt)),
   ]);
   const memById = new Map(allMembers.map((m) => [m.id, m]));
-  const pendingTotal = [...awaitingSupervisor, ...awaitingAdmin, ...rejectedBySupervisor]
+  // Exclude supervisor-rejected from the headline total — those amounts are
+  // contested and should not inflate the "in approval flow" figure.
+  const pendingTotal = [...awaitingSupervisor, ...awaitingAdmin]
     .reduce((s, p) => s + p.amount, 0);
 
   const pools = await db

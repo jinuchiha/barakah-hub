@@ -13,6 +13,7 @@ import {
 } from '@/hooks/useInvites';
 import { useAuthStore } from '@/stores/auth.store';
 import { isAdminOnly } from '@/lib/roles';
+import { LoadingScreen } from '@/components/ui/LoadingScreen';
 import { shareText } from '@/lib/share';
 import { formatDate } from '@/lib/format';
 import { useTheme } from '@/lib/useTheme';
@@ -55,12 +56,13 @@ function InviteCard({ invite, onRevoke }: { invite: MemberInvite; onRevoke: () =
 
 export default function InvitesScreen() {
   const { colors } = useTheme();
-  const { user } = useAuthStore();
+  const { user, isLoading: authLoading } = useAuthStore();
   const { data, isLoading, refetch, isRefetching } = useInvites();
   const create = useCreateInvite();
   const revoke = useRevokeInvite();
   const [creating, setCreating] = useState(false);
 
+  if (authLoading) return <LoadingScreen />;
   if (!isAdminOnly(user?.role)) return <Redirect href="/admin" />;
 
   const handleCreate = async () => {

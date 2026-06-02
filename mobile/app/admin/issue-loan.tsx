@@ -15,6 +15,7 @@ import { useMembers } from '@/hooks/useMembers';
 import { useIssueLoan } from '@/hooks/useLoans';
 import { useAuthStore } from '@/stores/auth.store';
 import { isAdminOnly } from '@/lib/roles';
+import { LoadingScreen } from '@/components/ui/LoadingScreen';
 import { formatPKR } from '@/lib/format';
 import { useTheme } from '@/lib/useTheme';
 import { spacing, radius } from '@/lib/theme';
@@ -23,7 +24,7 @@ import type { Member } from '@/types';
 export default function IssueLoanScreen() {
   const router = useRouter();
   const { colors } = useTheme();
-  const { user } = useAuthStore();
+  const { user, isLoading: authLoading } = useAuthStore();
   const { data: members } = useMembers();
   const issue = useIssueLoan();
 
@@ -40,6 +41,7 @@ export default function IssueLoanScreen() {
     return list.filter((m) => `${m.nameEn} ${m.nameUr}`.toLowerCase().includes(q)).slice(0, 20);
   }, [members, search]);
 
+  if (authLoading) return <LoadingScreen />;
   if (!isAdminOnly(user?.role)) return <Redirect href="/admin" />;
 
   const submit = async () => {

@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import { z } from 'zod';
 import { getUser } from '@/lib/auth-server';
 import { db } from '@/lib/db';
-import { members, auditLog } from '@/lib/db/schema';
+import { members, auditLog, memberInvites } from '@/lib/db/schema';
 import { notifyMembers, adminIds } from '@/lib/notify';
 
 export const runtime = 'nodejs';
@@ -36,6 +36,7 @@ const schema = z.object({
   province: z.string().max(40).optional(),
   fatherName: z.string().max(80).optional(),
   fatherDeceased: z.boolean().optional(),
+  joinCode: z.string().max(40).optional(),
 });
 
 export async function POST(req: NextRequest) {
@@ -70,6 +71,19 @@ export async function POST(req: NextRequest) {
       username = `${emailPrefix}${i + 1}`;
     }
 
+    // Validate invite/join code (if provided)
+    let validInvite: { id: string } | null = null;
+    if (data.joinCode) {
+      const [inv] = await db
+        .select({ id: memberInvites.id, maxUses: memberInvites.maxUses, usedCount: memberInvites.usedCount, revoked: memberInvites.revoked, expiresAt: memberInvites.expiresAt })
+        .from(memberInvites)
+        .where(eq(memberInvites.token, data.joinCode))
+        .limit(1);
+      if (inv && !inv.revoked && (!inv.expiresAt || inv.expiresAt > new Date()) && inv.usedCount < inv.maxUses) {
+        validInvite = { id: inv.id };
+      }
+    }
+
     const [created] = await db
       .insert(members)
       .values({
@@ -87,6 +101,14 @@ export async function POST(req: NextRequest) {
         role: 'member',
       })
       .returning();
+
+    // Atomically increment invite usedCount (race-safe via WHERE clause)
+    if (validInvite) {
+      await db
+        .update(memberInvites)
+        .set({ usedCount: sql`${memberInvites.usedCount} + 1` })
+        .where(eq(memberInvites.id, validInvite.id));
+    }
 
     await db.insert(auditLog).values({
       actorId: created.id,
