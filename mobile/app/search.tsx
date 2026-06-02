@@ -113,6 +113,8 @@ export default function SearchScreen() {
             onChangeText={search}
             autoFocus
             returnKeyType="search"
+            accessibilityLabel="Search members, payments and cases"
+            accessibilityRole="search"
           />
           {query ? (
             <TouchableOpacity onPress={clear}>

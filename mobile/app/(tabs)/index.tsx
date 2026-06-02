@@ -128,7 +128,7 @@ function QuickActions({ isAdmin, onAction }: {
   return (
     <Animated.View entering={FadeInDown.duration(400).delay(300)} style={styles.actionsRow}>
       {actions.map((a) => (
-        <TouchableOpacity key={a.key} style={styles.actionChip} onPress={() => onAction(a.key)}>
+        <TouchableOpacity key={a.key} style={styles.actionChip} onPress={() => onAction(a.key)} accessibilityLabel={a.label} accessibilityRole="button">
           <View style={[styles.actionIconCircle, { backgroundColor: `${a.color}20` }]}>
             <MaterialCommunityIcons name={a.icon} size={22} color={a.color} />
           </View>

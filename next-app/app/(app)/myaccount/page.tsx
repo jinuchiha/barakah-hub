@@ -128,13 +128,14 @@ export default async function MyAccountPage() {
             </div>
           ) : (
             <table className="w-full text-sm">
+              <caption className="sr-only">Payment history</caption>
               <thead>
                 <tr className="border-b border-[var(--border)] bg-[rgba(214,210,199,0.06)] text-left text-[10px] uppercase tracking-[1px] text-[var(--color-gold-4)]">
-                  <th className="px-4 py-2.5">Month</th>
-                  <th className="px-4 py-2.5">Pool</th>
-                  <th className="px-4 py-2.5 text-right">Amount</th>
-                  <th className="px-4 py-2.5">Status</th>
-                  <th className="px-4 py-2.5">Date</th>
+                  <th scope="col" className="px-4 py-2.5">Month</th>
+                  <th scope="col" className="px-4 py-2.5">Pool</th>
+                  <th scope="col" className="px-4 py-2.5 text-right">Amount</th>
+                  <th scope="col" className="px-4 py-2.5">Status</th>
+                  <th scope="col" className="px-4 py-2.5">Date</th>
                 </tr>
               </thead>
               <tbody>

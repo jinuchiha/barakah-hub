@@ -36,7 +36,9 @@ export default async function NotificationsPage() {
           )}
           {list.map((n) => (
             <div key={n.id} className={`flex gap-3 border-b border-[rgba(214,210,199,0.06)] p-3 ${n.read ? '' : 'bg-[rgba(30,42,74,0.05)]'}`}>
-              <div className={`mt-1.5 size-2 shrink-0 rounded-full ${n.read ? 'border border-[var(--border)]' : 'bg-[var(--color-emerald-2)]'}`} />
+              <div className={`mt-1.5 size-2 shrink-0 rounded-full ${n.read ? 'border border-[var(--border)]' : 'bg-[var(--color-emerald-2)]'}`}>
+                {!n.read && <span className="sr-only">Unread</span>}
+              </div>
               <div className="flex-1">
                 {(n.titleUr || n.titleEn) && (
                   <div className="mb-0.5 font-semibold text-[var(--color-gold)]">

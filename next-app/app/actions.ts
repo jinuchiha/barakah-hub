@@ -616,33 +616,38 @@ export async function editMember(input: z.infer<typeof editMemberSchema>) {
 
   await db.update(members).set(rest).where(eq(members.id, id));
 
-  // Bidirectional spouse sync: setting A's spouse to B implies B's
-  // spouse is A. Clearing breaks the link on both sides. If the
-  // previous spouse was someone else (C), clear C's pointer too so
-  // there's no dangling reference.
-  if (spouseId !== undefined) {
-    const [prev] = await db.select({ spouseId: members.spouseId }).from(members).where(eq(members.id, id)).limit(1);
-    const previousSpouseId = prev?.spouseId ?? null;
+  try {
+    // Bidirectional spouse sync: setting A's spouse to B implies B's
+    // spouse is A. Clearing breaks the link on both sides. If the
+    // previous spouse was someone else (C), clear C's pointer too so
+    // there's no dangling reference.
+    if (spouseId !== undefined) {
+      const [prev] = await db.select({ spouseId: members.spouseId }).from(members).where(eq(members.id, id)).limit(1);
+      const previousSpouseId = prev?.spouseId ?? null;
 
-    if (previousSpouseId && previousSpouseId !== spouseId) {
-      // Clear stale partner's pointer back to us.
-      await db.update(members).set({ spouseId: null }).where(eq(members.id, previousSpouseId));
-    }
-
-    if (spouseId) {
-      // If new spouse is currently married to someone else (D), clear
-      // D's pointer first to maintain monogamous pairing semantics.
-      const [newPartner] = await db.select({ spouseId: members.spouseId }).from(members).where(eq(members.id, spouseId)).limit(1);
-      if (newPartner?.spouseId && newPartner.spouseId !== id) {
-        await db.update(members).set({ spouseId: null }).where(eq(members.id, newPartner.spouseId));
+      if (previousSpouseId && previousSpouseId !== spouseId) {
+        // Clear stale partner's pointer back to us.
+        await db.update(members).set({ spouseId: null }).where(eq(members.id, previousSpouseId));
       }
-      // Set both sides.
-      await db.update(members).set({ spouseId }).where(eq(members.id, id));
-      await db.update(members).set({ spouseId: id }).where(eq(members.id, spouseId));
-    } else {
-      // spouseId === null — explicit divorce; already cleared own side via main update.
-      await db.update(members).set({ spouseId: null }).where(eq(members.id, id));
+
+      if (spouseId) {
+        // If new spouse is currently married to someone else (D), clear
+        // D's pointer first to maintain monogamous pairing semantics.
+        const [newPartner] = await db.select({ spouseId: members.spouseId }).from(members).where(eq(members.id, spouseId)).limit(1);
+        if (newPartner?.spouseId && newPartner.spouseId !== id) {
+          await db.update(members).set({ spouseId: null }).where(eq(members.id, newPartner.spouseId));
+        }
+        // Set both sides.
+        await db.update(members).set({ spouseId }).where(eq(members.id, id));
+        await db.update(members).set({ spouseId: id }).where(eq(members.id, spouseId));
+      } else {
+        // spouseId === null — explicit divorce; already cleared own side via main update.
+        await db.update(members).set({ spouseId: null }).where(eq(members.id, id));
+      }
     }
+  } catch (spouseError) {
+    // Log but don't fail the whole edit — spouse link can be retried
+    console.error('[editMember] spouse sync failed:', spouseError instanceof Error ? spouseError.message : spouseError);
   }
 
   await audit(me.id, 'member-edited', `Edited member ${id}`, id);

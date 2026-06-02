@@ -46,6 +46,7 @@ function SettingsRow({ icon, label, value, onPress, chevron = true, rightNode, d
       onPress={onPress}
       disabled={!onPress && !rightNode}
       activeOpacity={0.7}
+      accessibilityRole="button"
     >
       <View style={styles.settingsLeft}>
         <View style={[styles.settingsIconCircle, { backgroundColor: `${iconColor}18` }]}>

@@ -127,7 +127,7 @@ export default function RegisterScreen() {
 
           <Animated.View entering={FadeInDown.duration(400)}>
             <Text style={[styles.title, { color: colors.text1 }]}>{t('auth.createAccount')}</Text>
-            <Text style={[styles.subtitle, { color: colors.text3 }]}>Join the family treasury</Text>
+            <Text style={[styles.subtitle, { color: colors.text3 }]}>{t('auth.joinSubtitle')}</Text>
           </Animated.View>
 
           <Animated.View entering={FadeInRight.duration(400).delay(100)}>
@@ -151,14 +151,14 @@ export default function RegisterScreen() {
                   <Controller control={control} name="fatherDeceased"
                     render={({ field: { onChange, value } }) => (
                       <View style={styles.fatherStatusRow}>
-                        <Text style={[styles.fatherStatusLabel, { color: colors.text3 }]}>Father has passed away (Marhoom)</Text>
+                        <Text style={[styles.fatherStatusLabel, { color: colors.text3 }]}>{t('auth.fatherDeceased')}</Text>
                         <Switch value={!!value} onValueChange={onChange} trackColor={{ false: colors.bg4, true: colors.primaryDim }} thumbColor={colors.primary} />
                       </View>
                     )}
                   />
                   <Controller control={control} name="phone"
                     render={({ field: { onChange, value } }) => (
-                      <Input label="Phone Number (optional)" value={value ?? ''} onChangeText={onChange} leftIcon="phone-outline" keyboardType="phone-pad" error={errors.phone?.message} />
+                      <Input label={t('auth.phoneOptional')} value={value ?? ''} onChangeText={onChange} leftIcon="phone-outline" keyboardType="phone-pad" error={errors.phone?.message} />
                     )}
                   />
                 </>
@@ -190,7 +190,7 @@ export default function RegisterScreen() {
 
               <View style={styles.btnRow}>
                 {step < 2 ? (
-                  <Button label="Next" onPress={handleNext} variant="solid" fullWidth />
+                  <Button label={t('common.next')} onPress={handleNext} variant="solid" fullWidth />
                 ) : (
                   <Button label={t('auth.createAccount')} onPress={handleSubmit(onSubmit)} loading={loading} variant="solid" fullWidth />
                 )}

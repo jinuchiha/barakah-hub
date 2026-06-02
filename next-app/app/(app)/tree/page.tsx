@@ -1,4 +1,4 @@
-import { eq, and, asc, ne, or } from 'drizzle-orm';
+import { eq, and, asc, ne, or, sql } from 'drizzle-orm';
 import { getMeOrRedirect } from '@/lib/auth-server';
 import { db } from '@/lib/db';
 import { members, payments } from '@/lib/db/schema';
@@ -23,22 +23,23 @@ export default async function TreePage() {
     .where(and(statusFilter, ne(members.status, 'rejected')))
     .orderBy(asc(members.nameEn));
 
-  // Aggregate paid amount per member — sadqa privacy: non-admins only get
-  // their own total; the rest are stripped before crossing the network.
+  // Aggregate paid amount per member via SQL — sadqa privacy: non-admins
+  // only get their own total; the rest are stripped before crossing the network.
   const totalsQuery = isAdmin
     ? db
-        .select({ memberId: payments.memberId, total: payments.amount })
+        .select({ memberId: payments.memberId, total: sql<number>`SUM(${payments.amount})::int` })
         .from(payments)
         .where(eq(payments.pendingVerify, false))
+        .groupBy(payments.memberId)
     : db
-        .select({ memberId: payments.memberId, total: payments.amount })
+        .select({ memberId: payments.memberId, total: sql<number>`SUM(${payments.amount})::int` })
         .from(payments)
-        .where(and(eq(payments.pendingVerify, false), eq(payments.memberId, me.id)));
-  const totals = await totalsQuery;
-  const paidByObj: Record<string, number> = {};
-  for (const t of totals) {
-    paidByObj[t.memberId] = (paidByObj[t.memberId] ?? 0) + t.total;
-  }
+        .where(and(eq(payments.pendingVerify, false), eq(payments.memberId, me.id)))
+        .groupBy(payments.memberId);
+  const paymentTotals = await totalsQuery;
+  const paidByObj: Record<string, number> = Object.fromEntries(
+    paymentTotals.map((t) => [t.memberId, Number(t.total)]),
+  );
 
   return (
     <div>

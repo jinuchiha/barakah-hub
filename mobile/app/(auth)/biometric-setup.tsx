@@ -7,6 +7,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/lib/useTheme';
 import { getBiometricCapability, getBiometricLabel, authenticateWithBiometric } from '@/lib/biometric';
 import { setBiometricEnabled } from '@/lib/security';
@@ -16,6 +17,7 @@ import { Button } from '@/components/ui/Button';
 export default function BiometricSetupScreen() {
   const { colors } = useTheme();
   const router = useRouter();
+  const { t } = useTranslation();
   const [label, setLabel] = useState('Biometric');
   const [available, setAvailable] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -61,16 +63,15 @@ export default function BiometricSetupScreen() {
         </View>
 
         <Text style={[styles.title, { color: colors.text1 }]}>
-          Enable {label}?
+          {t('auth.enableBiometric', { label })}
         </Text>
         <Text style={[styles.body, { color: colors.text3 }]}>
-          Sign in faster and more securely using {label}.
-          Your biometric data never leaves your device.
+          {t('auth.biometricSignInFaster', { label })}
         </Text>
 
         {available ? (
           <Button
-            label={`Enable ${label}`}
+            label={t('auth.enableBiometricBtn', { label })}
             onPress={handleEnable}
             variant="primary"
             fullWidth
@@ -80,13 +81,13 @@ export default function BiometricSetupScreen() {
           <View style={[styles.unavailableCard, { backgroundColor: colors.glass2, borderColor: colors.border1 }]}>
             <MaterialCommunityIcons name="information-outline" size={18} color={colors.text4} />
             <Text style={[styles.unavailableText, { color: colors.text3 }]}>
-              Biometric authentication is not available or not enrolled on this device.
+              {t('auth.biometricUnavailable')}
             </Text>
           </View>
         )}
 
         <TouchableOpacity onPress={handleSkip} style={styles.skipBtn}>
-          <Text style={[styles.skipText, { color: colors.text3 }]}>Skip for now</Text>
+          <Text style={[styles.skipText, { color: colors.text3 }]}>{t('auth.skipForNow')}</Text>
         </TouchableOpacity>
       </Animated.View>
     </SafeAreaView>

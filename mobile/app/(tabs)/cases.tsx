@@ -71,6 +71,9 @@ function FilterTabs({ active, onChange, activeCaseCount }: {
             { backgroundColor: active === f.value ? colors.primaryDim : colors.glass2, borderColor: active === f.value ? colors.primary : colors.border1 },
           ]}
           onPress={() => { void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); onChange(f.value); }}
+          accessibilityRole="tab"
+          accessibilityState={{ selected: active === f.value }}
+          accessibilityLabel={f.label}
         >
           <Text style={[styles.filterTabText, { color: active === f.value ? colors.primary : colors.text3 }]}>{f.label}</Text>
           {f.value === 'voting' && showBadge && activeCaseCount > 0 ? (
@@ -104,7 +107,7 @@ function CreateCaseSheet({ visible, onClose }: { visible: boolean; onClose: () =
       await createMutation.mutateAsync(data);
       reset();
       onClose();
-      Alert.alert('Submitted', 'Your request is open for community voting. Jazak Allah khair.');
+      Alert.alert(t('cases.submitted'), t('cases.submittedMsg'));
     } catch (err) {
       Alert.alert('Error', err instanceof Error ? err.message : 'Failed to create case');
     } finally {
@@ -147,7 +150,7 @@ function CreateCaseSheet({ visible, onClose }: { visible: boolean; onClose: () =
                 />
               )}
             />
-            <Text style={[styles.fieldLabel, { color: colors.text4 }]}>TYPE</Text>
+            <Text style={[styles.fieldLabel, { color: colors.text4 }]}>{t('cases.caseTypeLabel')}</Text>
             <Controller control={control} name="caseType"
               render={({ field: { onChange, value } }) => (
                 <View style={styles.chipRow}>
@@ -166,7 +169,7 @@ function CreateCaseSheet({ visible, onClose }: { visible: boolean; onClose: () =
               )}
             />
 
-            <Text style={[styles.fieldLabel, { color: colors.text4 }]}>POOL</Text>
+            <Text style={[styles.fieldLabel, { color: colors.text4 }]}>{t('cases.poolLabel')}</Text>
             <Controller control={control} name="pool"
               render={({ field: { onChange, value } }) => (
                 <View style={styles.chipRow}>
@@ -188,7 +191,7 @@ function CreateCaseSheet({ visible, onClose }: { visible: boolean; onClose: () =
             <Controller control={control} name="emergency"
               render={({ field: { onChange, value } }) => (
                 <View style={styles.emergencyRow}>
-                  <Text style={[styles.emergencyLabel, { color: colors.text2 }]}>Mark as emergency (urgent)</Text>
+                  <Text style={[styles.emergencyLabel, { color: colors.text2 }]}>{t('cases.markEmergency')}</Text>
                   <Switch value={!!value} onValueChange={onChange} trackColor={{ false: colors.bg4, true: colors.dangerDim }} thumbColor={colors.danger} />
                 </View>
               )}
@@ -197,7 +200,7 @@ function CreateCaseSheet({ visible, onClose }: { visible: boolean; onClose: () =
             {caseTypeValue === 'qarz' ? (
               <Controller control={control} name="returnDate"
                 render={({ field: { onChange, value } }) => (
-                  <Input label="Expected return date (optional)" value={value ?? ''} onChangeText={onChange} placeholder="e.g. Dec 2026" />
+                  <Input label={t('cases.returnDateOptional')} value={value ?? ''} onChangeText={onChange} placeholder="e.g. Dec 2026" />
                 )}
               />
             ) : null}
@@ -205,7 +208,7 @@ function CreateCaseSheet({ visible, onClose }: { visible: boolean; onClose: () =
             <View style={styles.sheetBtns}>
               <Button label={t('common.cancel')} onPress={onClose} variant="ghost" style={styles.halfBtn} />
               <Button
-                label={creating ? 'Submitting…' : t('common.submit')}
+                label={creating ? t('cases.submitting') : t('common.submit')}
                 onPress={handleSubmit(onSubmit, onInvalid)}
                 loading={creating}
                 disabled={creating}
@@ -352,7 +355,7 @@ function CasesScreen() {
           estimatedItemSize={200}
           contentContainerStyle={styles.list}
           refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={colors.primary} />}
-          ListEmptyComponent={<EmptyState icon="alert-circle-outline" title="No cases found" subtitle="No emergency cases for this filter" />}
+          ListEmptyComponent={<EmptyState icon="alert-circle-outline" title={t('cases.noCasesFound')} subtitle={t('cases.noEmergencyCases')} />}
         />
       )}
 

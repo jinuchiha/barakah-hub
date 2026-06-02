@@ -48,6 +48,8 @@ function VoteButtons({
       <Pressable
         style={[styles.voteBtn, { backgroundColor: colors.primaryDim, borderColor: colors.primary }]}
         onPress={() => { void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); onVoteYes(); }}
+        accessibilityLabel="Vote to approve"
+        accessibilityRole="button"
       >
         <MaterialCommunityIcons name="thumb-up" size={16} color={colors.primary} />
         <Text style={[styles.voteBtnText, { color: colors.primary }]}>Approve</Text>
@@ -55,6 +57,8 @@ function VoteButtons({
       <Pressable
         style={[styles.voteBtn, { backgroundColor: colors.dangerDim, borderColor: colors.danger }]}
         onPress={() => { void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy); onVoteNo(); }}
+        accessibilityLabel="Vote to reject"
+        accessibilityRole="button"
       >
         <MaterialCommunityIcons name="thumb-down" size={16} color={colors.danger} />
         <Text style={[styles.voteBtnText, { color: colors.danger }]}>Reject</Text>

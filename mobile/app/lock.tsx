@@ -20,6 +20,7 @@ import { isBiometricEnabled } from '@/lib/security';
 import { isPinEnabled } from '@/lib/pin';
 import { verifyPin, getPinAttempts } from '@/lib/pin';
 import { markUnlocked } from '@/lib/lock-state';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/hooks/useAuth';
 import { spacing, radius } from '@/lib/theme';
 
@@ -37,6 +38,7 @@ function PinDot({ filled, color }: { filled: boolean; color: string }) {
 export default function LockScreen() {
   const { colors } = useTheme();
   const router = useRouter();
+  const { t } = useTranslation();
   const { logout } = useAuth();
   const [view, setView] = useState<LockView>('biometric');
   const [pin, setPin] = useState('');
@@ -102,16 +104,17 @@ export default function LockScreen() {
         router.replace('/(tabs)/');
       } else if (result === 'locked') {
         Alert.alert(
-          'Too Many Attempts',
-          'You have been locked out. Please sign in again.',
+          t('auth.tooManyAttempts'),
+          t('auth.lockedOut'),
           [{
-            text: 'Sign In',
+            text: t('auth.signIn'),
             onPress: () => { void logout(); router.replace('/(auth)/login'); },
           }],
         );
       } else {
         const attempts = await getPinAttempts();
-        setPinError(`Incorrect PIN. ${3 - attempts} attempt${3 - attempts !== 1 ? 's' : ''} remaining.`);
+        const remaining = 3 - attempts;
+        setPinError(t('auth.incorrectPin', { count: remaining, plural: remaining !== 1 ? 's' : '' }));
         shake();
       }
     }
@@ -129,9 +132,9 @@ export default function LockScreen() {
       />
       <Animated.View entering={FadeIn.duration(400)} style={styles.container}>
         <MaterialCommunityIcons name="shield-lock-outline" size={48} color={colors.primary} />
-        <Text style={[styles.title, { color: colors.text1 }]}>Barakah Hub</Text>
+        <Text style={[styles.title, { color: colors.text1 }]}>{t('appName')}</Text>
         <Text style={[styles.subtitle, { color: colors.text3 }]}>
-          {view === 'biometric' ? 'Use biometric to unlock' : 'Enter your PIN'}
+          {view === 'biometric' ? t('auth.useBiometricToUnlock') : t('auth.enterYourPin')}
         </Text>
 
         {view === 'pin' && (
@@ -157,6 +160,8 @@ export default function LockScreen() {
                   }}
                   disabled={!key}
                   activeOpacity={key ? 0.7 : 1}
+                  accessibilityLabel={key === '⌫' ? 'Delete' : key || undefined}
+                  accessibilityRole={key ? 'button' : undefined}
                 >
                   <Text style={[styles.numText, { color: key === '⌫' ? colors.danger : colors.text1 }]}>{key}</Text>
                 </TouchableOpacity>
@@ -168,7 +173,7 @@ export default function LockScreen() {
               style={styles.switchBtn}
             >
               <Text style={[styles.switchText, { color: colors.text3 }]}>
-                Use {biometricLabel} instead
+                {t('auth.useBiometricInstead', { label: biometricLabel })}
               </Text>
             </TouchableOpacity>
           </>
@@ -179,6 +184,8 @@ export default function LockScreen() {
             <TouchableOpacity
               style={[styles.biometricBtn, { backgroundColor: colors.primaryDim, borderColor: colors.primary }]}
               onPress={attemptBiometric}
+              accessibilityLabel={biometricLabel}
+              accessibilityRole="button"
             >
               <MaterialCommunityIcons name="fingerprint" size={32} color={colors.primary} />
               <Text style={[styles.biometricText, { color: colors.primary }]}>
@@ -186,7 +193,7 @@ export default function LockScreen() {
               </Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={() => setView('pin')} style={styles.switchBtn}>
-              <Text style={[styles.switchText, { color: colors.text3 }]}>Use PIN instead</Text>
+              <Text style={[styles.switchText, { color: colors.text3 }]}>{t('auth.usePinInstead')}</Text>
             </TouchableOpacity>
           </View>
         )}

@@ -4,6 +4,7 @@ import {
 } from 'react-native';
 import { Stack } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { useTheme } from '@/lib/useTheme';
 import { spacing, radius } from '@/lib/theme';
@@ -54,31 +55,13 @@ const REFS: ScriptureRef[] = [
   },
 ];
 
-const HOW_IT_WORKS = [
-  {
-    title: 'Sadaqah',
-    desc: 'Monthly voluntary donations. Donor identity is hidden from other members per the principle of giving in secret.',
-  },
-  {
-    title: 'Zakat',
-    desc: 'Annual obligatory charity on qualifying wealth. Routed to eligible recipients through the admin.',
-  },
-  {
-    title: 'Qarz-e-Hasana',
-    desc: 'Interest-free loan to a family member in need. Community votes on approval; repaid without any extra charge.',
-  },
-  {
-    title: 'Emergency Vote',
-    desc: 'Cases are submitted and voted on by all approved members. Threshold can be set by admin (30–75%).',
-  },
-  {
-    title: 'Privacy',
-    desc: 'Sadaqah donors are never named to other members — only the admin can see who gave what.',
-  },
-  {
-    title: 'Audit Trail',
-    desc: 'Every action is logged with actor, timestamp, and detail. The log is append-only and cannot be altered.',
-  },
+const HOW_IT_WORKS_KEYS = [
+  { title: 'Sadaqah', descKey: 'about.features.sadaqah' },
+  { title: 'Zakat', descKey: 'about.features.zakat' },
+  { title: 'Qarz-e-Hasana', descKey: 'about.features.qarz' },
+  { title: 'Emergency Vote', descKey: 'about.features.emergencyVote' },
+  { title: 'Privacy', descKey: 'about.features.privacy' },
+  { title: 'Audit Trail', descKey: 'about.features.auditTrail' },
 ];
 
 type TopicKey = ScriptureRef['topic'];
@@ -106,7 +89,7 @@ function ScriptureCard({ item }: { item: ScriptureRef }) {
         <TopicBadge topic={item.topic} />
         <Text style={[styles.refText, { color: colors.text4 }]}>{item.ref}</Text>
       </View>
-      <Text style={[styles.arabic, { color: colors.gold }]}>{item.arabic}…</Text>
+      <Text style={[styles.arabic, { color: colors.gold }]} accessibilityLanguage="ar">{item.arabic}…</Text>
       <Text style={[styles.english, { color: colors.text3 }]}>"{item.english}"</Text>
       <Text style={[styles.urdu, { color: colors.text4 }]}>{item.urdu}</Text>
     </GlassCard>
@@ -128,6 +111,7 @@ function HowRow({ title, desc }: { title: string; desc: string }) {
 
 export default function AboutScreen() {
   const { colors } = useTheme();
+  const { t } = useTranslation();
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.bg1 }]} edges={['bottom']}>
@@ -136,7 +120,7 @@ export default function AboutScreen() {
 
         {/* Intro card */}
         <GlassCard style={styles.introCard}>
-          <Text style={[styles.introTitle, { color: colors.gold }]}>اس فنڈ کے بارے میں</Text>
+          <Text style={[styles.introTitle, { color: colors.gold }]} accessibilityLanguage="ar">اس فنڈ کے بارے میں</Text>
           <Text style={[styles.introSubtitle, { color: colors.text4 }]}>Islamic basis of this family fund</Text>
           <Text style={[styles.introBody, { color: colors.text2 }]}>
             Barakah Hub aik private, invite-only family fund hai jis mein sadaqah (donation), zakat,
@@ -146,13 +130,13 @@ export default function AboutScreen() {
         </GlassCard>
 
         {/* Scripture references */}
-        <Text style={[styles.section, { color: colors.text4 }]}>QURAN & HADITH REFERENCES</Text>
+        <Text style={[styles.section, { color: colors.text4 }]}>{t('about.scriptureSection')}</Text>
         {REFS.map((r) => <ScriptureCard key={r.ref} item={r} />)}
 
         {/* How it works */}
-        <Text style={[styles.section, { color: colors.text4 }]}>HOW THIS FUND WORKS</Text>
+        <Text style={[styles.section, { color: colors.text4 }]}>{t('about.howSection')}</Text>
         <GlassCard style={styles.howCard}>
-          {HOW_IT_WORKS.map((h) => <HowRow key={h.title} title={h.title} desc={h.desc} />)}
+          {HOW_IT_WORKS_KEYS.map((h) => <HowRow key={h.title} title={h.title} desc={t(h.descKey)} />)}
         </GlassCard>
 
       </ScrollView>

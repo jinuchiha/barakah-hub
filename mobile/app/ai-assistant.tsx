@@ -43,6 +43,8 @@ function EmptyState({ onSuggestion }: { onSuggestion: (text: string) => void }) 
               style={[styles.suggestionBtn, { backgroundColor: colors.glass2, borderColor: colors.border2 }]}
               onPress={() => onSuggestion(s.label)}
               activeOpacity={0.8}
+              accessibilityLabel={s.label}
+              accessibilityRole="button"
             >
               <MaterialCommunityIcons name={s.icon as never} size={16} color={colors.primary} />
               <Text style={[styles.suggestionText, { color: colors.text2 }]}>{s.label}</Text>
