@@ -3,6 +3,9 @@
 # (Per-folder ignores live in their own .gitignore; this is the root.)
 # ═══════════════════════════════════════════════════════════════════
 
+# Symlinked mobile folder — not part of this Next.js project
+mobile/
+
 # ── OS / editor noise
 .DS_Store
 Thumbs.db
