@@ -10,6 +10,7 @@ import Animated, { FadeInDown, useSharedValue, useAnimatedStyle, withTiming } fr
 import { Avatar } from '@/components/ui/Avatar';
 import { Badge } from '@/components/ui/Badge';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { BrandedEmptyState } from '@/components/ui/BrandedEmptyState';
 import { useMembers } from '@/hooks/useMembers';
 import { useAuthStore } from '@/stores/auth.store';
 import { useTranslation } from 'react-i18next';
@@ -149,7 +150,7 @@ export default function MembersScreen() {
             <Text style={[styles.count, { color: colors.text4 }]}>{filtered.length} members</Text>
           }
           ListEmptyComponent={
-            <EmptyState icon="account-search-outline" title={t('members.noMembers')} subtitle="Try a different search term" />
+            <BrandedEmptyState type="members" title={t('members.noMembers')} subtitle="Try a different search term" />
           }
         />
       )}

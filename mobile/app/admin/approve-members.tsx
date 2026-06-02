@@ -6,7 +6,7 @@ import { FlashList } from '@shopify/flash-list';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
+import { haptic } from '@/lib/haptics';
 import { Avatar } from '@/components/ui/Avatar';
 import { Badge } from '@/components/ui/Badge';
 import { GlassCard } from '@/components/ui/GlassCard';
@@ -89,9 +89,13 @@ export default function ApproveMembersScreen() {
       {
         text: t('admin.approve'),
         onPress: async () => {
-          void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-          try { await approveMutation.mutateAsync(member.id); }
-          catch (err) { Alert.alert(t('common.error'), err instanceof Error ? err.message : 'Failed'); }
+          try {
+            await approveMutation.mutateAsync(member.id);
+            void haptic.confirm();
+          } catch (err) {
+            void haptic.error();
+            Alert.alert(t('common.error'), err instanceof Error ? err.message : 'Failed');
+          }
         },
       },
     ]);
@@ -104,9 +108,13 @@ export default function ApproveMembersScreen() {
         text: t('admin.reject'),
         style: 'destructive',
         onPress: async () => {
-          void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-          try { await rejectMutation.mutateAsync(member.id); }
-          catch (err) { Alert.alert(t('common.error'), err instanceof Error ? err.message : 'Failed'); }
+          try {
+            await rejectMutation.mutateAsync(member.id);
+            void haptic.destructive();
+          } catch (err) {
+            void haptic.error();
+            Alert.alert(t('common.error'), err instanceof Error ? err.message : 'Failed');
+          }
         },
       },
     ]);

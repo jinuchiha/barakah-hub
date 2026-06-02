@@ -128,7 +128,7 @@ export default async function DashboardPage() {
 
       {isAdmin && (
         <div
-          className="relative mb-6 overflow-hidden rounded-2xl p-7 shadow-[0_10px_40px_rgba(200,155,60,0.18)]"
+          className="animate-enter relative mb-6 overflow-hidden rounded-2xl p-7 shadow-[0_10px_40px_rgba(200,155,60,0.18)]"
           style={{ background: 'linear-gradient(135deg, #c89b3c 0%, #d9b04c 42%, #18223a 100%)' }}
         >
           <div className="relative z-10">
@@ -159,7 +159,7 @@ export default async function DashboardPage() {
 
       <GoalBar config={cfg} totalFund={totalFund} daysRemaining={daysRemaining} />
 
-      <div className="mb-6 grid gap-3" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
+      <div className="animate-enter-delay-1 mb-6 grid gap-3" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
         {isAdmin ? (
           <>
             <StatCard label="Pending Approval"   icon={<Hourglass />} value={fmtRs(pendingAmount)}                                   hint={pendingAmount > 0 ? 'In supervisor/admin flow' : 'Nothing pending'} tone="gold" />
@@ -175,7 +175,7 @@ export default async function DashboardPage() {
       {/* Fund Breakdown — only shown when there are 2+ active pools or disbursements.
           When everyone gives Sadaqah (1 pool), showing a chart is redundant. */}
       {isAdmin && (poolSlices.length > 1 || caseSlices.length > 0) && (
-        <div className="mb-6 grid gap-3 md:grid-cols-2">
+        <div className="animate-enter-delay-2 mb-6 grid gap-3 md:grid-cols-2">
           {poolSlices.length > 1 && (
             <Card>
               <CardHeader>
@@ -225,7 +225,7 @@ export default async function DashboardPage() {
         </Card>
       )}
 
-      <div className="grid gap-3 lg:grid-cols-2">
+      <div className="animate-enter-delay-3 grid gap-3 lg:grid-cols-2">
         <Card>
           <CardHeader>
             <div className="flex items-center gap-2.5">

@@ -14,6 +14,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { LoanCard } from '@/components/LoanCard';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { BrandedEmptyState } from '@/components/ui/BrandedEmptyState';
 import { StatCard } from '@/components/ui/StatCard';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
@@ -167,7 +168,7 @@ function LoansScreen() {
           estimatedItemSize={180}
           contentContainerStyle={styles.list}
           refreshControl={<RefreshControl refreshing={activeQuery.isRefetching} onRefresh={activeQuery.refetch} tintColor={colors.primary} />}
-          ListEmptyComponent={<EmptyState icon="handshake-outline" title={t('loans.noLoans')} subtitle={t('loans.noActiveLoans')} />}
+          ListEmptyComponent={<BrandedEmptyState type="loans" title={t('loans.noLoans')} subtitle={t('loans.noActiveLoans')} />}
         />
       )}
 

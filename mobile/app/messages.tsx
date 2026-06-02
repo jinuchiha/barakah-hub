@@ -11,6 +11,7 @@ import { GlassCard } from '@/components/ui/GlassCard';
 import { Button } from '@/components/ui/Button';
 import { Avatar } from '@/components/ui/Avatar';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { BrandedEmptyState } from '@/components/ui/BrandedEmptyState';
 import {
   useMessages, useSendToAdmin, useReplyMessage, useMarkMessagesRead, type Message,
 } from '@/hooks/useMessages';
@@ -146,7 +147,7 @@ export default function MessagesScreen() {
           refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={colors.primary} />}
         >
           {(data ?? []).length === 0 ? (
-            <EmptyState icon={'message-outline'} title={t('messages.noMessages')} subtitle={isAdmin ? 'Member messages appear here' : 'Tap Message Admin to start'} />
+            <BrandedEmptyState type="messages" title={t('messages.noMessages')} subtitle={isAdmin ? 'Member messages appear here' : 'Tap Message Admin to start'} />
           ) : (
             (data ?? []).map((m) => (
               <MessageItem key={m.id} msg={m} onReply={(msg) => openCompose({ toId: msg.from?.id, name: msg.from?.nameEn ?? 'Member', subject: `Re: ${msg.subject}` })} />

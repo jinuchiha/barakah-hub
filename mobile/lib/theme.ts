@@ -215,10 +215,29 @@ export const radius = {
 // Legacy aliases
 export const colors = darkColors;
 export const typography = {
-  h1: { fontSize: 28, fontWeight: '700' as const },
-  h2: { fontSize: 22, fontWeight: '700' as const },
-  h3: { fontSize: 18, fontWeight: '600' as const },
-  body: { fontSize: 15, fontWeight: '400' as const },
-  caption: { fontSize: 12, fontWeight: '400' as const },
-  label: { fontSize: 13, fontWeight: '500' as const },
+  // Display — big hero numbers (fund totals, large stats)
+  display: { fontSize: 36, fontFamily: 'SpaceMono_400Regular', letterSpacing: -1.5, lineHeight: 42 },
+  // Hero — section hero values
+  hero: { fontSize: 28, fontFamily: 'Inter_700Bold', letterSpacing: -0.8, lineHeight: 34 },
+  // H1 — page titles
+  h1: { fontSize: 24, fontFamily: 'Inter_700Bold', letterSpacing: -0.5, lineHeight: 30 },
+  // H2 — section titles
+  h2: { fontSize: 20, fontFamily: 'Inter_700Bold', letterSpacing: -0.3, lineHeight: 26 },
+  // H3 — card titles
+  h3: { fontSize: 17, fontFamily: 'Inter_600SemiBold', letterSpacing: -0.2, lineHeight: 22 },
+  // Body large
+  bodyLg: { fontSize: 16, fontFamily: 'Inter_400Regular', letterSpacing: -0.1, lineHeight: 24 },
+  // Body
+  body: { fontSize: 14, fontFamily: 'Inter_400Regular', letterSpacing: 0, lineHeight: 21 },
+  // Body small
+  bodySm: { fontSize: 13, fontFamily: 'Inter_400Regular', letterSpacing: 0, lineHeight: 19 },
+  // Label (buttons, tags)
+  label: { fontSize: 13, fontFamily: 'Inter_600SemiBold', letterSpacing: 0.1, lineHeight: 18 },
+  // Caption
+  caption: { fontSize: 11, fontFamily: 'Inter_400Regular', letterSpacing: 0.3, lineHeight: 16 },
+  // Overline (section headers)
+  overline: { fontSize: 10, fontFamily: 'Inter_700Bold', letterSpacing: 1.4, lineHeight: 14 },
+  // Mono (numbers, amounts)
+  mono: { fontSize: 14, fontFamily: 'SpaceMono_400Regular', letterSpacing: -0.3, lineHeight: 20 },
+  monoLg: { fontSize: 20, fontFamily: 'SpaceMono_400Regular', letterSpacing: -0.5, lineHeight: 26 },
 } as const;

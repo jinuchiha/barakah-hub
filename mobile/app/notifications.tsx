@@ -10,6 +10,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { NotificationItem } from '@/components/NotificationItem';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { BrandedEmptyState } from '@/components/ui/BrandedEmptyState';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useTheme } from '@/lib/useTheme';
 import { spacing } from '@/lib/theme';
@@ -62,7 +63,7 @@ export default function NotificationsScreen() {
           estimatedItemSize={80}
           refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={colors.primary} />}
           ListEmptyComponent={
-            <EmptyState icon="bell-off-outline" title={t('notifications.noNotifications')} subtitle="You're all caught up!" />
+            <BrandedEmptyState type="notifications" title={t('notifications.noNotifications')} subtitle="You're all caught up!" />
           }
         />
       )}
