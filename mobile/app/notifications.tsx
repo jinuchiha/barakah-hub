@@ -3,6 +3,7 @@ import {
   View, Text, StyleSheet, TouchableOpacity, RefreshControl,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { FlashList } from '@shopify/flash-list';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -16,6 +17,7 @@ import type { Notification } from '@/types';
 
 export default function NotificationsScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { colors } = useTheme();
   const { data, isLoading, refetch, isRefetching, markAllRead, isMarkingRead } = useNotifications();
 
@@ -31,10 +33,10 @@ export default function NotificationsScreen() {
         >
           <MaterialCommunityIcons name="arrow-left" size={20} color={colors.text1} />
         </TouchableOpacity>
-        <Text style={[styles.title, { color: colors.text1 }]}>Notifications</Text>
+        <Text style={[styles.title, { color: colors.text1 }]}>{t('notifications.title')}</Text>
         {unreadCount > 0 ? (
           <TouchableOpacity onPress={() => markAllRead()} disabled={isMarkingRead} style={styles.markReadBtn}>
-            <Text style={[styles.markReadText, { color: colors.primary }]}>Mark All Read</Text>
+            <Text style={[styles.markReadText, { color: colors.primary }]}>{t('notifications.markAllRead')}</Text>
           </TouchableOpacity>
         ) : (
           <View style={{ width: 90 }} />
@@ -51,7 +53,7 @@ export default function NotificationsScreen() {
       ) : null}
 
       {isLoading ? (
-        <EmptyState icon="loading" title="Loading notifications..." />
+        <EmptyState icon="loading" title={t('common.loading')} />
       ) : (
         <FlashList
           data={data ?? []}
@@ -60,7 +62,7 @@ export default function NotificationsScreen() {
           estimatedItemSize={80}
           refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={colors.primary} />}
           ListEmptyComponent={
-            <EmptyState icon="bell-off-outline" title="No notifications" subtitle="You're all caught up!" />
+            <EmptyState icon="bell-off-outline" title={t('notifications.noNotifications')} subtitle="You're all caught up!" />
           }
         />
       )}

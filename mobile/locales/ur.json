@@ -11,6 +11,7 @@
     "forgotPassword": "پاسورڈ بھول گئے؟",
     "sendResetLink": "ری سیٹ لنک بھیجیں",
     "fullName": "پورا نام",
+    "fatherName": "والد کا نام",
     "phone": "فون نمبر",
     "monthlyPledge": "ماہانہ وعدہ (روپے)",
     "joinCode": "جوائن کوڈ (اختیاری)",
@@ -19,6 +20,9 @@
     "alreadyHaveAccount": "پہلے سے اکاؤنٹ ہے؟",
     "noAccount": "اکاؤنٹ نہیں ہے؟",
     "backToLogin": "لاگ ان پر واپس",
+    "personal": "ذاتی",
+    "financial": "مالی",
+    "security": "سیکیورٹی",
     "emailSent": "آپ کے ای میل پر ری سیٹ لنک بھیجا گیا",
     "islamicGreeting": "السلام عليكم"
   },
@@ -27,7 +31,8 @@
     "payments": "ادائیگیاں",
     "cases": "کیسز",
     "loans": "قرض",
-    "profile": "پروفائل"
+    "profile": "پروفائل",
+    "analytics": "تجزیات"
   },
   "dashboard": {
     "title": "ڈیش بورڈ",

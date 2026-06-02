@@ -3,6 +3,7 @@ import {
   View, Text, StyleSheet, RefreshControl, TouchableOpacity,
   Alert, KeyboardAvoidingView, Platform,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { FlashList } from '@shopify/flash-list';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -34,6 +35,7 @@ type RepayFormData = z.infer<typeof repaySchema>;
 
 function RepaySheet({ loan, onClose }: { loan: Loan | null; onClose: () => void }) {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const repayMutation = useRecordRepayment();
   const [loading, setLoading] = useState(false);
 
@@ -65,26 +67,26 @@ function RepaySheet({ loan, onClose }: { loan: Loan | null; onClose: () => void 
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.sheetContainer}>
         <GlassCard style={styles.sheet}>
           <View style={[styles.handle, { backgroundColor: colors.border2 }]} />
-          <Text style={[styles.sheetTitle, { color: colors.text1 }]}>Record Repayment</Text>
+          <Text style={[styles.sheetTitle, { color: colors.text1 }]}>{t('loans.recordRepayment')}</Text>
           <View style={[styles.loanSummary, { backgroundColor: colors.glass1 }]}>
             <Text style={[styles.loanPurpose, { color: colors.text2 }]}>{loan.purpose}</Text>
             <Text style={[styles.loanRemaining, { color: colors.danger }]}>
-              Remaining: {formatPKR(loan.amount - loan.paid)}
+              {t('loans.remaining')}: {formatPKR(loan.amount - loan.paid)}
             </Text>
           </View>
           <Controller control={control} name="amount"
             render={({ field: { onChange, value } }) => (
-              <Input label="Amount (PKR)" value={value?.toString() ?? ''} onChangeText={onChange} keyboardType="numeric" leftIcon="cash" error={errors.amount?.message} />
+              <Input label={t('loans.amount')} value={value?.toString() ?? ''} onChangeText={onChange} keyboardType="numeric" leftIcon="cash" error={errors.amount?.message} />
             )}
           />
           <Controller control={control} name="note"
             render={({ field: { onChange, value } }) => (
-              <Input label="Note (optional)" value={value ?? ''} onChangeText={onChange} multiline error={errors.note?.message} />
+              <Input label={t('payments.note')} value={value ?? ''} onChangeText={onChange} multiline error={errors.note?.message} />
             )}
           />
           <View style={styles.sheetBtns}>
-            <Button label="Cancel" onPress={onClose} variant="ghost" style={styles.halfBtn} />
-            <Button label="Record" onPress={handleSubmit(handleRepay)} loading={loading} variant="solid" style={styles.halfBtn} />
+            <Button label={t('common.cancel')} onPress={onClose} variant="ghost" style={styles.halfBtn} />
+            <Button label={t('common.confirm')} onPress={handleSubmit(handleRepay)} loading={loading} variant="solid" style={styles.halfBtn} />
           </View>
         </GlassCard>
       </KeyboardAvoidingView>
@@ -95,6 +97,7 @@ function RepaySheet({ loan, onClose }: { loan: Loan | null; onClose: () => void 
 function LoansScreen() {
   const { user } = useAuthStore();
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const isAdmin = user?.role === 'admin';
   const [viewAll, setViewAll] = useState(false);
   const [repayLoan, setRepayLoan] = useState<Loan | null>(null);
@@ -117,9 +120,9 @@ function LoansScreen() {
         >
           <View style={styles.heroRow}>
             <View>
-              <Text style={[styles.heroLabel, { color: colors.text4 }]}>QARZ-E-HASANA</Text>
+              <Text style={[styles.heroLabel, { color: colors.text4 }]}>{t('islamic.qarzHasana').toUpperCase()}</Text>
               <Text style={[styles.heroValue, { color: colors.text1 }]}>{formatPKR(totalOutstanding)}</Text>
-              <Text style={[styles.heroSub, { color: colors.text3 }]}>outstanding · {formatPKR(totalPaid)} repaid</Text>
+              <Text style={[styles.heroSub, { color: colors.text3 }]}>{t('loans.remaining').toLowerCase()} · {formatPKR(totalPaid)} {t('loans.paid').toLowerCase()}</Text>
             </View>
             {isAdmin ? (
               <TouchableOpacity
@@ -127,7 +130,7 @@ function LoansScreen() {
                 onPress={() => setViewAll(!viewAll)}
               >
                 <Text style={[styles.toggleText, { color: viewAll ? colors.primary : colors.text3 }]}>
-                  {viewAll ? 'Mine' : 'All'}
+                  {viewAll ? t('loans.myLoans') : t('loans.allLoans')}
                 </Text>
               </TouchableOpacity>
             ) : null}
@@ -136,13 +139,13 @@ function LoansScreen() {
       </Animated.View>
 
       <Animated.View entering={FadeInDown.duration(400).delay(60)} style={styles.statsRow}>
-        <StatCard icon="handshake-outline" value={`${loans.filter((l) => l.active).length}`} label="Active" style={styles.stat} />
-        <StatCard icon="cash-check" value={formatPKR(totalPaid)} label="Repaid" style={styles.stat} />
-        <StatCard icon="cash-remove" value={formatPKR(totalOutstanding)} label="Outstanding" iconColor={colors.danger} style={styles.stat} />
+        <StatCard icon="handshake-outline" value={`${loans.filter((l) => l.active).length}`} label={t('loans.active')} style={styles.stat} />
+        <StatCard icon="cash-check" value={formatPKR(totalPaid)} label={t('loans.paid')} style={styles.stat} />
+        <StatCard icon="cash-remove" value={formatPKR(totalOutstanding)} label={t('loans.remaining')} iconColor={colors.danger} style={styles.stat} />
       </Animated.View>
 
       {activeQuery.isLoading ? (
-        <EmptyState icon="loading" title="Loading loans..." />
+        <EmptyState icon="loading" title={t('common.loading')} />
       ) : (
         <FlashList
           data={loans}
@@ -156,7 +159,7 @@ function LoansScreen() {
                   onPress={() => setRepayLoan(item)}
                 >
                   <MaterialCommunityIcons name="cash-plus" size={16} color={colors.accent} />
-                  <Text style={[styles.repayBtnText, { color: colors.accent }]}>Record Repayment</Text>
+                  <Text style={[styles.repayBtnText, { color: colors.accent }]}>{t('loans.recordRepayment')}</Text>
                 </TouchableOpacity>
               ) : null}
             </View>
@@ -164,7 +167,7 @@ function LoansScreen() {
           estimatedItemSize={180}
           contentContainerStyle={styles.list}
           refreshControl={<RefreshControl refreshing={activeQuery.isRefetching} onRefresh={activeQuery.refetch} tintColor={colors.primary} />}
-          ListEmptyComponent={<EmptyState icon="handshake-outline" title="No loans" subtitle="No active loans at the moment" />}
+          ListEmptyComponent={<EmptyState icon="handshake-outline" title={t('loans.noLoans')} subtitle="No active loans at the moment" />}
         />
       )}
 

@@ -11,6 +11,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/stores/auth.store';
 import { useAppStore } from '@/stores/app.store';
 import { useDashboard } from '@/hooks/useDashboard';
@@ -79,13 +80,14 @@ function PaymentStatusBanner({ isPaid, amount, pledge, onPay }: {
   onPay: () => void;
 }) {
   const { colors } = useTheme();
+  const { t } = useTranslation();
 
   if (isPaid) {
     return (
       <GlassCard glowColor={colors.primaryGlow} style={styles.statusBanner}>
         <MaterialCommunityIcons name="check-circle" size={28} color={colors.primary} />
         <View style={styles.statusText}>
-          <Text style={[styles.statusTitle, { color: colors.primary }]}>This Month: Paid</Text>
+          <Text style={[styles.statusTitle, { color: colors.primary }]}>{t('dashboard.thisMontPaid')}</Text>
           {amount ? <Text style={[styles.statusSub, { color: colors.text3 }]}>PKR {amount.toLocaleString()}</Text> : null}
         </View>
         <Badge label="Verified" variant="success" />
@@ -99,10 +101,10 @@ function PaymentStatusBanner({ isPaid, amount, pledge, onPay }: {
         <MaterialCommunityIcons name="alert" size={20} color={colors.gold} />
       </View>
       <View style={styles.statusText}>
-        <Text style={[styles.statusTitle, { color: colors.gold }]}>Payment Due</Text>
+        <Text style={[styles.statusTitle, { color: colors.gold }]}>{t('dashboard.paymentDue')}</Text>
         {pledge ? <Text style={[styles.statusSub, { color: colors.text3 }]}>PKR {pledge.toLocaleString()}/mo</Text> : null}
       </View>
-      <Button label="Pay Now" onPress={onPay} variant="gold" size="sm" />
+      <Button label={t('dashboard.payNow')} onPress={onPay} variant="gold" size="sm" />
     </GlassCard>
   );
 }
@@ -112,12 +114,13 @@ function QuickActions({ isAdmin, onAction }: {
   onAction: (action: string) => void;
 }) {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const actions = [
-    { key: 'pay', icon: 'cash-plus' as const, label: 'Pay', color: colors.primary },
-    { key: 'emergency', icon: 'alert-circle-outline' as const, label: 'Emergency', color: colors.gold },
-    { key: 'loans', icon: 'handshake-outline' as const, label: 'Loans', color: colors.accent },
-    ...(isAdmin ? [{ key: 'admin', icon: 'shield-crown-outline' as const, label: 'Admin', color: colors.danger }] : [
-      { key: 'members', icon: 'account-group-outline' as const, label: 'Members', color: '#ea80fc' },
+    { key: 'pay', icon: 'cash-plus' as const, label: t('dashboard.payNow'), color: colors.primary },
+    { key: 'emergency', icon: 'alert-circle-outline' as const, label: t('dashboard.requestEmergency'), color: colors.gold },
+    { key: 'loans', icon: 'handshake-outline' as const, label: t('dashboard.viewLoans'), color: colors.accent },
+    ...(isAdmin ? [{ key: 'admin', icon: 'shield-crown-outline' as const, label: t('profile.admin'), color: colors.danger }] : [
+      { key: 'members', icon: 'account-group-outline' as const, label: t('dashboard.totalMembers'), color: '#ea80fc' },
     ]),
   ];
 
@@ -172,6 +175,7 @@ function AIFab() {
 /** Grand total — luxury hero with the family fund total in big gold figures. */
 function TotalFundHero({ fund }: { fund?: { sadaqah: number; zakat: number; qarz: number } }) {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const total = (fund?.sadaqah ?? 0) + (fund?.zakat ?? 0) + (fund?.qarz ?? 0);
   return (
     <Animated.View entering={FadeInDown.duration(400).delay(60)}>
@@ -182,10 +186,10 @@ function TotalFundHero({ fund }: { fund?: { sadaqah: number; zakat: number; qarz
         style={styles.totalHero}
       >
         <View style={styles.totalHeroInner}>
-          <Text style={styles.totalHeroLabel}>TOTAL FAMILY FUND</Text>
+          <Text style={styles.totalHeroLabel}>{t('dashboard.totalFamilyFund')}</Text>
           <Text style={styles.totalHeroValue}>{formatPKR(total)}</Text>
           <View style={styles.totalHeroDivider} />
-          <Text style={styles.totalHeroSub}>Sadaqah · Zakat · Qarz combined</Text>
+          <Text style={styles.totalHeroSub}>{t('dashboard.sadaqahZakatQarz')}</Text>
         </View>
         <MaterialCommunityIcons name="star-crescent" size={64} color="rgba(0,0,0,0.10)" style={styles.totalHeroMotif} />
       </LinearGradient>
@@ -196,18 +200,19 @@ function TotalFundHero({ fund }: { fund?: { sadaqah: number; zakat: number; qarz
 /** Premium fund composition — a single gradient stacked bar + % legend. */
 function FundDistribution({ fund }: { fund?: { sadaqah: number; zakat: number; qarz: number } }) {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const s = fund?.sadaqah ?? 0;
   const z = fund?.zakat ?? 0;
   const q = fund?.qarz ?? 0;
   const total = s + z + q || 1;
   const rows = [
-    { label: 'Sadaqah', value: s, color: colors.primary },
-    { label: 'Zakat', value: z, color: colors.gold },
-    { label: 'Qarz', value: q, color: colors.accent },
+    { label: t('dashboard.sadaqahPool'), value: s, color: colors.primary },
+    { label: t('dashboard.zakatPool'), value: z, color: colors.gold },
+    { label: t('dashboard.qarzPool'), value: q, color: colors.accent },
   ];
   return (
     <Animated.View entering={FadeInDown.duration(400).delay(120)}>
-      <SectionLabel title="FUND COMPOSITION" />
+      <SectionLabel title={t('dashboard.fundComposition')} />
       <GlassCard elevated style={styles.compCard}>
         <View style={styles.compBar}>
           {rows.map((r) => (
@@ -234,12 +239,13 @@ function FundDistribution({ fund }: { fund?: { sadaqah: number; zakat: number; q
 /** Community donations feed — donors masked server-side (sadqa privacy). */
 function CommunityFeed() {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const { data } = useCommunity();
   const payments = (data?.payments ?? []).filter((p) => !p.pendingVerify).slice(0, 6);
   if (payments.length === 0) return null;
   return (
     <Animated.View entering={FadeInDown.duration(400).delay(400)}>
-      <SectionLabel title="COMMUNITY ACTIVITY" />
+      <SectionLabel title={t('dashboard.communityActivity')} />
       <GlassCard style={styles.activityCard}>
         {payments.map((p) => (
           <View key={p.id} style={[styles.commRow, { borderBottomColor: colors.border1 }]}>
@@ -277,6 +283,7 @@ function DashboardScreen() {
   const { user } = useAuthStore();
   const { notificationCount } = useAppStore();
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const { data, isLoading, error, refetch, isRefetching } = useDashboard();
   const [searchVisible, setSearchVisible] = useState(false);
 
@@ -318,11 +325,11 @@ function DashboardScreen() {
         <DailyVerseCard />
 
         <Animated.View entering={FadeInDown.duration(400).delay(100)}>
-          <SectionLabel title="FUND OVERVIEW" />
+          <SectionLabel title={t('dashboard.fundOverview')} />
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.cardsScroll}>
-            <FundCard pool="sadaqah" amount={data?.fund.sadaqah ?? 0} label="Sadaqah Fund" />
-            <FundCard pool="zakat" amount={data?.fund.zakat ?? 0} label="Zakat Fund" />
-            <FundCard pool="qarz" amount={data?.fund.qarz ?? 0} label="Qarz Fund" />
+            <FundCard pool="sadaqah" amount={data?.fund.sadaqah ?? 0} label={t('dashboard.sadaqahPool')} />
+            <FundCard pool="zakat" amount={data?.fund.zakat ?? 0} label={t('dashboard.zakatPool')} />
+            <FundCard pool="qarz" amount={data?.fund.qarz ?? 0} label={t('dashboard.qarzPool')} />
           </ScrollView>
         </Animated.View>
 
@@ -330,8 +337,8 @@ function DashboardScreen() {
 
         <Animated.View entering={FadeInDown.duration(400).delay(150)} style={styles.statsRow}>
           <StatCard icon="wallet-outline" value={formatPKR(user?.monthlyPledge ?? 0)} label="My Pledge" style={styles.stat} />
-          <StatCard icon="clock-outline" value={`${data?.fund.pendingCount ?? 0}`} label="Pending" iconColor={colors.gold} style={styles.stat} />
-          <StatCard icon="cash-multiple" value={data?.myCurrentMonth ? 'Paid' : 'Pending'} label="This Month" iconColor={data?.myCurrentMonth ? colors.primary : colors.gold} style={styles.stat} />
+          <StatCard icon="clock-outline" value={`${data?.fund.pendingCount ?? 0}`} label={t('dashboard.pending')} iconColor={colors.gold} style={styles.stat} />
+          <StatCard icon="cash-multiple" value={data?.myCurrentMonth ? t('dashboard.paid') : t('dashboard.pending')} label={t('dashboard.thisMonth')} iconColor={data?.myCurrentMonth ? colors.primary : colors.gold} style={styles.stat} />
         </Animated.View>
 
         <Animated.View entering={FadeInDown.duration(400).delay(200)}>
@@ -347,10 +354,10 @@ function DashboardScreen() {
 
         <Animated.View entering={FadeInDown.duration(400).delay(350)}>
           <SectionLabel
-            title="RECENT ACTIVITY"
+            title={t('dashboard.recentActivity')}
             action={(
               <TouchableOpacity onPress={() => router.push('/notifications')}>
-                <Text style={[styles.seeAll, { color: colors.primary }]}>See All</Text>
+                <Text style={[styles.seeAll, { color: colors.primary }]}>{t('dashboard.seeAll')}</Text>
               </TouchableOpacity>
             )}
           />

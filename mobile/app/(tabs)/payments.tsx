@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import {
   View, Text, StyleSheet, RefreshControl, TouchableOpacity, Pressable,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { FlashList } from '@shopify/flash-list';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -18,12 +19,6 @@ import { useTheme } from '@/lib/useTheme';
 import { spacing, radius } from '@/lib/theme';
 import type { Payment, FundPool } from '@/types';
 
-const POOLS: Array<{ value: FundPool | 'all'; label: string }> = [
-  { value: 'all', label: 'All' },
-  { value: 'sadaqah', label: 'Sadaqah' },
-  { value: 'zakat', label: 'Zakat' },
-  { value: 'qarz', label: 'Qarz' },
-];
 
 function FilterChip({ label, active, onPress }: { label: string; active: boolean; onPress: () => void }) {
   const { colors } = useTheme();
@@ -65,10 +60,18 @@ function FABButton({ onPress }: { onPress: () => void }) {
 
 function PaymentsScreen() {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const [showModal, setShowModal] = useState(false);
   const [poolFilter, setPoolFilter] = useState<FundPool | 'all'>('all');
   const { data, isLoading, refetch, isRefetching } = useMyPayments();
   const submitMutation = useSubmitDonation();
+
+  const POOLS: Array<{ value: FundPool | 'all'; label: string }> = [
+    { value: 'all', label: t('payments.all') },
+    { value: 'sadaqah', label: t('payments.sadaqah') },
+    { value: 'zakat', label: t('payments.zakat') },
+    { value: 'qarz', label: t('payments.qarz') },
+  ];
 
   const filtered = useMemo(() => {
     if (!data) return [];
@@ -95,15 +98,15 @@ function PaymentsScreen() {
           start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
           style={styles.heroGradient}
         >
-          <Text style={[styles.heroLabel, { color: colors.text4 }]}>MY PAYMENTS</Text>
+          <Text style={[styles.heroLabel, { color: colors.text4 }]}>{t('dashboard.myPayments')}</Text>
           <Text style={[styles.heroValue, { color: colors.text1 }]}>{formatPKR(totalVerified)}</Text>
-          <Text style={[styles.heroSub, { color: colors.text3 }]}>total verified · {pendingCount} pending</Text>
+          <Text style={[styles.heroSub, { color: colors.text3 }]}>{t('payments.totalVerified')} · {pendingCount} {t('dashboard.pending').toLowerCase()}</Text>
         </LinearGradient>
       </Animated.View>
 
       <Animated.View entering={FadeInDown.duration(400).delay(80)} style={styles.statsRow}>
-        <StatCard icon="cash-check" value={formatPKR(totalVerified)} label="Verified" style={styles.stat} />
-        <StatCard icon="clock-outline" value={`${pendingCount}`} label="Pending" iconColor={colors.gold} style={styles.stat} />
+        <StatCard icon="cash-check" value={formatPKR(totalVerified)} label={t('payments.totalVerified')} style={styles.stat} />
+        <StatCard icon="clock-outline" value={`${pendingCount}`} label={t('dashboard.pending')} iconColor={colors.gold} style={styles.stat} />
       </Animated.View>
 
       <Animated.View entering={FadeInDown.duration(400).delay(120)} style={styles.filterRow}>
@@ -113,7 +116,7 @@ function PaymentsScreen() {
       </Animated.View>
 
       {isLoading ? (
-        <EmptyState icon="loading" title="Loading payments..." />
+        <EmptyState icon="loading" title={t('common.loading')} />
       ) : (
         <FlashList
           data={filtered}
@@ -125,9 +128,9 @@ function PaymentsScreen() {
           ListEmptyComponent={
             <EmptyState
               icon="cash-remove"
-              title="No payments yet"
+              title={t('payments.noPayments')}
               subtitle="Submit your first donation to get started"
-              actionLabel="Submit Payment"
+              actionLabel={t('payments.submitPayment')}
               onAction={() => setShowModal(true)}
             />
           }

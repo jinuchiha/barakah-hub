@@ -14,6 +14,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { GlassCard } from '@/components/ui/GlassCard';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/hooks/useAuth';
 import { useTheme } from '@/lib/useTheme';
 import { spacing, radius } from '@/lib/theme';
@@ -34,15 +35,16 @@ const schema = z.object({
 
 type FormData = z.infer<typeof schema>;
 
-const STEPS = ['Personal', 'Financial', 'Security'];
+const STEPS_KEYS = ['auth.personal', 'auth.financial', 'auth.security'] as const;
 
 function StepIndicator({ current }: { current: number }) {
   const { colors } = useTheme();
+  const { t } = useTranslation();
 
   return (
     <View style={styles.stepRow}>
-      {STEPS.map((label, i) => (
-        <React.Fragment key={label}>
+      {STEPS_KEYS.map((key, i) => (
+        <React.Fragment key={key}>
           <View style={styles.stepItem}>
             <View
               style={[
@@ -62,10 +64,10 @@ function StepIndicator({ current }: { current: number }) {
               )}
             </View>
             <Text style={[styles.stepLabel, { color: i <= current ? colors.primary : colors.text4 }]}>
-              {label}
+              {t(key)}
             </Text>
           </View>
-          {i < STEPS.length - 1 ? (
+          {i < STEPS_KEYS.length - 1 ? (
             <View style={[styles.stepLine, { backgroundColor: i < current ? colors.primary : colors.border1 }]} />
           ) : null}
         </React.Fragment>
@@ -78,6 +80,7 @@ export default function RegisterScreen() {
   const router = useRouter();
   const { register } = useAuth();
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
 
@@ -123,7 +126,7 @@ export default function RegisterScreen() {
           </View>
 
           <Animated.View entering={FadeInDown.duration(400)}>
-            <Text style={[styles.title, { color: colors.text1 }]}>Create Account</Text>
+            <Text style={[styles.title, { color: colors.text1 }]}>{t('auth.createAccount')}</Text>
             <Text style={[styles.subtitle, { color: colors.text3 }]}>Join the family treasury</Text>
           </Animated.View>
 
@@ -137,12 +140,12 @@ export default function RegisterScreen() {
                 <>
                   <Controller control={control} name="name"
                     render={({ field: { onChange, value } }) => (
-                      <Input label="Full Name" value={value ?? ''} onChangeText={onChange} leftIcon="account-outline" autoComplete="name" error={errors.name?.message} />
+                      <Input label={t('auth.fullName')} value={value ?? ''} onChangeText={onChange} leftIcon="account-outline" autoComplete="name" error={errors.name?.message} />
                     )}
                   />
                   <Controller control={control} name="fatherName"
                     render={({ field: { onChange, value } }) => (
-                      <Input label="Father's Name (links family tree)" value={value ?? ''} onChangeText={onChange} leftIcon="account-supervisor-outline" error={errors.fatherName?.message} />
+                      <Input label={t('auth.fatherName')} value={value ?? ''} onChangeText={onChange} leftIcon="account-supervisor-outline" error={errors.fatherName?.message} />
                     )}
                   />
                   <Controller control={control} name="fatherDeceased"
@@ -162,24 +165,24 @@ export default function RegisterScreen() {
               ) : step === 1 ? (
                 <Controller control={control} name="monthlyPledge"
                   render={({ field: { onChange, value } }) => (
-                    <Input label="Monthly Pledge (PKR)" value={value?.toString() ?? ''} onChangeText={onChange} leftIcon="cash" keyboardType="numeric" error={errors.monthlyPledge?.message} />
+                    <Input label={t('auth.monthlyPledge')} value={value?.toString() ?? ''} onChangeText={onChange} leftIcon="cash" keyboardType="numeric" error={errors.monthlyPledge?.message} />
                   )}
                 />
               ) : (
                 <>
                   <Controller control={control} name="email"
                     render={({ field: { onChange, value } }) => (
-                      <Input label="Email Address" value={value ?? ''} onChangeText={onChange} leftIcon="email-outline" keyboardType="email-address" autoCapitalize="none" error={errors.email?.message} />
+                      <Input label={t('auth.email')} value={value ?? ''} onChangeText={onChange} leftIcon="email-outline" keyboardType="email-address" autoCapitalize="none" error={errors.email?.message} />
                     )}
                   />
                   <Controller control={control} name="password"
                     render={({ field: { onChange, value } }) => (
-                      <Input label="Password" value={value ?? ''} onChangeText={onChange} isPassword leftIcon="lock-outline" error={errors.password?.message} />
+                      <Input label={t('auth.password')} value={value ?? ''} onChangeText={onChange} isPassword leftIcon="lock-outline" error={errors.password?.message} />
                     )}
                   />
                   <Controller control={control} name="confirmPassword"
                     render={({ field: { onChange, value } }) => (
-                      <Input label="Confirm Password" value={value ?? ''} onChangeText={onChange} isPassword leftIcon="lock-check-outline" error={errors.confirmPassword?.message} />
+                      <Input label={t('auth.confirmPassword')} value={value ?? ''} onChangeText={onChange} isPassword leftIcon="lock-check-outline" error={errors.confirmPassword?.message} />
                     )}
                   />
                 </>
@@ -189,15 +192,15 @@ export default function RegisterScreen() {
                 {step < 2 ? (
                   <Button label="Next" onPress={handleNext} variant="solid" fullWidth />
                 ) : (
-                  <Button label="Create Account" onPress={handleSubmit(onSubmit)} loading={loading} variant="solid" fullWidth />
+                  <Button label={t('auth.createAccount')} onPress={handleSubmit(onSubmit)} loading={loading} variant="solid" fullWidth />
                 )}
               </View>
             </GlassCard>
           </Animated.View>
 
           <TouchableOpacity onPress={() => router.replace('/(auth)/login')} style={styles.loginRow}>
-            <Text style={[styles.loginLabel, { color: colors.text3 }]}>Already have an account? </Text>
-            <Text style={[styles.loginLink, { color: colors.primary }]}>Sign In</Text>
+            <Text style={[styles.loginLabel, { color: colors.text3 }]}>{t('auth.alreadyHaveAccount')} </Text>
+            <Text style={[styles.loginLink, { color: colors.primary }]}>{t('auth.signIn')}</Text>
           </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>

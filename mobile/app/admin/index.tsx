@@ -13,6 +13,7 @@ import { StatCard } from '@/components/ui/StatCard';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { useAuthStore } from '@/stores/auth.store';
 import { isAdminOnly } from '@/lib/roles';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/lib/useTheme';
 import { spacing, radius } from '@/lib/theme';
 
@@ -72,6 +73,7 @@ function AdminActionCard({ icon, label, badge, color, onPress }: AdminActionProp
 
 export default function AdminDashboard() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { colors } = useTheme();
   const { user } = useAuthStore();
   const isAdmin = isAdminOnly(user?.role);
@@ -94,7 +96,7 @@ export default function AdminDashboard() {
             <MaterialCommunityIcons name="shield-crown-outline" size={28} color={colors.danger} />
           </View>
           <View>
-            <Text style={[styles.pageTitle, { color: colors.text1 }]}>{isAdmin ? 'Admin Panel' : 'Supervisor Panel'}</Text>
+            <Text style={[styles.pageTitle, { color: colors.text1 }]}>{isAdmin ? t('admin.title') : 'Supervisor Panel'}</Text>
             <Text style={[styles.pageSub, { color: colors.text3 }]}>
               {isAdmin ? 'Manage Barakah Hub' : 'Approve fund collections'}
             </Text>
@@ -122,8 +124,8 @@ export default function AdminDashboard() {
         ) : null}
 
         <Animated.View entering={FadeInDown.duration(400).delay(120)} style={styles.statsGrid}>
-          <StatCard icon="account-clock-outline" value={isLoading ? '...' : `${data?.pendingMembers ?? 0}`} label="Pending Members" iconColor={colors.gold} style={styles.stat} />
-          <StatCard icon="cash-lock" value={isLoading ? '...' : `${data?.pendingPayments ?? 0}`} label="Pending Payments" iconColor={colors.danger} style={styles.stat} />
+          <StatCard icon="account-clock-outline" value={isLoading ? '...' : `${data?.pendingMembers ?? 0}`} label={t('admin.pendingApprovals')} iconColor={colors.gold} style={styles.stat} />
+          <StatCard icon="cash-lock" value={isLoading ? '...' : `${data?.pendingPayments ?? 0}`} label={t('admin.pendingPayments')} iconColor={colors.danger} style={styles.stat} />
           <StatCard icon="handshake-outline" value={isLoading ? '...' : `${data?.activeLoans ?? 0}`} label="Active Loans" iconColor={colors.accent} style={styles.stat} />
           <StatCard icon="vote-outline" value={isLoading ? '...' : `${data?.votingCases ?? 0}`} label="Voting Cases" iconColor={colors.primary} style={styles.stat} />
         </Animated.View>
@@ -132,11 +134,11 @@ export default function AdminDashboard() {
           <Text style={[styles.sectionLabel, { color: colors.text4 }]}>ACTIONS</Text>
           <View style={styles.actionsGrid}>
             {isAdmin ? (
-              <AdminActionCard icon="account-check-outline" label="Approve Members" badge={data?.pendingMembers} color={colors.primary} onPress={() => router.push('/admin/approve-members')} />
+              <AdminActionCard icon="account-check-outline" label={t('admin.approveMembers')} badge={data?.pendingMembers} color={colors.primary} onPress={() => router.push('/admin/approve-members')} />
             ) : null}
-            <AdminActionCard icon="cash-check" label="Review Payments" badge={data?.pendingPayments} color={colors.gold} onPress={() => router.push('/admin/payments-review')} />
+            <AdminActionCard icon="cash-check" label={t('admin.reviewPayments')} badge={data?.pendingPayments} color={colors.gold} onPress={() => router.push('/admin/payments-review')} />
             {isAdmin ? (
-              <AdminActionCard icon="bullhorn-outline" label="Broadcast" color="#ea80fc" onPress={() => router.push('/admin/broadcast')} />
+              <AdminActionCard icon="bullhorn-outline" label={t('admin.broadcast')} color="#ea80fc" onPress={() => router.push('/admin/broadcast')} />
             ) : null}
             {isAdmin ? (
               <AdminActionCard icon="account-group-outline" label="Members" color={colors.accent} onPress={() => router.push('/members/')} />
