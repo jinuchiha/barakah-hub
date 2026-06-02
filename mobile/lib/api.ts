@@ -28,6 +28,14 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       await clearSessionToken();
       await clearStoredUser();
+      // Signal other parts of the app to redirect — they listen via auth store
+      // (direct router import would require dynamic import not supported here)
+      try {
+        const { useAuthStore } = require('@/stores/auth.store');
+        useAuthStore.getState().logout();
+      } catch {
+        // Store not initialized yet — ignore
+      }
     }
     return Promise.reject(normalizeError(error));
   },

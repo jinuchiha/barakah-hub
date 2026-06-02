@@ -10,6 +10,7 @@ export function VerseBar({ locale = 'en' }: { locale?: 'ur' | 'en' }) {
     return () => clearInterval(id);
   }, []);
   const v = VERSES[i];
+  if (!v) return null;
   return (
     <div className="flex shrink-0 items-center justify-center gap-3 border-b border-[rgba(30,42,74,0.4)] bg-gradient-to-r from-[var(--color-emerald-3)] via-[#1e2a4a] to-[var(--color-emerald-3)] px-6 py-1.5">
       <span className="truncate font-[var(--font-arabic)] text-base text-[var(--color-gold)]">{v.ar}</span>

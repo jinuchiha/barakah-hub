@@ -288,11 +288,11 @@ function DashboardScreen() {
   const { data, isLoading, error, refetch, isRefetching } = useDashboard();
   const [searchVisible, setSearchVisible] = useState(false); // kept for potential reuse
 
+  if (isLoading && !data) return <LoadingScreen />;
+
   if (!isLoading && error) {
     return <EmptyState icon="wifi-off" title="Could not load dashboard" subtitle={error.message} actionLabel="Retry" onAction={() => refetch()} />;
   }
-
-  if (isLoading && !data) return <LoadingScreen />;
 
   const displayName = user?.nameEn ?? user?.nameUr ?? 'Member';
 

@@ -1,4 +1,4 @@
-import { and, eq } from 'drizzle-orm';
+import { and, eq, inArray } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { members, notifications } from '@/lib/db/schema';
 import { sendPushToMembers, type PushPayload } from '@/lib/push';
@@ -31,19 +31,25 @@ export async function notifyMembers(
  *  supervisors), excluding the actor. */
 export async function fundApproverIds(excludeId?: string): Promise<string[]> {
   const rows = await db
-    .select({ id: members.id, role: members.role })
+    .select({ id: members.id })
     .from(members)
-    .where(and(eq(members.deceased, false), eq(members.status, 'approved')));
-  return rows
-    .filter((r) => (r.role === 'admin' || r.role === 'supervisor') && r.id !== excludeId)
-    .map((r) => r.id);
+    .where(and(
+      eq(members.deceased, false),
+      eq(members.status, 'approved'),
+      inArray(members.role, ['admin', 'supervisor']),
+    ));
+  return rows.filter((r) => r.id !== excludeId).map((r) => r.id);
 }
 
 /** Approved, living admins, excluding the actor. */
 export async function adminIds(excludeId?: string): Promise<string[]> {
   const rows = await db
-    .select({ id: members.id, role: members.role })
+    .select({ id: members.id })
     .from(members)
-    .where(and(eq(members.deceased, false), eq(members.status, 'approved')));
-  return rows.filter((r) => r.role === 'admin' && r.id !== excludeId).map((r) => r.id);
+    .where(and(
+      eq(members.deceased, false),
+      eq(members.status, 'approved'),
+      eq(members.role, 'admin'),
+    ));
+  return rows.filter((r) => r.id !== excludeId).map((r) => r.id);
 }

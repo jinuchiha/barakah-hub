@@ -23,7 +23,7 @@
  * that block tampering at the DB layer regardless of caller.
  */
 import { revalidatePath } from 'next/cache';
-import { eq, and, sql } from 'drizzle-orm';
+import { eq, and, sql, inArray, isNull } from 'drizzle-orm';
 import { z } from 'zod';
 import { meOrThrow } from '@/lib/auth-server';
 import { db } from '@/lib/db';
@@ -267,6 +267,7 @@ export async function submitDonation(input: z.infer<typeof submitDonationSchema>
   );
   revalidatePath('/myaccount');
   revalidatePath('/admin/fund');
+  revalidatePath('/dashboard');
   return created;
 }
 
@@ -290,6 +291,7 @@ export async function supervisorApprovePayment(paymentId: string) {
     .where(and(
       eq(payments.id, paymentId),
       eq(payments.pendingVerify, true),
+      isNull(payments.supervisorApprovedAt),
     ))
     .returning();
   if (updated.length === 0) throw new Error('Payment not found or already verified');
@@ -416,6 +418,9 @@ export async function verifyPayment(paymentId: string) {
   const [existing] = await db.select().from(payments).where(eq(payments.id, paymentId)).limit(1);
   if (!existing) throw new Error('Payment not found');
   if (!existing.pendingVerify) throw new Error('Already verified');
+  if (!existing.supervisorApprovedAt) {
+    throw new Error('Supervisor must approve this payment first before admin can verify.');
+  }
   if (existing.supervisorRejectedAt) {
     throw new Error('Supervisor rejected this payment — resend it for re-approval first, or delete it.');
   }
@@ -532,6 +537,7 @@ export async function updateGoal(input: z.infer<typeof goalSchema>) {
   await audit(me.id, 'config-changed', `Goal updated to ${data.goalAmount}`);
   revalidatePath('/dashboard');
   revalidatePath('/settings');
+  revalidatePath('/admin/annual-report');
 }
 
 /* ─── update profile (self) */
@@ -731,7 +737,7 @@ export async function createCase(input: z.infer<typeof caseSchema>) {
     .insert(cases)
     .values({ ...data, applicantId: me.id, status: 'voting' })
     .returning();
-  await audit(me.id, 'emergency-create', `${data.caseType} ${data.amount} for ${data.beneficiaryName}`);
+  await audit(me.id, 'emergency-create', `${data.caseType} ${data.amount} for ${data.beneficiaryName}`, me.id);
   // Broadcast push so every approved member sees the new case in time to vote
   void broadcastPush(me.id, {
     title: data.emergency ? '🚨 Emergency case opened' : '🆘 New case to vote on',
@@ -751,7 +757,7 @@ export async function createCase(input: z.infer<typeof caseSchema>) {
         .where(and(eq(members.status, 'approved'), eq(members.deceased, false), sql`${members.id} != ${me.id}`));
       const authIds = recipients.map((r) => r.authId).filter((v): v is string => !!v);
       if (authIds.length === 0) return;
-      const userRows = await db.select({ id: users.id, email: users.email }).from(users).where(inArrayHelper(authIds));
+      const userRows = await db.select({ id: users.id, email: users.email }).from(users).where(inArray(users.id, authIds));
       const emailByAuthId = new Map(userRows.map((u) => [u.id, u.email]));
       for (const r of recipients) {
         if (!r.authId) continue;
@@ -772,11 +778,6 @@ export async function createCase(input: z.infer<typeof caseSchema>) {
   revalidatePath('/cases');
   revalidatePath('/dashboard');
   return created;
-}
-
-/** Drizzle inArray wrapper that handles empty arrays without throwing. */
-function inArrayHelper(values: string[]) {
-  return sql`${users.id} IN (${sql.join(values.map((v) => sql`${v}`), sql`, `)})`;
 }
 
 /* ─── issue loan (admin) */
@@ -927,6 +928,7 @@ export async function disburseCase(caseId: string) {
 
   revalidatePath('/cases');
   revalidatePath('/dashboard');
+  revalidatePath('/admin/fund');
 }
 
 /* ─── admin veto: force-resolve a case regardless of votes

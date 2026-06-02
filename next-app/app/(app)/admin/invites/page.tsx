@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
-import { desc, eq } from 'drizzle-orm';
+import { desc, inArray } from 'drizzle-orm';
 import { getMeOrRedirect } from '@/lib/auth-server';
 import { db } from '@/lib/db';
 import { memberInvites, members } from '@/lib/db/schema';
@@ -15,8 +15,8 @@ export default async function InvitesPage() {
 
   const invites = await db.select().from(memberInvites).orderBy(desc(memberInvites.createdAt)).limit(100);
   const creatorIds = [...new Set(invites.map((i) => i.createdById))];
-  const creators = creatorIds.length
-    ? await db.select({ id: members.id, nameEn: members.nameEn }).from(members).where(eq(members.id, creatorIds[0]))
+  const creators = creatorIds.length > 0
+    ? await db.select({ id: members.id, nameEn: members.nameEn }).from(members).where(inArray(members.id, creatorIds))
     : [];
   const creatorMap = new Map(creators.map((c) => [c.id, c]));
 

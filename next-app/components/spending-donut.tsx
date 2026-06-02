@@ -82,7 +82,7 @@ export function SpendingDonut({ title, slices, size = 200 }: Props) {
         </div>
       </div>
 
-      <ul className="flex w-full max-w-xs flex-col gap-2">
+      <ul className="flex w-full max-w-xs flex-col gap-2" aria-label="Legend">
         {arcs.map((a) => (
           <li key={a.key} className="flex items-center gap-2.5 text-[12.5px]">
             <span className="size-2 shrink-0 rounded-full" style={{ background: a.color }} aria-hidden="true" />

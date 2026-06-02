@@ -147,7 +147,7 @@ function ProfileScreen() {
             <Badge label={roleLabel(user.role)} variant={canManageFunds(user.role) ? 'info' : 'success'} />
           </View>
           <Text style={[styles.joinDate, { color: colors.text4 }]}>
-            Member since {formatDate(user.joinedAt)} · #{user.id.slice(0, 8).toUpperCase()}
+            Member since {user.joinedAt ? formatDate(user.joinedAt) : ''} · #{user.id.slice(0, 8).toUpperCase()}
           </Text>
         </Animated.View>
 

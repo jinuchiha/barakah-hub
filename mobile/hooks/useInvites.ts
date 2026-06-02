@@ -48,6 +48,9 @@ export function useRevokeInvite() {
 
 /** Build the public join URL members open to register with an invite token. */
 export function inviteUrl(token: string): string {
-  const base = process.env.EXPO_PUBLIC_API_URL ?? '';
-  return `${base.replace(/\/$/, '')}/join/${token}`;
+  const base = process.env.EXPO_PUBLIC_API_URL;
+  if (!base) {
+    console.warn('[inviteUrl] EXPO_PUBLIC_API_URL not set — invite links will be relative');
+  }
+  return `${(base ?? '').replace(/\/$/, '')}/join/${token}`;
 }

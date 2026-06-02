@@ -64,11 +64,12 @@ export async function signUp(input: SignUpInput): Promise<void> {
     name: input.name,
   });
 
-  // autoSignIn is enabled server-side — capture the token so the
+  // autoSignIn is enabled server-side — token must be present so the
   // follow-up onboarding request is authenticated.
-  if (data?.session?.token) {
-    await saveSessionToken(data.session.token);
+  if (!data?.session?.token) {
+    throw new Error('Account created but session not established. Please sign in to complete setup.');
   }
+  await saveSessionToken(data.session.token);
 
   // Create the members row — idempotent server-side, safe to retry.
   await api.post('/api/onboarding/mobile', {

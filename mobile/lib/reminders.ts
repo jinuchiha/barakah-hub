@@ -110,7 +110,20 @@ export async function schedulePrayerNotifications(): Promise<void> {
   if (!(await ensurePermission())) return;
   await cancelAllPrayerNotifications();
 
-  const city = (await SecureStore.getItemAsync('bh_city').catch(() => null)) ?? 'Karachi';
+  // Try bh_city first, then fall back to the city stored in the user profile JSON.
+  let city = await SecureStore.getItemAsync('bh_city').catch(() => null);
+  if (!city) {
+    const userJson = await SecureStore.getItemAsync('bh_user').catch(() => null);
+    if (userJson) {
+      try {
+        const storedUser = JSON.parse(userJson) as { city?: string };
+        city = storedUser?.city ?? null;
+      } catch {
+        // malformed JSON — ignore
+      }
+    }
+  }
+  city = city || 'Karachi';
   const today = new Date();
   const datePath = `${today.getDate()}-${today.getMonth() + 1}-${today.getFullYear()}`;
   const url = `https://api.aladhan.com/v1/timingsByCity/${datePath}?city=${encodeURIComponent(city)}&country=Pakistan&method=1`;

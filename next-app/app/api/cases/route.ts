@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { eq, desc, and } from 'drizzle-orm';
+import { eq, desc, and, inArray } from 'drizzle-orm';
 import { z } from 'zod';
 import { meOrThrow } from '@/lib/auth-server';
 import { db } from '@/lib/db';
@@ -22,7 +22,10 @@ export async function GET(req: NextRequest) {
       .where(condition)
       .orderBy(desc(cases.createdAt));
 
-    const allVotes = await db.select().from(votes);
+    const caseIds = allCases.map((c) => c.id);
+    const allVotes = caseIds.length > 0
+      ? await db.select().from(votes).where(inArray(votes.caseId, caseIds))
+      : [];
     const allMembers = await db.select({ id: members.id, deceased: members.deceased, status: members.status }).from(members);
     const eligibleCount = allMembers.filter((m) => !m.deceased && m.status === 'approved').length;
 

@@ -61,8 +61,8 @@ export default function AdminConfigScreen() {
     try {
       await api.patch('/api/config', {
         voteThresholdPct: thresh,
-        defaultMonthlyPledge: parseInt(pledge, 10) || 1000,
-        goalAmount: parseInt(goalAmount, 10) || 0,
+        defaultMonthlyPledge: Number.isNaN(parseInt(pledge, 10)) ? 1000 : parseInt(pledge, 10),
+        goalAmount: Number.isNaN(parseInt(goalAmount, 10)) ? 0 : parseInt(goalAmount, 10),
         goalLabelEn: goalEn.trim() || undefined,
         goalLabelUr: goalUr.trim() || undefined,
         goalDeadline: goalDeadline.trim() || null,

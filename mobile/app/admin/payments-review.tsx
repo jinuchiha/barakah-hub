@@ -147,9 +147,9 @@ export default function PaymentsReviewScreen() {
   const rejected = pending.filter((p) => paymentQueueState(p) === 'rejected');
 
   const run = async (fn: () => Promise<unknown>, ok: Haptics.NotificationFeedbackType) => {
-    void Haptics.notificationAsync(ok);
     try {
       await fn();
+      void Haptics.notificationAsync(ok);
     } catch (err) {
       Alert.alert(t('common.error'), err instanceof Error ? err.message : t('admin.actionFailed'));
     }
@@ -224,7 +224,7 @@ export default function PaymentsReviewScreen() {
         </ScrollView>
       )}
 
-      <Modal visible={rejectTarget !== null} transparent animationType="fade" onRequestClose={() => setRejectTarget(null)}>
+      <Modal visible={rejectTarget !== null} transparent animationType="fade" onRequestClose={() => { setRejectTarget(null); setRejectNote(''); }}>
         <KeyboardAvoidingView style={styles.modalBackdrop} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
           <GlassCard style={styles.modalCard}>
             <Text style={[styles.modalTitle, { color: colors.text1 }]}>{t('admin.rejectPayment')}</Text>

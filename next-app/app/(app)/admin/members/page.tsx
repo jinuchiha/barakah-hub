@@ -50,10 +50,8 @@ export default async function MembersPage({
     <div>
       {dbError && (
         <div className="mb-4 rounded-lg border border-red-500/40 bg-red-500/10 p-4 text-sm text-red-300">
-          <strong>Database error:</strong> {dbError}
-          <p className="mt-1 text-[11px] text-red-400">
-            Run the missing migrations in Neon SQL Editor (see below), then redeploy.
-          </p>
+          <strong>Database error:</strong> Schema may be out of date — please run migrations.
+          {process.env.NODE_ENV === 'development' && <p className="text-xs">{dbError}</p>}
         </div>
       )}
       <header className="mb-6 flex flex-wrap items-start justify-between gap-3 border-b border-[var(--border)] pb-4">

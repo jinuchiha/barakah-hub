@@ -34,7 +34,14 @@ export async function POST(
     const body = await req.json();
     const { yes } = schema.parse(body);
 
-    await db.insert(votes).values({ caseId, memberId: me.id, vote: yes }).onConflictDoNothing();
+    const inserted = await db
+      .insert(votes)
+      .values({ caseId, memberId: me.id, vote: yes })
+      .onConflictDoNothing()
+      .returning();
+    if (inserted.length === 0) {
+      return NextResponse.json({ error: 'Already voted' }, { status: 409 });
+    }
 
     const allVotes = await db.select().from(votes).where(eq(votes.caseId, caseId));
     const yesCount = allVotes.filter((v) => v.vote).length;
