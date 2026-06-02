@@ -14,7 +14,7 @@ export default async function PendingPage() {
   const [me] = await db.select().from(members).where(eq(members.authId, session.user.id)).limit(1);
   if (!me) redirect('/onboarding');
   if (me.status === 'approved') redirect('/dashboard');
-  if (me.status === 'rejected') redirect('/rejected' as any);
+  if (me.status === 'rejected') redirect('/rejected');
 
   const [cfg] = await db.select({ orgNameUr: configTbl.orgNameUr, orgNameEn: configTbl.orgNameEn }).from(configTbl).where(eq(configTbl.id, 1)).limit(1);
   const verse = getDailyVerse();

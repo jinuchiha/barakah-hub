@@ -9,7 +9,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm, Controller, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { CaseCard } from '@/components/CaseCard';
@@ -57,6 +57,10 @@ function FilterTabs({ active, onChange, activeCaseCount }: {
     { value: 'disbursed', label: t('cases.disbursed') },
   ];
 
+  // Only show the badge count when displaying voting cases, so the count
+  // reflects the actual voting list rather than a filtered subset.
+  const showBadge = active === 'voting' || active === 'all';
+
   return (
     <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterScroll} contentContainerStyle={styles.filterContent}>
       {FILTERS.map((f) => (
@@ -69,7 +73,7 @@ function FilterTabs({ active, onChange, activeCaseCount }: {
           onPress={() => { void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); onChange(f.value); }}
         >
           <Text style={[styles.filterTabText, { color: active === f.value ? colors.primary : colors.text3 }]}>{f.label}</Text>
-          {f.value === 'voting' && activeCaseCount > 0 ? (
+          {f.value === 'voting' && showBadge && activeCaseCount > 0 ? (
             <View style={[styles.filterBadge, { backgroundColor: colors.gold }]}>
               <Text style={styles.filterBadgeText}>{activeCaseCount}</Text>
             </View>
@@ -91,6 +95,8 @@ function CreateCaseSheet({ visible, onClose }: { visible: boolean; onClose: () =
     mode: 'onTouched',
     defaultValues: { caseType: 'gift', pool: 'sadaqah', emergency: false, reason: '' },
   });
+
+  const caseTypeValue = useWatch({ control, name: 'caseType' });
 
   const onSubmit = async (data: CaseFormData) => {
     setCreating(true);
@@ -188,17 +194,13 @@ function CreateCaseSheet({ visible, onClose }: { visible: boolean; onClose: () =
               )}
             />
 
-            <Controller control={control} name="caseType"
-              render={({ field: { value: ct } }) => (
-                ct === 'qarz' ? (
-                  <Controller control={control} name="returnDate"
-                    render={({ field: { onChange, value } }) => (
-                      <Input label="Expected return date (optional)" value={value ?? ''} onChangeText={onChange} placeholder="e.g. Dec 2026" />
-                    )}
-                  />
-                ) : <View />
-              )}
-            />
+            {caseTypeValue === 'qarz' ? (
+              <Controller control={control} name="returnDate"
+                render={({ field: { onChange, value } }) => (
+                  <Input label="Expected return date (optional)" value={value ?? ''} onChangeText={onChange} placeholder="e.g. Dec 2026" />
+                )}
+              />
+            ) : null}
 
             <View style={styles.sheetBtns}>
               <Button label={t('common.cancel')} onPress={onClose} variant="ghost" style={styles.halfBtn} />

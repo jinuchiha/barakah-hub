@@ -96,7 +96,9 @@ export default function MemberDetailScreen() {
             {member.nameUr ? (
               <Text style={[styles.nameUr, { color: colors.text3 }]}>{member.nameUr}</Text>
             ) : null}
-            <Text style={[styles.fatherName, { color: colors.text4 }]}>S/O {member.fatherName}</Text>
+            {member.fatherName && member.fatherName !== '—' ? (
+              <Text style={[styles.fatherName, { color: colors.text4 }]}>S/O {member.fatherName}</Text>
+            ) : null}
             <View style={styles.badgeRow}>
               <Badge
                 label={member.role}

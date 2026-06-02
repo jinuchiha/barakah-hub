@@ -89,6 +89,7 @@ function PaymentsScreen() {
   const handleSubmit = async (formData: { amount: number; pool: FundPool; monthLabel: string; note?: string; receiptUrl?: string }) => {
     try {
       await submitMutation.mutateAsync(formData);
+      setShowModal(false);
     } catch (err) {
       Alert.alert('Error', err instanceof Error ? err.message : 'Submission failed');
     }

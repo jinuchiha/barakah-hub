@@ -75,6 +75,7 @@ export function useRecordRepayment() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['loans'] });
       qc.invalidateQueries({ queryKey: ['dashboard'] });
+      qc.invalidateQueries({ queryKey: ['admin', 'stats'] });
     },
   });
 }

@@ -67,9 +67,11 @@ export default function MessagesScreen() {
 
   // Mark received messages read when the inbox opens.
   useEffect(() => {
-    if (data?.some((m) => m.incoming && !m.read)) markRead.mutate();
+    if (data?.some((m) => m.incoming && !m.read) && !markRead.isPending) {
+      markRead.mutate();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data?.length]);
+  }, [data]);
 
   const openCompose = (target: ComposeTarget) => {
     setSubject(target.subject);
@@ -121,7 +123,7 @@ export default function MessagesScreen() {
   const sending = toAdmin.isPending || reply.isPending;
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: colors.bg1 }]} edges={['bottom']}>
+    <SafeAreaView style={[styles.safe, { backgroundColor: colors.bg1 }]} edges={['top', 'bottom']}>
       <Stack.Screen options={{ title: 'Messages' }} />
       {!isAdmin ? (
         <View style={styles.composeBar}>

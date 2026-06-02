@@ -62,7 +62,14 @@ export function GoalBar({ config, totalFund, locale = 'en', daysRemaining = null
           </div>
         </div>
 
-        <div className="relative h-1.5 overflow-hidden rounded-full bg-[rgba(255,255,255,0.04)]">
+        <div
+          className="relative h-1.5 overflow-hidden rounded-full bg-[rgba(255,255,255,0.04)]"
+          role="progressbar"
+          aria-valuenow={pct}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-label={labelEn || 'Fund goal progress'}
+        >
           <div
             className="h-full rounded-full bg-gradient-to-r from-[#2d8a5f] via-[#c89b3c] to-[#e8c563] transition-[width] duration-700 ease-out"
             style={{ width: `${pct}%` }}

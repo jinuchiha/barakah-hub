@@ -12,6 +12,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useTheme } from '@/lib/useTheme';
 import { spacing, radius } from '@/lib/theme';
+import { LoadingScreen } from '@/components/ui/LoadingScreen';
 import { layoutTree, flattenTree, buildEdges, SPOUSE_OFFSET_X, type LayoutNode } from '@/lib/tree-layout';
 import { buildFamilyTreeNodes } from '@/lib/family-tree';
 import { TreeNodeComponent } from '@/components/tree/TreeNode';
@@ -53,7 +54,7 @@ function MemberSheet({ node, onClose }: { node: LayoutNode; onClose: () => void 
 export default function FamilyTreeScreen() {
   const router = useRouter();
   const { colors } = useTheme();
-  const { data: members } = useMembers();
+  const { data: members, isLoading } = useMembers();
   const [selected, setSelected] = useState<LayoutNode | null>(null);
   const [search, setSearch] = useState('');
 
@@ -118,6 +119,8 @@ export default function FamilyTreeScreen() {
     translateY.value = withSpring(0);
     scale.value = withSpring(1);
   };
+
+  if (isLoading && !members) return <LoadingScreen />;
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.bg1 }]} edges={['top']}>

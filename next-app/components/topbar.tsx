@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import type { Route } from 'next';
 import { signOut } from '@/lib/auth-client';
+import { ini } from '@/lib/utils';
 import { Crescent as CrescentMark } from '@/components/icons/crescent';
 import { MobileNav } from '@/components/mobile-nav';
 import {
@@ -218,7 +219,7 @@ export function Topbar({ user, unreadCount = 0, isAdmin = false, isSupervisor = 
                 {user.photoUrl ? (
                   <img src={user.photoUrl} alt="" className="size-full object-cover" />
                 ) : (
-                  user.name.split(' ').map((p) => (p[0] ?? '')).join('').slice(0, 2).toUpperCase() || '?'
+                  ini(user.name)
                 )}
               </span>
               <span className="hidden flex-col items-start leading-tight sm:flex">

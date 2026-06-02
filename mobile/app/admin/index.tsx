@@ -11,6 +11,7 @@ import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { StatCard } from '@/components/ui/StatCard';
 import { GlassCard } from '@/components/ui/GlassCard';
+import { LoadingScreen } from '@/components/ui/LoadingScreen';
 import { useAuthStore } from '@/stores/auth.store';
 import { isAdminOnly, canManageFunds } from '@/lib/roles';
 import { Redirect } from 'expo-router';
@@ -76,7 +77,7 @@ export default function AdminDashboard() {
   const router = useRouter();
   const { t } = useTranslation();
   const { colors } = useTheme();
-  const { user } = useAuthStore();
+  const { user, isLoading: authLoading } = useAuthStore();
   const isAdmin = isAdminOnly(user?.role);
   const hasAccess = !!user && canManageFunds(user.role);
 
@@ -86,6 +87,10 @@ export default function AdminDashboard() {
     staleTime: 30_000,
     enabled: hasAccess,
   });
+
+  // Wait for auth to resolve before deciding access — prevents admins from
+  // being redirected while the user object is still loading from storage.
+  if (authLoading) return <LoadingScreen />;
 
   if (!hasAccess) {
     return <Redirect href="/(tabs)/" />;

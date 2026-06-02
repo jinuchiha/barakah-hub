@@ -61,6 +61,13 @@ export default function AnalyticsScreen() {
       byMonth.set(key, (byMonth.get(key) ?? 0) + p.amount);
     }
     return Array.from(byMonth.entries())
+      .sort((a, b) => {
+        const toMs = (label: string) => {
+          const parts = label.split(' ');
+          return new Date(`${parts[1]}-${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'].indexOf(parts[0]?.slice(0,3) ?? '')+1}-01`).getTime();
+        };
+        return toMs(a[0]) - toMs(b[0]);
+      })
       .slice(-6)
       .map(([month, amount]) => ({ month, amount }));
   }, [payments]);
@@ -127,6 +134,7 @@ export default function AnalyticsScreen() {
           </>
         )}
 
+        {!isLoading && (
         <Animated.View entering={FadeInDown.duration(400).delay(400)}>
           <SectionTitle label={t('analytics.summary')} />
           <GlassCard style={styles.summaryCard}>
@@ -146,6 +154,7 @@ export default function AnalyticsScreen() {
             </View>
           </GlassCard>
         </Animated.View>
+        )}
       </ScrollView>
     </SafeAreaView>
   );

@@ -10,9 +10,8 @@ function fmt(n: number) {
 export default function ZakatCalc() {
   const [amount, setAmount] = useState('');
   const parsed = parseFloat(amount.replace(/,/g, '')) || 0;
-  const zakatBase = Math.max(0, parsed - NISAB_PKR);
-  const zakatDue = zakatBase * 0.025;
   const meetsNisab = parsed >= NISAB_PKR;
+  const zakatDue = meetsNisab ? parsed * 0.025 : 0;
 
   return (
     <div className="space-y-3">
@@ -33,7 +32,7 @@ export default function ZakatCalc() {
         <div className={`rounded-lg p-3 text-sm ${meetsNisab ? 'bg-[rgba(200,155,60,0.08)]' : 'bg-[rgba(255,255,255,0.03)]'}`}>
           {meetsNisab ? (
             <>
-              <div className="text-xs text-[var(--txt-3)]">Your Zakat (2.5% of {fmt(zakatBase)} above nisab):</div>
+              <div className="text-xs text-[var(--txt-3)]">Your Zakat (2.5% of {fmt(parsed)}):</div>
               <div className="mt-1 font-[var(--font-display)] text-2xl font-bold text-[var(--color-gold)]">
                 {fmt(zakatDue)}
               </div>

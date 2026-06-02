@@ -40,6 +40,9 @@ export async function PATCH(
 ) {
   try {
     const { id } = await params;
+    if (!/^[0-9a-f-]{36}$/i.test(id)) {
+      return NextResponse.json({ error: 'Invalid id' }, { status: 400 });
+    }
     const body = await req.json();
     await editMember({ ...body, id });
     return NextResponse.json({ ok: true });

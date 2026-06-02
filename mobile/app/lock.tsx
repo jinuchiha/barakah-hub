@@ -17,6 +17,7 @@ import { useRouter } from 'expo-router';
 import { useTheme } from '@/lib/useTheme';
 import { authenticateWithBiometric, getBiometricCapability, getBiometricLabel } from '@/lib/biometric';
 import { isBiometricEnabled } from '@/lib/security';
+import { isPinEnabled } from '@/lib/pin';
 import { verifyPin, getPinAttempts } from '@/lib/pin';
 import { markUnlocked } from '@/lib/lock-state';
 import { useAuth } from '@/hooks/useAuth';
@@ -48,7 +49,13 @@ export default function LockScreen() {
   }, []);
 
   async function initLock() {
-    const biometric = await isBiometricEnabled();
+    const [pinEnabled, biometric] = await Promise.all([isPinEnabled(), isBiometricEnabled()]);
+    if (!biometric && !pinEnabled) {
+      // No lock method configured — bypass lock screen entirely
+      markUnlocked();
+      router.replace('/(tabs)/');
+      return;
+    }
     if (!biometric) {
       setView('pin');
       return;
