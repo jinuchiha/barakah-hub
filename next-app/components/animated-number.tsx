@@ -12,7 +12,7 @@ export function AnimatedNumber({ value, duration = 800, formatter, className }: 
   const [displayed, setDisplayed] = useState(0);
   const startRef = useRef(0);
   const startTimeRef = useRef<number | null>(null);
-  const rafRef = useRef<number>();
+  const rafRef = useRef<number | undefined>(undefined);
 
   useEffect(() => {
     const from = startRef.current;
