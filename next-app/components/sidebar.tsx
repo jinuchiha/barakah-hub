@@ -96,17 +96,25 @@ export function Sidebar({
   badges?: Record<string, number>;
 }) {
   return (
-    <aside className="hidden w-60 shrink-0 flex-col border-r border-[var(--border)] bg-[var(--surf-2)] md:flex">
+    <aside className="hidden w-60 shrink-0 flex-col border-r border-[rgba(200,155,60,0.08)] bg-[rgba(10,15,26,0.95)] shadow-[1px_0_0_0_rgba(200,155,60,0.05)] backdrop-blur-xl md:flex">
+      {/* Premium gold gradient top stripe */}
+      <div aria-hidden className="pointer-events-none h-px bg-gradient-to-r from-transparent via-[rgba(200,155,60,0.30)] to-transparent" />
       <SidebarNav isAdmin={isAdmin} isSupervisor={isSupervisor} locale={locale} layoutIdSuffix="desktop" badges={badges} />
-      <div className="border-t border-[var(--border)] px-4 py-3 text-[10px] uppercase tracking-[2px] text-[var(--txt-4)]">
-        v3.0 · Barakah Hub
+      <div className="border-t border-[rgba(200,155,60,0.07)] px-4 py-3">
+        <div className="text-[9px] uppercase tracking-[2px] text-[var(--txt-4)]">v3.0 · Barakah Hub</div>
+        <div className="mt-0.5 font-[var(--font-arabic)] text-[9px] text-[rgba(200,155,60,0.35)]">بَرَكَة ہب</div>
       </div>
     </aside>
   );
 }
 
 function SectionLabel({ label }: { label: string }) {
-  return <div className="px-4 pb-1.5 pt-5 text-[10px] font-semibold uppercase tracking-[2px] text-[var(--txt-4)]">{label}</div>;
+  return (
+    <div className="mx-4 mb-1 mt-5 flex items-center gap-2">
+      <div className="h-px flex-1 bg-gradient-to-r from-[rgba(200,155,60,0.20)] to-transparent" />
+      <span className="text-[9px] font-bold uppercase tracking-[2.5px] text-[rgba(200,155,60,0.50)]">{label}</span>
+    </div>
+  );
 }
 
 function NavItem({
@@ -130,9 +138,9 @@ function NavItem({
       href={n.href as any}
       onClick={onNavigate}
       className={cn(
-        'group relative mx-2 my-0.5 flex items-center gap-3 rounded-[10px] px-3 py-2 text-[13px] transition-colors',
+        'group relative mx-2 my-0.5 flex items-center gap-3 rounded-xl px-3 py-2 text-[13px] transition-all duration-150',
         isActive
-          ? 'bg-[rgba(200,155,60,0.10)] font-medium text-[var(--color-cream)]'
+          ? 'bg-gradient-to-r from-[rgba(200,155,60,0.15)] to-[rgba(200,155,60,0.04)] font-medium text-[var(--color-cream)] shadow-[0_1px_0_rgba(200,155,60,0.12)]'
           : 'text-[var(--txt-2)] hover:bg-[rgba(255,255,255,0.04)] hover:text-[var(--txt-1)]',
       )}
       aria-current={isActive ? 'page' : undefined}

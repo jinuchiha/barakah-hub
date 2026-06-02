@@ -236,13 +236,41 @@ a:focus-visible {
 .sc-base {
   background: var(--surf-1);
   border: 1px solid var(--border);
+  transition: box-shadow 0.18s ease, border-color 0.18s ease, transform 0.15s ease;
 }
-.sc-rail-gold     { box-shadow: inset 3px 0 0 0 #c89b3c; }
-.sc-rail-emerald  { box-shadow: inset 3px 0 0 0 #2d8a5f; }
-.sc-rail-ruby     { box-shadow: inset 3px 0 0 0 #b9556a; }
-.sc-rail-sapphire { box-shadow: inset 3px 0 0 0 #608dd7; }
-.sc-rail-violet   { box-shadow: inset 3px 0 0 0 #8b6ec9; }
-.sc-rail-ocean    { box-shadow: inset 3px 0 0 0 #4ab8d6; }
+.sc-base:hover { border-color: var(--border-2); }
+
+.sc-rail-gold     { box-shadow: inset 3px 0 0 0 #c89b3c, 0 6px 20px rgba(0,0,0,0.22); }
+.sc-rail-emerald  { box-shadow: inset 3px 0 0 0 #2d8a5f, 0 6px 20px rgba(0,0,0,0.22); }
+.sc-rail-ruby     { box-shadow: inset 3px 0 0 0 #b9556a, 0 6px 20px rgba(0,0,0,0.22); }
+.sc-rail-sapphire { box-shadow: inset 3px 0 0 0 #608dd7, 0 6px 20px rgba(0,0,0,0.22); }
+.sc-rail-violet   { box-shadow: inset 3px 0 0 0 #8b6ec9, 0 6px 20px rgba(0,0,0,0.22); }
+.sc-rail-ocean    { box-shadow: inset 3px 0 0 0 #4ab8d6, 0 6px 20px rgba(0,0,0,0.22); }
+
+/* ── Modern card system ── */
+.card-premium {
+  background: linear-gradient(135deg, rgba(255,255,255,0.025) 0%, transparent 100%), var(--surf-1);
+  border: 1px solid rgba(200,155,60,0.08);
+  border-radius: var(--radius-r);
+  box-shadow: 0 1px 0 rgba(255,255,255,0.02) inset, 0 8px 24px rgba(0,0,0,0.24);
+  transition: box-shadow 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
+}
+.card-premium:hover {
+  border-color: rgba(200,155,60,0.18);
+  box-shadow: 0 1px 0 rgba(255,255,255,0.03) inset, 0 14px 36px rgba(0,0,0,0.32),
+              0 0 0 1px rgba(200,155,60,0.08);
+  transform: translateY(-1px);
+}
+
+/* Page-entry animation */
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-enter { animation: fadeSlideUp 0.32s ease both; }
+.animate-enter-delay-1 { animation: fadeSlideUp 0.32s 0.06s ease both; }
+.animate-enter-delay-2 { animation: fadeSlideUp 0.32s 0.12s ease both; }
+.animate-enter-delay-3 { animation: fadeSlideUp 0.32s 0.18s ease both; }
 
 /* Brand-mark gold radial — used behind logos / hero numbers */
 .gold-glow {
