@@ -54,8 +54,8 @@
   --txt-2: rgba(236,235,230,0.78);
   --txt-3: rgba(236,235,230,0.52);
   --txt-4: rgba(236,235,230,0.32);
-  --surf-1: #0f1626;                                  /* card */
-  --surf-2: #0a0f1a;                                  /* page */
+  --surf-1: #0d1625;                                  /* card */
+  --surf-2: #060b13;                                  /* page */
   --surf-3: rgba(255,255,255,0.03);                   /* input bg — neutral */
   --border: rgba(255,255,255,0.07);                   /* hairline */
   --border-2: rgba(255,255,255,0.12);                 /* emphasized */
@@ -107,7 +107,12 @@
 *, *::before, *::after { box-sizing: border-box; }
 
 html, body {
-  background: var(--color-ink);
+  /* Deeper, warmer dark + subtle gold glow from top-left (behind sidebar) */
+  background: #060b13;
+  background-image:
+    radial-gradient(ellipse 55% 50% at -5% 0%,   rgba(200,155,60,0.07) 0%, transparent 65%),
+    radial-gradient(ellipse 35% 25% at 100% 100%, rgba(200,155,60,0.03) 0%, transparent 55%);
+  background-attachment: fixed;
   color: var(--color-cream);
   font-family: var(--font-body);
   font-size: 14px;
@@ -249,17 +254,24 @@ a:focus-visible {
 
 /* ── Modern card system ── */
 .card-premium {
-  background: linear-gradient(135deg, rgba(255,255,255,0.025) 0%, transparent 100%), var(--surf-1);
-  border: 1px solid rgba(200,155,60,0.08);
+  background: linear-gradient(145deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.01) 100%),
+              #0d1625;
+  /* Gold tinted border — ALWAYS visible, not just on hover */
+  border: 1px solid rgba(200,155,60,0.14);
   border-radius: var(--radius-r);
-  box-shadow: 0 1px 0 rgba(255,255,255,0.02) inset, 0 8px 24px rgba(0,0,0,0.24);
-  transition: box-shadow 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.025) inset,
+    0 8px 32px rgba(0,0,0,0.32),
+    0 0 0 0px rgba(200,155,60,0);
+  transition: box-shadow 0.22s ease, border-color 0.22s ease, transform 0.16s ease;
 }
 .card-premium:hover {
-  border-color: rgba(200,155,60,0.18);
-  box-shadow: 0 1px 0 rgba(255,255,255,0.03) inset, 0 14px 36px rgba(0,0,0,0.32),
-              0 0 0 1px rgba(200,155,60,0.08);
-  transform: translateY(-1px);
+  border-color: rgba(200,155,60,0.28);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.035) inset,
+    0 16px 40px rgba(0,0,0,0.38),
+    0 0 0 3px rgba(200,155,60,0.06);
+  transform: translateY(-2px);
 }
 
 /* Page-entry animation */
