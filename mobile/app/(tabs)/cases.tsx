@@ -146,7 +146,7 @@ function CreateCaseSheet({ visible, onClose }: { visible: boolean; onClose: () =
                   onChangeText={onChange}
                   multiline
                   numberOfLines={4}
-                  placeholder="Describe the need — in any language"
+                  placeholder="Describe the need (any language)"
                   error={errors.reason?.message}
                 />
               )}

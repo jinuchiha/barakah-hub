@@ -94,7 +94,7 @@ function QueuePaymentCard({
               <Button label={t('admin.verify')} onPress={actions.onVerify} variant="solid" size="sm" style={styles.actionBtn} />
             </View>
           ) : (
-            <Text style={[styles.statusHint, { color: colors.text4 }]}>Approved — awaiting admin verification</Text>
+            <Text style={[styles.statusHint, { color: colors.text4 }]}>✓ Approved · awaiting admin verification</Text>
           )
         ) : null}
 
@@ -106,7 +106,7 @@ function QueuePaymentCard({
               <Button label={t('admin.resend')} onPress={actions.onResend} variant="solid" size="sm" style={styles.actionBtn} />
             </View>
           ) : (
-            <Text style={[styles.statusHint, { color: colors.danger }]}>Rejected — admin will resend or delete</Text>
+            <Text style={[styles.statusHint, { color: colors.danger }]}>✗ Rejected · admin will resend or delete</Text>
           )
         ) : null}
       </View>

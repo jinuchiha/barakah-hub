@@ -10,6 +10,7 @@ import Animated, { FadeInDown, useSharedValue, useAnimatedStyle, withSpring } fr
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 import { PaymentCard } from '@/components/PaymentCard';
+import { SuccessOverlay } from '@/components/ui/SuccessOverlay';
 import { PaymentSubmitModal } from '@/components/PaymentSubmitModal';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { BrandedEmptyState } from '@/components/ui/BrandedEmptyState';
@@ -63,6 +64,7 @@ function PaymentsScreen() {
   const { colors } = useTheme();
   const { t } = useTranslation();
   const [showModal, setShowModal] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
   const [poolFilter, setPoolFilter] = useState<FundPool | 'all'>('all');
   const { data, isLoading, refetch, isRefetching } = useMyPayments();
   const submitMutation = useSubmitDonation();
@@ -91,6 +93,7 @@ function PaymentsScreen() {
     try {
       await submitMutation.mutateAsync(formData);
       setShowModal(false);
+      setShowSuccess(true);
     } catch (err) {
       Alert.alert('Error', err instanceof Error ? err.message : 'Submission failed');
     }
@@ -144,6 +147,12 @@ function PaymentsScreen() {
       )}
 
       <FABButton onPress={() => setShowModal(true)} />
+      <SuccessOverlay
+        visible={showSuccess}
+        type="success"
+        message="Submitted!"
+        onDone={() => setShowSuccess(false)}
+      />
 
       <PaymentSubmitModal
         visible={showModal}

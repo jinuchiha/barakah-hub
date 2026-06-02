@@ -29,7 +29,7 @@ const SLIDES: SlideData[] = [
     icon: 'star-crescent',
     iconColor: '#ffd740',
     title: 'Welcome to\nBarakah Hub',
-    subtitle: 'Your family\'s trusted fund management platform — built on trust, transparency, and community.',
+    subtitle: 'Your family\'s trusted fund management platform, built on trust, transparency, and community.',
     bgGlow: 'rgba(255,215,64,0.15)',
   },
   {
