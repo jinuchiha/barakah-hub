@@ -35,8 +35,8 @@ export function gregorianToHijriYear(date: Date): number {
  * Used for "filter all payments in 1446 AH" style queries.
  */
 export function hijriYearRange(hYear: number): { from: Date; to: Date } {
-  const startJd = HIJRI_EPOCH + Math.ceil((10631 * (hYear - 1) - 10646) / 30);
-  const endJd = HIJRI_EPOCH + Math.ceil((10631 * hYear - 10646) / 30) - 1;
+  const startJd = HIJRI_EPOCH + Math.ceil((10631 * hYear - 10646) / 30);
+  const endJd = HIJRI_EPOCH + Math.ceil((10631 * (hYear + 1) - 10646) / 30) - 1;
   return { from: julianDayToGregorian(startJd), to: julianDayToGregorian(endJd) };
 }
 

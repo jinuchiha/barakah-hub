@@ -71,11 +71,11 @@ export async function approveMember(memberId: string) {
     body: 'Salaam — your Barakah Hub account has been approved. Welcome!',
     data: { type: 'approved' },
     channelId: 'admin',
-  }).catch(() => {});
+  }).catch((err) => { console.error('[push] approve member:', err); });
   // Email approval — fire & forget, never block on email
   void emailForMember(m.authId).then((email) => {
     if (email) return sendApprovalEmail(email, m.nameEn || m.nameUr);
-  }).catch(() => {});
+  }).catch((err) => { console.error('[email] approve member:', err); });
   revalidatePath('/admin/members');
 }
 
@@ -438,7 +438,7 @@ export async function verifyPayment(paymentId: string) {
       body: `Your ${p.pool} contribution of Rs ${p.amount.toLocaleString('en-PK')} for ${p.monthLabel} has been verified.`,
       data: { type: 'payment-verified', paymentId: p.id },
       channelId: 'payments',
-    }).catch(() => {});
+    }).catch((err) => { console.error('[push] payment verified:', err); });
     void (async () => {
       const [donor] = await db.select().from(members).where(eq(members.id, p.memberId)).limit(1);
       if (!donor) return;
@@ -453,7 +453,7 @@ export async function verifyPayment(paymentId: string) {
           verifiedAt: new Date(),
         });
       }
-    })().catch(() => {});
+    })().catch((err) => { console.error('[email] payment receipt:', err); });
   }
   revalidatePath('/admin/fund');
   revalidatePath('/myaccount');
@@ -465,7 +465,7 @@ async function rejectPayment(paymentId: string) {
   if (!/^[0-9a-f-]{36}$/i.test(paymentId)) throw new Error('Invalid id');
   if (me.role !== 'admin') throw new Error('Admin only');
   const [p] = await db.select().from(payments).where(eq(payments.id, paymentId)).limit(1);
-  if (!p) return;
+  if (!p) throw new Error('Payment not found');
   await db.delete(payments).where(eq(payments.id, paymentId));
   await audit(me.id, 'payment-rejected', `Rejected payment ${paymentId} (${p.amount})`, p.memberId);
   revalidatePath('/admin/fund');
@@ -756,7 +756,7 @@ export async function createCase(input: z.infer<typeof caseSchema>) {
     body: `${data.beneficiaryName} · ${data.category} · Rs ${data.amount.toLocaleString('en-PK')}`,
     data: { type: 'case', caseId: created.id },
     channelId: 'cases',
-  }).catch(() => {});
+  }).catch((err) => { console.error('[push] broadcast case:', err); });
 
   // Email alert — only for cases flagged emergency (so we don't spam on
   // every routine request). Sends to every approved member except the
@@ -784,7 +784,7 @@ export async function createCase(input: z.infer<typeof caseSchema>) {
           caseId: created.id,
         });
       }
-    })().catch(() => {});
+    })().catch((err) => { console.error('[email] emergency case alert:', err); });
   }
 
   revalidatePath('/cases');

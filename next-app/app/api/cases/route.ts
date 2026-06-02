@@ -66,6 +66,7 @@ const caseSchema = z.object({
   reasonEn: z.string().max(500).optional(),
   emergency: z.boolean().default(false),
   returnDate: z.string().nullable().optional(),
+  doc: z.string().url().nullable().optional(),
 }).refine(
   (v) => !!(v.reason || v.reasonEn || v.reasonUr),
   { message: 'Reason is required', path: ['reason'] },
@@ -92,6 +93,7 @@ export async function POST(req: NextRequest) {
       reasonUr: parsed.reasonUr?.trim() || reasonText,
       emergency: parsed.emergency,
       returnDate: parsed.returnDate ?? null,
+      doc: parsed.doc ?? null,
     };
 
     const [created] = await db
@@ -101,6 +103,7 @@ export async function POST(req: NextRequest) {
 
     await db.insert(auditLog).values({
       actorId: me.id,
+      targetId: me.id,
       action: 'emergency-create',
       detail: `${data.caseType} ${data.amount} for ${data.beneficiaryName}`,
     });

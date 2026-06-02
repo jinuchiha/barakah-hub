@@ -69,20 +69,26 @@ export async function GET(req: Request) {
   const emailByAuthId = new Map(userRows.map((u) => [u.id, u.email]));
 
   let sent = 0;
+  const failed: string[] = [];
   for (const m of approved) {
     if (!m.authId) continue;
     const email = emailByAuthId.get(m.authId);
     if (!email) continue;
-    await sendMonthlyStatementEmail(email, {
-      name: m.nameEn || m.nameUr,
-      monthLabel,
-      myTotal: myTotalMap.get(m.id) ?? 0,
-      fundTotal,
-      cases: openCases,
-      loansOwed: owedMap.get(m.id) ?? 0,
-    });
-    sent++;
+    try {
+      await sendMonthlyStatementEmail(email, {
+        name: m.nameEn || m.nameUr,
+        monthLabel,
+        myTotal: myTotalMap.get(m.id) ?? 0,
+        fundTotal,
+        cases: openCases,
+        loansOwed: owedMap.get(m.id) ?? 0,
+      });
+      sent++;
+    } catch (err) {
+      console.error(`[cron] monthly-statement failed for ${email}:`, err);
+      failed.push(email);
+    }
   }
 
-  return NextResponse.json({ sent, monthLabel, fundTotal });
+  return NextResponse.json({ sent, failed: failed.length, monthLabel, fundTotal });
 }
