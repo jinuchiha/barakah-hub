@@ -31,15 +31,31 @@ export default async function MembersPage({
   const { showRejected } = await searchParams;
   const includeRejected = showRejected === '1';
 
-  const all = await db
-    .select()
-    .from(members)
-    .where(includeRejected ? undefined : ne(members.status, 'rejected'))
-    .orderBy(asc(members.nameEn));
+  let all: typeof members.$inferSelect[] = [];
+  let dbError: string | null = null;
+  try {
+    all = await db
+      .select()
+      .from(members)
+      .where(includeRejected ? undefined : ne(members.status, 'rejected'))
+      .orderBy(asc(members.nameEn));
+  } catch (e) {
+    // Most likely cause: a column in the members table doesn't exist in the
+    // production DB yet (migration not applied). Show a diagnostic hint.
+    dbError = e instanceof Error ? e.message : 'Database error';
+  }
   const pending = all.filter((m) => m.status === 'pending');
 
   return (
     <div>
+      {dbError && (
+        <div className="mb-4 rounded-lg border border-red-500/40 bg-red-500/10 p-4 text-sm text-red-300">
+          <strong>Database error:</strong> {dbError}
+          <p className="mt-1 text-[11px] text-red-400">
+            Run the missing migrations in Neon SQL Editor (see below), then redeploy.
+          </p>
+        </div>
+      )}
       <header className="mb-6 flex flex-wrap items-start justify-between gap-3 border-b border-[var(--border)] pb-4">
         <div>
           <h1 className="font-[var(--font-arabic)] text-3xl text-[var(--color-gold-2)]">اراکین خاندان</h1>
