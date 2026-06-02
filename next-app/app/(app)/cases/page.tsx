@@ -32,17 +32,38 @@ export default async function CasesPage() {
   const need = Math.ceil(eligibleCount * (voteThresh / 100));
 
   return (
-    <div>
-      <header className="mb-6 flex flex-wrap items-start justify-between gap-3 border-b border-[var(--border)] pb-4">
+    <div className="mx-auto max-w-[1400px]">
+      <header className="mb-8 flex flex-wrap items-end justify-between gap-4 border-b border-[var(--border)] pb-6">
         <div>
-          <h1 className="font-[var(--font-arabic)] text-3xl text-[var(--color-gold-2)]">ایمرجنسی ووٹ</h1>
-          <p className="mt-1 font-[var(--font-en)] text-sm italic text-[var(--color-gold-4)]">Emergency cases — community-approved by majority vote</p>
+          <div className="mb-2 text-[10px] font-bold uppercase tracking-[2px] text-[var(--txt-3)]">
+            Community · Emergency Fund
+          </div>
+          <h1 className="text-[28px] font-semibold leading-tight tracking-[-0.5px] text-[var(--color-cream)]">
+            Emergency Votes
+          </h1>
+          <p className="font-[var(--font-arabic)] mt-1 text-sm text-[var(--color-gold-2)]">ایمرجنسی ووٹ</p>
+        </div>
+        <div className="flex flex-wrap items-center gap-3">
+          {allCases.filter((c) => c.status === 'voting').length > 0 && (
+            <span
+              className="inline-flex items-center rounded-full border px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider"
+              style={{ borderColor: 'rgba(249,115,22,0.3)', background: 'rgba(249,115,22,0.08)', color: '#fb923c' }}
+            >
+              {allCases.filter((c) => c.status === 'voting').length} open
+            </span>
+          )}
+          <span
+            className="inline-flex items-center rounded-full border px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider"
+            style={{ borderColor: 'rgba(45,138,95,0.3)', background: 'rgba(45,138,95,0.08)', color: '#4ec38d' }}
+          >
+            {allCases.filter((c) => c.status === 'approved' || c.status === 'disbursed').length} approved
+          </span>
         </div>
       </header>
 
       {me.status === 'approved' && (
-        <Card className="mb-4">
-          <CardHeader><CardTitle>+ Submit New Request</CardTitle></CardHeader>
+        <Card className="mb-6">
+          <CardHeader><CardTitle>Submit New Request</CardTitle></CardHeader>
           <CardBody><NewCaseForm /></CardBody>
         </Card>
       )}

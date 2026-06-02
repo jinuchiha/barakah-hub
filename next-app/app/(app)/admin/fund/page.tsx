@@ -4,6 +4,7 @@ import { getMeOrRedirect, canManageFunds } from '@/lib/auth-server';
 import { db } from '@/lib/db';
 import { members, payments } from '@/lib/db/schema';
 import { Card, CardHeader, CardTitle, CardBody } from '@/components/ui/card';
+import { StatCard } from '@/components/stat-card';
 import { fmtRs } from '@/lib/i18n/dict';
 import { ini } from '@/lib/utils';
 import RecordPaymentForm from './record-payment-form';
@@ -51,37 +52,56 @@ export default async function FundPage() {
     const pendingTotal = awaitingSupervisor.reduce((s, p) => s + p.amount, 0);
 
     return (
-      <div>
-        <header className="mb-6 flex flex-wrap items-start justify-between gap-3 border-b border-[var(--border)] pb-4">
+      <div className="mx-auto max-w-[1400px]">
+        <header className="mb-8 flex flex-wrap items-end justify-between gap-4 border-b border-[var(--border)] pb-6">
           <div>
-            <h1 className="text-2xl font-semibold text-[var(--color-cream)]">Pending Payments</h1>
-            <p className="mt-1 text-sm text-[var(--txt-3)]">
-              Review and approve incoming payments. An admin will give the final verification afterwards.
+            <div className="mb-2 text-[10px] font-bold uppercase tracking-[2px] text-[var(--txt-3)]">
+              Supervisor · Fund Approvals
+            </div>
+            <h1 className="text-[28px] font-semibold leading-tight tracking-[-0.5px] text-[var(--color-cream)]">
+              Pending Payments
+            </h1>
+            <p className="mt-1.5 text-sm text-[var(--txt-3)]">
+              Pre-approve payments before they reach admin final verification.
             </p>
           </div>
           {awaitingSupervisor.length > 0 && (
-            <div className="text-right">
-              <div className="text-[10px] font-semibold uppercase tracking-[1.5px] text-[var(--txt-3)]">Pending amount</div>
+            <div
+              className="rounded-xl border px-5 py-3 text-right"
+              style={{ borderColor: 'rgba(200,155,60,0.2)', background: 'rgba(200,155,60,0.06)' }}
+            >
+              <div className="text-[10px] font-bold uppercase tracking-[2px] text-[var(--txt-3)]">Pending amount</div>
               <div className="num-display mt-1 text-2xl text-[var(--color-gold)]">{fmtRs(pendingTotal)}</div>
+              <div className="mt-0.5 text-[10px] text-[var(--txt-4)]">{awaitingSupervisor.length} payment{awaitingSupervisor.length !== 1 ? 's' : ''}</div>
             </div>
           )}
         </header>
 
         <Card>
           <CardHeader>
-            <CardTitle>⏳ Awaiting Your Approval ({awaitingSupervisor.length})</CardTitle>
+            <CardTitle>Awaiting Your Approval</CardTitle>
+            {awaitingSupervisor.length > 0 && (
+              <span
+                className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider"
+                style={{ borderColor: 'rgba(200,155,60,0.3)', background: 'rgba(200,155,60,0.08)', color: '#c89b3c' }}
+              >
+                {awaitingSupervisor.length} waiting
+              </span>
+            )}
           </CardHeader>
           <CardBody className="p-0">
             {awaitingSupervisor.length === 0 ? (
-              <div className="py-12 text-center text-sm italic text-[var(--txt-3)]">
-                Sab kuch verify ho gaya — koi pending nahi
+              <div className="py-14 text-center">
+                <div className="mx-auto mb-2 text-[var(--color-gold)] opacity-30 text-3xl">✓</div>
+                <div className="text-sm text-[var(--txt-3)]">All caught up — no pending payments</div>
+                <div className="font-[var(--font-arabic)] mt-1 text-xs text-[var(--txt-4)]">الحمدللہ</div>
               </div>
             ) : (
               awaitingSupervisor.map((p) => {
                 const m = memById.get(p.memberId);
                 return (
-                  <div key={p.id} className="flex items-center gap-3 border-b border-[var(--border)] p-3 last:border-b-0">
-                    <div className="grid size-9 place-items-center rounded-full text-xs font-bold text-white" style={{ background: m?.color || '#888' }}>
+                  <div key={p.id} className="flex items-center gap-3 border-b border-[var(--border)] px-5 py-3.5 last:border-b-0 hover:bg-[var(--surf-3)] transition-colors">
+                    <div className="grid size-9 shrink-0 place-items-center rounded-full text-xs font-bold text-white" style={{ background: m?.color || '#888' }}>
                       {m ? ini(m.nameEn || m.nameUr) : '?'}
                     </div>
                     <div className="min-w-0 flex-1">
@@ -171,19 +191,24 @@ export default async function FundPage() {
   const chartBuckets = [...bucketMap.values()].slice(0, 12).reverse();
 
   return (
-    <div>
-      <header className="mb-6 flex flex-wrap items-start justify-between gap-3 border-b border-[var(--border)] pb-4">
+    <div className="mx-auto max-w-[1400px]">
+      <header className="mb-8 flex flex-wrap items-end justify-between gap-4 border-b border-[var(--border)] pb-6">
         <div>
-          <h1 className="font-[var(--font-arabic)] text-3xl text-[var(--color-gold-2)]">فنڈ رجسٹر</h1>
-          <p className="mt-1 font-[var(--font-en)] text-sm italic text-[var(--color-gold-4)]">Multi-pool ledger · sadaqah / zakat / qarz</p>
+          <div className="mb-2 text-[10px] font-bold uppercase tracking-[2px] text-[var(--txt-3)]">
+            Admin · Fund Register
+          </div>
+          <h1 className="text-[28px] font-semibold leading-tight tracking-[-0.5px] text-[var(--color-cream)]">
+            Family Fund
+          </h1>
+          <p className="font-[var(--font-arabic)] mt-1 text-sm text-[var(--color-gold-2)]">فنڈ رجسٹر · صدقہ / زکوٰة / قرض</p>
         </div>
         <ExportLink href={'/api/exports/fund' as any}>Export CSV</ExportLink>
       </header>
 
-      <div className="mb-4 grid gap-3 md:grid-cols-3">
-        <Card><CardBody><div className="text-xs text-[var(--color-gold-4)]">Sadaqah Pool</div><div className="font-[var(--font-display)] text-2xl text-[var(--color-emerald-2)]">{fmtRs(Number(poolTotals.sadaqah))}</div></CardBody></Card>
-        <Card><CardBody><div className="text-xs text-[var(--color-gold-4)]">Zakat Pool</div><div className="font-[var(--font-display)] text-2xl text-[var(--color-gold)]">{fmtRs(Number(poolTotals.zakat))}</div></CardBody></Card>
-        <Card><CardBody><div className="text-xs text-[var(--color-gold-4)]">Qarz Pool</div><div className="font-[var(--font-display)] text-2xl text-blue-400">{fmtRs(Number(poolTotals.qarz))}</div></CardBody></Card>
+      <div className="mb-6 grid gap-3 grid-cols-3">
+        <StatCard label="Sadaqah Pool" value={fmtRs(Number(poolTotals.sadaqah))} tone="gold"     hint="Voluntary charity" />
+        <StatCard label="Zakat Pool"   value={fmtRs(Number(poolTotals.zakat))}   tone="emerald"  hint="Obligatory alms" />
+        <StatCard label="Qarz Pool"    value={fmtRs(Number(poolTotals.qarz))}    tone="sapphire" hint="Interest-free loans" />
       </div>
 
       <Card className="mb-4">

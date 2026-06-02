@@ -29,13 +29,14 @@ export default async function MyAccountPage() {
     .reduce((a, p) => a + p.amount, 0);
 
   return (
-    <div>
-      <header className="mb-6 border-b border-[var(--border)] pb-4">
-        <h1 className="font-[var(--font-arabic)] text-3xl text-[var(--color-gold-2)]">میرا کھاتہ</h1>
-        <p className="mt-1 font-[var(--font-en)] text-sm italic text-[var(--color-gold-4)]">My Account</p>
+    <div className="mx-auto max-w-[1400px]">
+      <header className="mb-8 border-b border-[var(--border)] pb-6">
+        <div className="mb-2 text-[10px] font-bold uppercase tracking-[2px] text-[var(--txt-3)]">Member · Account</div>
+        <h1 className="text-[28px] font-semibold leading-tight tracking-[-0.5px] text-[var(--color-cream)]">My Account</h1>
+        <p className="font-[var(--font-arabic)] mt-1 text-sm text-[var(--color-gold-2)]">میرا کھاتہ</p>
       </header>
 
-      <Card className="mb-4 overflow-hidden">
+      <Card className="mb-6 overflow-hidden">
         <CardBody className="p-6">
           <div className="mb-4 flex items-center gap-4">
             <div
