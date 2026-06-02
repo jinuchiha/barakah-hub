@@ -564,6 +564,8 @@ const adminCfgSchema = z.object({
   themePalette: z.string().max(20).optional(),
   orgNameUr: z.string().max(80).optional(),
   orgNameEn: z.string().max(80).optional(),
+  easyPaiseName: z.string().max(80).optional().nullable(),
+  easyPaiseNumber: z.string().max(20).optional().nullable(),
 });
 
 export async function updateAdminConfig(input: z.infer<typeof adminCfgSchema>) {

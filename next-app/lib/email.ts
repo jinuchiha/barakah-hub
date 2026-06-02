@@ -180,3 +180,42 @@ export async function sendMonthlyStatementEmail(to: string, s: MonthlySummary): 
 function escape(s: string): string {
   return s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!));
 }
+
+/* ─── 6. Weekly backup summary ─── */
+interface BackupSummary {
+  date: string;
+  members: { total: number; approved: number };
+  payments: { total: number; verified: number; pending: number };
+  loans: { total: number; active: number };
+  cases: { total: number; approved: number };
+  auditEntries: number;
+  fundTotal: number;
+  config: { voteThreshold: number; easyPaise: string } | null;
+}
+
+export async function sendWeeklyBackupEmail(s: BackupSummary): Promise<void> {
+  // Send to RESEND_FROM address (usually the admin's configured sender)
+  const to = process.env.BACKUP_EMAIL ?? process.env.RESEND_FROM?.match(/<(.+)>/)?.[1] ?? '';
+  if (!to) return;
+
+  const fmtPKR = (n: number) => `Rs ${n.toLocaleString('en-PK')}`;
+  const row = (label: string, value: string) =>
+    `<tr><td style="padding:8px 12px;font-size:12px;color:#94a3b8;border-bottom:1px solid #1e293b;">${escape(label)}</td>` +
+    `<td style="padding:8px 12px;font-size:12px;font-weight:bold;color:#f8fafc;border-bottom:1px solid #1e293b;">${escape(value)}</td></tr>`;
+
+  const body = `
+    <p style="color:#94a3b8;font-size:13px;">Weekly snapshot — <strong style="color:#f8fafc;">${escape(s.date)}</strong></p>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #1e293b;border-radius:10px;overflow:hidden;margin:16px 0;">
+      ${row('Total Fund', fmtPKR(s.fundTotal))}
+      ${row('Members', `${s.members.approved} approved / ${s.members.total} total`)}
+      ${row('Payments', `${s.payments.verified} verified, ${s.payments.pending} pending`)}
+      ${row('Active Loans', String(s.loans.active))}
+      ${row('Cases', `${s.cases.approved} approved / ${s.cases.total} total`)}
+      ${row('Audit entries', String(s.auditEntries))}
+      ${s.config ? row('EasyPaisa', s.config.easyPaise) : ''}
+    </table>
+    <p style="font-size:11px;color:#475569;">This is an automatic weekly backup email from Barakah Hub. Point-in-time recovery is handled by Neon Postgres PITR.</p>
+  `;
+  const text = `Barakah Hub Weekly Backup — ${s.date}\nFund: ${fmtPKR(s.fundTotal)}\nMembers: ${s.members.approved}/${s.members.total}\nPayments: ${s.payments.verified} verified, ${s.payments.pending} pending\n${APP_URL}/dashboard`;
+  await send(to, `🗄 Barakah Hub Weekly Backup — ${s.date}`, shell(`Weekly Backup ${s.date}`, body), text);
+}

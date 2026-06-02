@@ -1,0 +1,22 @@
+# EAS Build does its own `expo prebuild` in the cloud, so the local
+# android/ and ios/ folders are not needed in the upload tarball. Skipping
+# them also avoids the EBUSY error when Gradle lock files are held by a
+# previous local build attempt.
+android/
+ios/
+
+# Heavy local-only artifacts
+.expo/
+node_modules/
+.gradle/
+build/
+dist/
+web-build/
+
+# Scripts used for local dev only (icons are already committed under assets/)
+scripts/
+
+# IDE + OS
+.vscode/
+.DS_Store
+*.log

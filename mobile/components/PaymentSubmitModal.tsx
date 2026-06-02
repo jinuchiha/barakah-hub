@@ -14,6 +14,7 @@ import { radius, spacing } from '@/lib/theme';
 import { useTheme } from '@/lib/useTheme';
 import { currentMonthLabel } from '@/lib/format';
 import { pickImageWithChoice } from '@/lib/camera';
+import { useConfig } from '@/hooks/useConfig';
 import { api } from '@/lib/api';
 
 type Colors = ReturnType<typeof useTheme>['colors'];
@@ -43,6 +44,7 @@ const pools = [
 export function PaymentSubmitModal({ visible, onClose, onSubmit }: PaymentSubmitModalProps) {
   const { colors } = useTheme();
   const styles = React.useMemo(() => makeStyles(colors), [colors]);
+  const { data: config } = useConfig();
   const [screenshotUri, setScreenshotUri] = useState<string | undefined>();
   const [submitting, setSubmitting] = useState(false);
 
@@ -130,6 +132,19 @@ export function PaymentSubmitModal({ visible, onClose, onSubmit }: PaymentSubmit
           <View style={styles.handle} />
           <Text style={styles.title}>Submit Payment</Text>
           <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+            {/* EasyPaisa instructions — shown when supervisor has set their number */}
+            {config?.easyPaiseNumber ? (
+              <View style={[styles.easyPaiseBox, { borderColor: colors.primary, backgroundColor: colors.primaryDim }]}>
+                <Text style={[styles.easyPaiseTitle, { color: colors.primary }]}>📱 Send via EasyPaisa First</Text>
+                <Text style={[styles.easyPaiseName, { color: colors.text1 }]}>
+                  {config.easyPaiseName ? `${config.easyPaiseName} — ` : ''}
+                  <Text style={{ fontFamily: 'SpaceMono_400Regular', fontWeight: '700' }}>{config.easyPaiseNumber}</Text>
+                </Text>
+                <Text style={[styles.easyPaiseHint, { color: colors.text3 }]}>
+                  Pehle is number pe paisa bhejein, phir neeche receipt upload karein.
+                </Text>
+              </View>
+            ) : null}
             <Controller
               control={control}
               name="amount"
@@ -318,4 +333,8 @@ const makeStyles = (colors: Colors) => StyleSheet.create({
     gap: spacing.sm,
   },
   btn: { flex: 1 },
+  easyPaiseBox: { borderWidth: 1.5, borderRadius: radius.md, padding: spacing.md, marginBottom: spacing.md },
+  easyPaiseTitle: { fontSize: 11, fontFamily: 'Inter_700Bold', letterSpacing: 1, marginBottom: 4 },
+  easyPaiseName: { fontSize: 15, fontFamily: 'Inter_600SemiBold' },
+  easyPaiseHint: { fontSize: 12, fontFamily: 'Inter_400Regular', marginTop: 4 },
 });

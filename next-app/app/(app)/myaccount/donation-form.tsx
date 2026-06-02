@@ -10,7 +10,12 @@ const MONTHS = [
   'July', 'August', 'September', 'October', 'November', 'December',
 ];
 
-export default function DonationForm() {
+interface DonationFormProps {
+  easyPaiseName?: string | null;
+  easyPaiseNumber?: string | null;
+}
+
+export default function DonationForm({ easyPaiseName, easyPaiseNumber }: DonationFormProps) {
   const [pending, start] = useTransition();
   const [open, setOpen] = useState(false);
   const [amount, setAmount] = useState(0);
@@ -53,6 +58,21 @@ export default function DonationForm() {
 
   return (
     <form onSubmit={submit} className="grid gap-3 md:grid-cols-2">
+      {/* EasyPaisa Payment Instructions */}
+      {easyPaiseNumber && (
+        <div className="md:col-span-2 rounded-xl border border-[rgba(200,155,60,0.30)] bg-[rgba(200,155,60,0.08)] p-4">
+          <div className="mb-1 text-[11px] font-bold uppercase tracking-[1.5px] text-[var(--color-gold-4)]">
+            📱 Send Payment Via EasyPaisa
+          </div>
+          <div className="text-sm font-semibold text-[var(--color-cream)]">
+            {easyPaiseName && <span>{easyPaiseName} — </span>}
+            <span className="font-mono text-[var(--color-gold)]">{easyPaiseNumber}</span>
+          </div>
+          <div className="mt-1 text-[11px] text-[var(--txt-3)]">
+            Pehle EasyPaisa se yeh number pe paisa bhejein, phir receipt upload karke submit karein.
+          </div>
+        </div>
+      )}
       <div>
         <Label>Amount (Rs.) *</Label>
         <Input
