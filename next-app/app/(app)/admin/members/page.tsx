@@ -85,7 +85,7 @@ export default async function MembersPage({
                 <div className="flex-1">
                   <div className="text-sm font-semibold text-[var(--color-cream)]">{m.nameUr || m.nameEn}</div>
                   <div className="text-xs text-[var(--txt-3)]">
-                    Father: {m.fatherName} · {m.relation || '—'}
+                    {m.fatherName && m.fatherName !== '—' ? `Father: ${m.fatherName}` : ''}{m.relation ? ` · ${m.relation}` : ''}
                     {m.city && ` · ${m.city}`}
                   </div>
                 </div>

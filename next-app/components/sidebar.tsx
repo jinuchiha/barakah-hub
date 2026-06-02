@@ -70,19 +70,8 @@ export function Sidebar({ isAdmin = false, isSupervisor = false, locale = 'en', 
       className="hidden w-[220px] shrink-0 flex-col md:flex"
       style={{ background: 'linear-gradient(180deg,#060b13 0%,#080e18 100%)', borderRight: '1px solid rgba(200,155,60,0.14)' }}
     >
-      {/* ── BRAND AREA ── */}
-      <div className="flex items-center gap-3 px-4 py-5" style={{ borderBottom: '1px solid rgba(200,155,60,0.10)' }}>
-        <div
-          className="grid size-9 shrink-0 place-items-center rounded-xl"
-          style={{ background: 'linear-gradient(135deg,#d9b04c,#c89b3c,#9a7230)', boxShadow: '0 0 18px rgba(200,155,60,0.45),0 2px 8px rgba(0,0,0,0.4)', color: '#0a0f1a', fontSize: 19, lineHeight: 1 }}
-        >
-          ☾
-        </div>
-        <div>
-          <div className="text-[14px] font-bold leading-tight tracking-tight" style={{ color: '#ecebe6' }}>Barakah Hub</div>
-          <div className="mt-0.5 font-[var(--font-arabic)] text-[11px]" style={{ color: '#c89b3c' }}>بَرَكَة ہب</div>
-        </div>
-      </div>
+      {/* Gold top accent line */}
+      <div aria-hidden className="h-px w-full" style={{ background: 'linear-gradient(90deg, transparent, rgba(200,155,60,0.35), transparent)' }} />
 
       <SidebarNav isAdmin={isAdmin} isSupervisor={isSupervisor} locale={locale} layoutIdSuffix="desktop" badges={badges} />
 

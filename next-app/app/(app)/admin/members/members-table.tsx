@@ -124,7 +124,7 @@ export default function MembersTable({ initial }: Props) {
                       </div>
                     </div>
                   </td>
-                  <td className="px-4 py-2 text-xs text-[var(--txt-2)]">{m.fatherName}</td>
+                  <td className="px-4 py-2 text-xs text-[var(--txt-2)]">{m.fatherName === '—' ? '' : m.fatherName}</td>
                   <td className="px-4 py-2 text-xs text-[var(--txt-3)]">{m.city || '—'}{m.province ? <><br /><span className="opacity-70">{m.province}</span></> : null}</td>
                   <td className="px-4 py-2 text-right font-[var(--font-display)] text-[var(--color-gold)]">{fmtRs(m.monthlyPledge)}</td>
                   <td className="px-4 py-2">

@@ -9,5 +9,7 @@
       "path": "/api/cron/monthly-statements",
       "schedule": "0 9 1 * *"
     }
-  ]
+  ],
+  "buildCommand": "cd next-app && pnpm build",
+  "installCommand": "cd next-app && pnpm install --frozen-lockfile"
 }

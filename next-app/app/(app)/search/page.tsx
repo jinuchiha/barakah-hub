@@ -102,7 +102,9 @@ export default async function SearchPage({ searchParams }: Props) {
                 <div className="grid size-8 place-items-center rounded-full text-xs font-bold text-white" style={{ background: m.color }}>{ini(m.nameEn || m.nameUr)}</div>
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-semibold text-[var(--color-cream)]">{m.nameEn || m.nameUr}</div>
-                  <div className="text-[11px] text-[var(--color-gold-4)]">s/o {m.fatherName}{m.city ? ` · ${m.city}` : ''}</div>
+                  <div className="text-[11px] text-[var(--color-gold-4)]">
+                    {m.fatherName && m.fatherName !== '—' ? `s/o ${m.fatherName}` : ''}{m.city ? `${m.fatherName && m.fatherName !== '—' ? ' · ' : ''}${m.city}` : ''}
+                  </div>
                 </div>
                 <span className="text-[10px] uppercase tracking-wider text-[var(--color-gold-4)]">{m.role === 'admin' ? 'admin' : m.status}</span>
               </Link>

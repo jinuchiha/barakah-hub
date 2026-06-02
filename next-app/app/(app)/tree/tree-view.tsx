@@ -249,8 +249,12 @@ export default function TreeView({ members, paidBy, viewerId, viewerIsAdmin }: P
             )}
           </div>
           <dl className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
-            <div><dt className="text-[10px] uppercase text-[var(--color-gold-4)]">Father</dt><dd className="mt-0.5">{selectedMember.fatherName}</dd></div>
-            <div><dt className="text-[10px] uppercase text-[var(--color-gold-4)]">Relation</dt><dd className="mt-0.5">{selectedMember.relation || '—'}</dd></div>
+            {selectedMember.fatherName && selectedMember.fatherName !== '—' && (
+              <div><dt className="text-[10px] uppercase text-[var(--color-gold-4)]">Father</dt><dd className="mt-0.5">{selectedMember.fatherName}</dd></div>
+            )}
+            {selectedMember.relation && (
+              <div><dt className="text-[10px] uppercase text-[var(--color-gold-4)]">Relation</dt><dd className="mt-0.5">{selectedMember.relation}</dd></div>
+            )}
             <div><dt className="text-[10px] uppercase text-[var(--color-gold-4)]">City</dt><dd className="mt-0.5">{selectedMember.city || '—'}</dd></div>
             <div><dt className="text-[10px] uppercase text-[var(--color-gold-4)]">Province</dt><dd className="mt-0.5">{selectedMember.province || '—'}</dd></div>
             <div><dt className="text-[10px] uppercase text-[var(--color-gold-4)]">Phone</dt><dd className="mt-0.5">{selectedMember.phone || '—'}</dd></div>

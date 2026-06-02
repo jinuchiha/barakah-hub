@@ -49,7 +49,7 @@ export default async function MyAccountPage() {
               <div className="font-[var(--font-arabic)] text-xl text-[var(--color-gold-2)]">{me.nameUr}</div>
               <div className="font-[var(--font-en)] text-sm text-[var(--color-gold-4)]">{me.nameEn}</div>
               <div className="mt-1 text-xs text-[var(--txt-3)]">
-                {me.relation || ''} {me.fatherName ? `· ${me.fatherName}` : ''}
+                {me.relation || ''}{me.fatherName && me.fatherName !== '—' ? ` · ${me.fatherName}` : ''}
               </div>
             </div>
           </div>
