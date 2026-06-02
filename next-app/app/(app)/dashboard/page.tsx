@@ -8,6 +8,7 @@ import {
 import { getMeOrRedirect } from '@/lib/auth-server';
 import { db } from '@/lib/db';
 import { members, payments, cases, votes, loans, config as configTbl, auditLog } from '@/lib/db/schema';
+import { AnimatedNumber } from '@/components/animated-number';
 import { StatCard } from '@/components/stat-card';
 import { GoalBar } from '@/components/goal-bar';
 import { SpendingDonut, type DonutSlice } from '@/components/spending-donut';
@@ -133,7 +134,7 @@ export default async function DashboardPage() {
         >
           <div className="relative z-10">
             <div className="text-[11px] font-bold uppercase tracking-[2.5px] text-black/60">Total Family Fund</div>
-            <div className="tabular mt-2 text-[44px] font-bold leading-none text-[#0a0f1a]">{fmtRs(totalFund)}</div>
+            <AnimatedNumber value={totalFund} formatter={(n) => `Rs. ${n.toLocaleString('en-PK')}`} className="tabular mt-2 text-[44px] font-bold leading-none text-[#0a0f1a]" />
             <div className="mt-3 h-px w-14 bg-black/25" />
             <div className="mt-3 text-[12.5px] font-semibold text-black/60">
               {memberCount} members · {fmtRs(pendingAmount)} awaiting approval

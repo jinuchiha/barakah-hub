@@ -16,6 +16,7 @@ import { Button } from '@/components/ui/Button';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { api } from '@/lib/api';
 import { LoadingScreen } from '@/components/ui/LoadingScreen';
+import { SuccessOverlay } from '@/components/ui/SuccessOverlay';
 import { useAuthStore } from '@/stores/auth.store';
 import { isAdminOnly } from '@/lib/roles';
 import { useTheme } from '@/lib/useTheme';
@@ -55,6 +56,7 @@ export default function BroadcastScreen() {
   const { colors } = useTheme();
   const { user, isLoading: authLoading } = useAuthStore();
   const [sent, setSent] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
 
   const mutation = useMutation({ mutationFn: sendBroadcast });
 
@@ -70,6 +72,7 @@ export default function BroadcastScreen() {
         onPress: async () => {
           try {
             await mutation.mutateAsync(data);
+            setShowSuccess(true);
             setSent(true);
           } catch (err) {
             Alert.alert('Error', err instanceof Error ? err.message : 'Failed to send broadcast');
@@ -84,6 +87,7 @@ export default function BroadcastScreen() {
 
   if (sent) return (
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.bg1 }]} edges={['bottom']}>
+      <SuccessOverlay visible={showSuccess} type="success" message="Broadcast Sent!" onDone={() => setShowSuccess(false)} />
       <View style={styles.centeredContainer}>
         <SuccessView onDismiss={() => { setSent(false); reset(); }} />
       </View>
