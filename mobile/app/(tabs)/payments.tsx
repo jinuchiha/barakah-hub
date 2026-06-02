@@ -12,6 +12,7 @@ import * as Haptics from 'expo-haptics';
 import { PaymentCard } from '@/components/PaymentCard';
 import { PaymentSubmitModal } from '@/components/PaymentSubmitModal';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { BrandedEmptyState } from '@/components/ui/BrandedEmptyState';
 import { StatCard } from '@/components/ui/StatCard';
 import { useMyPayments, useSubmitDonation } from '@/hooks/usePayments';
 import { formatPKR } from '@/lib/format';
@@ -131,8 +132,8 @@ function PaymentsScreen() {
           contentContainerStyle={styles.list}
           refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={colors.primary} />}
           ListEmptyComponent={
-            <EmptyState
-              icon="cash-remove"
+            <BrandedEmptyState
+              type="payments"
               title={t('payments.noPayments')}
               subtitle="Submit your first donation to get started"
               actionLabel={t('payments.submitPayment')}

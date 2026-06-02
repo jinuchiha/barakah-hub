@@ -12,9 +12,9 @@ import Animated, {
   withSpring,
 } from 'react-native-reanimated';
 import { Pressable } from 'react-native';
-import * as Haptics from 'expo-haptics';
 import { useTheme } from '@/lib/useTheme';
 import { radius } from '@/lib/theme';
+import { haptic } from '@/lib/haptics';
 
 export type ButtonVariant = 'primary' | 'solid' | 'ghost' | 'danger' | 'gold';
 type Size = 'sm' | 'md' | 'lg';
@@ -38,10 +38,11 @@ const sizeMap: Record<Size, { height: number; px: number; fontSize: number }> = 
   lg: { height: 52, px: 28, fontSize: 16 },
 };
 
-function getHaptic(variant: ButtonVariant) {
-  if (variant === 'danger') return Haptics.ImpactFeedbackStyle.Heavy;
-  if (variant === 'ghost') return Haptics.ImpactFeedbackStyle.Light;
-  return Haptics.ImpactFeedbackStyle.Medium;
+function fireHaptic(variant: ButtonVariant) {
+  if (variant === 'danger') return haptic.destructive();
+  if (variant === 'solid') return haptic.confirm();
+  if (variant === 'ghost') return haptic.tap();
+  return haptic.tap();
 }
 
 export function Button({
@@ -72,7 +73,7 @@ export function Button({
   };
 
   const handlePress = () => {
-    void Haptics.impactAsync(getHaptic(variant));
+    void fireHaptic(variant);
     onPress();
   };
 

@@ -423,7 +423,7 @@ const styles = StyleSheet.create({
   },
   totalHeroInner: { zIndex: 1 },
   totalHeroLabel: { fontSize: 11, fontFamily: 'Inter_700Bold', letterSpacing: 2, color: 'rgba(0,0,0,0.55)' },
-  totalHeroValue: { fontSize: 34, fontFamily: 'Inter_700Bold', color: '#0a0a0f', marginTop: 4, letterSpacing: -0.5 },
+  totalHeroValue: { fontSize: 40, fontFamily: 'Inter_700Bold', color: '#0a0a0f', marginTop: 4, letterSpacing: -1.2 },
   totalHeroDivider: { height: 1, backgroundColor: 'rgba(0,0,0,0.18)', marginVertical: spacing.sm, width: 48 },
   totalHeroSub: { fontSize: 12, fontFamily: 'Inter_600SemiBold', color: 'rgba(0,0,0,0.55)' },
   totalHeroMotif: { position: 'absolute', right: 12, bottom: 8 },

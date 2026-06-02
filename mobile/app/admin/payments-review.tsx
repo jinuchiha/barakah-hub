@@ -6,7 +6,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
+import { haptic } from '@/lib/haptics';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Avatar } from '@/components/ui/Avatar';
 import { GlassCard } from '@/components/ui/GlassCard';
@@ -146,11 +146,12 @@ export default function PaymentsReviewScreen() {
   const awaitingAdmin = pending.filter((p) => paymentQueueState(p) === 'awaiting-admin');
   const rejected = pending.filter((p) => paymentQueueState(p) === 'rejected');
 
-  const run = async (fn: () => Promise<unknown>, ok: Haptics.NotificationFeedbackType) => {
+  const run = async (fn: () => Promise<unknown>, onDone: () => void, onFail?: () => void) => {
     try {
       await fn();
-      void Haptics.notificationAsync(ok);
+      onDone();
     } catch (err) {
+      onFail?.();
       Alert.alert(t('common.error'), err instanceof Error ? err.message : t('admin.actionFailed'));
     }
   };
@@ -158,22 +159,22 @@ export default function PaymentsReviewScreen() {
   const handleApprove = (p: Payment) =>
     Alert.alert(t('admin.approvePayment'), t('admin.approvePaymentConfirm', { amount: formatPKR(p.amount), month: p.monthLabel }), [
       { text: t('common.cancel'), style: 'cancel' },
-      { text: t('admin.approve'), onPress: () => run(() => approveMutation.mutateAsync(p.id), Haptics.NotificationFeedbackType.Success) },
+      { text: t('admin.approve'), onPress: () => run(() => approveMutation.mutateAsync(p.id), () => void haptic.confirm(), () => void haptic.error()) },
     ]);
 
   const handleVerify = (p: Payment) =>
     Alert.alert(t('admin.verifyPayment'), t('admin.verifyPaymentConfirm', { amount: formatPKR(p.amount) }), [
       { text: t('common.cancel'), style: 'cancel' },
-      { text: t('admin.verify'), onPress: () => run(() => verifyMutation.mutateAsync(p.id), Haptics.NotificationFeedbackType.Success) },
+      { text: t('admin.verify'), onPress: () => run(() => verifyMutation.mutateAsync(p.id), () => void haptic.confirm(), () => void haptic.error()) },
     ]);
 
   const handleResend = (p: Payment) =>
-    run(() => resendMutation.mutateAsync(p.id), Haptics.NotificationFeedbackType.Success);
+    run(() => resendMutation.mutateAsync(p.id), () => void haptic.confirm(), () => void haptic.error());
 
   const handleDelete = (p: Payment) =>
     Alert.alert(t('admin.deletePayment'), t('admin.deletePaymentConfirm'), [
       { text: t('common.cancel'), style: 'cancel' },
-      { text: t('admin.delete'), style: 'destructive', onPress: () => run(() => rejectMutation.mutateAsync(p.id), Haptics.NotificationFeedbackType.Error) },
+      { text: t('admin.delete'), style: 'destructive', onPress: () => run(() => rejectMutation.mutateAsync(p.id), () => void haptic.destructive(), () => void haptic.error()) },
     ]);
 
   const confirmSupervisorReject = () => {
@@ -182,7 +183,7 @@ export default function PaymentsReviewScreen() {
     const note = rejectNote.trim() || undefined;
     setRejectTarget(null);
     setRejectNote('');
-    void run(() => supRejectMutation.mutateAsync({ paymentId: p.id, note }), Haptics.NotificationFeedbackType.Error);
+    void run(() => supRejectMutation.mutateAsync({ paymentId: p.id, note }), () => void haptic.destructive(), () => void haptic.error());
   };
 
   const makeActions = (p: Payment): CardActions => ({

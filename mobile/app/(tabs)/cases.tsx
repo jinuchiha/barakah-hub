@@ -15,6 +15,7 @@ import { z } from 'zod';
 import { CaseCard } from '@/components/CaseCard';
 import { VoteModal } from '@/components/VoteModal';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { BrandedEmptyState } from '@/components/ui/BrandedEmptyState';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { GlassCard } from '@/components/ui/GlassCard';
@@ -355,7 +356,7 @@ function CasesScreen() {
           estimatedItemSize={200}
           contentContainerStyle={styles.list}
           refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={colors.primary} />}
-          ListEmptyComponent={<EmptyState icon="alert-circle-outline" title={t('cases.noCasesFound')} subtitle={t('cases.noEmergencyCases')} />}
+          ListEmptyComponent={<BrandedEmptyState type="cases" title={t('cases.noCasesFound')} subtitle={t('cases.noEmergencyCases')} />}
         />
       )}
 

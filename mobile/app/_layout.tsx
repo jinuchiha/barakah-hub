@@ -123,12 +123,19 @@ export default function RootLayout() {
           <I18nextProvider i18n={i18n}>
             <ThemeProvider>
               <AuthInitializer>
-                <Stack screenOptions={{ headerShown: false }}>
+                <Stack
+                  screenOptions={{
+                    headerShown: false,
+                    animation: 'slide_from_right',
+                    animationDuration: 280,
+                    contentStyle: { backgroundColor: 'transparent' },
+                  }}
+                >
                   <Stack.Screen name="(auth)" />
                   <Stack.Screen name="(tabs)" />
                   <Stack.Screen name="members" />
                   <Stack.Screen name="admin" />
-                  <Stack.Screen name="notifications" />
+                  <Stack.Screen name="notifications" options={{ animation: 'slide_from_right' }} />
                   <Stack.Screen name="onboarding" />
                   <Stack.Screen name="lock" options={{ animation: 'fade' }} />
                   <Stack.Screen name="ai-assistant" options={{ animation: 'slide_from_bottom', presentation: 'modal' }} />
@@ -138,14 +145,14 @@ export default function RootLayout() {
                   <Stack.Screen name="settings/language" options={{ animation: 'slide_from_right' }} />
                   <Stack.Screen name="settings/theme" options={{ animation: 'slide_from_right' }} />
                   <Stack.Screen name="settings/reminders" options={{ animation: 'slide_from_right' }} />
-                  <Stack.Screen name="tools/index" options={{ animation: 'slide_from_right' }} />
-                  <Stack.Screen name="search" options={{ animation: 'fade' }} />
-                  <Stack.Screen name="about" options={{ animation: 'slide_from_right' }} />
-                  <Stack.Screen name="messages" />
                   <Stack.Screen name="settings/edit-profile" options={{ animation: 'slide_from_right' }} />
                   <Stack.Screen name="settings/change-password" options={{ animation: 'slide_from_right' }} />
                   <Stack.Screen name="settings/help" options={{ animation: 'slide_from_right' }} />
                   <Stack.Screen name="settings/contact-admin" options={{ animation: 'slide_from_right' }} />
+                  <Stack.Screen name="tools/index" options={{ animation: 'slide_from_right' }} />
+                  <Stack.Screen name="search" options={{ animation: 'fade' }} />
+                  <Stack.Screen name="about" options={{ animation: 'fade_from_bottom' }} />
+                  <Stack.Screen name="messages" options={{ animation: 'slide_from_right' }} />
                 </Stack>
                 <OfflineBanner />
               </AuthInitializer>
