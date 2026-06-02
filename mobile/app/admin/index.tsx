@@ -12,7 +12,8 @@ import { api } from '@/lib/api';
 import { StatCard } from '@/components/ui/StatCard';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { useAuthStore } from '@/stores/auth.store';
-import { isAdminOnly } from '@/lib/roles';
+import { isAdminOnly, canManageFunds } from '@/lib/roles';
+import { Redirect } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/lib/useTheme';
 import { spacing, radius } from '@/lib/theme';
@@ -77,11 +78,18 @@ export default function AdminDashboard() {
   const { colors } = useTheme();
   const { user } = useAuthStore();
   const isAdmin = isAdminOnly(user?.role);
+  const hasAccess = !!user && canManageFunds(user.role);
+
   const { data, isLoading, refetch, isRefetching } = useQuery({
     queryKey: ['admin', 'stats'],
     queryFn: fetchAdminStats,
     staleTime: 30_000,
+    enabled: hasAccess,
   });
+
+  if (!hasAccess) {
+    return <Redirect href="/(tabs)/" />;
+  }
 
   const hasPending = (data?.pendingMembers ?? 0) + (data?.pendingPayments ?? 0) > 0;
 

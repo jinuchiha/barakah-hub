@@ -38,7 +38,7 @@ export async function GET(req: NextRequest) {
       : await db
           .select()
           .from(members)
-          .where(and(eq(members.status, 'approved'), ne(members.status, 'rejected')))
+          .where(eq(members.status, 'approved'))
           .orderBy(asc(members.nameEn));
 
     if (me.role !== 'admin') {

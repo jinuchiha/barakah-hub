@@ -14,6 +14,9 @@ export async function GET(req: NextRequest) {
     if (me.role !== 'admin') return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
     const year = parseInt(new URL(req.url).searchParams.get('year') ?? '', 10) || new Date().getFullYear();
+    if (isNaN(year) || year < 2000 || year > 2100) {
+      return NextResponse.json({ error: 'Invalid year' }, { status: 400 });
+    }
     const start = new Date(year, 0, 1);
     const end = new Date(year + 1, 0, 1);
     // loans.issuedOn is a DATE (string) column; payments/cases.createdAt are timestamps.

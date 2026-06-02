@@ -116,7 +116,7 @@ export default function MembersTable({ initial }: Props) {
                   <td className="px-4 py-2">
                     <div className="flex items-center gap-2.5">
                       <div className="grid size-7 place-items-center rounded-full text-[10px] font-bold text-white" style={{ background: m.color }}>
-                        {m.photoUrl ? <img src={m.photoUrl} alt="" className="size-full rounded-full object-cover" /> : ini(m.nameEn || m.nameUr)}
+                        {m.photoUrl ? <img src={m.photoUrl} alt={m.nameEn || m.nameUr || 'Member photo'} className="size-full rounded-full object-cover" /> : ini(m.nameEn || m.nameUr)}
                       </div>
                       <div>
                         <div className="text-sm font-semibold text-[var(--color-cream)]">{m.nameEn || m.nameUr}</div>
@@ -144,12 +144,12 @@ export default function MembersTable({ initial }: Props) {
                         <Pencil className="size-3.5 text-[var(--txt-2)]" />
                       </button>
                       {m.phone && (
-                        <button title="WhatsApp" onClick={() => whatsapp(m)} className="rounded p-1.5 hover:bg-[rgba(37,211,102,0.15)]">
+                        <button type="button" title="WhatsApp" aria-label={`Send WhatsApp to ${m.nameEn || m.nameUr}`} onClick={() => whatsapp(m)} className="rounded p-1.5 hover:bg-[rgba(37,211,102,0.15)]">
                           <MessageCircle className="size-3.5 text-[#25d366]" />
                         </button>
                       )}
                       {m.role !== 'admin' && (
-                        <button title="Delete" onClick={() => onDelete(m)} disabled={pending} className="rounded p-1.5 hover:bg-[rgba(220,50,50,0.15)] disabled:opacity-50">
+                        <button type="button" title="Delete" aria-label={`Delete ${m.nameEn || m.nameUr}`} onClick={() => onDelete(m)} disabled={pending} className="rounded p-1.5 hover:bg-[rgba(220,50,50,0.15)] disabled:opacity-50">
                           <Trash2 className="size-3.5 text-[#f87171]" />
                         </button>
                       )}

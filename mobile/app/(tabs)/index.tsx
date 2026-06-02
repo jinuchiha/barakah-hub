@@ -30,6 +30,7 @@ import { useTheme } from '@/lib/useTheme';
 import { spacing } from '@/lib/theme';
 import { formatPKR } from '@/lib/format';
 import { format } from 'date-fns';
+import { LoadingScreen } from '@/components/ui/LoadingScreen';
 
 function DashboardHeader({ displayName, notificationCount, onBell, onSearch }: {
   displayName: string;
@@ -291,6 +292,8 @@ function DashboardScreen() {
     return <EmptyState icon="wifi-off" title="Could not load dashboard" subtitle={error.message} actionLabel="Retry" onAction={() => refetch()} />;
   }
 
+  if (isLoading && !data) return <LoadingScreen />;
+
   const displayName = user?.nameEn ?? user?.nameUr ?? 'Member';
 
   const handleAction = (key: string) => {
@@ -327,9 +330,9 @@ function DashboardScreen() {
         <Animated.View entering={FadeInDown.duration(400).delay(100)}>
           <SectionLabel title={t('dashboard.fundOverview')} />
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.cardsScroll}>
-            <FundCard pool="sadaqah" amount={data?.fund.sadaqah ?? 0} label={t('dashboard.sadaqahPool')} />
-            <FundCard pool="zakat" amount={data?.fund.zakat ?? 0} label={t('dashboard.zakatPool')} />
-            <FundCard pool="qarz" amount={data?.fund.qarz ?? 0} label={t('dashboard.qarzPool')} />
+            <FundCard pool="sadaqah" amount={data?.fund?.sadaqah ?? 0} label={t('dashboard.sadaqahPool')} />
+            <FundCard pool="zakat" amount={data?.fund?.zakat ?? 0} label={t('dashboard.zakatPool')} />
+            <FundCard pool="qarz" amount={data?.fund?.qarz ?? 0} label={t('dashboard.qarzPool')} />
           </ScrollView>
         </Animated.View>
 
@@ -337,7 +340,7 @@ function DashboardScreen() {
 
         <Animated.View entering={FadeInDown.duration(400).delay(150)} style={styles.statsRow}>
           <StatCard icon="wallet-outline" value={formatPKR(user?.monthlyPledge ?? 0)} label="My Pledge" style={styles.stat} />
-          <StatCard icon="clock-outline" value={`${data?.fund.pendingCount ?? 0}`} label={t('dashboard.pending')} iconColor={colors.gold} style={styles.stat} />
+          <StatCard icon="clock-outline" value={`${data?.fund?.pendingCount ?? 0}`} label={t('dashboard.pending')} iconColor={colors.gold} style={styles.stat} />
           <StatCard icon="cash-multiple" value={data?.myCurrentMonth ? t('dashboard.paid') : t('dashboard.pending')} label={t('dashboard.thisMonth')} iconColor={data?.myCurrentMonth ? colors.primary : colors.gold} style={styles.stat} />
         </Animated.View>
 

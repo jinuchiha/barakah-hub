@@ -139,7 +139,9 @@ export default async function MyAccountPage() {
                     <td className="px-4 py-2.5 capitalize">{p.pool}</td>
                     <td className="px-4 py-2.5 text-right font-bold text-[var(--color-gold)]">{fmtRs(p.amount)}</td>
                     <td className="px-4 py-2.5">
-                      {p.pendingVerify ? (
+                      {p.pendingVerify && p.supervisorRejectedAt ? (
+                        <span className="rounded-full bg-red-500/10 px-2.5 py-0.5 text-xs text-red-300">❌ Rejected</span>
+                      ) : p.pendingVerify ? (
                         <span className="rounded-full bg-yellow-500/10 px-2.5 py-0.5 text-xs text-yellow-300">⏳ Pending</span>
                       ) : (
                         <span className="rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs text-emerald-300">✓ Verified</span>

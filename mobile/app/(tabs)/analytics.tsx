@@ -68,9 +68,9 @@ export default function AnalyticsScreen() {
   const fundLineData = useMemo(() => {
     if (!data) return [];
     return [
-      { month: 'Sadaqah', amount: data.fund.sadaqah },
-      { month: 'Zakat', amount: data.fund.zakat },
-      { month: 'Qarz', amount: data.fund.qarz },
+      { month: 'Sadaqah', amount: data.fund?.sadaqah ?? 0 },
+      { month: 'Zakat', amount: data.fund?.zakat ?? 0 },
+      { month: 'Qarz', amount: data.fund?.qarz ?? 0 },
     ].filter((d) => d.amount > 0);
   }, [data]);
 
@@ -104,9 +104,9 @@ export default function AnalyticsScreen() {
               <SectionTitle label={t('analytics.fundDistribution')} />
               <ChartCard title={t('analytics.poolBreakdown')}>
                 <PoolDonutChart
-                  sadaqah={data?.fund.sadaqah ?? 0}
-                  zakat={data?.fund.zakat ?? 0}
-                  qarz={data?.fund.qarz ?? 0}
+                  sadaqah={data?.fund?.sadaqah ?? 0}
+                  zakat={data?.fund?.zakat ?? 0}
+                  qarz={data?.fund?.qarz ?? 0}
                 />
               </ChartCard>
             </Animated.View>
@@ -133,12 +133,12 @@ export default function AnalyticsScreen() {
             <View style={styles.summaryRow}>
               <Text style={[styles.summaryLabel, { color: colors.text3 }]}>{t('analytics.totalFund')}</Text>
               <Text style={[styles.summaryValue, { color: colors.primary }]}>
-                PKR {((data?.fund.sadaqah ?? 0) + (data?.fund.zakat ?? 0) + (data?.fund.qarz ?? 0)).toLocaleString()}
+                PKR {((data?.fund?.sadaqah ?? 0) + (data?.fund?.zakat ?? 0) + (data?.fund?.qarz ?? 0)).toLocaleString()}
               </Text>
             </View>
             <View style={styles.summaryRow}>
               <Text style={[styles.summaryLabel, { color: colors.text3 }]}>{t('analytics.pendingPayments')}</Text>
-              <Text style={[styles.summaryValue, { color: colors.text1 }]}>{data?.fund.pendingCount ?? 0}</Text>
+              <Text style={[styles.summaryValue, { color: colors.text1 }]}>{data?.fund?.pendingCount ?? 0}</Text>
             </View>
             <View style={styles.summaryRow}>
               <Text style={[styles.summaryLabel, { color: colors.text3 }]}>{t('analytics.myPaymentsCount')}</Text>

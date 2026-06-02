@@ -147,7 +147,7 @@ export function Topbar({ user, unreadCount = 0, isAdmin = false, isSupervisor = 
                 {user.photoUrl ? (
                   <img src={user.photoUrl} alt="" className="size-full object-cover" />
                 ) : (
-                  user.name.split(' ').map((p) => p[0]).join('').slice(0, 2).toUpperCase()
+                  user.name.split(' ').map((p) => (p[0] ?? '')).join('').slice(0, 2).toUpperCase() || '?'
                 )}
               </span>
               <span className="hidden flex-col items-start leading-tight sm:flex">
@@ -181,5 +181,5 @@ export function Topbar({ user, unreadCount = 0, isAdmin = false, isSupervisor = 
 }
 
 function Crescent() {
-  return <CrescentMark className="size-[18px] text-[var(--color-gold)]" title="" />;
+  return <CrescentMark className="size-[18px] text-[var(--color-gold)]" aria-hidden={true} />;
 }

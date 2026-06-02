@@ -34,7 +34,8 @@ export async function POST(req: Request) {
     }
 
     const ext = file.type === 'image/png' ? 'png' : file.type === 'image/webp' ? 'webp' : 'jpg';
-    const filename = `receipt_${Date.now()}_${Math.random().toString(36).slice(2, 8)}.${ext}`;
+    const { randomUUID } = await import('crypto');
+    const filename = `receipt_${randomUUID()}.${ext}`;
     const bytes = new Uint8Array(await file.arrayBuffer());
 
     if (isStorageConfigured()) {

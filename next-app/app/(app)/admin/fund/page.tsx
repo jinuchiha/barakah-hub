@@ -107,7 +107,7 @@ export default async function FundPage() {
 
   // Admin: full view.
   const [allMembers, history, awaitingSupervisor, awaitingAdmin, rejectedBySupervisor] = await Promise.all([
-    db.select().from(members).where(and(eq(members.deceased, false), eq(members.status, 'approved'))),
+    db.select().from(members),
     db.select().from(payments).where(eq(payments.pendingVerify, false)).orderBy(desc(payments.paidOn)).limit(50),
     // Awaiting supervisor: still in their initial queue (not approved, not rejected)
     db.select().from(payments)
@@ -322,7 +322,7 @@ export default async function FundPage() {
         <Card>
           <CardHeader><CardTitle>+ Record Payment</CardTitle></CardHeader>
           <CardBody>
-            <RecordPaymentForm members={allMembers.map((m) => ({ id: m.id, nameEn: m.nameEn || m.nameUr || m.username }))} />
+            <RecordPaymentForm members={allMembers.filter((m) => !m.deceased && m.status === 'approved').map((m) => ({ id: m.id, nameEn: m.nameEn || m.nameUr || m.username }))} />
           </CardBody>
         </Card>
         <Card>

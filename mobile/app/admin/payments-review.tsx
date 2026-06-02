@@ -90,7 +90,7 @@ function QueuePaymentCard({
         {state === 'awaiting-admin' ? (
           isAdmin ? (
             <View style={styles.actionRow}>
-              <Button label={t('admin.reject')} onPress={actions.onSupervisorReject} variant="danger" size="sm" style={styles.actionBtn} />
+              <Button label={t('admin.reject')} onPress={actions.onDelete} variant="danger" size="sm" style={styles.actionBtn} />
               <Button label={t('admin.verify')} onPress={actions.onVerify} variant="solid" size="sm" style={styles.actionBtn} />
             </View>
           ) : (

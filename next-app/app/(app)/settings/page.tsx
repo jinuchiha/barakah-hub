@@ -31,10 +31,10 @@ export default async function SettingsPage() {
         <CardBody><ThemePicker initial={cfg?.themePalette ?? 'gold'} canSave={isAdmin} /></CardBody>
       </Card>
 
-      {isAdmin && cfg && (
+      {isAdmin && (
         <Card className="mb-4">
           <CardHeader><CardTitle>⚙️ Admin Configuration</CardTitle></CardHeader>
-          <CardBody><AdminConfigForm config={cfg} /></CardBody>
+          <CardBody><AdminConfigForm config={cfg ?? { id: 1, voteThresholdPct: 50, defaultMonthlyPledge: 1000, goalAmount: 0, goalLabelUr: null, goalLabelEn: null, goalDeadline: null, themePalette: 'gold', orgNameUr: 'بَرَكَة ہب', orgNameEn: 'Barakah Hub', easyPaiseName: null, easyPaiseNumber: null, updatedAt: new Date() }} /></CardBody>
         </Card>
       )}
     </div>

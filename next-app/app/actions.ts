@@ -272,8 +272,8 @@ export async function submitDonation(input: z.infer<typeof submitDonationSchema>
 
 /* ─── supervisor approve (intermediate — admin still needs to verify) */
 export async function supervisorApprovePayment(paymentId: string) {
-  if (!/^[0-9a-f-]{36}$/i.test(paymentId)) throw new Error('Invalid id');
   const me = await meOrThrow();
+  if (!/^[0-9a-f-]{36}$/i.test(paymentId)) throw new Error('Invalid id');
   if (me.role !== 'supervisor' && me.role !== 'admin') {
     throw new Error('Supervisor or admin only');
   }
@@ -314,8 +314,8 @@ export async function supervisorApprovePayment(paymentId: string) {
 
 /* ─── supervisor reject (admin must decide: resend or delete) */
 export async function supervisorRejectPayment(paymentId: string, note?: string) {
-  if (!/^[0-9a-f-]{36}$/i.test(paymentId)) throw new Error('Invalid id');
   const me = await meOrThrow();
+  if (!/^[0-9a-f-]{36}$/i.test(paymentId)) throw new Error('Invalid id');
   if (me.role !== 'supervisor' && me.role !== 'admin') {
     throw new Error('Supervisor or admin only');
   }
@@ -357,8 +357,8 @@ export async function supervisorRejectPayment(paymentId: string, note?: string) 
 
 /* ─── admin resend rejected payment back to supervisor */
 export async function adminResendPaymentToSupervisor(paymentId: string) {
-  if (!/^[0-9a-f-]{36}$/i.test(paymentId)) throw new Error('Invalid id');
   const me = await meOrThrow();
+  if (!/^[0-9a-f-]{36}$/i.test(paymentId)) throw new Error('Invalid id');
   if (me.role !== 'admin') throw new Error('Admin only');
   const updated = await db
     .update(payments)
@@ -386,8 +386,8 @@ export async function adminResendPaymentToSupervisor(paymentId: string) {
 
 /* ─── admin hard-delete payment (any state) */
 export async function adminDeletePayment(paymentId: string) {
-  if (!/^[0-9a-f-]{36}$/i.test(paymentId)) throw new Error('Invalid id');
   const me = await meOrThrow();
+  if (!/^[0-9a-f-]{36}$/i.test(paymentId)) throw new Error('Invalid id');
   if (me.role !== 'admin') throw new Error('Admin only');
   const [p] = await db.select().from(payments).where(eq(payments.id, paymentId)).limit(1);
   if (!p) return;
@@ -409,8 +409,8 @@ export async function adminDeletePayment(paymentId: string) {
  * (adminDeletePayment) — they can't override the rejection here.
  */
 export async function verifyPayment(paymentId: string) {
-  if (!/^[0-9a-f-]{36}$/i.test(paymentId)) throw new Error('Invalid id');
   const me = await meOrThrow();
+  if (!/^[0-9a-f-]{36}$/i.test(paymentId)) throw new Error('Invalid id');
   if (me.role !== 'admin') throw new Error('Admin only');
 
   const [existing] = await db.select().from(payments).where(eq(payments.id, paymentId)).limit(1);
@@ -455,8 +455,8 @@ export async function verifyPayment(paymentId: string) {
 }
 
 export async function rejectPayment(paymentId: string) {
-  if (!/^[0-9a-f-]{36}$/i.test(paymentId)) throw new Error('Invalid id');
   const me = await meOrThrow();
+  if (!/^[0-9a-f-]{36}$/i.test(paymentId)) throw new Error('Invalid id');
   if (me.role !== 'admin') throw new Error('Admin only');
   const [p] = await db.select().from(payments).where(eq(payments.id, paymentId)).limit(1);
   if (!p) return;
@@ -473,8 +473,8 @@ export async function rejectPayment(paymentId: string) {
  * power than the veto path below.
  */
 export async function castVote(caseId: string, yes: boolean) {
-  if (!/^[0-9a-f-]{36}$/i.test(caseId)) throw new Error('Invalid case id');
   const me = await meOrThrow();
+  if (!/^[0-9a-f-]{36}$/i.test(caseId)) throw new Error('Invalid case id');
   if (me.status !== 'approved') throw new Error('Account not approved');
   if (me.deceased) throw new Error('Not eligible');
   const [c] = await db.select().from(cases).where(eq(cases.id, caseId)).limit(1);
@@ -505,10 +505,10 @@ export async function castVote(caseId: string, yes: boolean) {
   const need = Math.max(1, Math.ceil(eligible * ((cfg?.voteThresholdPct ?? 50) / 100)));
 
   if (eligible > 0 && yesCount >= need) {
-    await db.update(cases).set({ status: 'approved', resolvedAt: new Date() }).where(eq(cases.id, caseId));
+    await db.update(cases).set({ status: 'approved', resolvedAt: new Date() }).where(and(eq(cases.id, caseId), eq(cases.status, 'voting')));
     await audit(me.id, 'emergency-approved', `Case approved by majority`, c.applicantId);
   } else if (eligible > 0 && noCount >= need) {
-    await db.update(cases).set({ status: 'rejected', resolvedAt: new Date() }).where(eq(cases.id, caseId));
+    await db.update(cases).set({ status: 'rejected', resolvedAt: new Date() }).where(and(eq(cases.id, caseId), eq(cases.status, 'voting')));
     await audit(me.id, 'emergency-rejected', `Case rejected by majority`, c.applicantId);
   }
 
@@ -885,8 +885,8 @@ export async function recordRepayment(input: z.infer<typeof repaySchema>) {
 
 /* ─── disburse an approved case (admin) */
 export async function disburseCase(caseId: string) {
-  if (!/^[0-9a-f-]{36}$/i.test(caseId)) throw new Error('Invalid case id');
   const me = await meOrThrow();
+  if (!/^[0-9a-f-]{36}$/i.test(caseId)) throw new Error('Invalid case id');
   if (me.role !== 'admin') throw new Error('Admin only');
 
   // Atomic: only updates when status is still 'approved' — prevents TOCTOU double-disburse
@@ -936,9 +936,9 @@ export async function disburseCase(caseId: string) {
  * the audit log so the action is traceable.
  */
 export async function adminResolveCase(caseId: string, decision: 'approved' | 'rejected') {
+  const me = await meOrThrow();
   if (!/^[0-9a-f-]{36}$/i.test(caseId)) throw new Error('Invalid case id');
   if (decision !== 'approved' && decision !== 'rejected') throw new Error('Invalid decision');
-  const me = await meOrThrow();
   if (me.role !== 'admin') throw new Error('Admin only');
 
   const [c] = await db.select().from(cases).where(eq(cases.id, caseId)).limit(1);
@@ -967,8 +967,8 @@ export async function adminResolveCase(caseId: string, decision: 'approved' | 'r
  * an associated loan are blocked to keep the loan ledger consistent.
  */
 export async function adminDeleteCase(caseId: string) {
-  if (!/^[0-9a-f-]{36}$/i.test(caseId)) throw new Error('Invalid case id');
   const me = await meOrThrow();
+  if (!/^[0-9a-f-]{36}$/i.test(caseId)) throw new Error('Invalid case id');
   if (me.role !== 'admin') throw new Error('Admin only');
 
   const [c] = await db.select().from(cases).where(eq(cases.id, caseId)).limit(1);

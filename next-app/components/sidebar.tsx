@@ -48,16 +48,17 @@ export function SidebarNav({ isAdmin = false, isSupervisor = false, locale = 'en
     <nav className="flex-1 overflow-y-auto px-3 py-2" aria-label="Main">
       <SectionLabel label={locale === 'ur' ? 'مینو' : 'MAIN'} />
       {items.map((n, i) => {
+        const itemKey = `${n.href}-${n.admin ? 'admin' : n.supervisor ? 'supervisor' : 'member'}`;
         const isActive = pathname === n.href || pathname.startsWith(n.href + '/');
         if (n.admin && i === adminStart) {
           return (
-            <div key={n.href}>
+            <div key={itemKey}>
               <SectionLabel label={locale === 'ur' ? 'ایڈمن' : 'ADMIN'} />
               <NavItem n={n} isActive={isActive} locale={locale} onNavigate={onNavigate} badge={badges[n.href]} />
             </div>
           );
         }
-        return <NavItem key={n.href} n={n} isActive={isActive} locale={locale} onNavigate={onNavigate} badge={badges[n.href]} />;
+        return <NavItem key={itemKey} n={n} isActive={isActive} locale={locale} onNavigate={onNavigate} badge={badges[n.href]} />;
       })}
     </nav>
   );

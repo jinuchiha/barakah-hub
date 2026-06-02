@@ -83,12 +83,12 @@ export default function ApproveMembersScreen() {
   const pending = members?.filter((m) => m.status === 'pending') ?? [];
 
   const handleApprove = (member: Member) => {
-    void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     Alert.alert(t('admin.approveMember'), `Approve ${member.nameEn}?`, [
       { text: t('common.cancel'), style: 'cancel' },
       {
         text: t('admin.approve'),
         onPress: async () => {
+          void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
           try { await approveMutation.mutateAsync(member.id); }
           catch (err) { Alert.alert(t('common.error'), err instanceof Error ? err.message : 'Failed'); }
         },
@@ -97,13 +97,13 @@ export default function ApproveMembersScreen() {
   };
 
   const handleReject = (member: Member) => {
-    void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     Alert.alert(t('admin.rejectMember'), `Reject ${member.nameEn}? This cannot be undone.`, [
       { text: t('common.cancel'), style: 'cancel' },
       {
         text: t('admin.reject'),
         style: 'destructive',
         onPress: async () => {
+          void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
           try { await rejectMutation.mutateAsync(member.id); }
           catch (err) { Alert.alert(t('common.error'), err instanceof Error ? err.message : 'Failed'); }
         },

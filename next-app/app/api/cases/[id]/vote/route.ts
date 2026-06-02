@@ -50,9 +50,9 @@ export async function POST(
     const need = Math.max(1, Math.ceil(eligible * ((cfg?.voteThresholdPct ?? 50) / 100)));
 
     if (eligible > 0 && yesCount >= need) {
-      await db.update(cases).set({ status: 'approved', resolvedAt: new Date() }).where(eq(cases.id, caseId));
+      await db.update(cases).set({ status: 'approved', resolvedAt: new Date() }).where(and(eq(cases.id, caseId), eq(cases.status, 'voting')));
     } else if (eligible > 0 && noCount >= need) {
-      await db.update(cases).set({ status: 'rejected', resolvedAt: new Date() }).where(eq(cases.id, caseId));
+      await db.update(cases).set({ status: 'rejected', resolvedAt: new Date() }).where(and(eq(cases.id, caseId), eq(cases.status, 'voting')));
     }
 
     await db.insert(auditLog).values({

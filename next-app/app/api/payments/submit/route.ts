@@ -4,6 +4,7 @@ import { meApprovedOrThrow } from '@/lib/auth-server';
 import { db } from '@/lib/db';
 import { payments, auditLog } from '@/lib/db/schema';
 import { monthStartFromLabel } from '@/lib/month';
+import { notifyMembers, fundApproverIds } from '@/lib/notify';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -40,6 +41,12 @@ export async function POST(req: NextRequest) {
       detail: `Submitted ${data.pool} ${data.amount} for ${data.monthLabel}`,
       targetId: me.id,
     });
+
+    void notifyMembers(
+      await fundApproverIds(me.id),
+      { titleEn: 'New payment to review', titleUr: 'نئی ادائیگی برائے منظوری', en: `${me.nameEn || me.nameUr} submitted Rs ${data.amount} (${data.pool}) for ${data.monthLabel}.`, ur: `${me.nameUr || me.nameEn} نے ${data.monthLabel} کے لیے روپے ${data.amount} جمع کیے۔`, type: 'payment-pending' },
+      { title: '🧾 New payment to review', body: `${me.nameEn || me.nameUr} — Rs ${data.amount} ${data.pool}`, data: { type: 'payment-pending' }, channelId: 'payments' },
+    ).catch(() => {});
 
     return NextResponse.json(created, { status: 201 });
   } catch (err) {

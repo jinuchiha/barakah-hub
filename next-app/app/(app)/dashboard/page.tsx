@@ -153,7 +153,7 @@ export default async function DashboardPage() {
               </svg>
             )}
           </div>
-          <div className="pointer-events-none absolute -right-6 -bottom-8 text-[140px] leading-none text-black/[0.06]">☾</div>
+          <div aria-hidden="true" className="pointer-events-none absolute -right-6 -bottom-8 text-[140px] leading-none text-black/[0.06]">☾</div>
         </div>
       )}
 

@@ -123,6 +123,11 @@ html, body {
   font-feature-settings: 'cv11', 'ss01', 'ss03';   /* Inter stylistic alternates */
 }
 
+html.light, html.light body {
+  background: #f7f5f0;
+  background-image: none;
+}
+
 /* Modern headline pairing — Cormorant for marketing/poetic, Inter for UI */
 h1, h2, h3, h4 {
   letter-spacing: -0.015em;

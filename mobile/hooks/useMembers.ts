@@ -90,6 +90,7 @@ export function useRejectMember() {
     mutationFn: rejectMember,
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['members'] });
+      qc.invalidateQueries({ queryKey: ['admin', 'stats'] });
     },
   });
 }
