@@ -3,6 +3,7 @@ import { getMeOrRedirect } from '@/lib/auth-server';
 import { db } from '@/lib/db';
 import { payments, loans, config as configTbl } from '@/lib/db/schema';
 import { Card, CardHeader, CardTitle, CardBody } from '@/components/ui/card';
+import { Breadcrumb } from '@/components/breadcrumb';
 import { fmtRs } from '@/lib/i18n/dict';
 import { ini } from '@/lib/utils';
 import DonationForm from './donation-form';
@@ -30,6 +31,7 @@ export default async function MyAccountPage() {
 
   return (
     <div className="mx-auto max-w-[1400px]">
+      <Breadcrumb crumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'My Account' }]} />
       <header className="mb-8 border-b border-[var(--border)] pb-6">
         <div className="mb-2 text-[10px] font-bold uppercase tracking-[2px] text-[var(--txt-3)]">Member · Account</div>
         <h1 className="text-[28px] font-semibold leading-tight tracking-[-0.5px] text-[var(--color-cream)]">My Account</h1>

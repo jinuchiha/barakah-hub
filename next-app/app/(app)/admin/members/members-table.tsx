@@ -1,6 +1,6 @@
 'use client';
 import { useState, useMemo, useTransition } from 'react';
-import { Search, Pencil, Trash2, MessageCircle, Plus } from 'lucide-react';
+import { Search, Pencil, Trash2, MessageCircle, Plus, ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardBody } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -12,6 +12,9 @@ import type { Member } from '@/lib/db/schema';
 import MemberDialog from './member-dialog';
 
 interface Props { initial: Member[] }
+
+type SortKey = 'name' | 'father' | 'city' | 'pledge' | 'status';
+type SortDir = 'asc' | 'desc';
 
 const PROVINCES = [
   { key: '', label: 'All Provinces' },
@@ -31,8 +34,15 @@ export default function MembersTable({ initial }: Props) {
   const [status, setStatus] = useState<'' | 'admin' | 'approved' | 'pending'>('');
   const [province, setProvince] = useState('');
   const [city, setCity] = useState('');
+  const [sortKey, setSortKey] = useState<SortKey>('name');
+  const [sortDir, setSortDir] = useState<SortDir>('asc');
   const [pending, startTransition] = useTransition();
   const [dialog, setDialog] = useState<{ kind: 'add' } | { kind: 'edit'; member: Member } | null>(null);
+
+  function toggleSort(key: SortKey) {
+    if (sortKey === key) setSortDir((d) => d === 'asc' ? 'desc' : 'asc');
+    else { setSortKey(key); setSortDir('asc'); }
+  }
 
   const cities = useMemo(
     () => [...new Set(initial.map((m) => m.city).filter(Boolean) as string[])].sort(),
@@ -41,7 +51,7 @@ export default function MembersTable({ initial }: Props) {
 
   const filtered = useMemo(() => {
     const term = q.toLowerCase();
-    return initial.filter((m) => {
+    const list = initial.filter((m) => {
       if (term) {
         const hay = `${m.nameEn} ${m.nameUr} ${m.fatherName} ${m.city || ''} ${m.phone || ''}`.toLowerCase();
         if (!hay.includes(term)) return false;
@@ -53,7 +63,19 @@ export default function MembersTable({ initial }: Props) {
       if (city && m.city !== city) return false;
       return true;
     });
-  }, [initial, q, status, province, city]);
+
+    const dir = sortDir === 'asc' ? 1 : -1;
+    return [...list].sort((a, b) => {
+      switch (sortKey) {
+        case 'name':   return dir * (a.nameEn || a.nameUr || '').localeCompare(b.nameEn || b.nameUr || '');
+        case 'father': return dir * (a.fatherName || '').localeCompare(b.fatherName || '');
+        case 'city':   return dir * (a.city || '').localeCompare(b.city || '');
+        case 'pledge': return dir * ((a.monthlyPledge ?? 0) - (b.monthlyPledge ?? 0));
+        case 'status': return dir * (a.status || '').localeCompare(b.status || '');
+        default:       return 0;
+      }
+    });
+  }, [initial, q, status, province, city, sortKey, sortDir]);
 
   function reset() { setQ(''); setStatus(''); setProvince(''); setCity(''); }
 
@@ -99,14 +121,14 @@ export default function MembersTable({ initial }: Props) {
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-[var(--border)] bg-[rgba(214,210,199,0.06)] text-left text-[10px] uppercase tracking-[1px] text-[var(--color-gold-4)]">
-                <th className="px-4 py-2.5 w-12">#</th>
-                <th className="px-4 py-2.5">Member</th>
-                <th className="px-4 py-2.5">Father</th>
-                <th className="px-4 py-2.5">Location</th>
-                <th className="px-4 py-2.5 text-right">Monthly</th>
-                <th className="px-4 py-2.5">Status</th>
-                <th className="px-4 py-2.5 w-44">Actions</th>
+              <tr className="border-b border-[var(--border)] bg-[rgba(214,210,199,0.04)] text-left">
+                <th className="w-10 px-4 py-3 text-[10px] font-bold uppercase tracking-[1.5px] text-[var(--txt-4)]">#</th>
+                <SortTh label="Member"   col="name"   sortKey={sortKey} dir={sortDir} onSort={toggleSort} />
+                <SortTh label="Father"   col="father" sortKey={sortKey} dir={sortDir} onSort={toggleSort} />
+                <SortTh label="Location" col="city"   sortKey={sortKey} dir={sortDir} onSort={toggleSort} />
+                <SortTh label="Monthly"  col="pledge" sortKey={sortKey} dir={sortDir} onSort={toggleSort} right />
+                <SortTh label="Status"   col="status" sortKey={sortKey} dir={sortDir} onSort={toggleSort} />
+                <th className="w-32 px-4 py-3 text-[10px] font-bold uppercase tracking-[1.5px] text-[var(--txt-4)]">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -183,5 +205,27 @@ function Select<T extends string>({ value, onChange, options }: {
     <select value={value} onChange={(e) => onChange(e.target.value as T)} className="rounded-md border border-[var(--border)] bg-[var(--surf-3)] px-3 py-2.5 text-sm text-[var(--color-cream)] outline-none focus:border-[var(--color-gold)]">
       {options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
     </select>
+  );
+}
+
+function SortTh({ label, col, sortKey, dir, onSort, right }: {
+  label: string; col: SortKey; sortKey: SortKey; dir: SortDir;
+  onSort: (k: SortKey) => void; right?: boolean;
+}) {
+  const active = sortKey === col;
+  const Icon = active ? (dir === 'asc' ? ChevronUp : ChevronDown) : ChevronsUpDown;
+  return (
+    <th
+      className={`px-4 py-3 ${right ? 'text-right' : 'text-left'}`}
+      style={{ cursor: 'pointer', userSelect: 'none' }}
+      onClick={() => onSort(col)}
+      aria-sort={active ? (dir === 'asc' ? 'ascending' : 'descending') : 'none'}
+    >
+      <span className={`inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-[1.5px] transition-colors ${active ? 'text-[var(--color-gold)]' : 'text-[var(--txt-4)] hover:text-[var(--txt-2)]'}`}>
+        {right && <Icon className="size-3" aria-hidden />}
+        {label}
+        {!right && <Icon className="size-3" aria-hidden />}
+      </span>
+    </th>
   );
 }

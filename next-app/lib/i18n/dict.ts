@@ -62,7 +62,11 @@ export function tWith(key: DictKey, locale: Locale, suffix: string): string {
   return `${t(key, locale)} — ${suffix}`;
 }
 
-/** Currency formatter — Pakistani Rupees. */
+/** Currency formatter — Pakistani Rupees (South Asian 2-2-3 grouping: 1,00,000). */
 export function fmtRs(n: number): string {
-  return 'Rs. ' + (n || 0).toLocaleString('en-PK');
+  const abs = Math.abs(n || 0);
+  const fmt = new Intl.NumberFormat('en-IN', {
+    maximumFractionDigits: 0,
+  }).format(abs);
+  return (n < 0 ? '-' : '') + 'Rs. ' + fmt;
 }

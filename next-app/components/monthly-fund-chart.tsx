@@ -45,7 +45,7 @@ export function MonthlyFundChart({ buckets }: { buckets: MonthBucket[] }) {
   return (
     <div className="overflow-x-auto">
       <svg
-        viewBox={`0 0 ${W} ${H + 24}`}
+        viewBox={`0 0 ${W} ${H + 32}`}
         className="block w-full min-w-[480px]"
         preserveAspectRatio="none"
         role="img"
@@ -62,20 +62,37 @@ export function MonthlyFundChart({ buckets }: { buckets: MonthBucket[] }) {
           if (sH > 0) { y -= sH; segments.push([y, sH, POOL_COLORS.sadaqah]); }
           if (zH > 0) { y -= zH; segments.push([y, zH, POOL_COLORS.zakat]); }
           if (qH > 0) { y -= qH; segments.push([y, qH, POOL_COLORS.qarz]); }
+          const [mon, yr] = b.monthLabel.split(' ');
+          const showYear = i === 0 || (i > 0 && buckets[i - 1].monthLabel.split(' ')[1] !== yr);
           return (
             <g key={b.monthStart}>
               <title>{`${b.monthLabel}: ${fmtRs(total)}`}</title>
               {segments.map(([sy, sh, fill], k) => (
-                <rect key={k} x={x} y={sy} width={barW} height={sh} fill={fill} rx={2} />
+                <rect key={k} x={x} y={sy} width={barW} height={sh} fill={fill} rx={k === segments.length - 1 ? 3 : 0} />
               ))}
+              {/* Month label */}
               <text
                 x={x + barW / 2}
                 y={H + 14}
                 textAnchor="middle"
-                className="fill-[var(--color-gold-4)] text-[9px] font-semibold uppercase tracking-wider"
+                fontSize={9}
+                fontWeight={600}
+                fill="var(--color-gold-4)"
               >
-                {b.monthLabel.split(' ')[0].slice(0, 3)}
+                {mon.slice(0, 3)}
               </text>
+              {/* Year label — only when year changes */}
+              {showYear && (
+                <text
+                  x={x + barW / 2}
+                  y={H + 24}
+                  textAnchor="middle"
+                  fontSize={8}
+                  fill="rgba(125,119,104,0.55)"
+                >
+                  {yr}
+                </text>
+              )}
             </g>
           );
         })}

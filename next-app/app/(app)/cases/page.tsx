@@ -3,6 +3,7 @@ import { getMeOrRedirect } from '@/lib/auth-server';
 import { db } from '@/lib/db';
 import { members, cases, votes, config as configTbl } from '@/lib/db/schema';
 import { Card, CardHeader, CardTitle, CardBody } from '@/components/ui/card';
+import { Breadcrumb } from '@/components/breadcrumb';
 import { fmtRs } from '@/lib/i18n/dict';
 import VoteButtons from './vote-buttons';
 import DisburseButton from './disburse-button';
@@ -33,6 +34,7 @@ export default async function CasesPage() {
 
   return (
     <div className="mx-auto max-w-[1400px]">
+      <Breadcrumb crumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Emergency Votes' }]} />
       <header className="mb-8 flex flex-wrap items-end justify-between gap-4 border-b border-[var(--border)] pb-6">
         <div>
           <div className="mb-2 text-[10px] font-bold uppercase tracking-[2px] text-[var(--txt-3)]">

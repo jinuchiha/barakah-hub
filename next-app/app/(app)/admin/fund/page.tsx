@@ -5,6 +5,7 @@ import { db } from '@/lib/db';
 import { members, payments } from '@/lib/db/schema';
 import { Card, CardHeader, CardTitle, CardBody } from '@/components/ui/card';
 import { StatCard } from '@/components/stat-card';
+import { Breadcrumb } from '@/components/breadcrumb';
 import { fmtRs } from '@/lib/i18n/dict';
 import { ini } from '@/lib/utils';
 import RecordPaymentForm from './record-payment-form';
@@ -53,6 +54,7 @@ export default async function FundPage() {
 
     return (
       <div className="mx-auto max-w-[1400px]">
+        <Breadcrumb crumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Fund Approvals' }]} />
         <header className="mb-8 flex flex-wrap items-end justify-between gap-4 border-b border-[var(--border)] pb-6">
           <div>
             <div className="mb-2 text-[10px] font-bold uppercase tracking-[2px] text-[var(--txt-3)]">
@@ -192,6 +194,7 @@ export default async function FundPage() {
 
   return (
     <div className="mx-auto max-w-[1400px]">
+      <Breadcrumb crumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Admin' }, { label: 'Fund Register' }]} />
       <header className="mb-8 flex flex-wrap items-end justify-between gap-4 border-b border-[var(--border)] pb-6">
         <div>
           <div className="mb-2 text-[10px] font-bold uppercase tracking-[2px] text-[var(--txt-3)]">

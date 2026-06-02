@@ -6,6 +6,7 @@ import { db } from '@/lib/db';
 import { members } from '@/lib/db/schema';
 import { Card, CardHeader, CardTitle, CardBody } from '@/components/ui/card';
 import { StatCard } from '@/components/stat-card';
+import { Breadcrumb } from '@/components/breadcrumb';
 import { ini } from '@/lib/utils';
 import MembersTable from './members-table';
 import ApproveButton from './approve-button';
@@ -43,6 +44,7 @@ export default async function MembersPage({
 
   return (
     <div className="mx-auto max-w-[1400px]">
+      <Breadcrumb crumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Admin' }, { label: 'Members' }]} />
       {dbError && (
         <div className="mb-6 rounded-xl border border-red-500/30 bg-red-500/8 px-5 py-4 text-sm text-red-300">
           <strong>Database error:</strong> Schema may be out of date — run pending migrations.
