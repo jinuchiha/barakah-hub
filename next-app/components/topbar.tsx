@@ -72,29 +72,33 @@ export function Topbar({ user, unreadCount = 0, isAdmin = false, badges = {} }: 
   }
 
   return (
-    <header className="relative flex h-14 shrink-0 items-center justify-between gap-2 border-b border-[var(--border)] bg-[var(--surf-2)]/95 px-3 backdrop-blur-md md:px-5">
+    <header className="relative flex h-14 shrink-0 items-center justify-between gap-2 border-b border-[rgba(200,155,60,0.10)] bg-[var(--surf-2)]/80 px-3 shadow-[0_1px_0_rgba(200,155,60,0.06),0_4px_24px_rgba(0,0,0,0.18)] backdrop-blur-xl md:px-5">
+      {/* Subtle gold shimmer at bottom of header */}
+      <div aria-hidden className="pointer-events-none absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[rgba(200,155,60,0.25)] to-transparent" />
+
       <div className="flex items-center gap-2.5 md:gap-3">
         <MobileNav isAdmin={isAdmin} badges={badges} />
-        <div className="grid size-8 shrink-0 place-items-center rounded-md bg-[rgba(200,155,60,0.12)] ring-1 ring-inset ring-[rgba(200,155,60,0.30)]">
+        {/* Premium brand mark */}
+        <div className="grid size-8 shrink-0 place-items-center rounded-lg bg-gradient-to-br from-[rgba(200,155,60,0.22)] to-[rgba(200,155,60,0.06)] shadow-[0_0_0_1px_rgba(200,155,60,0.25),0_2px_8px_rgba(200,155,60,0.15)]">
           <Crescent />
         </div>
         <div className="hidden sm:block">
-          <div className="text-[13px] font-semibold leading-tight text-[var(--color-cream)]">Barakah Hub</div>
-          <div className="font-[var(--font-arabic)] text-[11px] leading-tight text-[var(--color-gold)]">بَرَكَة ہب</div>
+          <div className="text-[13px] font-semibold leading-tight tracking-[-0.01em] text-[var(--color-cream)]">Barakah Hub</div>
+          <div className="font-[var(--font-arabic)] text-[10px] leading-tight text-[var(--color-gold-4)]">بَرَكَة ہب</div>
         </div>
       </div>
 
       <form onSubmit={onSearchSubmit} className="relative mx-2 hidden max-w-md flex-1 md:block md:mx-6" role="search">
-        <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-[var(--txt-4)]" />
+        <Search className="absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-[var(--txt-4)]" />
         <input
           type="search"
           value={q}
           onChange={(e) => setQ(e.target.value)}
           placeholder="Search members, payments, cases…"
-          className="w-full rounded-lg border border-[var(--border)] bg-[var(--surf-3)] py-1.5 pl-9 pr-3 text-[13px] text-[var(--color-cream)] outline-none transition-colors placeholder:text-[var(--txt-4)] focus:border-[var(--border-accent)] focus:bg-[var(--surf-1)]"
+          className="w-full rounded-xl border border-[var(--border)] bg-[rgba(255,255,255,0.03)] py-1.5 pl-9 pr-12 text-[13px] text-[var(--color-cream)] outline-none ring-0 transition-all placeholder:text-[var(--txt-4)] focus:border-[rgba(200,155,60,0.35)] focus:bg-[rgba(200,155,60,0.04)] focus:shadow-[0_0_0_3px_rgba(200,155,60,0.08)]"
           aria-label="Global search"
         />
-        <kbd className="num pointer-events-none absolute right-2.5 top-1/2 hidden -translate-y-1/2 rounded border border-[var(--border)] bg-[var(--surf-1)] px-1.5 py-0.5 text-[10px] text-[var(--txt-4)] lg:inline-block">
+        <kbd className="num pointer-events-none absolute right-2.5 top-1/2 hidden -translate-y-1/2 rounded-md border border-[var(--border)] bg-[var(--surf-1)] px-1.5 py-0.5 text-[9px] text-[var(--txt-4)] lg:inline-block">
           ⌘ K
         </kbd>
       </form>
@@ -118,11 +122,11 @@ export function Topbar({ user, unreadCount = 0, isAdmin = false, badges = {} }: 
         <Link
           href="/notifications"
           aria-label={unreadCount > 0 ? `Notifications, ${unreadCount} unread` : 'Notifications'}
-          className="relative grid size-9 place-items-center rounded-lg text-[var(--txt-2)] transition-colors hover:bg-[var(--surf-3)] hover:text-[var(--color-cream)]"
+          className="relative grid size-9 place-items-center rounded-xl text-[var(--txt-2)] transition-all hover:bg-[rgba(200,155,60,0.08)] hover:text-[var(--color-gold)] hover:shadow-[0_0_12px_rgba(200,155,60,0.12)]"
         >
-          <Bell className="size-[18px]" />
+          <Bell className="size-[17px]" />
           {unreadCount > 0 && (
-            <span className="num absolute right-1 top-1 grid h-4 min-w-[16px] place-items-center rounded-full bg-[#dc5252] px-1 text-[9px] font-semibold text-white ring-2 ring-[var(--surf-2)]">
+            <span className="num absolute right-1.5 top-1.5 grid h-3.5 min-w-[14px] place-items-center rounded-full bg-[#dc5252] px-1 text-[8px] font-bold text-white shadow-[0_0_6px_rgba(220,82,82,0.5)]">
               {unreadCount > 99 ? '99+' : unreadCount}
             </span>
           )}
