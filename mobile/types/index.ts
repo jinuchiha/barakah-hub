@@ -42,6 +42,7 @@ export interface Payment {
   monthStart: string;
   paidOn: string;
   note: string | null;
+  receiptUrl: string | null;
   pendingVerify: boolean;
   verifiedById: string | null;
   verifiedAt: string | null;

@@ -51,11 +51,12 @@ export function useMyLoans() {
   });
 }
 
-export function useAllLoans() {
+export function useAllLoans(enabled = true) {
   return useQuery({
     queryKey: ['loans', 'all'],
     queryFn: fetchAllLoans,
     staleTime: 30_000,
+    enabled,
   });
 }
 

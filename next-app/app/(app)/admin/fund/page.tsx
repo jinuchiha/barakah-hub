@@ -340,8 +340,8 @@ export default async function FundPage() {
                       <div className="text-sm text-[var(--color-cream)]">{m?.nameEn || m?.nameUr} <span className="font-bold text-[var(--color-gold)]">{fmtRs(p.amount)}</span></div>
                       <div className="text-[10px] text-[var(--color-gold-4)]">{p.monthLabel} · {p.pool} · {new Date(p.paidOn).toLocaleDateString('en-GB')}</div>
                     </div>
-                    {/* Admin can delete verified payments too — useful for fixing recording mistakes */}
-                    <VerifyButtons paymentId={p.id} mode="admin-pending" />
+                    {/* History rows are already verified — show delete-only mode, not the full verify/reject UI */}
+                    <VerifyButtons paymentId={p.id} mode="admin-history" />
                   </div>
                 );
               })}

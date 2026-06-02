@@ -53,6 +53,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           }}
           unreadCount={unreadCount}
           isAdmin={isAdmin}
+          isSupervisor={isSupervisor}
           badges={adminBadges}
         />
         <VerseBar />

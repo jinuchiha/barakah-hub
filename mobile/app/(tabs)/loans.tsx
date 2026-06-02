@@ -103,7 +103,7 @@ function LoansScreen() {
   const [repayLoan, setRepayLoan] = useState<Loan | null>(null);
 
   const myLoansQuery = useMyLoans();
-  const allLoansQuery = useAllLoans();
+  const allLoansQuery = useAllLoans(isAdmin); // only fire for admins
   const activeQuery = isAdmin && viewAll ? allLoansQuery : myLoansQuery;
   const loans = activeQuery.data ?? [];
 
