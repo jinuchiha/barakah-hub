@@ -51,15 +51,15 @@
    ───────────────────────────────────────── */
 :root {
   --txt-1: #ecebe6;
-  --txt-2: rgba(236,235,230,0.78);
-  --txt-3: rgba(236,235,230,0.52);
-  --txt-4: rgba(236,235,230,0.32);
+  --txt-2: rgba(236,235,230,0.80);
+  --txt-3: rgba(236,235,230,0.60);
+  --txt-4: rgba(236,235,230,0.40);
   --surf-1: #0d1625;                                  /* card */
   --surf-2: #060b13;                                  /* page */
-  --surf-3: rgba(255,255,255,0.03);                   /* input bg — neutral */
-  --border: rgba(255,255,255,0.07);                   /* hairline */
-  --border-2: rgba(255,255,255,0.12);                 /* emphasized */
-  --border-accent: rgba(200,155,60,0.35);             /* used sparingly */
+  --surf-3: rgba(255,255,255,0.035);                  /* input bg — neutral */
+  --border: rgba(255,255,255,0.10);                   /* hairline */
+  --border-2: rgba(255,255,255,0.16);                 /* emphasized */
+  --border-accent: rgba(200,155,60,0.38);             /* used sparingly */
 }
 
 .light {
@@ -144,10 +144,8 @@ html.light, html.light body {
   background-image: none;
 }
 
-/* Modern headline pairing — Cormorant for marketing/poetic, Inter for UI */
-h1, h2, h3, h4 {
-  letter-spacing: -0.015em;
-}
+h1, h2 { letter-spacing: -0.03em; font-weight: 700; }
+h3, h4 { letter-spacing: -0.015em; font-weight: 600; }
 
 /* Any element marked Urdu (lang=ur), Arabic (lang=ar), or RTL renders
    in Noto Nastaliq Urdu — the flowing sloped script Urdu speakers
@@ -275,11 +273,10 @@ a:focus-visible {
 
 /* ── Ultra-modern card system (Mercury / Linear level) ── */
 .card-premium {
-  /* Multi-layer background: subtle diagonal highlight + deep base */
   background:
-    linear-gradient(145deg, rgba(255,255,255,0.038) 0%, rgba(255,255,255,0.008) 60%, transparent 100%),
+    linear-gradient(145deg, rgba(255,255,255,0.042) 0%, rgba(255,255,255,0.009) 60%, transparent 100%),
     #0c1422;
-  border: 1px solid rgba(200,155,60,0.12);
+  border: 1px solid rgba(200,155,60,0.18);
   border-radius: var(--radius-r);
   /* Layered shadows: crisp inner highlight + soft ambient + gold glow on hover */
   box-shadow:
@@ -293,14 +290,14 @@ a:focus-visible {
   will-change: transform, box-shadow;
 }
 .card-premium:hover {
-  border-color: rgba(200,155,60,0.22);
+  border-color: rgba(200,155,60,0.28);
   box-shadow:
-    0 1px 0 rgba(255,255,255,0.040) inset,
+    0 1px 0 rgba(255,255,255,0.046) inset,
     0 -1px 0 rgba(0,0,0,0.22) inset,
-    0 8px 24px rgba(0,0,0,0.30),
-    0 2px 6px rgba(0,0,0,0.20),
-    0 0 0 3px rgba(200,155,60,0.055);
-  transform: translateY(-1px);
+    0 12px 32px rgba(0,0,0,0.34),
+    0 3px 8px rgba(0,0,0,0.22),
+    0 0 0 3px rgba(200,155,60,0.07);
+  transform: translateY(-2px);
 }
 
 /* Page-entry animation */
@@ -369,8 +366,20 @@ select:focus-visible {
 .table-row-hover {
   transition: background-color 0.10s ease;
 }
+.table-row-hover {
+  transition: background-color 0.12s ease;
+  cursor: default;
+}
 .table-row-hover:hover {
-  background-color: rgba(255,255,255,0.025);
+  background-color: rgba(255,255,255,0.038);
+}
+.table-row-hover[role="button"],
+.table-row-hover[tabindex] {
+  cursor: pointer;
+}
+.table-row-hover:focus-visible {
+  outline: 1px solid rgba(200,155,60,0.4);
+  outline-offset: -1px;
 }
 
 /* ── Smooth page transitions ── */
@@ -391,8 +400,14 @@ select:focus-visible {
 /* ── Button pressed state ── */
 button:active:not(:disabled),
 [role="button"]:active {
-  transform: scale(0.98);
+  transform: scale(0.95);
   transition: transform 0.06s ease;
+}
+button:disabled,
+[aria-disabled="true"] {
+  opacity: 0.45;
+  cursor: not-allowed;
+  pointer-events: none;
 }
 
 /* ─────────────────────────────────────────

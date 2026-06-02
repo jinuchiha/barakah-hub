@@ -23,11 +23,11 @@ export const darkColors = {
   danger: '#dc5252',
   dangerDim: 'rgba(220,82,82,0.13)',
   text1: '#ecebe6',
-  text2: 'rgba(236,235,230,0.78)',
-  text3: 'rgba(236,235,230,0.52)',
-  text4: 'rgba(236,235,230,0.32)',
-  border1: 'rgba(255,255,255,0.07)',     // neutral hairline
-  border2: 'rgba(255,255,255,0.12)',     // emphasized
+  text2: 'rgba(236,235,230,0.82)',
+  text3: 'rgba(236,235,230,0.60)',
+  text4: 'rgba(236,235,230,0.40)',
+  border1: 'rgba(255,255,255,0.10)',     // neutral hairline
+  border2: 'rgba(255,255,255,0.16)',     // emphasized
   shadowGreen: 'rgba(45,138,95,0.22)',
   shadowBlue: 'rgba(96,141,215,0.20)',
   shadowGold: 'rgba(200,155,60,0.22)',
@@ -46,7 +46,7 @@ export const lightColors = {
   glass2: 'rgba(255,255,255,0.85)',
   glass3: 'rgba(255,255,255,0.95)',
   glassBorder: 'rgba(255,255,255,0.60)',
-  primary: '#1a7a4a',
+  primary: '#0d5a3a',
   primaryMuted: '#2ecc71',
   primaryDim: 'rgba(26,122,74,0.12)',
   primaryGlow: 'rgba(26,122,74,0.20)',
@@ -94,10 +94,10 @@ export const amoledColors = {
   dangerDim: 'rgba(255,82,82,0.12)',
   text1: '#ffffff',
   text2: 'rgba(255,255,255,0.80)',
-  text3: 'rgba(255,255,255,0.45)',
-  text4: 'rgba(255,255,255,0.22)',
-  border1: 'rgba(255,255,255,0.06)',
-  border2: 'rgba(255,255,255,0.12)',
+  text3: 'rgba(255,255,255,0.58)',
+  text4: 'rgba(255,255,255,0.38)',
+  border1: 'rgba(255,255,255,0.10)',
+  border2: 'rgba(255,255,255,0.16)',
   shadowGreen: 'rgba(0,230,118,0.20)',
   shadowBlue: 'rgba(68,138,255,0.20)',
   shadowGold: 'rgba(255,215,64,0.20)',
@@ -164,10 +164,10 @@ export const desertColors = {
   dangerDim: 'rgba(255,107,107,0.15)',
   text1: '#fef3dc',
   text2: 'rgba(254,243,220,0.80)',
-  text3: 'rgba(254,243,220,0.50)',
-  text4: 'rgba(254,243,220,0.30)',
-  border1: 'rgba(255,220,130,0.10)',
-  border2: 'rgba(255,220,130,0.18)',
+  text3: 'rgba(254,243,220,0.62)',
+  text4: 'rgba(254,243,220,0.42)',
+  border1: 'rgba(255,220,130,0.13)',
+  border2: 'rgba(255,220,130,0.22)',
   shadowGreen: 'rgba(46,213,115,0.25)',
   shadowBlue: 'rgba(77,171,247,0.20)',
   shadowGold: 'rgba(245,200,66,0.28)',
@@ -216,7 +216,7 @@ export const radius = {
 export const colors = darkColors;
 export const typography = {
   // Display — big hero numbers (fund totals, large stats)
-  display: { fontSize: 36, fontFamily: 'SpaceMono_400Regular', letterSpacing: -1.5, lineHeight: 42 },
+  display: { fontSize: 30, fontFamily: 'SpaceMono_400Regular', letterSpacing: -0.8, lineHeight: 36 },
   // Hero — section hero values
   hero: { fontSize: 28, fontFamily: 'Inter_700Bold', letterSpacing: -0.8, lineHeight: 34 },
   // H1 — page titles
@@ -234,7 +234,7 @@ export const typography = {
   // Label (buttons, tags)
   label: { fontSize: 13, fontFamily: 'Inter_600SemiBold', letterSpacing: 0.1, lineHeight: 18 },
   // Caption
-  caption: { fontSize: 11, fontFamily: 'Inter_400Regular', letterSpacing: 0.3, lineHeight: 16 },
+  caption: { fontSize: 12, fontFamily: 'Inter_400Regular', letterSpacing: 0.2, lineHeight: 17 },
   // Overline (section headers)
   overline: { fontSize: 10, fontFamily: 'Inter_700Bold', letterSpacing: 1.4, lineHeight: 14 },
   // Mono (numbers, amounts)

@@ -36,8 +36,8 @@ export function StatCard({ label, sublabel, value, hint, tone = 'emerald', spark
 
   return (
     <motion.div
-      whileHover={reduce ? undefined : { y: -1, scale: 1.005 }}
-      transition={{ type: 'spring', stiffness: 380, damping: 26 }}
+      whileHover={reduce ? undefined : { y: -2, scale: 1.012 }}
+      transition={{ type: 'spring', stiffness: 420, damping: 28 }}
       className={cn(
         'sc-base group relative flex min-h-[120px] flex-col justify-between overflow-hidden rounded-[var(--radius-r)] p-5',
         'cursor-default select-none',
