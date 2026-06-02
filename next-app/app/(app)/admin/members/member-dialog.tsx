@@ -62,7 +62,9 @@ function fromMember(m: Member): FormState {
     username: m.username,
     nameEn: m.nameEn,
     nameUr: m.nameUr,
-    fatherName: m.fatherName,
+    // "—" is the placeholder for "unknown father" — show as empty so admins
+    // can type a real name without deleting the dash first.
+    fatherName: m.fatherName === '—' ? '' : m.fatherName,
     fatherDeceased: m.fatherDeceased,
     relation: m.relation ?? '',
     phone: m.phone ?? '',
@@ -112,7 +114,7 @@ export default function MemberDialog({ mode, allMembers, onClose }: Props) {
             username: form.username.trim(),
             nameEn: form.nameEn.trim(),
             nameUr: form.nameUr.trim() || form.nameEn.trim(),
-            fatherName: form.fatherName.trim(),
+            fatherName: form.fatherName.trim() || '—',
             fatherDeceased: form.fatherDeceased,
             relation: form.relation.trim() || undefined,
             phone: form.phone.trim() || undefined,
@@ -126,7 +128,9 @@ export default function MemberDialog({ mode, allMembers, onClose }: Props) {
             id: mode.member.id,
             nameEn: form.nameEn.trim(),
             nameUr: form.nameUr.trim() || form.nameEn.trim(),
-            fatherName: form.fatherName.trim(),
+            // Empty field → send undefined so Drizzle skips updating fatherName.
+            // "—" placeholder is stored in DB when no father name is known.
+            fatherName: form.fatherName.trim() || undefined,
             fatherDeceased: form.fatherDeceased,
             relation: form.relation.trim() || null,
             phone: form.phone.trim() || null,

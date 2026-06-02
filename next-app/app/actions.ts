@@ -581,7 +581,9 @@ const editMemberSchema = z.object({
   id: z.string().uuid(),
   nameEn: z.string().min(2).max(80).optional(),
   nameUr: z.string().min(1).max(80).optional(),
-  fatherName: z.string().min(2).max(80).optional(),
+  // min(1) so "—" placeholder (1 char em-dash) doesn't fail validation;
+  // the dialog sends undefined if the field is empty, so min(1) is the floor.
+  fatherName: z.string().min(1).max(80).optional(),
   fatherDeceased: z.boolean().optional(),
   relation: z.string().max(80).optional().nullable(),
   phone: z.string().max(30).optional().nullable(),
