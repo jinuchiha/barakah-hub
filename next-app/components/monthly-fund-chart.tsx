@@ -62,8 +62,10 @@ export function MonthlyFundChart({ buckets }: { buckets: MonthBucket[] }) {
           if (sH > 0) { y -= sH; segments.push([y, sH, POOL_COLORS.sadaqah]); }
           if (zH > 0) { y -= zH; segments.push([y, zH, POOL_COLORS.zakat]); }
           if (qH > 0) { y -= qH; segments.push([y, qH, POOL_COLORS.qarz]); }
-          const [mon, yr] = b.monthLabel.split(' ');
-          const showYear = i === 0 || (i > 0 && buckets[i - 1].monthLabel.split(' ')[1] !== yr);
+          const parts = b.monthLabel.split(' ');
+          const mon = parts[0] ?? b.monthLabel;
+          const yr  = parts[1] ?? '';
+          const showYear = i === 0 || (i > 0 && (buckets[i - 1].monthLabel.split(' ')[1] ?? '') !== yr);
           return (
             <g key={b.monthStart}>
               <title>{`${b.monthLabel}: ${fmtRs(total)}`}</title>
