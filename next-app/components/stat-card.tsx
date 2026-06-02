@@ -36,50 +36,63 @@ export function StatCard({ label, sublabel, value, hint, tone = 'emerald', spark
 
   return (
     <motion.div
-      whileHover={reduce ? undefined : { y: -2 }}
-      transition={{ type: 'spring', stiffness: 320, damping: 28 }}
+      whileHover={reduce ? undefined : { y: -1, scale: 1.005 }}
+      transition={{ type: 'spring', stiffness: 380, damping: 26 }}
       className={cn(
-        'sc-base group relative flex min-h-[124px] flex-col justify-between overflow-hidden rounded-[var(--radius-r)] p-5 transition-colors',
-        'hover:border-[var(--border-2)]',
+        'sc-base group relative flex min-h-[120px] flex-col justify-between overflow-hidden rounded-[var(--radius-r)] p-5',
+        'cursor-default select-none',
       )}
-      style={{ boxShadow: `inset 3px 0 0 0 ${accent}, 0 12px 32px -12px ${accent}40` }}
+      style={{
+        boxShadow: `inset 3px 0 0 0 ${accent}, 0 8px 24px -8px ${accent}35`,
+      }}
     >
+      {/* Radial ambient glow */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0"
-        style={{ background: `radial-gradient(130% 110% at 0% 0%, ${accent}1F, transparent 55%)` }}
+        className="pointer-events-none absolute inset-0 transition-opacity duration-300 group-hover:opacity-130"
+        style={{ background: `radial-gradient(120% 100% at 0% 0%, ${accent}18, transparent 60%)` }}
       />
+      {/* Bottom fade line matching accent */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute bottom-0 left-0 right-0 h-[2px] opacity-50"
+        style={{ background: `linear-gradient(90deg, ${accent}80, transparent)` }}
+      />
+
+      {/* Header */}
       <div className="relative flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <div className="text-[10px] font-semibold uppercase tracking-[1.4px] text-[var(--txt-3)]">{label}</div>
-          {sublabel && <div className="mt-0.5 text-[11px] text-[var(--txt-4)]">{sublabel}</div>}
+          <div className="text-[10px] font-semibold uppercase tracking-[1.6px] text-[var(--txt-3)]">{label}</div>
+          {sublabel && <div className="mt-0.5 text-[10.5px] text-[var(--txt-4)]">{sublabel}</div>}
         </div>
         {icon && (
           <div
-            className="grid size-8 shrink-0 place-items-center rounded-md transition-colors [&>svg]:size-4"
-            style={{ background: `${accent}14`, color: accent }}
+            className="grid size-7 shrink-0 place-items-center rounded-lg [&>svg]:size-3.5"
+            style={{ background: `${accent}12`, color: accent, border: `1px solid ${accent}22` }}
           >
             {icon}
           </div>
         )}
       </div>
 
+      {/* Value */}
       <div className="relative mt-3 flex items-end justify-between gap-3">
-        <div className="num-display text-[28px] leading-none text-[var(--color-cream)]">
+        <div className="num-display text-[26px] leading-none tracking-[-0.5px] text-[var(--color-cream)]">
           {value}
         </div>
         {spark && spark.length > 0 && <Sparkline values={spark} color={accent} />}
       </div>
 
+      {/* Hint / delta */}
       {(hint || delta) && (
-        <div className="relative mt-2.5 flex items-center justify-between gap-2 text-[11px]">
-          {hint && <span className="text-[var(--txt-3)]">{hint}</span>}
+        <div className="relative mt-2 flex items-center justify-between gap-2 text-[10.5px]">
+          {hint && <span className="text-[var(--txt-4)]">{hint}</span>}
           {delta && (
             <span
               className={cn(
-                'tabular font-semibold',
-                deltaSign === 'up' && 'text-[#4ec38d]',
-                deltaSign === 'down' && 'text-[#f08585]',
+                'tabular font-bold rounded-full px-1.5 py-0.5 text-[9px]',
+                deltaSign === 'up' && 'bg-[rgba(45,138,95,0.12)] text-[#4ec38d]',
+                deltaSign === 'down' && 'bg-[rgba(220,82,82,0.12)] text-[#f08585]',
                 !deltaSign && 'text-[var(--txt-3)]',
               )}
             >
