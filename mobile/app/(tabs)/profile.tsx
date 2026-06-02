@@ -19,6 +19,7 @@ import { useMyLoans } from '@/hooks/useLoans';
 import { useBiometric } from '@/hooks/useBiometric';
 import { useTheme } from '@/lib/useTheme';
 import { formatDate, formatPKR } from '@/lib/format';
+import { LoadingScreen } from '@/components/ui/LoadingScreen';
 import { canManageFunds, isAdminOnly, roleLabel } from '@/lib/roles';
 import { spacing, radius } from '@/lib/theme';
 import { isScreenshotProtectionEnabled, setScreenshotProtection } from '@/lib/security';
@@ -129,7 +130,7 @@ function ProfileScreen() {
     }
   };
 
-  if (!user) return null;
+  if (!user) return <LoadingScreen />;
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.bg1 }]} edges={['top']}>

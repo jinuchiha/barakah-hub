@@ -1,4 +1,3 @@
-import Link from 'next/link';
 import { getSession } from '@/lib/auth-server';
 import { redirect } from 'next/navigation';
 import { eq } from 'drizzle-orm';
@@ -65,12 +64,14 @@ export default async function PendingPage() {
         <p className="mt-1.5 text-[10px] text-[var(--txt-4)]">{verse.reference}</p>
       </div>
 
-      <Link
-        href="/login"
-        className="text-[12px] text-[var(--txt-4)] underline-offset-2 hover:underline"
-      >
-        Sign out
-      </Link>
+      <form action="/api/auth/sign-out" method="POST">
+        <button
+          type="submit"
+          className="text-[12px] text-[var(--txt-4)] underline-offset-2 hover:underline bg-transparent border-none cursor-pointer p-0"
+        >
+          Sign out
+        </button>
+      </form>
     </div>
   );
 }

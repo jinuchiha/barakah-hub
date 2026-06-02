@@ -307,10 +307,9 @@ function CasesScreen() {
     try {
       await voteMutation.mutateAsync({ caseId: voteTarget.id, yes: voteDir });
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      setVoteTarget(null);
     } catch (err) {
       Alert.alert('Vote Failed', err instanceof Error ? err.message : 'Failed to cast vote');
-    } finally {
-      setVoteTarget(null);
     }
   };
 

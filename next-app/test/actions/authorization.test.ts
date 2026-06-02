@@ -149,9 +149,15 @@ describe('castVote', () => {
       .rejects.toThrow(/voting closed/i);
   });
 
-  it('rejects malformed UUID', async () => {
+  it('rejects malformed UUID after auth', async () => {
+    // meOrThrow() now runs before UUID validation (BUG-003 fix: auth first).
+    // Provide a member row so auth passes, then the UUID check fires.
     sessionMock.instance = makeSessionMock({ id: 'auth-1' });
-    dbMock.instance = makeDbMock({});
+    dbMock.instance = makeDbMock({
+      selectQueue: [
+        [{ id: 'member-1', authId: 'auth-1', role: 'member', status: 'approved', deceased: false }],
+      ],
+    });
     const { castVote } = await import('@/app/actions');
 
     await expect(castVote('not-a-uuid', true)).rejects.toThrow(/invalid case id/i);

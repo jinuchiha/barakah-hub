@@ -39,8 +39,8 @@ export interface Payment {
   amount: number;
   pool: FundPool;
   monthLabel: string;
-  monthStart: string;
-  paidOn: string;
+  monthStart: string | null;
+  paidOn: string | null;
   note: string | null;
   receiptUrl: string | null;
   pendingVerify: boolean;

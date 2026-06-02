@@ -4,7 +4,7 @@ import { writeFile, mkdir } from 'fs/promises';
 import path from 'path';
 import { meOrThrow } from '@/lib/auth-server';
 import { db } from '@/lib/db';
-import { members } from '@/lib/db/schema';
+import { members, auditLog } from '@/lib/db/schema';
 import { isStorageConfigured, uploadToStorage } from '@/lib/storage';
 
 export const runtime = 'nodejs';
@@ -54,6 +54,8 @@ export async function POST(req: Request) {
       .update(members)
       .set({ photoUrl: url, updatedAt: new Date() })
       .where(eq(members.id, me.id));
+
+    await db.insert(auditLog).values({ actorId: me.id, action: 'avatar-updated', detail: url });
 
     return NextResponse.json({ url });
   } catch (e: unknown) {
