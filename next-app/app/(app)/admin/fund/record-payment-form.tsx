@@ -28,7 +28,7 @@ export default function RecordPaymentForm({ members }: { members: { id: string; 
   }
 
   if (members.length === 0) {
-    return <p className="text-sm italic text-[var(--txt-3)]">No approved members yet — approve a member first.</p>;
+    return <p className="text-sm italic text-[var(--txt-3)]">No approved members yet. Approve a member first.</p>;
   }
 
   return (

@@ -41,7 +41,7 @@ export default async function InvitesPage() {
         </CardHeader>
         <CardBody className="p-0">
           {invites.length === 0 && (
-            <div className="py-10 text-center italic text-[var(--txt-3)]">No invites yet — create one above to start onboarding members.</div>
+            <div className="py-10 text-center italic text-[var(--txt-3)]">No invites yet. Create one above to start onboarding members.</div>
           )}
           {invites.map((inv) => (
             <InviteRow
