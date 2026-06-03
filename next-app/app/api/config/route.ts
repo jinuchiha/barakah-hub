@@ -8,13 +8,28 @@ import { updateAdminConfig } from '@/app/actions';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-/** GET /api/config — returns the fund configuration (vote threshold, pledge, goal). */
+/** GET /api/config — all authenticated members can read public fields.
+ *  Admin-only fields (themePalette, orgName, etc.) are filtered for non-admins.
+ *  Members need easyPaiseName/easyPaiseNumber to know where to send payment. */
 export async function GET() {
   try {
     const me = await meOrThrow();
-    if (me.role !== 'admin') return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     const [cfg] = await db.select().from(configTbl).where(eq(configTbl.id, 1)).limit(1);
-    return NextResponse.json(cfg ?? {});
+    if (!cfg) return NextResponse.json({});
+
+    if (me.role === 'admin') return NextResponse.json(cfg);
+
+    // Non-admin: only expose fields members need
+    return NextResponse.json({
+      voteThresholdPct:     cfg.voteThresholdPct,
+      defaultMonthlyPledge: cfg.defaultMonthlyPledge,
+      goalAmount:           cfg.goalAmount,
+      goalLabelEn:          cfg.goalLabelEn,
+      goalLabelUr:          cfg.goalLabelUr,
+      goalDeadline:         cfg.goalDeadline,
+      easyPaiseName:        cfg.easyPaiseName,
+      easyPaiseNumber:      cfg.easyPaiseNumber,
+    });
   } catch {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
