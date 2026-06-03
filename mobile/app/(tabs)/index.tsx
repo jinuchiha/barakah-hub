@@ -390,6 +390,11 @@ function DashboardScreen() {
           />
         </Animated.View>
 
+        {/* Quran verse — top of feed */}
+        <Animated.View entering={FadeInDown.duration(400).delay(40)}>
+          <DailyVerseCard />
+        </Animated.View>
+
         {/* Fund hero */}
         <FundHero
           fund={data?.fund}
@@ -428,10 +433,6 @@ function DashboardScreen() {
         {/* Community feed */}
         <CommunityFeed />
 
-        {/* Daily verse at bottom */}
-        <Animated.View entering={FadeInDown.duration(400).delay(320)}>
-          <DailyVerseCard />
-        </Animated.View>
 
       </ScrollView>
     </SafeAreaView>
