@@ -1,11 +1,9 @@
 import React from 'react';
-import { View, Text, StyleSheet, Pressable } from 'react-native';
-import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import type { EmergencyCase } from '@/types';
 import { Badge } from './ui/Badge';
-import { ProgressBar } from './ui/ProgressBar';
 import { GlassCard } from './ui/GlassCard';
 import { Avatar } from './ui/Avatar';
 import { formatPKR, formatDate } from '@/lib/format';
@@ -45,40 +43,31 @@ function VoteButtons({
 }) {
   return (
     <View style={styles.voteButtons}>
-      <Pressable
+      <TouchableOpacity
         style={[styles.voteBtn, { backgroundColor: colors.primaryDim, borderColor: colors.primary }]}
         onPress={() => { void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); onVoteYes(); }}
         accessibilityLabel="Vote to approve"
-        accessibilityRole="button"
       >
         <MaterialCommunityIcons name="thumb-up" size={16} color={colors.primary} />
         <Text style={[styles.voteBtnText, { color: colors.primary }]}>Approve</Text>
-      </Pressable>
-      <Pressable
+      </TouchableOpacity>
+      <TouchableOpacity
         style={[styles.voteBtn, { backgroundColor: colors.dangerDim, borderColor: colors.danger }]}
         onPress={() => { void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy); onVoteNo(); }}
         accessibilityLabel="Vote to reject"
-        accessibilityRole="button"
       >
         <MaterialCommunityIcons name="thumb-down" size={16} color={colors.danger} />
         <Text style={[styles.voteBtnText, { color: colors.danger }]}>Reject</Text>
-      </Pressable>
+      </TouchableOpacity>
     </View>
   );
 }
 
-function VoteProgress({
-  yes,
-  no,
-  total,
-  colors,
-}: {
-  yes: number;
-  no: number;
-  total: number;
+function VoteProgress({ yes, no, total, colors }: {
+  yes: number; no: number; total: number;
   colors: ReturnType<typeof useTheme>['colors'];
 }) {
-  const safeTotal = total || 1;
+  const pct = Math.round((yes / total) * 100);
   return (
     <View style={styles.voteProgress}>
       <View style={styles.voteCountRow}>
@@ -87,7 +76,10 @@ function VoteProgress({
         <Text style={[styles.voteCount, { color: colors.danger }]}>{no} No</Text>
         <Text style={[styles.voteCount, { color: colors.text3 }]}> · {total - yes - no} Pending</Text>
       </View>
-      <ProgressBar progress={yes / safeTotal} color={colors.primary} height={5} showGlow style={styles.progressBar} />
+      {/* Simple static bar — no animation, no layout thrash */}
+      <View style={[styles.barTrack, { backgroundColor: colors.bg4 }]}>
+        <View style={[styles.barFill, { backgroundColor: colors.primary, width: `${pct}%` as any }]} />
+      </View>
     </View>
   );
 }
@@ -105,23 +97,18 @@ export function CaseCard({
   onAdminDisburse,
 }: CaseCardProps) {
   const { colors } = useTheme();
-  const scale = useSharedValue(1);
   const yes = c.yesVotes ?? 0;
   const no = c.noVotes ?? 0;
-  const total = c.totalEligible ?? 1;
+  const total = Math.max(c.totalEligible ?? 1, 1);
   const hasVoted = c.myVote !== null && c.myVote !== undefined;
   const topBorderColor = c.emergency ? colors.danger : colors.gold;
   const glowColor = c.emergency ? colors.dangerDim : colors.goldDim;
 
-  const animStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
-
   return (
-    <Animated.View style={animStyle}>
-      <Pressable
-        onPressIn={() => { scale.value = withSpring(0.98, { damping: 15, stiffness: 400 }); }}
-        onPressOut={() => { scale.value = withSpring(1, { damping: 15, stiffness: 400 }); }}
-        onPress={onPress}
-      >
+    <TouchableOpacity
+      activeOpacity={onPress ? 0.75 : 1}
+      onPress={onPress}
+    >
         <GlassCard style={[styles.card, { borderTopColor: topBorderColor, borderTopWidth: 3 }]} glowColor={glowColor}>
           <View style={styles.header}>
             <View style={styles.avatarRow}>
@@ -167,46 +154,45 @@ export function CaseCard({
             <View style={[styles.adminRow, { borderTopColor: colors.border1 }]}>
               <Text style={[styles.adminLabel, { color: colors.text4 }]}>ADMIN</Text>
               {c.status === 'voting' && onAdminApprove ? (
-                <Pressable
+                <TouchableOpacity
                   style={[styles.adminBtn, { backgroundColor: colors.primaryDim, borderColor: colors.primary }]}
                   onPress={() => { void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); onAdminApprove(); }}
                 >
                   <MaterialCommunityIcons name="check-bold" size={12} color={colors.primary} />
                   <Text style={[styles.adminBtnText, { color: colors.primary }]}>Force Approve</Text>
-                </Pressable>
+                </TouchableOpacity>
               ) : null}
               {c.status === 'voting' && onAdminReject ? (
-                <Pressable
+                <TouchableOpacity
                   style={[styles.adminBtn, { backgroundColor: colors.dangerDim, borderColor: colors.danger }]}
                   onPress={() => { void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy); onAdminReject(); }}
                 >
                   <MaterialCommunityIcons name="close-thick" size={12} color={colors.danger} />
                   <Text style={[styles.adminBtnText, { color: colors.danger }]}>Force Reject</Text>
-                </Pressable>
+                </TouchableOpacity>
               ) : null}
               {c.status === 'approved' && onAdminDisburse ? (
-                <Pressable
+                <TouchableOpacity
                   style={[styles.adminBtn, { backgroundColor: colors.goldDim, borderColor: colors.gold }]}
                   onPress={() => { void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); onAdminDisburse(); }}
                 >
                   <MaterialCommunityIcons name="cash-fast" size={12} color={colors.gold} />
                   <Text style={[styles.adminBtnText, { color: colors.gold }]}>Disburse</Text>
-                </Pressable>
+                </TouchableOpacity>
               ) : null}
               {onAdminDelete ? (
-                <Pressable
+                <TouchableOpacity
                   style={[styles.adminBtnGhost, { borderColor: colors.border2 }]}
                   onPress={() => { void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy); onAdminDelete(); }}
                 >
                   <MaterialCommunityIcons name="trash-can-outline" size={12} color={colors.text3} />
                   <Text style={[styles.adminBtnText, { color: colors.text3 }]}>Delete</Text>
-                </Pressable>
+                </TouchableOpacity>
               ) : null}
             </View>
           ) : null}
         </GlassCard>
-      </Pressable>
-    </Animated.View>
+    </TouchableOpacity>
   );
 }
 
@@ -263,9 +249,9 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontFamily: 'Inter_600SemiBold',
   },
-  progressBar: {
-    marginTop: 2,
-  },
+  progressBar: { marginTop: 2 },
+  barTrack: { height: 5, borderRadius: 3, width: '100%', overflow: 'hidden', marginTop: 4 },
+  barFill: { height: 5, borderRadius: 3 },
   voteButtons: {
     flexDirection: 'row',
     gap: spacing.sm,
