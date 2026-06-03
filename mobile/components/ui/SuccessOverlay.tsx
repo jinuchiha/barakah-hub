@@ -1,15 +1,7 @@
-'use client';
-import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, Modal } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { Text, StyleSheet, Modal } from 'react-native';
 import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-  withTiming,
-  withDelay,
-  withSequence,
-  runOnJS,
-  Easing,
+  useSharedValue, useAnimatedStyle, withSpring, withTiming,
 } from 'react-native-reanimated';
 import Svg, { Circle, Path, Polyline } from 'react-native-svg';
 import { useTheme } from '@/lib/useTheme';
@@ -23,10 +15,6 @@ interface Props {
 }
 
 function CheckIcon({ color, size = 48 }: { color: string; size?: number }) {
-  const progress = useSharedValue(0);
-  useEffect(() => {
-    progress.value = withDelay(200, withTiming(1, { duration: 400, easing: Easing.out(Easing.cubic) }));
-  }, [progress]);
   return (
     <Svg width={size} height={size} viewBox="0 0 48 48">
       <Circle cx={24} cy={24} r={22} stroke={color} strokeWidth={2.5} fill="none" opacity={0.2} />
@@ -49,41 +37,36 @@ export function SuccessOverlay({ visible, type = 'success', message, onDone, aut
   const scale = useSharedValue(0);
   const opacity = useSharedValue(0);
   const color = type === 'success' ? colors.accent : colors.danger;
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+
     if (visible) {
       scale.value = withSpring(1, { damping: 14, stiffness: 300 });
       opacity.value = withTiming(1, { duration: 180 });
       if (onDone) {
-        opacity.value = withSequence(
-          withTiming(1, { duration: 180 }),
-          withDelay(autoDismissMs - 300, withTiming(0, { duration: 300 })),
-        );
-        scale.value = withSequence(
-          withSpring(1, { damping: 14, stiffness: 300 }),
-          withDelay(autoDismissMs - 200, withTiming(0.85, { duration: 250, easing: Easing.in(Easing.ease) })),
-        );
-        setTimeout(() => runOnJS(onDone)(), autoDismissMs);
+        timerRef.current = setTimeout(onDone, autoDismissMs);
       }
     } else {
-      scale.value = withTiming(0.8, { duration: 150 });
+      scale.value = withTiming(0, { duration: 150 });
       opacity.value = withTiming(0, { duration: 150 });
     }
-  }, [visible]);
+
+    return () => { if (timerRef.current) clearTimeout(timerRef.current); };
+  }, [visible, autoDismissMs, onDone]);
 
   const overlayStyle = useAnimatedStyle(() => ({ opacity: opacity.value }));
   const cardStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
 
-  if (!visible && scale.value === 0) return null;
+  if (!visible) return null;
 
   return (
-    <Modal transparent visible animationType="none">
+    <Modal transparent visible animationType="none" onRequestClose={onDone}>
       <Animated.View style={[styles.backdrop, overlayStyle]}>
         <Animated.View style={[styles.card, { backgroundColor: colors.bg2, borderColor: `${color}30` }, cardStyle]}>
           {type === 'success' ? <CheckIcon color={color} /> : <ErrorIcon color={color} />}
-          {message ? (
-            <Text style={[styles.msg, { color: colors.text1 }]}>{message}</Text>
-          ) : null}
+          {message ? <Text style={[styles.msg, { color: colors.text1 }]}>{message}</Text> : null}
         </Animated.View>
       </Animated.View>
     </Modal>

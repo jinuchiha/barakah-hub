@@ -1,12 +1,12 @@
 import React, { useState, useMemo } from 'react';
 import {
-  View, Text, StyleSheet, RefreshControl, TouchableOpacity, Pressable, Alert,
+  View, Text, StyleSheet, RefreshControl, TouchableOpacity, Alert,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { FlashList } from '@shopify/flash-list';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import Animated, { FadeInDown, useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 import { PaymentCard } from '@/components/PaymentCard';
@@ -42,21 +42,16 @@ function FilterChip({ label, active, onPress }: { label: string; active: boolean
 
 function FABButton({ onPress }: { onPress: () => void }) {
   const { colors } = useTheme();
-  const scale = useSharedValue(1);
-
-  const animStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
-
   return (
-    <Animated.View style={[styles.fab, { backgroundColor: colors.primary, shadowColor: colors.shadowGreen }, animStyle]}>
-      <Pressable
-        onPressIn={() => { scale.value = withSpring(0.9, { damping: 12, stiffness: 400 }); }}
-        onPressOut={() => { scale.value = withSpring(1, { damping: 12, stiffness: 400 }); }}
-        onPress={() => { void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); onPress(); }}
-        style={styles.fabInner}
-      >
-        <MaterialCommunityIcons name="plus" size={26} color="#0a0a0f" />
-      </Pressable>
-    </Animated.View>
+    <TouchableOpacity
+      style={[styles.fab, { backgroundColor: colors.primary }]}
+      onPress={() => { void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); onPress(); }}
+      activeOpacity={0.8}
+      accessibilityLabel="Submit payment"
+      accessibilityRole="button"
+    >
+      <MaterialCommunityIcons name="plus" size={26} color="#0a0a0f" />
+    </TouchableOpacity>
   );
 }
 
@@ -201,16 +196,12 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 1,
-    shadowRadius: 16,
-    elevation: 10,
-  },
-  fabInner: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
+    elevation: 3,
   },
 });

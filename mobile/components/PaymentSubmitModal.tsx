@@ -94,10 +94,9 @@ export function PaymentSubmitModal({ visible, onClose, onSubmit }: PaymentSubmit
     try {
       const receiptUrl = await uploadReceiptIfPresent();
       await onSubmit({ ...data, receiptUrl });
+      // Reset form state before closing — onSubmit already handles close + success
       reset({ amount: undefined, pool: 'sadaqah', monthLabel: currentMonthLabel(), note: '' });
       setScreenshotUri(undefined);
-      onClose();
-      Alert.alert('Submitted', 'Your payment is awaiting admin verification. Jazak Allah khair.');
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Failed to submit';
       Alert.alert('Submission failed', msg);
