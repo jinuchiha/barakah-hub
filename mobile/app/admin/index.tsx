@@ -1,11 +1,11 @@
 import React from 'react';
 import {
-  View, Text, StyleSheet, ScrollView, Pressable, RefreshControl,
+  View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import Animated, { FadeInDown, useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
@@ -41,21 +41,12 @@ interface AdminActionProps {
 
 function AdminActionCard({ icon, label, badge, color, onPress }: AdminActionProps) {
   const { colors } = useTheme();
-  const scale = useSharedValue(1);
-
-  const animStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
-
-  const handlePress = () => {
-    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    onPress();
-  };
 
   return (
-    <Animated.View style={[animStyle, styles.actionCardOuter]}>
-      <Pressable
-        onPressIn={() => { scale.value = withSpring(0.95, { damping: 12, stiffness: 400 }); }}
-        onPressOut={() => { scale.value = withSpring(1, { damping: 12, stiffness: 400 }); }}
-        onPress={handlePress}
+    <View style={styles.actionCardOuter}>
+      <TouchableOpacity
+        onPress={() => { void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); onPress(); }}
+        activeOpacity={0.75}
         accessibilityLabel={label}
         accessibilityRole="button"
       >
@@ -70,8 +61,8 @@ function AdminActionCard({ icon, label, badge, color, onPress }: AdminActionProp
           </View>
           <Text style={[styles.actionLabel, { color: colors.text1 }]}>{label}</Text>
         </GlassCard>
-      </Pressable>
-    </Animated.View>
+      </TouchableOpacity>
+    </View>
   );
 }
 
