@@ -45,12 +45,13 @@ function RepaySheet({ loan, onClose }: { loan: Loan | null; onClose: () => void 
   });
 
   React.useEffect(() => {
-    if (loan) setValue('loanId', loan.id);
-  }, [loan, setValue]);
+    if (loan?.id) setValue('loanId', loan.id);
+  }, [loan?.id, setValue]);
 
   if (!loan) return null;
 
   const handleRepay = async (data: RepayFormData) => {
+    if (loading || repayMutation.isPending) return;
     setLoading(true);
     try {
       await repayMutation.mutateAsync(data);

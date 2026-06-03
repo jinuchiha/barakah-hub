@@ -1,4 +1,4 @@
-import React, { memo, useState } from 'react';
+import React, { memo, useState, useRef, useEffect } from 'react';
 import { View, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import Animated, {
   useSharedValue,
@@ -29,13 +29,22 @@ export const AvatarUpload = memo(function AvatarUpload({
   const [uploading, setUploading] = useState(false);
   const [localUri, setLocalUri] = useState<string | null>(null);
   const scale = useSharedValue(1);
+  const isMounted = useRef(true);
+
+  useEffect(() => { return () => { isMounted.current = false; }; }, []);
 
   const animStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
   }));
 
   const handlePress = async () => {
-    const image = await pickImageWithChoice();
+    let image: Awaited<ReturnType<typeof pickImageWithChoice>>;
+    try {
+      image = await pickImageWithChoice();
+    } catch {
+      Alert.alert('Permission denied', 'Please enable camera/gallery access in Settings.');
+      return;
+    }
     if (!image) return;
 
     setLocalUri(image.uri);
@@ -44,13 +53,17 @@ export const AvatarUpload = memo(function AvatarUpload({
 
     try {
       const result = await uploadAvatar(image);
-      onUploadComplete?.(result.url);
+      if (isMounted.current) onUploadComplete?.(result.url);
     } catch {
-      setLocalUri(null);
-      Alert.alert('Upload Failed', 'Could not upload avatar. Please try again.');
+      if (isMounted.current) {
+        setLocalUri(null);
+        Alert.alert('Upload Failed', 'Could not upload avatar. Please try again.');
+      }
     } finally {
-      setUploading(false);
-      scale.value = withSpring(1);
+      if (isMounted.current) {
+        setUploading(false);
+        scale.value = withSpring(1);
+      }
     }
   };
 

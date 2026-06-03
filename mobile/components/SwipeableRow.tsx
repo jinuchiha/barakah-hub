@@ -42,7 +42,7 @@ export function SwipeableRow({ children, leftAction, rightAction, style }: Swipe
 
   const pan = Gesture.Pan()
     .activeOffsetX([-10, 10])
-    .failOffsetY([-20, 20])
+    .failOffsetY([-50, 50])
     .onUpdate((e) => {
       const max = leftAction && rightAction ? FULL_OPEN : leftAction ? FULL_OPEN : -FULL_OPEN;
       const min = leftAction && rightAction ? -FULL_OPEN : leftAction ? 0 : -FULL_OPEN;
