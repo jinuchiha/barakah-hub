@@ -5,7 +5,6 @@ import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withSpring,
-  withTiming,
 } from 'react-native-reanimated';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTheme } from '@/lib/useTheme';
@@ -25,18 +24,16 @@ export function StatCard({ icon, value, label, iconColor, style, trend, onPress 
   const { colors } = useTheme();
   const color = iconColor ?? colors.primary;
   const scale = useSharedValue(1);
-  const glow = useSharedValue(0);
 
   const animStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
-    shadowOpacity: 0.12 + glow.value * 0.18,
   }));
 
   return (
-    <Animated.View style={[style, animStyle, { shadowColor: color, shadowRadius: 16, shadowOffset: { width: 0, height: 4 }, elevation: 6 }]}>
+    <Animated.View style={[style, animStyle]}>
       <Pressable
-        onPressIn={() => { scale.value = withSpring(0.97, { damping: 20, stiffness: 400 }); glow.value = withTiming(1, { duration: 150 }); }}
-        onPressOut={() => { scale.value = withSpring(1, { damping: 20, stiffness: 400 }); glow.value = withTiming(0, { duration: 300 }); }}
+        onPressIn={() => { scale.value = withSpring(0.97, { damping: 20, stiffness: 400 }); }}
+        onPressOut={() => { scale.value = withSpring(1, { damping: 20, stiffness: 400 }); }}
         onPress={onPress}
         style={{ borderRadius: radius.lg, overflow: 'hidden' }}
       >

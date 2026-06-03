@@ -18,16 +18,16 @@ export function GlassCard({ children, style, glowColor, elevated = false, gradie
 
   const shadow: ViewStyle = elevated ? {
     shadowColor: glowColor ?? '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.28,
-    shadowRadius: 24,
-    elevation: 12,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.20,
+    shadowRadius: 12,
+    elevation: 3,
   } : {
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.14,
-    shadowRadius: 10,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.10,
+    shadowRadius: 4,
+    elevation: 2,
   };
 
   return (

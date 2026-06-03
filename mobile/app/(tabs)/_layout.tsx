@@ -28,13 +28,13 @@ function CustomTabBar() {
   const activeTab = getActiveTab();
 
   const handleTabPress = useCallback((tab: TabRoute) => {
-    const target = tab === 'index' ? '/(tabs)/' : `/(tabs)/${tab}`;
-    if (activeTab === tab) {
-      router.replace(target as never); // scroll to top / don't stack
-    } else {
-      router.push(target as never);
-    }
-  }, [activeTab, router]);
+    const routes: Record<string, string> = {
+      index: '/(tabs)', payments: '/(tabs)/payments', cases: '/(tabs)/cases',
+      loans: '/(tabs)/loans', analytics: '/(tabs)/analytics', profile: '/(tabs)/profile',
+    };
+    const target = routes[tab] ?? '/(tabs)';
+    router.navigate(target as never);
+  }, [router]);
 
   return (
     <BottomNav
