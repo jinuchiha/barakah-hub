@@ -17,14 +17,13 @@ export function LoadingScreen() {
   useEffect(() => {
     opacity.value = withRepeat(
       withSequence(withTiming(1, { duration: 800 }), withTiming(0.4, { duration: 800 })),
-      -1,
-      false,
+      -1, false,
     );
     scale.value = withRepeat(
       withSequence(withTiming(1.08, { duration: 800 }), withTiming(0.9, { duration: 800 })),
-      -1,
-      false,
+      -1, false,
     );
+    return () => { opacity.value = 0.4; scale.value = 0.9; };
   }, [opacity, scale]);
 
   const animStyle = useAnimatedStyle(() => ({

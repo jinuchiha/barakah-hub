@@ -10,6 +10,7 @@ import { spacing, radius } from '@/lib/theme';
 export const DailyVerseCard = memo(function DailyVerseCard() {
   const { colors } = useTheme();
   const verse = getDailyVerse();
+  if (!verse) return null;
 
   return (
     <Animated.View entering={FadeInDown.duration(500)} style={styles.container}>

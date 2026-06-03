@@ -34,7 +34,8 @@ function RepaymentRing({ progress, color }: { progress: number; color: string })
       CIRCUMFERENCE * (1 - Math.min(1, Math.max(0, progress))),
       { duration: 1000, easing: Easing.out(Easing.cubic) },
     );
-  }, [progress]);
+    return () => { strokeDashoffset.value = CIRCUMFERENCE; };
+  }, [progress, strokeDashoffset]);
 
   const animProps = useAnimatedProps(() => ({
     strokeDashoffset: strokeDashoffset.value,

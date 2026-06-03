@@ -64,9 +64,13 @@ export default function AnalyticsScreen() {
     }
     return Array.from(byMonth.entries())
       .sort((a, b) => {
+        const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
         const toMs = (label: string) => {
           const parts = label.split(' ');
-          return new Date(`${parts[1]}-${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'].indexOf(parts[0]?.slice(0,3) ?? '')+1}-01`).getTime();
+          const mIdx = MONTHS.indexOf(parts[0]?.slice(0,3) ?? '');
+          if (mIdx === -1 || !parts[1]) return 0;
+          const d = new Date(`${parts[1]}-${String(mIdx + 1).padStart(2,'0')}-01`);
+          return Number.isNaN(d.getTime()) ? 0 : d.getTime();
         };
         return toMs(a[0]) - toMs(b[0]);
       })

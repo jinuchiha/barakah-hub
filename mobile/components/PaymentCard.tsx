@@ -50,7 +50,7 @@ export function PaymentCard({ payment }: PaymentCardProps) {
         </View>
         <View style={styles.right}>
           <Text style={[styles.amount, { color: accentColor }]}>{formatPKR(payment.amount)}</Text>
-          <Text style={[styles.date, { color: colors.text4 }]}>{formatDate(payment.paidOn)}</Text>
+          <Text style={[styles.date, { color: colors.text4 }]}>{payment.paidOn ? formatDate(payment.paidOn) : 'Pending'}</Text>
           <Badge label={status.label} variant={status.variant} pulse={status.pulse} />
         </View>
       </View>
