@@ -1,10 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, StyleSheet, Pressable } from 'react-native';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-} from 'react-native-reanimated';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { ProgressBar } from './ui/ProgressBar';
 import { useTheme } from '@/lib/useTheme';
@@ -55,25 +50,11 @@ export function FundCard({ pool, amount, label, target, onViewHistory }: FundCar
   const accent = poolColor(pool, colors);
   const icon = POOL_ICONS[pool];
   const displayAmount = useCountUp(amount);
-  const scale = useSharedValue(1);
   const progress = target && target > 0 ? amount / target : 0;
 
-  const animStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-  }));
-
   return (
-    <Animated.View
-      style={[
-        animStyle,
-        styles.outer,
-        { backgroundColor: colors.bg1, borderColor: colors.border1 },
-      ]}
-    >
-      <Pressable
-        onPressIn={() => { scale.value = withSpring(0.985, { damping: 20, stiffness: 400 }); }}
-        onPressOut={() => { scale.value = withSpring(1, { damping: 20, stiffness: 400 }); }}
-      >
+    <View style={[styles.outer, { backgroundColor: colors.bg1, borderColor: colors.border1 }]}>
+      <TouchableOpacity activeOpacity={0.85}>
         <View style={[styles.rail, { backgroundColor: accent }]} pointerEvents="none" />
 
         <View style={styles.content}>
@@ -105,16 +86,16 @@ export function FundCard({ pool, amount, label, target, onViewHistory }: FundCar
         </View>
 
         {onViewHistory ? (
-          <Pressable
+          <TouchableOpacity
             onPress={onViewHistory}
             style={[styles.historyBtn, { borderTopColor: colors.border1 }]}
           >
             <Text style={[styles.historyText, { color: colors.text2 }]}>View history</Text>
             <MaterialCommunityIcons name="chevron-right" size={14} color={colors.text3} />
-          </Pressable>
+          </TouchableOpacity>
         ) : null}
-      </Pressable>
-    </Animated.View>
+      </TouchableOpacity>
+    </View>
   );
 }
 

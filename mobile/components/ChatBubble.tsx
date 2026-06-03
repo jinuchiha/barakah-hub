@@ -16,12 +16,12 @@ function TypingDots() {
 
   useEffect(() => {
     dot1.value = withRepeat(withTiming(-6, { duration: 400 }), -1, true);
-    setTimeout(() => {
-      dot2.value = withRepeat(withTiming(-6, { duration: 400 }), -1, true);
-    }, 133);
-    setTimeout(() => {
-      dot3.value = withRepeat(withTiming(-6, { duration: 400 }), -1, true);
-    }, 266);
+    const t2 = setTimeout(() => { dot2.value = withRepeat(withTiming(-6, { duration: 400 }), -1, true); }, 133);
+    const t3 = setTimeout(() => { dot3.value = withRepeat(withTiming(-6, { duration: 400 }), -1, true); }, 266);
+    return () => {
+      clearTimeout(t2); clearTimeout(t3);
+      dot1.value = 0; dot2.value = 0; dot3.value = 0;
+    };
   }, [dot1, dot2, dot3]);
 
   const s1 = useAnimatedStyle(() => ({ transform: [{ translateY: dot1.value }] }));
