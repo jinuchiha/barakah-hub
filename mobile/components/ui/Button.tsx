@@ -81,7 +81,7 @@ export function Button({
   const textStyle = buildTextStyle(variant, colors, sz);
 
   return (
-    <Animated.View style={[animStyle, style]}>
+    <Animated.View style={[animStyle, style, { borderRadius: radius.full, overflow: 'hidden' }]}>
       <Pressable
         onPress={handlePress}
         onPressIn={handlePressIn}

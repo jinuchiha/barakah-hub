@@ -65,7 +65,10 @@ function TabItem({ tab, active, badge, onPress }: TabItemProps) {
 
   const handlePress = () => {
     scale.value = withSpring(0.85, { damping: 10, stiffness: 500 });
-    setTimeout(() => { scale.value = withSpring(1, { damping: 12, stiffness: 400 }); }, 80);
+    // Use Reanimated callback instead of setTimeout to avoid memory leak on unmount
+    scale.value = withSpring(0.85, { damping: 10, stiffness: 500 }, () => {
+      scale.value = withSpring(1, { damping: 12, stiffness: 400 });
+    });
     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     onPress();
   };

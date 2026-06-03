@@ -46,13 +46,18 @@ export default function LoginScreen() {
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
-    if (!email.trim() || !password) {
+    const emailTrimmed = email.trim().toLowerCase();
+    if (!emailTrimmed || !password) {
       Alert.alert(t('common.error'), 'Please fill in all fields.');
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailTrimmed)) {
+      Alert.alert(t('common.error'), 'Please enter a valid email address.');
       return;
     }
     setLoading(true);
     try {
-      await login({ email: email.trim().toLowerCase(), password });
+      await login({ email: emailTrimmed, password });
       void haptic.success();
     } catch (err) {
       void haptic.error();

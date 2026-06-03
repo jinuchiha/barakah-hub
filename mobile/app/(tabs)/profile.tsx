@@ -91,8 +91,8 @@ function ProfileScreen() {
   const [cacheSize, setCacheSize] = useState(0);
 
   useEffect(() => {
-    void isScreenshotProtectionEnabled().then(setScreenshotProtected);
-    void isPinEnabled().then(setPinEnabled);
+    isScreenshotProtectionEnabled().then(setScreenshotProtected).catch(() => {});
+    isPinEnabled().then(setPinEnabled).catch(() => {});
     setCacheSize(getCacheSize());
   }, []);
 

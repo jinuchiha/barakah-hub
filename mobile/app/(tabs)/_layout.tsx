@@ -53,8 +53,8 @@ export default function TabsLayout() {
   const { colors } = useTheme();
   const { ready } = useAppLock(isAuthenticated);
 
-  if (!isAuthenticated) return <Redirect href="/(auth)/login" />;
   if (!ready) return <LoadingScreen />;
+  if (!isAuthenticated) return <Redirect href={'/(auth)/login' as any} />;
 
   return (
     <View style={[styles.container, { backgroundColor: colors.bg1 }]}>

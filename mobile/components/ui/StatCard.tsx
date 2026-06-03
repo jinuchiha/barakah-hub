@@ -30,7 +30,7 @@ export function StatCard({ icon, value, label, iconColor, style, trend, onPress 
   }));
 
   return (
-    <Animated.View style={[style, animStyle]}>
+    <Animated.View style={[style, animStyle, { borderRadius: radius.lg, overflow: 'hidden' }]}>
       <Pressable
         onPressIn={() => { scale.value = withSpring(0.97, { damping: 20, stiffness: 400 }); }}
         onPressOut={() => { scale.value = withSpring(1, { damping: 20, stiffness: 400 }); }}

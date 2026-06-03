@@ -305,6 +305,7 @@ function AIFab() {
       withSequence(withTiming(1.15, { duration: 900 }), withTiming(1, { duration: 900 })),
       -1, false,
     );
+    return () => { pulse.value = 1; };
   }, [pulse]);
 
   const glowStyle = useAnimatedStyle(() => ({
@@ -367,7 +368,7 @@ function DashboardScreen() {
     else if (key === 'emergency') router.push('/(tabs)/cases');
     else if (key === 'loans') router.push('/(tabs)/loans');
     else if (key === 'admin') router.push('/admin' as any);
-    else router.push('/members/');
+    else router.push('/members' as any);
   };
 
   return (
@@ -469,8 +470,8 @@ const styles = StyleSheet.create({
   heroCard: {
     borderRadius: 20, padding: 20, marginBottom: spacing.md,
     overflow: 'hidden', position: 'relative',
-    shadowColor: '#c89b3c', shadowOpacity: 0.25,
-    shadowRadius: 20, shadowOffset: { width: 0, height: 6 }, elevation: 8,
+    shadowColor: '#c89b3c', shadowOpacity: 0.18,
+    shadowRadius: 10, shadowOffset: { width: 0, height: 3 }, elevation: 3,
   },
   heroMotif: {
     position: 'absolute', right: 16, bottom: 12,
@@ -549,8 +550,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#c89b3c',
     alignItems: 'center', justifyContent: 'center',
     zIndex: 100,
-    shadowColor: '#c89b3c', shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.5, shadowRadius: 14, elevation: 8,
+    shadowColor: '#c89b3c', shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.35, shadowRadius: 8, elevation: 4,
     overflow: 'visible',
   },
   fabGlow: { borderRadius: 26, backgroundColor: 'rgba(200,155,60,0.3)' },
