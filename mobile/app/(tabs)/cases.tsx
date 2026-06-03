@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import {
   View, Text, StyleSheet, RefreshControl, ScrollView, Alert,
-  KeyboardAvoidingView, Platform, TouchableOpacity, Switch,
+  KeyboardAvoidingView, Platform, TouchableOpacity, Switch, Modal,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { FlashList } from '@shopify/flash-list';
@@ -123,11 +123,9 @@ function CreateCaseSheet({ visible, onClose }: { visible: boolean; onClose: () =
     Alert.alert('Form incomplete', first?.message ?? 'Please fill all required fields');
   };
 
-  if (!visible) return null;
-
   return (
-    <View style={styles.sheetBackdrop}>
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.sheetContainer}>
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.sheetBackdrop}>
         <GlassCard style={styles.sheet}>
           <View style={[styles.handle, { backgroundColor: colors.border2 }]} />
           <Text style={[styles.sheetTitle, { color: colors.text1 }]}>{t('cases.createCase')}</Text>
@@ -220,7 +218,7 @@ function CreateCaseSheet({ visible, onClose }: { visible: boolean; onClose: () =
           </ScrollView>
         </GlassCard>
       </KeyboardAvoidingView>
-    </View>
+    </Modal>
   );
 }
 
@@ -353,7 +351,7 @@ function CasesScreen() {
               onAdminDisburse={isAdmin && item.status === 'approved' ? () => confirmDisburse(item.id, item.beneficiaryName, item.amount) : undefined}
             />
           )}
-          estimatedItemSize={200}
+          estimatedItemSize={280}
           contentContainerStyle={styles.list}
           refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={colors.primary} />}
           ListEmptyComponent={<BrandedEmptyState type="cases" title={t('cases.noCasesFound')} subtitle={t('cases.noEmergencyCases')} />}
@@ -402,12 +400,10 @@ const styles = StyleSheet.create({
   filterBadgeText: { fontSize: 10, fontFamily: 'Inter_700Bold', color: '#0a0a0f' },
   list: { padding: spacing.md, paddingTop: spacing.sm, paddingBottom: 100 },
   sheetBackdrop: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.7)',
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.72)',
     justifyContent: 'flex-end',
-    zIndex: 100,
   },
-  sheetContainer: { justifyContent: 'flex-end' },
   sheet: { padding: spacing.lg, maxHeight: '90%', borderBottomLeftRadius: 0, borderBottomRightRadius: 0 },
   handle: { width: 40, height: 4, borderRadius: 2, alignSelf: 'center', marginBottom: spacing.lg },
   sheetTitle: { fontSize: 18, fontFamily: 'Inter_600SemiBold', marginBottom: spacing.lg },

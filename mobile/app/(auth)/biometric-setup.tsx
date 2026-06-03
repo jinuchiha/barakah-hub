@@ -40,7 +40,7 @@ export default function BiometricSetupScreen() {
       const success = await authenticateWithBiometric(`Enable ${label} unlock`);
       if (success) {
         await setBiometricEnabled(true);
-        router.replace('/(tabs)/');
+        router.replace('/(tabs)' as any);
       }
     } catch (err) {
       Alert.alert(t('common.error'), err instanceof Error ? err.message : 'Failed to enable biometric');
@@ -50,7 +50,7 @@ export default function BiometricSetupScreen() {
   };
 
   const handleSkip = () => {
-    router.replace('/(tabs)/');
+    router.replace('/(tabs)' as any);
   };
 
   return (

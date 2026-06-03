@@ -7,7 +7,7 @@ export default function AdminLayout() {
   const { user } = useAuthStore();
 
   // Admins and supervisors enter; per-screen guards restrict admin-only pages.
-  if (!canManageFunds(user?.role)) return <Redirect href="/(tabs)/" />;
+  if (!canManageFunds(user?.role)) return <Redirect href={"/(tabs)" as any} />;
 
   return (
     <Stack

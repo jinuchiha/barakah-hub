@@ -95,7 +95,7 @@ export default function AdminDashboard() {
   if (authLoading) return <LoadingScreen />;
 
   if (!hasAccess) {
-    return <Redirect href="/(tabs)/" />;
+    return <Redirect href={"/(tabs)" as any} />;
   }
 
   const hasPending = (data?.pendingMembers ?? 0) + (data?.pendingPayments ?? 0) > 0;

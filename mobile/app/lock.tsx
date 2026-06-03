@@ -56,7 +56,7 @@ export default function LockScreen() {
     if (!biometric && !pinEnabled) {
       // No lock method configured — bypass lock screen entirely
       markUnlocked();
-      router.replace('/(tabs)/');
+      router.replace('/(tabs)' as any);
       return;
     }
     setBiometricAvailable(biometric);
@@ -73,7 +73,7 @@ export default function LockScreen() {
     const success = await authenticateWithBiometric('Unlock Barakah Hub');
     if (success) {
       markUnlocked();
-      router.replace('/(tabs)/');
+      router.replace('/(tabs)' as any);
     }
   }, [router]);
 
@@ -103,7 +103,7 @@ export default function LockScreen() {
       setPin('');
       if (result === 'ok') {
         markUnlocked();
-        router.replace('/(tabs)/');
+        router.replace('/(tabs)' as any);
       } else if (result === 'locked') {
         Alert.alert(
           t('auth.tooManyAttempts'),

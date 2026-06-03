@@ -231,7 +231,7 @@ function ProfileScreen() {
             <SettingsRow
               icon="shield-crown-outline"
               label={isAdminOnly(user.role) ? t('profile.adminPanel') : t('profile.supervisorPanel')}
-              onPress={() => router.push('/admin/')}
+              onPress={() => router.push('/admin' as any)}
             />
             {isAdminOnly(user.role) ? (
               <SettingsRow icon="account-group-outline" label={t('profile.membersDirectory')} onPress={() => router.push('/members/')} />

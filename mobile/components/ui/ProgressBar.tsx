@@ -30,14 +30,16 @@ export function ProgressBar({
   const clamped = Math.max(0, Math.min(1, progress));
 
   useEffect(() => {
-    width.value = withTiming(clamped * 100, {
-      duration: 800,
+    // Animate 0→1 scale instead of 0→100% width — scaleX is GPU-only and
+    // avoids layout recalculation on Android which causes freeze in FlashList
+    width.value = withTiming(clamped, {
+      duration: 600,
       easing: Easing.out(Easing.cubic),
     });
   }, [clamped, width]);
 
   const animatedStyle = useAnimatedStyle(() => ({
-    width: `${width.value}%`,
+    transform: [{ scaleX: width.value }],
   }));
 
   return (
@@ -45,12 +47,12 @@ export function ProgressBar({
       <Animated.View
         style={[
           styles.fill,
-          { backgroundColor: barColor, height, borderRadius: height / 2 },
+          { backgroundColor: barColor, height, borderRadius: height / 2, transformOrigin: 'left' },
           showGlow && {
             shadowColor: barColor,
             shadowOffset: { width: 0, height: 0 },
-            shadowOpacity: 0.8,
-            shadowRadius: 6,
+            shadowOpacity: 0.6,
+            shadowRadius: 4,
           },
           animatedStyle,
         ]}

@@ -6,5 +6,5 @@ export default function IndexRedirect() {
 
   if (isLoading) return null;
 
-  return <Redirect href={isAuthenticated ? '/(tabs)/' : '/(auth)/login'} />;
+  return <Redirect href={(isAuthenticated ? '/(tabs)' : '/(auth)/login') as any} />;
 }

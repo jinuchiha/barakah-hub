@@ -81,7 +81,7 @@ export default function PinSetupScreen() {
   }, []);
 
   const handleSkip = useCallback(() => {
-    router.replace('/(tabs)/');
+    router.replace('/(tabs)' as any);
   }, [router]);
 
   return (

@@ -23,15 +23,16 @@ function usePulse(active: boolean) {
   const opacity = useSharedValue(1);
 
   useEffect(() => {
-    if (!active) return;
+    if (!active) {
+      opacity.value = 1;
+      return;
+    }
+    // 4 repeats only — infinite (-1) causes UI thread drain inside FlashList
     opacity.value = withRepeat(
-      withSequence(withTiming(0.4, { duration: 700 }), withTiming(1, { duration: 700 })),
-      -1,
+      withSequence(withTiming(0.45, { duration: 800 }), withTiming(1, { duration: 800 })),
+      4,
       false,
     );
-    return () => {
-      opacity.value = 1;
-    };
   }, [active, opacity]);
 
   return useAnimatedStyle(() => ({ opacity: opacity.value }));

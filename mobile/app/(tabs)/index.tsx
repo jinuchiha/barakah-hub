@@ -366,7 +366,7 @@ function DashboardScreen() {
     if (key === 'pay') router.push('/(tabs)/payments');
     else if (key === 'emergency') router.push('/(tabs)/cases');
     else if (key === 'loans') router.push('/(tabs)/loans');
-    else if (key === 'admin') router.push('/admin/');
+    else if (key === 'admin') router.push('/admin' as any);
     else router.push('/members/');
   };
 

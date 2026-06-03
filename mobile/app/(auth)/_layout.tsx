@@ -3,7 +3,7 @@ import { useAuthStore } from '@/stores/auth.store';
 
 export default function AuthLayout() {
   const { isAuthenticated } = useAuthStore();
-  if (isAuthenticated) return <Redirect href="/(tabs)/" />;
+  if (isAuthenticated) return <Redirect href={"/(tabs)" as any} />;
 
   return (
     <Stack
