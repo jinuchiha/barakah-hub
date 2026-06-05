@@ -16,6 +16,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { BrandedEmptyState } from '@/components/ui/BrandedEmptyState';
 import { StatCard } from '@/components/ui/StatCard';
 import { useMyPayments, useSubmitDonation } from '@/hooks/usePayments';
+import { unlockAchievement } from '@/lib/achievements';
 import { formatPKR } from '@/lib/format';
 import { useTheme } from '@/lib/useTheme';
 import { spacing, radius } from '@/lib/theme';
@@ -60,6 +61,7 @@ function PaymentsScreen() {
   const { t } = useTranslation();
   const [showModal, setShowModal] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [achievementMsg, setAchievementMsg] = useState<string | null>(null);
   const [poolFilter, setPoolFilter] = useState<FundPool | 'all'>('all');
   const { data, isLoading, isError, refetch, isRefetching } = useMyPayments();
   const submitMutation = useSubmitDonation();
@@ -89,6 +91,10 @@ function PaymentsScreen() {
       await submitMutation.mutateAsync(formData);
       setShowModal(false);
       setShowSuccess(true);
+      const unlocked = unlockAchievement('first_donation');
+      if (unlocked) {
+        setTimeout(() => setAchievementMsg('First Donation! +50 pts'), 1600);
+      }
     } catch (err) {
       Alert.alert('Error', err instanceof Error ? err.message : 'Submission failed');
     }
@@ -149,6 +155,13 @@ function PaymentsScreen() {
         type="success"
         message="Submitted!"
         onDone={() => setShowSuccess(false)}
+      />
+      <SuccessOverlay
+        visible={achievementMsg !== null}
+        type="success"
+        message={achievementMsg ?? ''}
+        onDone={() => setAchievementMsg(null)}
+        autoDismissMs={2200}
       />
 
       <PaymentSubmitModal

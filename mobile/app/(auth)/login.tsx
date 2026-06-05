@@ -19,7 +19,7 @@ import { haptic } from '@/lib/haptics';
 function BrandMark({ size = 72 }: { size?: number }) {
   const c = size / 2;
   return (
-    <Svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+    <Svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ backgroundColor: 'transparent' }}>
       {/* Outer ring */}
       <Circle cx={c} cy={c} r={c - 3} fill="none" stroke="rgba(200,155,60,0.25)" strokeWidth={1.5} />
       {/* Crescent */}

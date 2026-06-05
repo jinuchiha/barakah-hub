@@ -439,7 +439,7 @@ export default DashboardScreen;
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
-  scroll: { paddingHorizontal: spacing.md, paddingBottom: 110 },
+  scroll: { paddingHorizontal: spacing.md, paddingBottom: 150 },
   // Top bar
   topBar: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start',
