@@ -88,6 +88,12 @@ export default function SearchScreen() {
   const handleSelect = useCallback((item: SearchResult) => {
     if (item.type === 'member') {
       router.push(`/members/${item.id}` as never);
+    } else if (item.type === 'payment') {
+      router.push('/(tabs)/payments' as never);
+    } else if (item.type === 'case') {
+      router.push('/(tabs)/cases' as never);
+    } else if (item.type === 'loan') {
+      router.push('/(tabs)/loans' as never);
     }
   }, [router]);
 

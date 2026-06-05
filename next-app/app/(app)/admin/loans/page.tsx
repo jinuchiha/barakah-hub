@@ -1,9 +1,12 @@
 import { redirect } from 'next/navigation';
 import { eq, desc, asc } from 'drizzle-orm';
+import { FileText, CheckCircle2, AlertCircle } from 'lucide-react';
 import { getMeOrRedirect } from '@/lib/auth-server';
 import { db } from '@/lib/db';
 import { members, loans } from '@/lib/db/schema';
 import { Card, CardHeader, CardTitle, CardBody } from '@/components/ui/card';
+import { StatCard } from '@/components/stat-card';
+import { Breadcrumb } from '@/components/breadcrumb';
 import { fmtRs } from '@/lib/i18n/dict';
 import IssueLoanForm from './issue-loan-form';
 import RepayForm from './repay-form';
@@ -30,17 +33,25 @@ export default async function LoansPage() {
     .map((m) => ({ id: m.id, name: m.nameEn || m.nameUr || m.username }));
 
   return (
-    <div>
-      <header className="mb-6 flex flex-wrap items-start justify-between gap-3 border-b border-[var(--border)] pb-4">
+    <div className="mx-auto max-w-[1400px]">
+      <Breadcrumb crumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Admin' }, { label: 'Qarz-e-Hasana' }]} />
+      <header className="mb-8 flex flex-wrap items-end justify-between gap-4 border-b border-[var(--border)] pb-6">
         <div>
-          <h1 className="font-[var(--font-arabic)] text-3xl text-[var(--color-gold-2)]">قرض حسنہ</h1>
-          <p className="mt-1 font-[var(--font-en)] text-sm italic text-[var(--color-gold-4)]">Interest-free loans · {active.length} active · {fmtRs(outstanding)} outstanding</p>
+          <div className="mb-2 text-[10px] font-bold uppercase tracking-[2px] text-[var(--txt-3)]">Admin · Loans</div>
+          <h1 className="text-[28px] font-semibold leading-tight tracking-[-0.5px] text-[var(--color-cream)]">Qarz-e-Hasana</h1>
+          <p className="font-[var(--font-arabic)] mt-1 text-sm text-[var(--color-gold-2)]">قرض حسنہ · Interest-free loans</p>
         </div>
         <ExportLink href={'/api/exports/loans' as any}>Export CSV</ExportLink>
       </header>
 
+      <div className="mb-6 grid grid-cols-3 gap-3">
+        <StatCard label="Active Loans"    value={active.length}      icon={<FileText />}    tone="sapphire" hint={`${fmtRs(outstanding)} outstanding`} />
+        <StatCard label="Fully Repaid"    value={repaid.length}      icon={<CheckCircle2 />} tone="emerald"  hint="Completed" />
+        <StatCard label="Total Disbursed" value={fmtRs(all.reduce((s,l) => s + l.amount, 0))} icon={<AlertCircle />} tone="gold" hint="All time" />
+      </div>
+
       <Card className="mb-4">
-        <CardHeader><CardTitle>📤 Issue New Loan</CardTitle></CardHeader>
+        <CardHeader><CardTitle>Issue New Loan</CardTitle></CardHeader>
         <CardBody>
           <IssueLoanForm members={memberOptions} />
         </CardBody>
@@ -87,7 +98,7 @@ export default async function LoansPage() {
 
       {repaid.length > 0 && (
         <Card>
-          <CardHeader><CardTitle>✓ Fully Repaid ({repaid.length})</CardTitle></CardHeader>
+          <CardHeader><CardTitle>Fully Repaid ({repaid.length})</CardTitle></CardHeader>
           <CardBody className="p-0">
             {repaid.map((l) => {
               const m = memById.get(l.memberId);

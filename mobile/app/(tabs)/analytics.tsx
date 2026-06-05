@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, RefreshControl,
 } from 'react-native';
+import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useTranslation } from 'react-i18next';
@@ -47,6 +48,7 @@ function ChartCard({
 
 export default function AnalyticsScreen() {
   const { t } = useTranslation();
+  const router = useRouter();
   const { user } = useAuthStore();
   const { colors } = useTheme();
   const { data, isLoading, refetch, isRefetching } = useDashboard();
@@ -93,6 +95,8 @@ export default function AnalyticsScreen() {
         icon="shield-lock-outline"
         title={t('analytics.adminOnly')}
         subtitle={t('analytics.adminOnlySub')}
+        actionLabel={t('dashboard.goBack')}
+        onAction={() => router.replace('/(tabs)' as never)}
       />
     );
   }

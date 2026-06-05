@@ -52,6 +52,11 @@ function RepaySheet({ loan, onClose }: { loan: Loan | null; onClose: () => void 
 
   const handleRepay = async (data: RepayFormData) => {
     if (loading || repayMutation.isPending) return;
+    const remaining = loan.amount - loan.paid;
+    if (data.amount > remaining) {
+      Alert.alert('Invalid Amount', `Repayment cannot exceed remaining balance of ${remaining.toLocaleString('en-PK')} PKR`);
+      return;
+    }
     setLoading(true);
     try {
       await repayMutation.mutateAsync(data);

@@ -69,13 +69,13 @@ export default function MessagesScreen() {
   const [memberSearch, setMemberSearch] = useState('');
   const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null);
 
-  // Mark received messages read when the inbox opens.
+  // Mark received messages read once when unread messages are first detected.
+  const hasUnread = data?.some((m) => m.incoming && !m.read) ?? false;
   useEffect(() => {
-    if (data?.some((m) => m.incoming && !m.read) && !markRead.isPending) {
+    if (hasUnread && !markRead.isPending && !markRead.isSuccess) {
       markRead.mutate();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data]);
+  }, [hasUnread]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const openCompose = (target: ComposeTarget) => {
     setSubject(target.subject);
