@@ -231,7 +231,7 @@ function CasesScreen() {
   const [voteDir, setVoteDir] = useState<boolean | null>(null);
   const [showCreate, setShowCreate] = useState(false);
 
-  const { data, isLoading, refetch, isRefetching } = useCases(
+  const { data, isLoading, isError, refetch, isRefetching } = useCases(
     statusFilter === 'all' ? {} : { status: statusFilter },
   );
   const voteMutation = useCastVote();
@@ -332,7 +332,9 @@ function CasesScreen() {
 
       <FilterTabs active={statusFilter} onChange={setStatusFilter} activeCaseCount={activeCaseCount} />
 
-      {isLoading ? (
+      {isError ? (
+        <EmptyState icon="alert-circle-outline" title={t('common.error')} />
+      ) : isLoading ? (
         <EmptyState icon="loading" title={t('common.loading')} />
       ) : (
         <FlashList

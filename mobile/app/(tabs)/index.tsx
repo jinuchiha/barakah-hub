@@ -7,7 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Animated, {
   FadeInDown, FadeInRight, useSharedValue, useAnimatedStyle,
-  withRepeat, withTiming, withSequence, withSpring,
+  withRepeat, withTiming, withSequence, withSpring, cancelAnimation,
 } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -201,13 +201,6 @@ function StatsGrid({ pledge, pendingCount, isPaid }: {
         iconColor={colors.gold}
         style={styles.statHalf}
       />
-      <StatCard
-        icon="account-group-outline"
-        value={t('dashboard.totalMembers')}
-        label="Community"
-        iconColor="#608dd7"
-        style={styles.statHalf}
-      />
     </Animated.View>
   );
 }
@@ -305,7 +298,7 @@ function AIFab() {
       withSequence(withTiming(1.15, { duration: 900 }), withTiming(1, { duration: 900 })),
       -1, false,
     );
-    return () => { pulse.value = 1; };
+    return () => { cancelAnimation(pulse); pulse.value = 1; };
   }, [pulse]);
 
   const glowStyle = useAnimatedStyle(() => ({
@@ -479,10 +472,10 @@ const styles = StyleSheet.create({
   },
   heroLabel: {
     fontSize: 10, fontFamily: 'Inter_700Bold',
-    color: 'rgba(0,0,0,0.5)', letterSpacing: 2, textTransform: 'uppercase',
+    color: 'rgba(255,255,255,0.70)', letterSpacing: 2, textTransform: 'uppercase',
   },
   heroAmount: {
-    fontSize: 38, fontFamily: 'Inter_700Bold', color: '#0a0f1a',
+    fontSize: 38, fontFamily: 'Inter_700Bold', color: '#ffffff',
     letterSpacing: -1.2, marginTop: 4, marginBottom: 14,
   },
   poolBar: { flexDirection: 'row', height: 6, borderRadius: 3, overflow: 'hidden', marginBottom: 10 },
@@ -490,10 +483,10 @@ const styles = StyleSheet.create({
   poolLegend: { flexDirection: 'row', gap: 16, marginBottom: 12 },
   poolLegendItem: { flexDirection: 'row', alignItems: 'center', gap: 5 },
   poolDot: { width: 7, height: 7, borderRadius: 4 },
-  poolLegendLabel: { fontSize: 11, fontFamily: 'Inter_600SemiBold', color: 'rgba(0,0,0,0.55)' },
-  heroDivider: { height: 1, backgroundColor: 'rgba(0,0,0,0.15)', marginVertical: 10 },
+  poolLegendLabel: { fontSize: 11, fontFamily: 'Inter_600SemiBold', color: 'rgba(255,255,255,0.65)' },
+  heroDivider: { height: 1, backgroundColor: 'rgba(255,255,255,0.20)', marginVertical: 10 },
   heroFooter: { flexDirection: 'row', gap: 14 },
-  heroFooterText: { fontSize: 12, fontFamily: 'Inter_600SemiBold', color: 'rgba(0,0,0,0.5)' },
+  heroFooterText: { fontSize: 12, fontFamily: 'Inter_600SemiBold', color: 'rgba(255,255,255,0.65)' },
   // Banner
   banner: {
     flexDirection: 'row', alignItems: 'center',

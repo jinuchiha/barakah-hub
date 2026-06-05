@@ -9,7 +9,10 @@ export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
-    await meOrThrow();
+    const me = await meOrThrow();
+    if (me.status !== 'approved' && me.role !== 'admin') {
+      return NextResponse.json({ error: 'Account pending approval' }, { status: 403 });
+    }
 
     const poolTotals = await db
       .select({ pool: payments.pool, total: sum(payments.amount) })

@@ -28,13 +28,12 @@ export function Breadcrumb({ crumbs }: { crumbs: Crumb[] }) {
             {c.href && !isLast ? (
               <Link
                 href={c.href as any}
-                className="transition-colors"
-                style={{ color: 'var(--txt-3)' }}
+                className="text-[var(--txt-3)] transition-colors hover:text-[var(--txt-1)]"
               >
                 {c.label}
               </Link>
             ) : (
-              <span style={{ color: isLast ? 'var(--txt-2)' : 'var(--txt-3)' }}>
+              <span className={isLast ? 'text-[var(--txt-2)]' : 'text-[var(--txt-3)]'}>
                 {c.label}
               </span>
             )}

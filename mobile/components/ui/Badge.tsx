@@ -6,6 +6,7 @@ import Animated, {
   withRepeat,
   withSequence,
   withTiming,
+  cancelAnimation,
 } from 'react-native-reanimated';
 import { useTheme } from '@/lib/useTheme';
 import { radius } from '@/lib/theme';
@@ -33,6 +34,7 @@ function usePulse(active: boolean) {
       4,
       false,
     );
+    return () => { cancelAnimation(opacity); opacity.value = 1; };
   }, [active, opacity]);
 
   return useAnimatedStyle(() => ({ opacity: opacity.value }));

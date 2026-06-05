@@ -54,47 +54,45 @@ export function FundCard({ pool, amount, label, target, onViewHistory }: FundCar
 
   return (
     <View style={[styles.outer, { backgroundColor: colors.bg1, borderColor: colors.border1 }]}>
-      <TouchableOpacity activeOpacity={0.85}>
-        <View style={[styles.rail, { backgroundColor: accent }]} pointerEvents="none" />
+      <View style={[styles.rail, { backgroundColor: accent }]} pointerEvents="none" />
 
-        <View style={styles.content}>
-          <View style={styles.headerRow}>
-            <Text style={[styles.label, { color: colors.text3 }]}>{label}</Text>
-            <View style={[styles.iconBox, { backgroundColor: `${accent}1F` }]}>
-              <MaterialCommunityIcons name={icon} size={16} color={accent} />
-            </View>
+      <View style={styles.content}>
+        <View style={styles.headerRow}>
+          <Text style={[styles.label, { color: colors.text3 }]}>{label}</Text>
+          <View style={[styles.iconBox, { backgroundColor: `${accent}1F` }]}>
+            <MaterialCommunityIcons name={icon} size={16} color={accent} />
           </View>
-
-          <Text style={[styles.amount, { color: colors.text1 }]} numberOfLines={1}>
-            <Text style={[styles.amountUnit, { color: colors.text3 }]}>PKR </Text>
-            {displayAmount.toLocaleString('en-PK')}
-          </Text>
-
-          {target ? (
-            <View style={styles.progressSection}>
-              <ProgressBar
-                progress={progress}
-                color={accent}
-                height={3}
-                style={styles.progressBar}
-              />
-              <Text style={[styles.progressLabel, { color: colors.text4 }]}>
-                {Math.round(progress * 100)}% of target
-              </Text>
-            </View>
-          ) : null}
         </View>
 
-        {onViewHistory ? (
-          <TouchableOpacity
-            onPress={onViewHistory}
-            style={[styles.historyBtn, { borderTopColor: colors.border1 }]}
-          >
-            <Text style={[styles.historyText, { color: colors.text2 }]}>View history</Text>
-            <MaterialCommunityIcons name="chevron-right" size={14} color={colors.text3} />
-          </TouchableOpacity>
+        <Text style={[styles.amount, { color: colors.text1 }]} numberOfLines={1}>
+          <Text style={[styles.amountUnit, { color: colors.text3 }]}>PKR </Text>
+          {displayAmount.toLocaleString('en-PK')}
+        </Text>
+
+        {target ? (
+          <View style={styles.progressSection}>
+            <ProgressBar
+              progress={progress}
+              color={accent}
+              height={3}
+              style={styles.progressBar}
+            />
+            <Text style={[styles.progressLabel, { color: colors.text4 }]}>
+              {Math.round(progress * 100)}% of target
+            </Text>
+          </View>
         ) : null}
-      </TouchableOpacity>
+      </View>
+
+      {onViewHistory ? (
+        <TouchableOpacity
+          onPress={onViewHistory}
+          style={[styles.historyBtn, { borderTopColor: colors.border1 }]}
+        >
+          <Text style={[styles.historyText, { color: colors.text2 }]}>View history</Text>
+          <MaterialCommunityIcons name="chevron-right" size={14} color={colors.text3} />
+        </TouchableOpacity>
+      ) : null}
     </View>
   );
 }

@@ -64,8 +64,6 @@ function TabItem({ tab, active, badge, onPress }: TabItemProps) {
   const scaleStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
 
   const handlePress = () => {
-    scale.value = withSpring(0.85, { damping: 10, stiffness: 500 });
-    // Use Reanimated callback instead of setTimeout to avoid memory leak on unmount
     scale.value = withSpring(0.85, { damping: 10, stiffness: 500 }, () => {
       scale.value = withSpring(1, { damping: 12, stiffness: 400 });
     });

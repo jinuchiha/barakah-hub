@@ -12,6 +12,9 @@ export const dynamic = 'force-dynamic';
 export async function GET(req: NextRequest) {
   try {
     const me = await meOrThrow();
+    if (me.status !== 'approved' && me.role !== 'admin') {
+      return NextResponse.json({ error: 'Account pending approval' }, { status: 403 });
+    }
     const { searchParams } = new URL(req.url);
     const status = searchParams.get('status') as CaseStatus | null;
 

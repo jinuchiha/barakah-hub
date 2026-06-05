@@ -4,6 +4,7 @@ import Animated, {
   useSharedValue,
   useAnimatedProps,
   withTiming,
+  cancelAnimation,
   Easing,
 } from 'react-native-reanimated';
 import Svg, { Circle } from 'react-native-svg';
@@ -34,7 +35,7 @@ function RepaymentRing({ progress, color }: { progress: number; color: string })
       CIRCUMFERENCE * (1 - Math.min(1, Math.max(0, progress))),
       { duration: 1000, easing: Easing.out(Easing.cubic) },
     );
-    return () => { strokeDashoffset.value = CIRCUMFERENCE; };
+    return () => { cancelAnimation(strokeDashoffset); strokeDashoffset.value = CIRCUMFERENCE; };
   }, [progress, strokeDashoffset]);
 
   const animProps = useAnimatedProps(() => ({

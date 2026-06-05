@@ -151,7 +151,9 @@ function LoansScreen() {
         <StatCard icon="cash-remove" value={formatPKR(totalOutstanding)} label={t('loans.remaining')} iconColor={colors.danger} style={styles.stat} />
       </Animated.View>
 
-      {activeQuery.isLoading ? (
+      {activeQuery.isError ? (
+        <EmptyState icon="alert-circle-outline" title={t('common.error')} />
+      ) : activeQuery.isLoading ? (
         <EmptyState icon="loading" title={t('common.loading')} />
       ) : (
         <FlashList
