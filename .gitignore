@@ -66,6 +66,10 @@ supabase/.supabase/
 balochsath-*.json
 barakah-hub-*.json
 
+# ── Build artefacts dropped in repo root
+*.apk
+*.aab
+
 # ── Drizzle generated
 drizzle/
 
