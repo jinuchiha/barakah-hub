@@ -482,18 +482,6 @@ export async function verifyPayment(paymentId: string) {
   revalidatePath('/myaccount');
 }
 
-// Deprecated: use adminDeletePayment instead — this function is not called from any UI.
-async function rejectPayment(paymentId: string) {
-  const me = await meOrThrow();
-  if (!/^[0-9a-f-]{36}$/i.test(paymentId)) throw new Error('Invalid id');
-  if (me.role !== 'admin') throw new Error('Admin only');
-  const [p] = await db.select().from(payments).where(eq(payments.id, paymentId)).limit(1);
-  if (!p) throw new Error('Payment not found');
-  await db.delete(payments).where(eq(payments.id, paymentId));
-  await audit(me.id, 'payment-rejected', `Rejected payment ${paymentId} (${p.amount})`, p.memberId);
-  revalidatePath('/admin/fund');
-}
-
 /* ─── cast vote on a case
  *
  * Self-vote is normally disallowed (conflict of interest), but admins

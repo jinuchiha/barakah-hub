@@ -1,5 +1,6 @@
 'use client';
-import { useTransition, useState } from 'react';
+import { useTransition, useState, useEffect } from 'react';
+import QRCode from 'qrcode';
 import { toast } from 'sonner';
 import { revokeInvite } from '@/app/actions';
 
@@ -17,10 +18,14 @@ interface Invite {
 
 export default function InviteRow({ invite, origin }: { invite: Invite; origin: string }) {
   const url = `${origin}/join/${invite.token}`;
-  // Use external QR service (no extra dependency) — server-side image generation
-  const qr = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&margin=8&data=${encodeURIComponent(url)}`;
   const [pending, start] = useTransition();
   const [showQR, setShowQR] = useState(false);
+  const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!showQR || qrDataUrl) return;
+    void QRCode.toDataURL(url, { width: 180, margin: 1 }).then(setQrDataUrl);
+  }, [showQR, url, qrDataUrl]);
 
   const expired = invite.expiresAt && new Date(invite.expiresAt) < new Date();
   const exhausted = invite.usedCount >= invite.maxUses;
@@ -77,7 +82,9 @@ export default function InviteRow({ invite, origin }: { invite: Invite; origin: 
       </div>
       {showQR && (
         <div className="mt-3 flex justify-center rounded-md border border-[var(--border)] bg-white p-3">
-          <img src={qr} alt="Invite QR code" width={180} height={180} />
+          {qrDataUrl
+            ? <img src={qrDataUrl} alt="Invite QR code" width={180} height={180} />
+            : <div className="size-[180px] animate-pulse rounded bg-gray-200" />}
         </div>
       )}
     </div>
