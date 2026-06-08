@@ -74,8 +74,9 @@ export default function DonationForm({ easyPaiseName, easyPaiseNumber }: Donatio
         </div>
       )}
       <div>
-        <Label>Amount (Rs.) *</Label>
+        <Label htmlFor="don-amount">Amount (Rs.) *</Label>
         <Input
+          id="don-amount"
           type="number"
           min={1}
           value={amount || ''}
@@ -84,8 +85,9 @@ export default function DonationForm({ easyPaiseName, easyPaiseNumber }: Donatio
         />
       </div>
       <div>
-        <Label>Pool</Label>
+        <Label htmlFor="don-pool">Pool</Label>
         <select
+          id="don-pool"
           value={pool}
           onChange={(e) => setPool(e.target.value as typeof pool)}
           className="w-full rounded-md border border-[var(--border)] bg-[var(--surf-3)] px-3 py-2.5 text-sm text-[var(--color-cream)]"
@@ -95,12 +97,12 @@ export default function DonationForm({ easyPaiseName, easyPaiseNumber }: Donatio
         </select>
       </div>
       <div className="md:col-span-2">
-        <Label>Month</Label>
-        <Input value={month} onChange={(e) => setMonth(e.target.value)} placeholder="e.g. May 2026" />
+        <Label htmlFor="don-month">Month</Label>
+        <Input id="don-month" value={month} onChange={(e) => setMonth(e.target.value)} placeholder="e.g. May 2026" />
       </div>
       <div className="md:col-span-2">
-        <Label>Note (optional)</Label>
-        <Input value={note} onChange={(e) => setNote(e.target.value)} placeholder="e.g. JazzCash transfer ref #" />
+        <Label htmlFor="don-note">Note (optional)</Label>
+        <Input id="don-note" value={note} onChange={(e) => setNote(e.target.value)} placeholder="e.g. JazzCash transfer ref #" />
       </div>
       <div className="flex gap-2 md:col-span-2">
         <Button type="submit" variant="gold" disabled={pending}>

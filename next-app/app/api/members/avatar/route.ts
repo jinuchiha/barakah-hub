@@ -44,9 +44,10 @@ export async function POST(req: Request) {
       await writeFile(path.join(UPLOAD_DIR, filename), bytes);
       url = `/uploads/avatars/${filename}`;
     } else {
+      console.error('[avatar] BLOB_READ_WRITE_TOKEN not configured — avatar uploads unavailable in production');
       return NextResponse.json(
-        { error: 'Image storage not configured (set BLOB_READ_WRITE_TOKEN).' },
-        { status: 501 },
+        { error: 'Image storage not configured. Contact the administrator.' },
+        { status: 503 },
       );
     }
 

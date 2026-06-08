@@ -22,7 +22,7 @@ export default async function MessagesPage() {
   ]);
   const inbox = inboxRows;
   const sent = sentRows;
-  const recipients = allMembers.filter((m) => m.role === 'admin');
+  const recipients = allMembers.filter((m) => m.role === 'admin' || m.role === 'supervisor');
   const memById = new Map(allMembers.map((m) => [m.id, m]));
   const unread = inbox.filter((m) => !m.read).length;
 

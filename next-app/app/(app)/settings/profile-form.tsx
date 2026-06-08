@@ -71,11 +71,11 @@ export default function ProfileForm({ member }: { member: Member }) {
         Name changes require admin approval — contact your administrator.
       </div>
       <div className="grid gap-3 md:grid-cols-2">
-        <div><Label>Phone</Label><Input value={form.phone} onChange={(e) => set('phone', e.target.value)} placeholder="03xx-xxxxxxx" /></div>
-        <div><Label>City</Label><Input value={form.city} onChange={(e) => set('city', e.target.value)} /></div>
+        <div><Label htmlFor="prof-phone">Phone</Label><Input id="prof-phone" value={form.phone} onChange={(e) => set('phone', e.target.value)} placeholder="03xx-xxxxxxx" /></div>
+        <div><Label htmlFor="prof-city">City</Label><Input id="prof-city" value={form.city} onChange={(e) => set('city', e.target.value)} /></div>
         <div className="md:col-span-2">
-          <Label>Province</Label>
-          <select value={form.province} onChange={(e) => set('province', e.target.value)} className="w-full rounded-md border border-[var(--border)] bg-[var(--surf-3)] px-3 py-2.5 text-sm text-[var(--color-cream)]">
+          <Label htmlFor="prof-province">Province</Label>
+          <select id="prof-province" value={form.province} onChange={(e) => set('province', e.target.value)} className="w-full rounded-md border border-[var(--border)] bg-[var(--surf-3)] px-3 py-2.5 text-sm text-[var(--color-cream)]">
             {PROVINCES.map((p) => <option key={p} value={p}>{p || '— Select —'}</option>)}
           </select>
         </div>

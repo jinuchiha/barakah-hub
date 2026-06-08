@@ -3,6 +3,7 @@ import { useTransition, useState, useEffect } from 'react';
 import QRCode from 'qrcode';
 import { toast } from 'sonner';
 import { revokeInvite } from '@/app/actions';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 
 interface Invite {
   id: string;
@@ -21,6 +22,7 @@ export default function InviteRow({ invite, origin }: { invite: Invite; origin: 
   const [pending, start] = useTransition();
   const [showQR, setShowQR] = useState(false);
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
+  const [confirmRevoke, setConfirmRevoke] = useState(false);
 
   useEffect(() => {
     if (!showQR || qrDataUrl) return;
@@ -47,7 +49,6 @@ export default function InviteRow({ invite, origin }: { invite: Invite; origin: 
   }
 
   function revoke() {
-    if (!confirm('Revoke this invite? New signups via this link will be rejected.')) return;
     start(async () => {
       try {
         await revokeInvite(invite.id);
@@ -76,10 +77,19 @@ export default function InviteRow({ invite, origin }: { invite: Invite; origin: 
           <button onClick={copy} disabled={inactive} className="rounded-md border border-[var(--border)] px-3 py-1.5 text-xs text-[var(--color-gold-2)] hover:bg-[rgba(214,210,199,0.06)] disabled:cursor-not-allowed">📋 Copy</button>
           <button onClick={() => setShowQR((s) => !s)} disabled={inactive} className="rounded-md border border-[var(--border)] px-3 py-1.5 text-xs text-[var(--color-gold-2)] hover:bg-[rgba(214,210,199,0.06)] disabled:cursor-not-allowed">{showQR ? '✕ Close QR' : '📱 Show QR'}</button>
           {!invite.revoked && (
-            <button onClick={revoke} disabled={pending} className="rounded-md border border-red-500/40 bg-red-500/10 px-3 py-1.5 text-xs text-red-400 hover:bg-red-500/20">{pending ? '…' : '🚫 Revoke'}</button>
+            <button type="button" onClick={() => setConfirmRevoke(true)} disabled={pending} className="rounded-md border border-red-500/40 bg-red-500/10 px-3 py-1.5 text-xs text-red-400 hover:bg-red-500/20">{pending ? '…' : '🚫 Revoke'}</button>
           )}
         </div>
       </div>
+      <ConfirmDialog
+        open={confirmRevoke}
+        onOpenChange={setConfirmRevoke}
+        title="Revoke Invite"
+        description="New signups via this link will be rejected. This cannot be undone."
+        confirmLabel="Revoke"
+        destructive
+        onConfirm={revoke}
+      />
       {showQR && (
         <div className="mt-3 flex justify-center rounded-md border border-[var(--border)] bg-white p-3">
           {qrDataUrl

@@ -162,8 +162,8 @@ export default async function AnnualReportPage({ searchParams }: Props) {
         </table>
       </section>
 
-      {/* Top contributors */}
-      <section className="mb-6 rounded-lg border border-[var(--border)] bg-[rgba(200,155,60,0.03)] p-5 print:border-gray-300 print:bg-white">
+      {/* Top contributors — admin-only; hidden when printing to protect donor privacy */}
+      <section className="mb-6 rounded-lg border border-[var(--border)] bg-[rgba(200,155,60,0.03)] p-5 print:hidden">
         <h2 className="mb-4 font-[var(--font-display)] text-sm uppercase tracking-[3px] text-[var(--color-gold-4)] print:text-gray-600">Top contributors (admin view)</h2>
         <table className="w-full text-sm">
           <thead className="text-[10px] uppercase tracking-widest text-[var(--color-gold-4)]">
