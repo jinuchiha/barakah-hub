@@ -49,6 +49,12 @@ export default function QRPayScreen() {
       Alert.alert('Join Code', `Code: ${decoded.code}`, [
         { text: 'OK', onPress: () => router.back() },
       ]);
+    } else if (decoded.type === 'payment') {
+      Alert.alert(
+        'Payment Details',
+        `Name: ${decoded.name}\nBank: ${decoded.bank}\nAccount: ${decoded.account}`,
+        [{ text: 'OK', onPress: () => router.back() }],
+      );
     }
   };
 

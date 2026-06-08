@@ -79,6 +79,29 @@ export async function approveMember(memberId: string) {
   revalidatePath('/admin/members');
 }
 
+/* ─── reject pending member (admin) */
+export async function rejectMember(memberId: string) {
+  const me = await meOrThrow();
+  if (me.role !== 'admin') throw new Error('Admin only');
+  if (!/^[0-9a-f-]{36}$/i.test(memberId)) throw new Error('Invalid id');
+
+  const [m] = await db.select().from(members).where(eq(members.id, memberId)).limit(1);
+  if (!m) throw new Error('Member not found');
+  if (m.status === 'rejected') return;
+
+  await db.update(members).set({ status: 'rejected' }).where(eq(members.id, memberId));
+  await audit(me.id, 'member-rejected', `Rejected ${m.nameEn || m.nameUr}`, memberId);
+  await db.insert(notifications).values({
+    recipientId: memberId,
+    titleEn: 'Application not approved',
+    titleUr: 'درخواست منظور نہیں ہوئی',
+    en: 'Your membership application was not approved at this time. Please contact the administrator for details.',
+    ur: 'آپ کی رکنیت کی درخواست اس وقت منظور نہیں ہوئی۔ تفصیل کے لیے ایڈمن سے رابطہ کریں۔',
+    type: 'rejected',
+  });
+  revalidatePath('/admin/members');
+}
+
 /* ─── bulk import members from CSV (admin) */
 const bulkImportRowSchema = z.object({
   username: z.string().min(2).max(40).regex(/^[a-z0-9_]+$/i),
@@ -574,6 +597,10 @@ const adminCfgSchema = z.object({
   orgNameEn: z.string().max(80).optional(),
   easyPaiseName: z.string().max(80).optional().nullable(),
   easyPaiseNumber: z.string().max(20).optional().nullable(),
+  goalAmount: z.number().int().min(0).max(1_000_000_000).optional(),
+  goalLabelEn: z.string().max(80).optional().nullable(),
+  goalLabelUr: z.string().max(80).optional().nullable(),
+  goalDeadline: z.string().nullable().optional(),
 });
 
 export async function updateAdminConfig(input: z.infer<typeof adminCfgSchema>) {

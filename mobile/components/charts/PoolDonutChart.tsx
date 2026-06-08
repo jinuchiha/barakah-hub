@@ -108,13 +108,12 @@ export const PoolDonutChart = memo(function PoolDonutChart({ sadaqah, zakat, qar
           {arcs.filter((a) => a.value > 0).map((arc) => (
             <View key={arc.label} style={styles.legendRow}>
               <View style={[styles.legendDot, { backgroundColor: arc.color }]} />
-              <Text style={[styles.legendLabel, { color: colors.text2 }]}>{arc.label}</Text>
-              <Text style={[styles.legendPct, { color: colors.text3 }]}>
-                {Math.round((arc.value / total) * 100)}%
-              </Text>
-              <Text style={[styles.legendAmt, { color: colors.text1 }]}>
-                {formatCurrencyShort(arc.value)}
-              </Text>
+              <View style={styles.legendText}>
+                <Text style={[styles.legendLabel, { color: colors.text2 }]} numberOfLines={1}>{arc.label}</Text>
+                <Text style={[styles.legendSub, { color: colors.text3 }]}>
+                  {Math.round((arc.value / total) * 100)}% · {formatCurrencyShort(arc.value)}
+                </Text>
+              </View>
             </View>
           ))}
         </View>
@@ -128,8 +127,8 @@ const styles = StyleSheet.create({
   chartRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.lg },
   legend: { flex: 1, gap: 10 },
   legendRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  legendDot: { width: 8, height: 8, borderRadius: 4 },
-  legendLabel: { flex: 1, fontSize: 12, fontFamily: 'Inter_400Regular' },
-  legendPct: { fontSize: 11, fontFamily: 'Inter_600SemiBold' },
-  legendAmt: { fontSize: 12, fontFamily: 'SpaceMono_400Regular', fontWeight: '600', minWidth: 50, textAlign: 'right' },
+  legendDot: { width: 8, height: 8, borderRadius: 4, flexShrink: 0 },
+  legendText: { flex: 1 },
+  legendLabel: { fontSize: 12, fontFamily: 'Inter_600SemiBold' },
+  legendSub: { fontSize: 10, fontFamily: 'Inter_400Regular', marginTop: 1 },
 });

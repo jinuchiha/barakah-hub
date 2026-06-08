@@ -2,11 +2,14 @@ import { Redirect, Stack } from 'expo-router';
 import { useAuthStore } from '@/stores/auth.store';
 import { useTheme } from '@/lib/useTheme';
 import { canManageFunds } from '@/lib/roles';
+import { LoadingScreen } from '@/components/ui/LoadingScreen';
 
 export default function AdminLayout() {
-  const { user } = useAuthStore();
+  const { user, isLoading, isAuthenticated } = useAuthStore();
   const { colors } = useTheme();
 
+  if (isLoading) return <LoadingScreen />;
+  if (!isAuthenticated) return <Redirect href={"/(auth)/login" as any} />;
   if (!canManageFunds(user?.role)) return <Redirect href={"/(tabs)" as any} />;
 
   return (

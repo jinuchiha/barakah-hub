@@ -3,6 +3,19 @@ export function formatPKR(amount: number | null | undefined): string {
   return `PKR ${n.toLocaleString('en-PK', { maximumFractionDigits: 0 })}`;
 }
 
+export function formatPKRShort(amount: number | null | undefined): string {
+  const n = typeof amount === 'number' && Number.isFinite(amount) ? amount : 0;
+  if (n >= 1_000_000) return `₨${(n / 1_000_000).toFixed(1).replace('.0', '')}M`;
+  if (n >= 1_000) return `₨${Math.round(n / 1_000)}K`;
+  return `₨${n}`;
+}
+
+/** Full number with commas, compact ₨ prefix — fits narrow StatCard cells. */
+export function formatPKRFull(amount: number | null | undefined): string {
+  const n = typeof amount === 'number' && Number.isFinite(amount) ? amount : 0;
+  return `₨${n.toLocaleString('en-PK', { maximumFractionDigits: 0 })}`;
+}
+
 export function formatDate(dateStr: string | null | undefined): string {
   if (!dateStr) return '—';
   const date = new Date(dateStr);

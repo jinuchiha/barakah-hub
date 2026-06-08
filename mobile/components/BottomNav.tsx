@@ -54,11 +54,11 @@ function TabItem({ tab, active, badge, onPress }: TabItemProps) {
 
   const pillStyle = useAnimatedStyle(() => ({
     opacity: interpolate(progress.value, [0, 1], [0, 1]),
-    transform: [{ scaleX: interpolate(progress.value, [0, 1], [0.7, 1]) }],
+    transform: [{ scale: interpolate(progress.value, [0, 1], [0.7, 1]) }],
   }));
 
   const iconStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: interpolate(progress.value, [0, 1], [1, 1.08]) }],
+    transform: [{ scale: interpolate(progress.value, [0, 1], [1, 1.1]) }],
   }));
 
   const scaleStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
@@ -81,8 +81,8 @@ function TabItem({ tab, active, badge, onPress }: TabItemProps) {
       accessibilityState={{ selected: active }}
       accessibilityLabel={t(tab.labelKey)}
     >
-      <Animated.View style={[styles.tabContent, scaleStyle]}>
-        {/* Animated pill background */}
+      {/* Icon area with animated pill indicator */}
+      <Animated.View style={[styles.iconArea, scaleStyle]}>
         <Animated.View style={[styles.activePill, pillStyle]}>
           <LinearGradient
             colors={[`${colors.primary}22`, `${colors.primary}10`]}
@@ -91,12 +91,10 @@ function TabItem({ tab, active, badge, onPress }: TabItemProps) {
             style={StyleSheet.absoluteFillObject}
           />
         </Animated.View>
-
-        {/* Icon */}
         <Animated.View style={[styles.iconWrap, iconStyle]}>
           <MaterialCommunityIcons
             name={iconName}
-            size={active ? 22 : 21}
+            size={21}
             color={active ? colors.primary : colors.text3}
           />
           {badge && badge > 0 ? (
@@ -105,14 +103,15 @@ function TabItem({ tab, active, badge, onPress }: TabItemProps) {
             </View>
           ) : null}
         </Animated.View>
-
-        {/* Label — slides in when active */}
-        {active ? (
-          <Animated.Text style={[styles.tabLabel, { color: colors.primary }, pillStyle]} numberOfLines={1}>
-            {t(tab.labelKey)}
-          </Animated.Text>
-        ) : null}
       </Animated.View>
+
+      {/* Label below icon — always rendered, bounded by tab width */}
+      <Text
+        style={[styles.tabLabel, { color: active ? colors.primary : colors.text4 }]}
+        numberOfLines={1}
+      >
+        {t(tab.labelKey)}
+      </Text>
     </Pressable>
   );
 }
@@ -162,11 +161,11 @@ const styles = StyleSheet.create({
   container: { position: 'absolute', bottom: 0, left: 0, right: 0, overflow: 'hidden' },
   topBorder: { height: 0.5 },
   row: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 6, paddingTop: 8 },
-  tabItem: { flex: 1, alignItems: 'center', paddingVertical: 4 },
-  tabContent: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 10, paddingVertical: 6, borderRadius: radius.full, gap: 5, minHeight: 38 },
-  activePill: { ...StyleSheet.absoluteFillObject, borderRadius: radius.full, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(200,155,60,0.12)' },
+  tabItem: { flex: 1, alignItems: 'center', paddingVertical: 5, paddingHorizontal: 2 },
+  iconArea: { alignItems: 'center', justifyContent: 'center', width: 46, height: 32, marginBottom: 3 },
+  activePill: { ...StyleSheet.absoluteFillObject, borderRadius: 14, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(200,155,60,0.15)' },
   iconWrap: { position: 'relative' },
   badge: { position: 'absolute', top: -5, right: -7, borderRadius: 8, minWidth: 15, height: 15, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 3 },
   badgeText: { color: '#fff', fontSize: 8, fontFamily: 'Inter_700Bold' },
-  tabLabel: { fontSize: 11.5, fontFamily: 'Inter_600SemiBold', letterSpacing: -0.2 },
+  tabLabel: { fontSize: 10, fontFamily: 'Inter_600SemiBold', letterSpacing: -0.1, textAlign: 'center' },
 });

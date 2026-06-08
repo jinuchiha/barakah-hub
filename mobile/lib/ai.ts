@@ -1,5 +1,7 @@
-import { api } from './api';
+import { getSessionToken } from './storage';
 import type { SupportedLanguage } from './i18n';
+
+const BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3000';
 
 export interface ChatMessage {
   id: string;
@@ -38,27 +40,42 @@ export async function sendChatMessage(
   language: SupportedLanguage,
   onChunk: (chunk: string) => void,
 ): Promise<void> {
-  const response = await api.post<{ content: string }>(
-    '/api/ai/chat',
-    {
+  const token = await getSessionToken();
+  const res = await fetch(`${BASE_URL}/api/ai/chat`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify({
       messages: messages.map((m) => ({ role: m.role, content: m.content })),
       systemPrompt: buildSystemPrompt(language),
-    },
-    { responseType: 'text' },
-  );
+    }),
+  });
 
-  const raw = response.data as unknown as string;
-  const lines = raw.split('\n').filter(Boolean);
+  if (!res.ok) throw new Error(`AI request failed: ${res.status}`);
+  if (!res.body) throw new Error('No response body');
 
-  for (const line of lines) {
-    if (line.startsWith('data: ')) {
-      const data = line.slice(6);
-      if (data === '[DONE]') break;
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let buf = '';
+
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buf += decoder.decode(value, { stream: true });
+    let nl;
+    while ((nl = buf.indexOf('\n')) >= 0) {
+      const line = buf.slice(0, nl).trim();
+      buf = buf.slice(nl + 1);
+      if (!line.startsWith('data:')) continue;
+      const data = line.slice(5).trim();
+      if (data === '[DONE]') return;
       try {
         const parsed = JSON.parse(data) as { delta?: string };
         if (parsed.delta) onChunk(parsed.delta);
       } catch {
-        // skip malformed chunks
+        // skip malformed chunk
       }
     }
   }

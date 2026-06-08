@@ -43,15 +43,37 @@ api.interceptors.response.use(
 function normalizeError(error: AxiosError): Error {
   if (error.response) {
     const data = error.response.data as Record<string, unknown>;
-    const msg = (data?.message ?? data?.error ?? error.message) as string;
-    const normalized = new Error(msg || 'Request failed');
+    const rawMsg = (data?.message ?? data?.error ?? error.message) as string;
+    const msg = humanizeAuthError(rawMsg, error.response.status);
+    const normalized = new Error(msg);
     (normalized as Error & { status: number }).status = error.response.status;
     return normalized;
   }
   if (error.request) {
-    return new Error('Network error — please check your connection');
+    return new Error('Cannot reach server. Check your internet connection.');
   }
   return new Error(error.message);
+}
+
+function humanizeAuthError(msg: string, status: number): string {
+  const lower = msg?.toLowerCase() ?? '';
+  if (lower.includes('invalid email') || lower.includes('user not found') || lower.includes('no user')) {
+    return 'No account found with this email.';
+  }
+  if (lower.includes('invalid password') || lower.includes('incorrect password') || lower.includes('wrong password')) {
+    return 'Incorrect password. Please try again.';
+  }
+  if (lower.includes('email not verified') || lower.includes('not verified')) {
+    return 'Please verify your email before signing in.';
+  }
+  if (lower.includes('account') && lower.includes('pending')) {
+    return 'Your account is pending admin approval.';
+  }
+  if (status === 401) return 'Invalid email or password.';
+  if (status === 403) return 'Access denied. Your account may be pending approval.';
+  if (status === 429) return 'Too many attempts. Please wait a moment and try again.';
+  if (status >= 500) return 'Server error. Please try again in a moment.';
+  return msg || 'Something went wrong. Please try again.';
 }
 
 export type { AxiosError };

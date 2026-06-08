@@ -10,6 +10,7 @@ import { Breadcrumb } from '@/components/breadcrumb';
 import { ini } from '@/lib/utils';
 import MembersTable from './members-table';
 import ApproveButton from './approve-button';
+import RejectButton from './reject-button';
 import BulkImportDialog from './bulk-import-dialog';
 import { ExportLink } from '@/components/export-link';
 
@@ -127,7 +128,10 @@ export default async function MembersPage({
                     {m.city ? ` · ${m.city}` : ''}
                   </div>
                 </div>
-                <ApproveButton memberId={m.id} />
+                <div className="flex gap-2">
+                  <ApproveButton memberId={m.id} />
+                  <RejectButton memberId={m.id} name={m.nameEn || m.nameUr || 'member'} />
+                </div>
               </div>
             ))}
           </CardBody>

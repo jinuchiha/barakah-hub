@@ -179,8 +179,12 @@ export default function PaymentsReviewScreen() {
 
   const confirmSupervisorReject = () => {
     if (!rejectTarget) return;
+    if (rejectNote.trim().length < 5) {
+      Alert.alert('Note required', 'Please explain why you are rejecting this payment (min 5 characters).');
+      return;
+    }
     const p = rejectTarget;
-    const note = rejectNote.trim() || undefined;
+    const note = rejectNote.trim();
     setRejectTarget(null);
     setRejectNote('');
     void run(() => supRejectMutation.mutateAsync({ paymentId: p.id, note }), () => void haptic.destructive(), () => void haptic.error());
@@ -243,7 +247,7 @@ export default function PaymentsReviewScreen() {
             />
             <View style={styles.actionRow}>
               <Button label={t('common.cancel')} onPress={() => { setRejectTarget(null); setRejectNote(''); }} variant="primary" size="sm" style={styles.actionBtn} />
-              <Button label={t('admin.reject')} onPress={confirmSupervisorReject} variant="danger" size="sm" style={styles.actionBtn} />
+              <Button label={t('admin.reject')} onPress={confirmSupervisorReject} variant="danger" size="sm" style={styles.actionBtn} loading={supRejectMutation.isPending} disabled={supRejectMutation.isPending} />
             </View>
           </GlassCard>
         </KeyboardAvoidingView>

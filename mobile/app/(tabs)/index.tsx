@@ -14,6 +14,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/stores/auth.store';
 import { useAppStore } from '@/stores/app.store';
+import { useQueryClient } from '@tanstack/react-query';
 import { useDashboard } from '@/hooks/useDashboard';
 import { useCommunity } from '@/hooks/useCommunity';
 import { ActivityFeed } from '@/components/ActivityFeed';
@@ -27,7 +28,7 @@ import { DailyVerseCard } from '@/components/DailyVerseCard';
 import { GlobalSearch } from '@/components/GlobalSearch';
 import { useTheme } from '@/lib/useTheme';
 import { spacing } from '@/lib/theme';
-import { formatPKR } from '@/lib/format';
+import { formatPKR, formatPKRFull } from '@/lib/format';
 import { format } from 'date-fns';
 import { SkeletonCard, Skeleton } from '@/components/ui/Skeleton';
 
@@ -183,7 +184,7 @@ function StatsGrid({ pledge, pendingCount, isPaid }: {
     <Animated.View entering={FadeInDown.duration(400).delay(120)} style={styles.statsGrid}>
       <StatCard
         icon="hand-coin-outline"
-        value={formatPKR(pledge ?? 0)}
+        value={formatPKRFull(pledge ?? 0)}
         label="My Pledge"
         style={styles.statHalf}
       />
@@ -258,9 +259,19 @@ function SectionHead({ title, onSeeAll }: { title: string; onSeeAll?: () => void
 function CommunityFeed() {
   const { colors } = useTheme();
   const { t } = useTranslation();
-  const { data } = useCommunity();
-  const items = (data?.payments ?? []).filter((p) => !p.pendingVerify).slice(0, 5);
-  if (!items.length) return null;
+  const { data, isLoading, isError } = useCommunity();
+  const items = (data?.payments ?? []).slice(0, 5);
+
+  if (isLoading) {
+    return (
+      <Animated.View entering={FadeInDown.duration(400).delay(280)}>
+        <SectionHead title={t('dashboard.communityActivity')} />
+        <SkeletonCard />
+      </Animated.View>
+    );
+  }
+
+  if (isError || !items.length) return null;
 
   return (
     <Animated.View entering={FadeInDown.duration(400).delay(280)}>
@@ -326,8 +337,14 @@ function DashboardScreen() {
   const { notificationCount } = useAppStore();
   const { colors } = useTheme();
   const { t } = useTranslation();
+  const qc = useQueryClient();
   const { data, isLoading, error, refetch, isRefetching } = useDashboard();
   const [searchVisible, setSearchVisible] = useState(false);
+
+  const handleRefresh = () => {
+    void refetch();
+    void qc.invalidateQueries({ queryKey: ['dashboard', 'community'] });
+  };
 
   if (isLoading && !data) {
     return (
@@ -348,7 +365,7 @@ function DashboardScreen() {
     );
   }
 
-  if (!isLoading && error) {
+  if (!data && error) {
     return <EmptyState icon="wifi-off" title="Could not load dashboard" subtitle={error.message} actionLabel="Retry" onAction={() => refetch()} />;
   }
 
@@ -371,7 +388,7 @@ function DashboardScreen() {
 
       <ScrollView
         contentContainerStyle={styles.scroll}
-        refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={colors.primary} />}
+        refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={handleRefresh} tintColor={colors.primary} />}
         showsVerticalScrollIndicator={false}
       >
         {/* Top bar */}
@@ -399,7 +416,7 @@ function DashboardScreen() {
         <PaymentBanner
           isPaid={!!data?.myCurrentMonth}
           pledge={user?.monthlyPledge}
-          amount={user?.monthlyPledge}
+          amount={data?.myCurrentMonth?.amount}
           onPay={() => router.push('/(tabs)/payments')}
         />
 
@@ -498,9 +515,9 @@ const styles = StyleSheet.create({
   bannerSub: { fontSize: 12, fontFamily: 'Inter_400Regular', marginTop: 2 },
   // Stats grid
   statsGrid: {
-    flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginBottom: spacing.md,
+    flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.md,
   },
-  statHalf: { width: '47.5%' },
+  statHalf: { flex: 1 },
   // Quick actions
   quickRow: {
     flexDirection: 'row', justifyContent: 'space-between',

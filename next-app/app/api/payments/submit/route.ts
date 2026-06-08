@@ -25,21 +25,23 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const data = schema.parse(body);
 
-    const [created] = await db
-      .insert(payments)
-      .values({
-        memberId: me.id,
-        ...data,
-        monthStart: monthStartFromLabel(data.monthLabel),
-        pendingVerify: true,
-      })
-      .returning();
-
-    await db.insert(auditLog).values({
-      actorId: me.id,
-      action: 'payment-self-submit',
-      detail: `Submitted ${data.pool} ${data.amount} for ${data.monthLabel}`,
-      targetId: me.id,
+    const [created] = await db.transaction(async (tx) => {
+      const [row] = await tx
+        .insert(payments)
+        .values({
+          memberId: me.id,
+          ...data,
+          monthStart: monthStartFromLabel(data.monthLabel),
+          pendingVerify: true,
+        })
+        .returning();
+      await tx.insert(auditLog).values({
+        actorId: me.id,
+        action: 'payment-self-submit',
+        detail: `Submitted ${data.pool} ${data.amount} for ${data.monthLabel}`,
+        targetId: me.id,
+      });
+      return [row];
     });
 
     void notifyMembers(

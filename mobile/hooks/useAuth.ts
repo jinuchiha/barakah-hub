@@ -3,6 +3,7 @@ import { useAuthStore } from '@/stores/auth.store';
 import { signIn, signOut, signUp, forgotPassword, getSession, fetchMyMember } from '@/lib/auth';
 import { saveLanguage } from '@/lib/storage';
 import { changeLanguage, type SupportedLanguage } from '@/lib/i18n';
+import { markLocked } from '@/lib/lock-state';
 import type { SignInInput, SignUpInput, ForgotPasswordInput } from '@/lib/auth';
 
 export function useAuth() {
@@ -23,6 +24,7 @@ export function useAuth() {
   }, []);
 
   const performLogout = useCallback(async (): Promise<void> => {
+    markLocked();
     await signOut();
     logout();
   }, [logout]);
@@ -39,12 +41,14 @@ export function useAuth() {
       }
     } catch {
       setUser(null);
+    } finally {
+      setLoading(false);
     }
   }, [setUser, setLoading]);
 
   const switchLanguage = useCallback(async (lang: SupportedLanguage) => {
     changeLanguage(lang);
-    setLanguage(lang as 'en' | 'ur');
+    setLanguage(lang);
     await saveLanguage(lang);
   }, [setLanguage]);
 

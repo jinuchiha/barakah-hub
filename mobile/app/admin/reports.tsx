@@ -44,7 +44,7 @@ export default function ReportsScreen() {
   const doExport = async (kind: 'members' | 'fund' | 'loans' | 'audit') => {
     setExporting(kind);
     try {
-      const csv = await fetchExportCsv(kind);
+      const csv = await fetchExportCsv(kind, year);
       await shareCsv(`barakah-${kind}-${year}.csv`, csv);
     } catch (err) {
       Alert.alert('Export failed', err instanceof Error ? err.message : 'Could not export');

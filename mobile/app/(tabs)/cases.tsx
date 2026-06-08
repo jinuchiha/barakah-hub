@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import {
   View, Text, StyleSheet, RefreshControl, ScrollView, Alert,
   KeyboardAvoidingView, Platform, TouchableOpacity, Switch, Modal,
@@ -22,6 +22,7 @@ import { GlassCard } from '@/components/ui/GlassCard';
 import { Badge } from '@/components/ui/Badge';
 import { useCases, useCastVote, useCreateCase, useAdminResolveCase, useDeleteCase, useDisburseCase } from '@/hooks/useCases';
 import { useAuthStore } from '@/stores/auth.store';
+import { unlockAchievement } from '@/lib/achievements';
 import { useTheme } from '@/lib/useTheme';
 import { formatPKR } from '@/lib/format';
 import { spacing, radius } from '@/lib/theme';
@@ -36,7 +37,10 @@ const caseSchema = z.object({
   emergency: z.boolean().default(false),
   caseType: z.enum(['gift', 'qarz']),
   pool: z.enum(['sadaqah', 'zakat', 'qarz']),
-  returnDate: z.string().optional(),
+  returnDate: z.string().refine(
+    (val) => !val || /^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \d{4}$/.test(val),
+    { message: 'Format: MMM YYYY (e.g. Dec 2026)' },
+  ).optional(),
 });
 
 type CaseFormData = z.infer<typeof caseSchema>;
@@ -58,10 +62,6 @@ function FilterTabs({ active, onChange, activeCaseCount }: {
     { value: 'disbursed', label: t('cases.disbursed') },
   ];
 
-  // Only show the badge count when displaying voting cases, so the count
-  // reflects the actual voting list rather than a filtered subset.
-  const showBadge = active === 'voting' || active === 'all';
-
   return (
     <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterScroll} contentContainerStyle={styles.filterContent}>
       {FILTERS.map((f) => (
@@ -77,7 +77,7 @@ function FilterTabs({ active, onChange, activeCaseCount }: {
           accessibilityLabel={f.label}
         >
           <Text style={[styles.filterTabText, { color: active === f.value ? colors.primary : colors.text3 }]}>{f.label}</Text>
-          {f.value === 'voting' && showBadge && activeCaseCount > 0 ? (
+          {f.value === 'voting' && activeCaseCount > 0 ? (
             <View style={[styles.filterBadge, { backgroundColor: colors.gold }]}>
               <Text style={styles.filterBadgeText}>{activeCaseCount}</Text>
             </View>
@@ -94,13 +94,14 @@ function CreateCaseSheet({ visible, onClose }: { visible: boolean; onClose: () =
   const createMutation = useCreateCase();
   const [creating, setCreating] = useState(false);
 
-  const { control, handleSubmit, reset, formState: { errors } } = useForm<CaseFormData>({
+  const { control, handleSubmit, reset, setValue, formState: { errors } } = useForm<CaseFormData>({
     resolver: zodResolver(caseSchema),
     mode: 'onTouched',
     defaultValues: { caseType: 'gift', pool: 'sadaqah', emergency: false, reason: '' },
   });
 
   const caseTypeValue = useWatch({ control, name: 'caseType' });
+  const poolValue = useWatch({ control, name: 'pool' });
 
   const onSubmit = async (data: CaseFormData) => {
     setCreating(true);
@@ -124,7 +125,7 @@ function CreateCaseSheet({ visible, onClose }: { visible: boolean; onClose: () =
   };
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+    <Modal visible={visible} transparent animationType={Platform.OS === 'android' ? 'none' : 'slide'} hardwareAccelerated onRequestClose={onClose}>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.sheetBackdrop}>
         <GlassCard style={styles.sheet}>
           <View style={[styles.handle, { backgroundColor: colors.border2 }]} />
@@ -156,7 +157,12 @@ function CreateCaseSheet({ visible, onClose }: { visible: boolean; onClose: () =
                   {(['gift', 'qarz'] as const).map((ct) => (
                     <TouchableOpacity
                       key={ct}
-                      onPress={() => { onChange(ct); }}
+                      onPress={() => {
+                        onChange(ct);
+                        // qarz cases must draw from the qarz pool; gift cases must not.
+                        if (ct === 'qarz') { setValue('pool', 'qarz'); }
+                        else if (poolValue === 'qarz') { setValue('pool', 'sadaqah'); }
+                      }}
                       style={[styles.chip, { backgroundColor: value === ct ? colors.primaryDim : colors.glass2, borderColor: value === ct ? colors.primary : colors.border1 }]}
                     >
                       <Text style={[styles.chipText, { color: value === ct ? colors.primary : colors.text3 }]}>
@@ -176,7 +182,12 @@ function CreateCaseSheet({ visible, onClose }: { visible: boolean; onClose: () =
                     <TouchableOpacity
                       key={pl}
                       onPress={() => onChange(pl)}
-                      style={[styles.chip, { backgroundColor: value === pl ? colors.primaryDim : colors.glass2, borderColor: value === pl ? colors.primary : colors.border1 }]}
+                      disabled={caseTypeValue === 'qarz' && pl !== 'qarz'}
+                      style={[styles.chip, {
+                        backgroundColor: value === pl ? colors.primaryDim : colors.glass2,
+                        borderColor: value === pl ? colors.primary : colors.border1,
+                        opacity: caseTypeValue === 'qarz' && pl !== 'qarz' ? 0.35 : 1,
+                      }]}
                     >
                       <Text style={[styles.chipText, { color: value === pl ? colors.primary : colors.text3 }]}>
                         {pl === 'sadaqah' ? t('payments.sadaqah') : pl === 'zakat' ? t('payments.zakat') : t('payments.qarz')}
@@ -196,13 +207,13 @@ function CreateCaseSheet({ visible, onClose }: { visible: boolean; onClose: () =
               )}
             />
 
-            {caseTypeValue === 'qarz' ? (
-              <Controller control={control} name="returnDate"
-                render={({ field: { onChange, value } }) => (
-                  <Input label={t('cases.returnDateOptional')} value={value ?? ''} onChangeText={onChange} placeholder="e.g. Dec 2026" />
-                )}
-              />
-            ) : null}
+            <Controller control={control} name="returnDate" shouldUnregister={false}
+              render={({ field: { onChange, value } }) => (
+                <>{caseTypeValue === 'qarz' ? (
+                  <Input label={t('cases.returnDateOptional')} value={value ?? ''} onChangeText={onChange} placeholder="Dec 2026" error={errors.returnDate?.message} />
+                ) : null}</>
+              )}
+            />
 
             <View style={styles.sheetBtns}>
               <Button label={t('common.cancel')} onPress={onClose} variant="ghost" style={styles.halfBtn} />
@@ -230,6 +241,13 @@ function CasesScreen() {
   const [voteTarget, setVoteTarget] = useState<EmergencyCase | null>(null);
   const [voteDir, setVoteDir] = useState<boolean | null>(null);
   const [showCreate, setShowCreate] = useState(false);
+  const [createMounted, setCreateMounted] = useState(false);
+  const mountTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    mountTimer.current = setTimeout(() => setCreateMounted(true), 300);
+    return () => { if (mountTimer.current) clearTimeout(mountTimer.current); };
+  }, []);
 
   const { data, isLoading, isError, refetch, isRefetching } = useCases(
     statusFilter === 'all' ? {} : { status: statusFilter },
@@ -311,6 +329,7 @@ function CasesScreen() {
     try {
       await voteMutation.mutateAsync({ caseId: voteTarget.id, yes: voteDir });
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      unlockAchievement('voter');
       setVoteTarget(null);
     } catch (err) {
       Alert.alert('Vote Failed', err instanceof Error ? err.message : 'Failed to cast vote');
@@ -365,11 +384,11 @@ function CasesScreen() {
         emergencyCase={voteTarget}
         voteDirection={voteDir}
         onConfirm={handleVoteConfirm}
-        onCancel={() => setVoteTarget(null)}
+        onCancel={() => { setVoteTarget(null); setVoteDir(null); }}
         loading={voteMutation.isPending}
       />
 
-      <CreateCaseSheet visible={showCreate} onClose={() => setShowCreate(false)} />
+      {createMounted ? <CreateCaseSheet visible={showCreate} onClose={() => setShowCreate(false)} /> : null}
     </SafeAreaView>
   );
 }

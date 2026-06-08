@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import {
-  View, Text, StyleSheet, RefreshControl, TouchableOpacity,
+  View, Text, StyleSheet, RefreshControl, TouchableOpacity, Pressable,
   Alert, KeyboardAvoidingView, Platform,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
@@ -21,6 +21,7 @@ import { Button } from '@/components/ui/Button';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { useMyLoans, useAllLoans, useRecordRepayment } from '@/hooks/useLoans';
 import { useAuthStore } from '@/stores/auth.store';
+import { unlockAchievement } from '@/lib/achievements';
 import { useTheme } from '@/lib/useTheme';
 import { formatPKR } from '@/lib/format';
 import { spacing, radius } from '@/lib/theme';
@@ -38,7 +39,6 @@ function RepaySheet({ loan, onClose }: { loan: Loan | null; onClose: () => void 
   const { colors } = useTheme();
   const { t } = useTranslation();
   const repayMutation = useRecordRepayment();
-  const [loading, setLoading] = useState(false);
 
   const { control, handleSubmit, reset, setValue, formState: { errors } } = useForm<RepayFormData>({
     resolver: zodResolver(repaySchema),
@@ -51,53 +51,55 @@ function RepaySheet({ loan, onClose }: { loan: Loan | null; onClose: () => void 
   if (!loan) return null;
 
   const handleRepay = async (data: RepayFormData) => {
-    if (loading || repayMutation.isPending) return;
+    if (repayMutation.isPending) return;
     const remaining = loan.amount - loan.paid;
     if (data.amount > remaining) {
       Alert.alert('Invalid Amount', `Repayment cannot exceed remaining balance of ${remaining.toLocaleString('en-PK')} PKR`);
       return;
     }
-    setLoading(true);
     try {
       await repayMutation.mutateAsync(data);
+      if (loan.paid + data.amount >= loan.amount) {
+        unlockAchievement('loan_repayer');
+      }
       reset();
       onClose();
     } catch (err) {
       Alert.alert('Error', err instanceof Error ? err.message : 'Failed to record repayment');
-    } finally {
-      setLoading(false);
     }
   };
 
   return (
-    <View style={styles.sheetBackdrop}>
+    <Pressable style={styles.sheetBackdrop} onPress={onClose}>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.sheetContainer}>
-        <GlassCard style={styles.sheet}>
-          <View style={[styles.handle, { backgroundColor: colors.border2 }]} />
-          <Text style={[styles.sheetTitle, { color: colors.text1 }]}>{t('loans.recordRepayment')}</Text>
-          <View style={[styles.loanSummary, { backgroundColor: colors.glass1 }]}>
-            <Text style={[styles.loanPurpose, { color: colors.text2 }]}>{loan.purpose}</Text>
-            <Text style={[styles.loanRemaining, { color: colors.danger }]}>
-              {t('loans.remaining')}: {formatPKR(loan.amount - loan.paid)}
-            </Text>
-          </View>
-          <Controller control={control} name="amount"
-            render={({ field: { onChange, value } }) => (
-              <Input label={t('loans.amount')} value={value?.toString() ?? ''} onChangeText={onChange} keyboardType="numeric" leftIcon="cash" error={errors.amount?.message} />
-            )}
-          />
-          <Controller control={control} name="note"
-            render={({ field: { onChange, value } }) => (
-              <Input label={t('payments.note')} value={value ?? ''} onChangeText={onChange} multiline error={errors.note?.message} />
-            )}
-          />
-          <View style={styles.sheetBtns}>
-            <Button label={t('common.cancel')} onPress={onClose} variant="ghost" style={styles.halfBtn} />
-            <Button label={t('common.confirm')} onPress={handleSubmit(handleRepay)} loading={loading} variant="solid" style={styles.halfBtn} />
-          </View>
-        </GlassCard>
+        <Pressable onPress={() => undefined}>
+          <GlassCard style={styles.sheet}>
+            <View style={[styles.handle, { backgroundColor: colors.border2 }]} />
+            <Text style={[styles.sheetTitle, { color: colors.text1 }]}>{t('loans.recordRepayment')}</Text>
+            <View style={[styles.loanSummary, { backgroundColor: colors.glass1 }]}>
+              <Text style={[styles.loanPurpose, { color: colors.text2 }]}>{loan.purpose}</Text>
+              <Text style={[styles.loanRemaining, { color: colors.danger }]}>
+                {t('loans.remaining')}: {formatPKR(loan.amount - loan.paid)}
+              </Text>
+            </View>
+            <Controller control={control} name="amount"
+              render={({ field: { onChange, value } }) => (
+                <Input label={t('loans.amount')} value={value?.toString() ?? ''} onChangeText={onChange} keyboardType="numeric" leftIcon="cash" error={errors.amount?.message} />
+              )}
+            />
+            <Controller control={control} name="note"
+              render={({ field: { onChange, value } }) => (
+                <Input label={t('payments.note')} value={value ?? ''} onChangeText={onChange} multiline error={errors.note?.message} />
+              )}
+            />
+            <View style={styles.sheetBtns}>
+              <Button label={t('common.cancel')} onPress={onClose} variant="ghost" style={styles.halfBtn} />
+              <Button label={t('common.confirm')} onPress={handleSubmit(handleRepay)} loading={repayMutation.isPending} variant="solid" style={styles.halfBtn} />
+            </View>
+          </GlassCard>
+        </Pressable>
       </KeyboardAvoidingView>
-    </View>
+    </Pressable>
   );
 }
 
@@ -152,7 +154,7 @@ function LoansScreen() {
       </Animated.View>
 
       {activeQuery.isError ? (
-        <EmptyState icon="alert-circle-outline" title={t('common.error')} />
+        <EmptyState icon="alert-circle-outline" title={t('common.error')} actionLabel={t('common.retry')} onAction={() => void activeQuery.refetch()} />
       ) : activeQuery.isLoading ? (
         <EmptyState icon="loading" title={t('common.loading')} />
       ) : (

@@ -1,5 +1,5 @@
 import React, { memo, useState, useRef, useEffect } from 'react';
-import { View, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { View, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -77,11 +77,9 @@ export const AvatarUpload = memo(function AvatarUpload({
           size="xxl"
         />
         <View style={[styles.editBadge, { backgroundColor: colors.bg2, borderColor: colors.border2 }]}>
-          <MaterialCommunityIcons
-            name={uploading ? 'loading' : 'camera'}
-            size={14}
-            color={colors.primary}
-          />
+          {uploading
+            ? <ActivityIndicator size="small" color={colors.primary} style={styles.spinner} />
+            : <MaterialCommunityIcons name="camera" size={14} color={colors.primary} />}
         </View>
       </TouchableOpacity>
     </Animated.View>
@@ -100,4 +98,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderWidth: 2,
   },
+  spinner: { transform: [{ scale: 0.7 }] },
 });

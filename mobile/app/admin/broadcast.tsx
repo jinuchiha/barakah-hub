@@ -4,7 +4,7 @@ import {
   Platform, Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Redirect } from 'expo-router';
+import { Redirect, Stack } from 'expo-router';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -87,6 +87,7 @@ export default function BroadcastScreen() {
 
   if (sent) return (
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.bg1 }]} edges={['bottom']}>
+      <Stack.Screen options={{ title: 'Broadcast' }} />
       <SuccessOverlay visible={showSuccess} type="success" message="Broadcast Sent!" onDone={() => setShowSuccess(false)} />
       <View style={styles.centeredContainer}>
         <SuccessView onDismiss={() => { setSent(false); reset(); }} />
@@ -96,6 +97,7 @@ export default function BroadcastScreen() {
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.bg1 }]} edges={['bottom']}>
+      <Stack.Screen options={{ title: 'Broadcast' }} />
       <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
           <Animated.View entering={FadeInDown.duration(400)} style={styles.pageHeader}>

@@ -169,7 +169,7 @@ export default function ChangePasswordScreen() {
           </View>
 
           <View style={styles.btnRow}>
-            <Button label={t('common.cancel')} onPress={() => router.back()} variant="ghost" style={styles.btn} />
+            <Button label={t('common.cancel')} onPress={() => { reset(); router.back(); }} variant="ghost" style={styles.btn} />
             <Button
               label={saving ? t('common.saving') ?? 'Updating…' : t('auth.updatePassword')}
               onPress={handleSubmit(onSubmit, onInvalid)}

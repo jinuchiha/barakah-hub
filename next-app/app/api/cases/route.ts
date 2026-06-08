@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { eq, desc, and, inArray } from 'drizzle-orm';
+import { eq, desc, and, inArray, count } from 'drizzle-orm';
 import { z } from 'zod';
 import { meOrThrow } from '@/lib/auth-server';
 import { db } from '@/lib/db';
@@ -29,8 +29,10 @@ export async function GET(req: NextRequest) {
     const allVotes = caseIds.length > 0
       ? await db.select().from(votes).where(inArray(votes.caseId, caseIds))
       : [];
-    const allMembers = await db.select({ id: members.id, deceased: members.deceased, status: members.status }).from(members);
-    const eligibleCount = allMembers.filter((m) => !m.deceased && m.status === 'approved').length;
+    const [{ value: eligibleCount }] = await db
+      .select({ value: count() })
+      .from(members)
+      .where(and(eq(members.deceased, false), eq(members.status, 'approved')));
 
     const enriched = allCases.map((c) => {
       const caseVotes = allVotes.filter((v) => v.caseId === c.id);
@@ -107,7 +109,7 @@ export async function POST(req: NextRequest) {
     await db.insert(auditLog).values({
       actorId: me.id,
       targetId: me.id,
-      action: 'emergency-create',
+      action: `${data.caseType}-create`,
       detail: `${data.caseType} ${data.amount} for ${data.beneficiaryName}`,
     });
 

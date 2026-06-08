@@ -27,6 +27,13 @@ interface ActivityFeedProps {
   items: ActivityItem[];
 }
 
+function cleanSubtitle(s: string | undefined): string | undefined {
+  if (!s) return undefined;
+  if (s.startsWith('{') || s.startsWith('[')) return 'Settings updated';
+  if (s.startsWith('https://') || s.startsWith('http://')) return 'File updated';
+  return s;
+}
+
 function ActivityItemRow({
   item,
   isLast,
@@ -38,6 +45,7 @@ function ActivityItemRow({
 }) {
   const { colors } = useTheme();
   const cfg = ACTIVITY_CONFIG[item.type];
+  const subtitle = cleanSubtitle(item.subtitle);
 
   return (
     <Animated.View
@@ -52,8 +60,8 @@ function ActivityItemRow({
       </View>
       <View style={styles.content}>
         <Text style={[styles.title, { color: colors.text1 }]}>{item.title}</Text>
-        {item.subtitle ? (
-          <Text style={[styles.subtitle, { color: colors.text3 }]}>{item.subtitle}</Text>
+        {subtitle ? (
+          <Text style={[styles.subtitle, { color: colors.text3 }]}>{subtitle}</Text>
         ) : null}
         {item.amount ? (
           <Text style={[styles.amount, { color: cfg.color }]}>{formatPKR(item.amount)}</Text>

@@ -29,8 +29,11 @@ async function fetchAudit(): Promise<AuditEntry[]> {
 }
 
 /** Fetch a CSV export as text. kind ∈ members|fund|loans|audit */
-export async function fetchExportCsv(kind: 'members' | 'fund' | 'loans' | 'audit'): Promise<string> {
-  const { data } = await api.get<string>(`/api/exports/${kind}`, { responseType: 'text' });
+export async function fetchExportCsv(kind: 'members' | 'fund' | 'loans' | 'audit', year?: number): Promise<string> {
+  const { data } = await api.get<string>(`/api/exports/${kind}`, {
+    responseType: 'text',
+    params: year ? { year } : undefined,
+  });
   return data;
 }
 

@@ -9,7 +9,6 @@ export interface CommunityPayment {
   amount: number;
   pool: FundPool;
   monthLabel: string;
-  pendingVerify: boolean;
   createdAt: string;
   member: MaskedMember | null;
 }

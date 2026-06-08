@@ -73,7 +73,7 @@ export const PaymentBarChart = memo(function PaymentBarChart({
       <View style={[styles.barsRow, { height }]}>
         {data.map((d, i) => (
           <View key={d.month} style={styles.barCol}>
-            <View style={[styles.barTrack, { height }]}>
+            <View style={[styles.barTrack, { height, backgroundColor: `${colors.primary}18`, borderRadius: 6 }]}>
               <AnimatedBar
                 value={d.amount}
                 maxValue={maxValue}

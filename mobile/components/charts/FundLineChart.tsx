@@ -55,6 +55,15 @@ export const FundLineChart = memo(function FundLineChart({
     );
   }
 
+  if (data.length === 1) {
+    return (
+      <View style={[styles.single, { height }]}>
+        <Text style={[styles.singleValue, { color: colors.primary }]}>{formatCurrencyShort(data[0].amount)}</Text>
+        <Text style={[styles.singleLabel, { color: colors.text3 }]}>{data[0].month} · 100%</Text>
+      </View>
+    );
+  }
+
   const pts = computePoints(data, WIDTH, height);
   const linePath = buildLinePath(pts);
   const areaPath = buildAreaPath(pts, height);
@@ -93,14 +102,11 @@ export const FundLineChart = memo(function FundLineChart({
 
 const styles = StyleSheet.create({
   container: {},
-  empty: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  emptyText: {
-    fontSize: 13,
-    fontFamily: 'Inter_400Regular',
-  },
+  empty: { alignItems: 'center', justifyContent: 'center' },
+  emptyText: { fontSize: 13, fontFamily: 'Inter_400Regular' },
+  single: { alignItems: 'center', justifyContent: 'center', gap: 4 },
+  singleValue: { fontSize: 22, fontFamily: 'SpaceMono_400Regular', fontWeight: '600' },
+  singleLabel: { fontSize: 12, fontFamily: 'Inter_400Regular' },
   labels: {
     flexDirection: 'row',
     justifyContent: 'space-between',

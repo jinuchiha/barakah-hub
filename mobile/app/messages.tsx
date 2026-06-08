@@ -69,10 +69,10 @@ export default function MessagesScreen() {
   const [memberSearch, setMemberSearch] = useState('');
   const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null);
 
-  // Mark received messages read once when unread messages are first detected.
+  // Mark received messages read whenever new unread messages appear.
   const hasUnread = data?.some((m) => m.incoming && !m.read) ?? false;
   useEffect(() => {
-    if (hasUnread && !markRead.isPending && !markRead.isSuccess) {
+    if (hasUnread && !markRead.isPending) {
       markRead.mutate();
     }
   }, [hasUnread]); // eslint-disable-line react-hooks/exhaustive-deps
