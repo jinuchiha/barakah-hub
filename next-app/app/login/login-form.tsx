@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import type { Route } from 'next';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { toast } from 'sonner';
-import { signIn } from '@/lib/auth-client';
+import { authClient, signIn } from '@/lib/auth-client';
 import { Input, Label } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 
@@ -74,8 +74,19 @@ export default function LoginForm({ next }: { next?: string }) {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     startTransition(async () => {
-      const { error } = await signIn.email({ email, password });
+      // One field, two identities: an @ means email, otherwise the
+      // family username (Better-Auth username plugin).
+      const id = email.trim();
+      const { error } = id.includes('@')
+        ? await signIn.email({ email: id, password })
+        : await authClient.signIn.username({ username: id, password });
       if (error) {
+        if (error.status === 403 && id.includes('@')) {
+          // Unverified email — send them to the OTP screen with a fresh code.
+          await authClient.emailOtp.sendVerificationOtp({ email: id, type: 'email-verification' }).catch(() => {});
+          router.push(`/verify-email?email=${encodeURIComponent(id)}` as Route);
+          return;
+        }
         toast.error(error.message ?? 'Login failed');
         return;
       }
@@ -96,16 +107,16 @@ export default function LoginForm({ next }: { next?: string }) {
     <form onSubmit={handleSubmit} className="px-5 pb-8 pt-6 sm:px-8">
       <WelcomeWipe show={welcome} />
       <div className="mb-4">
-        <Label htmlFor="email">Email</Label>
+        <Label htmlFor="email">Email ya Username</Label>
         <Input
           id="email"
-          type="email"
-          autoComplete="email"
+          type="text"
+          autoComplete="username"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
           aria-required="true"
-          placeholder="you@family.com"
+          placeholder="you@family.com · ya username"
         />
       </div>
       <div className="mb-4">

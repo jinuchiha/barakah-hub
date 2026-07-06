@@ -254,3 +254,18 @@ export async function sendWeeklyBackupEmail(s: BackupSummary): Promise<void> {
   const text = `Barakah Hub Weekly Backup · ${s.date}\nFund: ${fmtPKR(s.fundTotal)}\nMembers: ${s.members.approved}/${s.members.total}\nPayments: ${s.payments.verified} verified, ${s.payments.pending} pending\n${APP_URL}/dashboard`;
   await send(to, `🗄 Barakah Hub Weekly Backup · ${s.date}`, shell(`Weekly Backup ${s.date}`, body), text);
 }
+
+/* ─── 7. Verification OTP ─── */
+export async function sendOtpEmail(to: string, otp: string, type: string): Promise<void> {
+  const heading = type === 'forget-password' ? 'Password reset code' : 'Your verification code';
+  const body = `
+    <p>السلام علیکم،</p>
+    <p>${type === 'forget-password' ? 'Use this code to reset your Barakah Hub password.' : 'Use this code to verify your email and finish signing in to Barakah Hub.'}</p>
+    <div style="margin:24px 0;text-align:center;">
+      <span style="display:inline-block;background:#1e293b;border:1px solid #334155;border-radius:12px;padding:14px 28px;font-size:30px;font-weight:bold;letter-spacing:10px;color:#f59e0b;font-family:'Courier New',monospace;">${escape(otp)}</span>
+    </div>
+    <p style="font-size:12px;color:#64748b;">This code expires in 10 minutes. If you didn't request it, ignore this email.</p>
+  `;
+  const text = `${heading}: ${otp}\n\nExpires in 10 minutes.`;
+  await send(to, `${otp} · Barakah Hub ${type === 'forget-password' ? 'reset' : 'verification'} code`, shell(heading, body), text);
+}

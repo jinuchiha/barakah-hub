@@ -22,6 +22,9 @@ export const users = pgTable('users', {
   emailVerified: boolean('email_verified').notNull().default(false),
   name: text('name'),
   image: text('image'),
+  // Better-Auth username plugin: normalized + display casing.
+  username: text('username').unique(),
+  displayUsername: text('display_username'),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });

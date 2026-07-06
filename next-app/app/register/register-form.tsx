@@ -1,6 +1,7 @@
 'use client';
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
+import type { Route } from 'next';
 import { toast } from 'sonner';
 import { signUp } from '@/lib/auth-client';
 import { Input, Label } from '@/components/ui/input';
@@ -17,8 +18,15 @@ export default function RegisterForm() {
     e.preventDefault();
     if (password.length < 8) return toast.error('Password must be at least 8 characters');
     start(async () => {
-      const { error } = await signUp.email({ email, password, name });
+      const { data, error } = await signUp.email({ email, password, name });
       if (error) { toast.error(error.message ?? 'Registration failed'); return; }
+      // With email verification on, signUp returns no session — the user
+      // confirms the emailed 6-digit code first, then signs in.
+      if (!data?.token) {
+        toast.success('Account created · check your email for the code');
+        router.replace(`/verify-email?email=${encodeURIComponent(email)}` as Route);
+        return;
+      }
       toast.success('Account created · completing your profile next');
       router.replace('/onboarding');
       router.refresh();

@@ -1,8 +1,9 @@
 import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
-import { bearer } from 'better-auth/plugins';
+import { bearer, username, emailOTP } from 'better-auth/plugins';
 import { db } from '@/lib/db';
 import { users, sessions, accounts, verifications } from '@/lib/db/schema';
+import { sendOtpEmail } from '@/lib/email';
 
 /**
  * Better-Auth server instance for Barakah Hub.
@@ -45,7 +46,9 @@ export const auth = betterAuth({
 
   emailAndPassword: {
     enabled: true,
-    requireEmailVerification: false,
+    // First-login email verification via OTP — but only when Resend can
+    // actually deliver codes; without it the gate would lock users out.
+    requireEmailVerification: Boolean(process.env.RESEND_API_KEY),
     minPasswordLength: 8,
     autoSignIn: true,
     sendResetPassword: async ({ user, url }) => {
@@ -88,9 +91,21 @@ export const auth = betterAuth({
     },
   },
 
-  // Bearer plugin — required for the mobile app (Expo / React Native)
-  // which sends `Authorization: Bearer <session-token>` instead of cookies.
-  plugins: [bearer()],
+  // bearer   — mobile app sends `Authorization: Bearer <token>`
+  // username — login accepts the family username as well as email
+  // emailOTP — 6-digit first-login verification codes via Resend
+  plugins: [
+    bearer(),
+    username({ minUsernameLength: 2, maxUsernameLength: 40 }),
+    emailOTP({
+      otpLength: 6,
+      expiresIn: 600,
+      sendVerificationOnSignUp: true,
+      async sendVerificationOTP({ email, otp, type }) {
+        await sendOtpEmail(email, otp, type);
+      },
+    }),
+  ],
 });
 
 export type Session = typeof auth.$Infer.Session;
