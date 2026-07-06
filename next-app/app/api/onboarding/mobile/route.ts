@@ -91,7 +91,7 @@ export async function POST(req: NextRequest) {
         username,
         nameEn: data.nameEn,
         nameUr: data.nameUr || data.nameEn,
-        fatherName: data.fatherName?.trim() || '—',
+        fatherName: data.fatherName?.trim() ?? '',
         fatherDeceased: data.fatherDeceased ?? false,
         phone: data.phone,
         city: data.city,

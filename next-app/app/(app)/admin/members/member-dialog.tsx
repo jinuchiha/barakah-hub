@@ -114,7 +114,7 @@ export default function MemberDialog({ mode, allMembers, onClose }: Props) {
             username: form.username.trim(),
             nameEn: form.nameEn.trim(),
             nameUr: form.nameUr.trim() || form.nameEn.trim(),
-            fatherName: form.fatherName.trim() || '—',
+            fatherName: form.fatherName.trim(),
             fatherDeceased: form.fatherDeceased,
             relation: form.relation.trim() || undefined,
             phone: form.phone.trim() || undefined,

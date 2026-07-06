@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 import type { Route } from 'next';
-import { asc, ne } from 'drizzle-orm';
+import { asc, eq, ne } from 'drizzle-orm';
 import { Users, UserCheck, UserX, Clock } from 'lucide-react';
 import { getMeOrRedirect } from '@/lib/auth-server';
 import { db } from '@/lib/db';
@@ -43,6 +43,15 @@ export default async function MembersPage({
   const pending  = all.filter((m) => m.status === 'pending');
   const approved = all.filter((m) => m.status === 'approved' && !m.deceased);
   const total    = all.filter((m) => m.status !== 'rejected');
+  // Real count even when rejected rows are filtered out of the main query.
+  let rejectedCount = all.filter((m) => m.status === 'rejected').length;
+  if (!includeRejected && !dbError) {
+    try {
+      rejectedCount = await db.$count(members, eq(members.status, 'rejected'));
+    } catch {
+      // stat stays 0 — the table itself already surfaced the DB error
+    }
+  }
 
   return (
     <div className="mx-auto max-w-[1400px]">
@@ -84,7 +93,7 @@ export default async function MembersPage({
         <StatCard label="Total Members"  value={total.length}    icon={<Users />}     tone="sapphire" />
         <StatCard label="Active"         value={approved.length} icon={<UserCheck />} tone="emerald"  />
         <StatCard label="Pending Review" value={pending.length}  icon={<Clock />}     tone="gold"     hint={pending.length > 0 ? 'Requires approval' : 'All clear'} />
-        <StatCard label="Rejected"       value={includeRejected ? all.filter((m) => m.status === 'rejected').length : '—'} icon={<UserX />} tone="ruby" />
+        <StatCard label="Rejected"       value={rejectedCount} icon={<UserX />} tone="ruby" />
       </div>
 
       {/* ── Pending approvals queue ── */}

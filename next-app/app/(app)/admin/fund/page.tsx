@@ -252,7 +252,7 @@ export default async function FundPage() {
           <div className="flex flex-wrap gap-2">
             {boardMembers.map((m) => {
               const st = monthStatus.get(m.id);
-              const name = m.nameEn || m.nameUr || '—';
+              const name = m.nameEn || m.nameUr || m.username;
               return (
                 <span
                   key={m.id}
