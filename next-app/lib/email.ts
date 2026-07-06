@@ -114,6 +114,41 @@ export async function sendPaymentReceiptEmail(to: string, r: ReceiptInput): Prom
   await send(to, `🧾 Receipt: Rs ${formatted} ${r.pool}`, shell('Payment Verified', body, 'View history', `${APP_URL}/myaccount`), text);
 }
 
+/* ─── 3b. Payment review request (to supervisors/admins) ─── */
+export interface ReviewInput {
+  memberName: string;
+  amount: number;
+  pool: string;
+  monthLabel: string;
+  note?: string | null;
+  receiptUrl?: string | null;
+}
+export async function sendPaymentReviewEmail(to: string, r: ReviewInput): Promise<void> {
+  const formatted = r.amount.toLocaleString('en-PK');
+  const poolLabel = r.pool === 'sadaqah' ? 'Sadaqah / صدقہ' : r.pool === 'zakat' ? 'Zakat / زکوٰۃ' : 'Qarz pool';
+  const body = `
+    <p>السلام علیکم،</p>
+    <p><strong style="color:#f8fafc;">${escape(r.memberName)}</strong> has submitted a payment that is <strong style="color:#f59e0b;">awaiting your review</strong>.</p>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:20px 0;border:1px solid #1e293b;border-radius:12px;overflow:hidden;">
+      <tr><td style="padding:14px 18px;background:#1e293b;border-bottom:1px solid #334155;">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:#94a3b8;">Payment for review</div>
+      </td></tr>
+      <tr><td style="padding:18px 18px 4px;font-size:13px;color:#cbd5e1;">Amount</td></tr>
+      <tr><td style="padding:0 18px 14px;font-size:28px;font-weight:bold;color:#f59e0b;">Rs ${formatted}</td></tr>
+      <tr><td style="padding:14px 18px;font-size:13px;color:#cbd5e1;border-top:1px solid #1e293b;">
+        <strong style="color:#f8fafc;">From:</strong> ${escape(r.memberName)}<br>
+        <strong style="color:#f8fafc;">Pool:</strong> ${poolLabel}<br>
+        <strong style="color:#f8fafc;">For month:</strong> ${escape(r.monthLabel)}
+        ${r.note ? `<br><strong style="color:#f8fafc;">Note:</strong> ${escape(r.note)}` : ''}
+        ${r.receiptUrl ? `<br><strong style="color:#f8fafc;">Receipt:</strong> <a href="${r.receiptUrl}" style="color:#10b981;">view screenshot</a>` : ''}
+      </td></tr>
+    </table>
+    <p>Approve or reject it from the Fund Approvals queue.</p>
+  `;
+  const text = `PAYMENT FOR REVIEW\n\nFrom: ${r.memberName}\nAmount: Rs ${formatted}\nPool: ${poolLabel}\nFor: ${r.monthLabel}${r.note ? `\nNote: ${r.note}` : ''}\n\nReview at: ${APP_URL}/admin/fund`;
+  await send(to, `🧾 Review: ${r.memberName} · Rs ${formatted} ${r.pool}`, shell('Payment awaiting review', body, 'Open approval queue', `${APP_URL}/admin/fund`), text);
+}
+
 /* ─── 4. Emergency case alert ─── */
 export interface CaseAlertInput { name: string; beneficiary: string; category: string; amount: number; reasonEn: string; caseId: string }
 export async function sendEmergencyCaseEmail(to: string, c: CaseAlertInput): Promise<void> {

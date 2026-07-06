@@ -30,7 +30,7 @@ import { db } from '@/lib/db';
 import { members, payments, cases, votes, loans, repayments, auditLog, notifications, messages, memberInvites, users, config as configTbl } from '@/lib/db/schema';
 import { monthStartFromLabel } from '@/lib/month';
 import { broadcastPush, sendPushToMembers } from '@/lib/push';
-import { notifyMembers as notify, fundApproverIds, adminIds } from '@/lib/notify';
+import { notifyMembers as notify, fundApproverIds, adminIds, emailFundApprovers } from '@/lib/notify';
 import { sendApprovalEmail, sendPaymentReceiptEmail, sendEmergencyCaseEmail } from '@/lib/email';
 
 /** Lookup the auth email for a member via auth_id → users.email. Null if missing. */
@@ -242,6 +242,13 @@ export async function recordPayment(input: z.infer<typeof recordPaymentSchema>) 
     },
     { title: '🧾 New payment to review', body: `Rs ${data.amount.toLocaleString('en-PK')} ${data.pool}`, data: { type: 'payment-pending' }, channelId: 'payments' },
   );
+  void (async () => {
+    const [m] = await db.select().from(members).where(eq(members.id, data.memberId)).limit(1);
+    await emailFundApprovers(
+      { memberName: m?.nameEn || m?.nameUr || 'A member', amount: data.amount, pool: data.pool, monthLabel: data.monthLabel, note: data.note },
+      me.id,
+    );
+  })().catch((err) => { console.error('[email] payment review:', err); });
   revalidatePath('/admin/fund');
   revalidatePath('/dashboard');
   return created;
@@ -255,6 +262,8 @@ const submitDonationSchema = z.object({
   pool: z.enum(['sadaqah', 'zakat']).default('sadaqah'),
   monthLabel: z.string().min(3).max(40),
   note: z.string().max(200).optional(),
+  // https-only — matches /api/payments/submit
+  receiptUrl: z.string().url().startsWith('https://').or(z.string().startsWith('/uploads/')).optional(),
 });
 
 export async function submitDonation(input: z.infer<typeof submitDonationSchema>) {
@@ -288,6 +297,10 @@ export async function submitDonation(input: z.infer<typeof submitDonationSchema>
       data: { type: 'payment-pending' }, channelId: 'payments',
     },
   );
+  void emailFundApprovers(
+    { memberName: me.nameEn || me.nameUr, amount: data.amount, pool: data.pool, monthLabel: data.monthLabel, note: data.note, receiptUrl: data.receiptUrl },
+    me.id,
+  ).catch((err) => { console.error('[email] payment review:', err); });
   revalidatePath('/myaccount');
   revalidatePath('/admin/fund');
   revalidatePath('/dashboard');

@@ -4,7 +4,7 @@ import { meApprovedOrThrow } from '@/lib/auth-server';
 import { db } from '@/lib/db';
 import { payments, auditLog } from '@/lib/db/schema';
 import { monthStartFromLabel } from '@/lib/month';
-import { notifyMembers, fundApproverIds } from '@/lib/notify';
+import { notifyMembers, fundApproverIds, emailFundApprovers } from '@/lib/notify';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -48,6 +48,10 @@ export async function POST(req: NextRequest) {
       await fundApproverIds(me.id),
       { titleEn: 'New payment to review', titleUr: 'نئی ادائیگی برائے منظوری', en: `${me.nameEn || me.nameUr} submitted Rs ${data.amount} (${data.pool}) for ${data.monthLabel}.`, ur: `${me.nameUr || me.nameEn} نے ${data.monthLabel} کے لیے روپے ${data.amount} جمع کیے۔`, type: 'payment-pending' },
       { title: '🧾 New payment to review', body: `${me.nameEn || me.nameUr} — Rs ${data.amount} ${data.pool}`, data: { type: 'payment-pending' }, channelId: 'payments' },
+    ).catch(() => {});
+    void emailFundApprovers(
+      { memberName: me.nameEn || me.nameUr, amount: data.amount, pool: data.pool, monthLabel: data.monthLabel, note: data.note, receiptUrl: data.receiptUrl },
+      me.id,
     ).catch(() => {});
 
     return NextResponse.json(created, { status: 201 });
