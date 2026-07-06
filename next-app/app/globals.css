@@ -613,3 +613,16 @@ button:disabled,
 @media (prefers-reduced-motion: reduce) {
   .btn-signing::after { animation: none; display: none; }
 }
+
+/* Soft pulse ring behind the unread-notification badge. */
+.badge-pulse {
+  background: rgba(220, 82, 82, 0.45);
+  animation: badgePulse 2.4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+@keyframes badgePulse {
+  0%, 100% { transform: scale(1); opacity: 0.7; }
+  50%      { transform: scale(1.9); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .badge-pulse { animation: none; opacity: 0; }
+}
