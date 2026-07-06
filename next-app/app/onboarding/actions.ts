@@ -4,7 +4,7 @@ import { and, eq, lt, sql } from 'drizzle-orm';
 import { z } from 'zod';
 import { getSession } from '@/lib/auth-server';
 import { db } from '@/lib/db';
-import { members, memberInvites, auditLog } from '@/lib/db/schema';
+import { members, memberInvites, auditLog, users } from '@/lib/db/schema';
 import { sendWelcomeEmail } from '@/lib/email';
 import { notifyMembers, adminIds } from '@/lib/notify';
 
@@ -66,6 +66,8 @@ export async function onboardSelf(input: z.infer<typeof schema>) {
         status: 'pending',
       })
       .where(eq(members.id, byUsername.id));
+    // Username login: mirror the member username onto the auth user.
+    await db.update(users).set({ username: byUsername.username.toLowerCase(), displayUsername: byUsername.username }).where(eq(users.id, user.id));
     await db.insert(auditLog).values({
       actorId: byUsername.id,
       action: 'account-claimed',
@@ -92,6 +94,8 @@ export async function onboardSelf(input: z.infer<typeof schema>) {
     // Append last 4 chars of auth id to break the collision deterministically
     finalUsername = `${username}_${user.id.slice(-4)}`;
   }
+  // Username login: mirror the chosen username onto the auth user.
+  await db.update(users).set({ username: finalUsername.toLowerCase(), displayUsername: finalUsername }).where(eq(users.id, user.id));
 
   // Bootstrap: if there are no admins yet, the first user IS the admin —
   // auto-approved and elevated. This removes the chicken-and-egg of

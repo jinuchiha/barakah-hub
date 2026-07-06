@@ -1,5 +1,6 @@
 'use client';
 import { createAuthClient } from 'better-auth/react';
+import { usernameClient, emailOTPClient } from 'better-auth/client/plugins';
 
 /**
  * Better-Auth client — used in client components for sign-in / sign-up /
@@ -20,6 +21,7 @@ export const authClient = createAuthClient({
     typeof window !== 'undefined'
       ? window.location.origin
       : process.env.NEXT_PUBLIC_APP_URL,
+  plugins: [usernameClient(), emailOTPClient()],
 });
 
 // Re-export the most commonly used pieces so call-sites stay terse.

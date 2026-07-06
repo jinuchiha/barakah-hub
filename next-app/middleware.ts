@@ -15,7 +15,7 @@ import { getSessionCookie } from 'better-auth/cookies';
 
 // manifest + service worker must stay public or PWA install breaks for
 // logged-out visitors (the manifest request carries no session cookie).
-const PUBLIC_ROUTES = ['/login', '/register', '/forgot-password', '/reset-password', '/pending', '/rejected', '/join', '/manifest.webmanifest', '/sw.js'];
+const PUBLIC_ROUTES = ['/login', '/register', '/forgot-password', '/reset-password', '/verify-email', '/pending', '/rejected', '/join', '/manifest.webmanifest', '/sw.js'];
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
