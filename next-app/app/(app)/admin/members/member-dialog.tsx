@@ -187,7 +187,7 @@ export default function MemberDialog({ mode, allMembers, onClose }: Props) {
               onChange={(e) => set('province', e.target.value)}
               className="w-full rounded-md border border-[var(--border)] bg-[var(--surf-3)] px-3 py-2.5 text-sm text-[var(--color-cream)]"
             >
-              {PROVINCES.map((p) => <option key={p} value={p}>{p || '— Select —'}</option>)}
+              {PROVINCES.map((p) => <option key={p} value={p}>{p || 'Select province'}</option>)}
             </select>
           </div>
           <div>
@@ -219,7 +219,7 @@ export default function MemberDialog({ mode, allMembers, onClose }: Props) {
                   onChange={(e) => set('spouseId', e.target.value)}
                   className="w-full rounded-md border border-[var(--border)] bg-[var(--surf-3)] px-3 py-2.5 text-sm text-[var(--color-cream)]"
                 >
-                  <option value="">— None —</option>
+                  <option value="">None</option>
                   {spouseCandidates.map((c) => (
                     <option key={c.id} value={c.id}>
                       {c.nameEn || c.nameUr}{c.fatherName ? ` · s/o ${c.fatherName}` : ''}

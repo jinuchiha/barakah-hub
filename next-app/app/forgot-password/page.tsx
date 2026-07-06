@@ -16,7 +16,7 @@ export default function ForgotPasswordPage() {
           <CardBody>
             <div className="mb-4 rounded-md border border-[var(--border)] bg-[rgba(214,210,199,0.06)] p-3 text-center">
               <div className="font-[var(--font-arabic)] text-sm text-[var(--color-gold)]">يَسْأَلُونَكَ مَاذَا يُنفِقُونَ ۖ قُلِ الْعَفْوَ</div>
-              <div className="mt-1 font-[var(--font-en)] text-[10px] italic text-[var(--txt-3)]">They ask what they should spend — say: what is beyond your needs · Al-Baqarah 2:219</div>
+              <div className="mt-1 font-[var(--font-en)] text-[10px] italic text-[var(--txt-3)]">They ask what they should spend · say: what is beyond your needs · Al-Baqarah 2:219</div>
             </div>
             <ForgotForm />
             <p className="mt-4 text-center text-xs italic text-[var(--color-gold-4)]">

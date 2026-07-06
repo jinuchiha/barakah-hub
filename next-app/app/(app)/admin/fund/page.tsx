@@ -98,7 +98,7 @@ export default async function FundPage() {
             {awaitingSupervisor.length === 0 ? (
               <div className="py-14 text-center">
                 <div className="mx-auto mb-2 text-[var(--color-gold)] opacity-30 text-3xl">✓</div>
-                <div className="text-sm text-[var(--txt-3)]">All caught up — no pending payments</div>
+                <div className="text-sm text-[var(--txt-3)]">All caught up · no pending payments</div>
                 <div className="font-[var(--font-arabic)] mt-1 text-xs text-[var(--txt-4)]">الحمدللہ</div>
               </div>
             ) : (

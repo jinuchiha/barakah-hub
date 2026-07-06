@@ -7,7 +7,7 @@ import { getDailyVerse } from '@/lib/quran';
 import ZakatCalc from './zakat-calc';
 import { PrayerTimesCard } from '@/components/prayer-times-card';
 
-export const metadata = { title: 'Islamic Tools — Barakah Hub' };
+export const metadata = { title: 'Islamic Tools · Barakah Hub' };
 
 export default async function ToolsPage() {
   await getMeOrRedirect();

@@ -58,7 +58,7 @@ export default async function MembersPage({
       <Breadcrumb crumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Admin' }, { label: 'Members' }]} />
       {dbError && (
         <div className="mb-6 rounded-xl border border-red-500/30 bg-red-500/8 px-5 py-4 text-sm text-red-300">
-          <strong>Database error:</strong> Schema may be out of date — run pending migrations.
+          <strong>Database error:</strong> Schema may be out of date · run pending migrations.
           {process.env.NODE_ENV === 'development' && (
             <p className="mt-1 font-mono text-xs opacity-75">{dbError}</p>
           )}

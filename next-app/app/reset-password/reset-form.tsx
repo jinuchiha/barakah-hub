@@ -23,7 +23,7 @@ export default function ResetForm() {
     start(async () => {
       const { error } = await authClient.resetPassword({ newPassword: password, token });
       if (error) { toast.error(error.message ?? 'Reset failed'); return; }
-      toast.success('Password updated — sign in with your new password');
+      toast.success('Password updated · sign in with your new password');
       setTimeout(() => router.push('/login'), 1500);
     });
   }

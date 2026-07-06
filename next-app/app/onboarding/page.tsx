@@ -26,8 +26,8 @@ export default async function OnboardingPage() {
         <Card>
           <div className="absolute left-0 right-0 top-0 h-0.5 bg-gradient-to-r from-transparent via-[var(--color-gold)] to-transparent" />
           <div className="border-b border-[var(--border)] bg-[rgba(214,210,199,0.04)] p-6 text-center">
-            <h1 className="font-[var(--font-arabic)] text-2xl text-[var(--color-gold-2)]">خوش آمدید — پروفائل مکمل کریں</h1>
-            <div className="mt-1 font-[var(--font-en)] text-[11px] uppercase tracking-[3px] text-[var(--color-gold-4)]">Welcome — Complete your profile</div>
+            <h1 className="font-[var(--font-arabic)] text-2xl text-[var(--color-gold-2)]">خوش آمدید · پروفائل مکمل کریں</h1>
+            <div className="mt-1 font-[var(--font-en)] text-[11px] uppercase tracking-[3px] text-[var(--color-gold-4)]">Welcome · Complete your profile</div>
           </div>
           <CardBody>
             <div className="mb-4 rounded-md border border-[var(--border)] bg-[rgba(214,210,199,0.06)] p-3 text-center">

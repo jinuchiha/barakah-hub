@@ -81,7 +81,7 @@ export function BrightCrescent({ value, size = 96, className }: Props) {
         </motion.g>
       </svg>
       {pulsing && (
-        <span className="sr-only" aria-live="polite">New donation — crescent brightened</span>
+        <span className="sr-only" aria-live="polite">New donation · crescent brightened</span>
       )}
     </div>
   );

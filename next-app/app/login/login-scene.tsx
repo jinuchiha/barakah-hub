@@ -1,5 +1,6 @@
 'use client';
 import { motion, useMotionValue, useReducedMotion, useSpring, useTransform } from 'motion/react';
+import { BarakahFieldMount } from '@/components/barakah-field-mount';
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
@@ -74,6 +75,7 @@ export default function LoginScene({ children }: { children: React.ReactNode }) 
   return (
     <div className="relative z-10 grid min-h-screen place-items-center p-5">
       {/* Depth layers */}
+      <BarakahFieldMount />
       <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
         <EightPointStar
           className="star-spin absolute text-[var(--color-gold)]"

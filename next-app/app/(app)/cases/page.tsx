@@ -72,7 +72,7 @@ export default async function CasesPage() {
 
       <div className="space-y-3">
         {allCases.length === 0 && (
-          <Card><CardBody className="py-10 text-center text-sm italic text-[var(--txt-3)]">الحمدللہ — اس وقت سب خیریت ہے · No emergency cases yet</CardBody></Card>
+          <Card><CardBody className="py-10 text-center text-sm italic text-[var(--txt-3)]">الحمدللہ · اس وقت سب خیریت ہے · No emergency cases yet</CardBody></Card>
         )}
         {allCases.map((c) => {
           const applicant = memById.get(c.applicantId);
@@ -121,7 +121,7 @@ export default async function CasesPage() {
                       <VoteButtons caseId={c.id} alreadyVoted={!!myVote} />
                     )}
                     {c.applicantId === me.id && !isAdmin && (
-                      <div className="text-xs italic text-[var(--txt-3)]">Your own request — cannot self-vote.</div>
+                      <div className="text-xs italic text-[var(--txt-3)]">Your own request · cannot self-vote.</div>
                     )}
                   </>
                 )}

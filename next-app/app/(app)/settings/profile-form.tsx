@@ -76,7 +76,7 @@ export default function ProfileForm({ member }: { member: Member }) {
         <div className="md:col-span-2">
           <Label htmlFor="prof-province">Province</Label>
           <select id="prof-province" value={form.province} onChange={(e) => set('province', e.target.value)} className="w-full rounded-md border border-[var(--border)] bg-[var(--surf-3)] px-3 py-2.5 text-sm text-[var(--color-cream)]">
-            {PROVINCES.map((p) => <option key={p} value={p}>{p || '— Select —'}</option>)}
+            {PROVINCES.map((p) => <option key={p} value={p}>{p || 'Select province'}</option>)}
           </select>
         </div>
       </div>

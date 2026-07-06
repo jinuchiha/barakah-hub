@@ -19,7 +19,7 @@ export default function ForgotForm() {
         redirectTo: `${window.location.origin}/reset-password`,
       });
       if (error) { toast.error(error.message ?? 'Reset failed'); return; }
-      toast.success('Reset email sent — check your inbox');
+      toast.success('Reset email sent · check your inbox');
       setTimeout(() => router.push('/login'), 1800);
     });
   }
