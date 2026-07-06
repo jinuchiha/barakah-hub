@@ -9,7 +9,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/stores/auth.store';
 import { useTheme } from '@/lib/useTheme';
 import { useDashboard } from '@/hooks/useDashboard';
-import { useMyPayments } from '@/hooks/usePayments';
+import { useAllPayments } from '@/hooks/usePayments';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { SkeletonCard } from '@/components/ui/Skeleton';
@@ -51,8 +51,8 @@ export default function AnalyticsScreen() {
   const router = useRouter();
   const { user } = useAuthStore();
   const { colors } = useTheme();
-  const { data, isLoading, refetch, isRefetching } = useDashboard();
-  const { data: payments } = useMyPayments();
+  const { data, isLoading, isError, refetch, isRefetching } = useDashboard();
+  const { data: payments } = useAllPayments();
 
   const isAdmin = user?.role === 'admin';
 
@@ -113,7 +113,9 @@ export default function AnalyticsScreen() {
           <Text style={[styles.sub, { color: colors.text4 }]}>{t('analytics.subtitle')}</Text>
         </Animated.View>
 
-        {isLoading ? (
+        {isError ? (
+          <EmptyState icon="alert-circle-outline" title={t('common.error')} />
+        ) : isLoading ? (
           <>
             <SkeletonCard style={{ margin: 16 }} />
             <SkeletonCard style={{ margin: 16, marginTop: 0 }} />
@@ -148,7 +150,7 @@ export default function AnalyticsScreen() {
           </>
         )}
 
-        {!isLoading && (
+        {!isLoading && !isError && (
         <Animated.View entering={FadeInDown.duration(400).delay(400)}>
           <SectionTitle label={t('analytics.summary')} />
           <GlassCard style={styles.summaryCard}>

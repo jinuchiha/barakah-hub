@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
   Dimensions, TextInput,
@@ -23,7 +23,11 @@ import { GlassCard } from '@/components/ui/GlassCard';
 
 const { width: SW, height: SH } = Dimensions.get('window');
 
-function MemberSheet({ node, onClose }: { node: LayoutNode; onClose: () => void }) {
+function MemberSheet({ node, onClose, onViewProfile }: {
+  node: LayoutNode;
+  onClose: () => void;
+  onViewProfile: (id: string) => void;
+}) {
   const { colors } = useTheme();
   return (
     <View style={[styles.sheet, { backgroundColor: colors.bg2, borderTopColor: colors.border1 }]}>
@@ -40,6 +44,15 @@ function MemberSheet({ node, onClose }: { node: LayoutNode; onClose: () => void 
         ) : null}
         {node.deceased ? (
           <Text style={[styles.deceased, { color: colors.text4 }]}>Rahimahullah</Text>
+        ) : null}
+        {!node.isVirtual ? (
+          <TouchableOpacity
+            style={[styles.profileBtn, { backgroundColor: colors.primaryDim, borderColor: colors.primary }]}
+            onPress={() => { onClose(); onViewProfile(node.id); }}
+          >
+            <MaterialCommunityIcons name="account-arrow-right-outline" size={16} color={colors.primary} />
+            <Text style={[styles.profileBtnText, { color: colors.primary }]}>View Profile</Text>
+          </TouchableOpacity>
         ) : null}
       </View>
       <TouchableOpacity
@@ -102,6 +115,10 @@ export default function FamilyTreeScreen() {
     [treeNodes],
   );
 
+  useEffect(() => {
+    if (treeW > 0) translateX.value = -treeW / 2;
+  }, [treeW]);
+
   const allNodes = useMemo(() => flattenTree(roots), [roots]);
   const edges = useMemo(() => buildEdges(roots), [roots]);
 
@@ -117,7 +134,7 @@ export default function FamilyTreeScreen() {
   const canvasH = Math.max(treeH + 200, SH * 1.5);
 
   const resetView = () => {
-    translateX.value = withSpring(0);
+    translateX.value = withSpring(-treeW / 2);
     translateY.value = withSpring(0);
     scale.value = withSpring(1);
   };
@@ -194,7 +211,11 @@ export default function FamilyTreeScreen() {
       ) : null}
 
       {selected ? (
-        <MemberSheet node={selected} onClose={() => setSelected(null)} />
+        <MemberSheet
+          node={selected}
+          onClose={() => setSelected(null)}
+          onViewProfile={(id) => router.push(`/members/${id}`)}
+        />
       ) : null}
     </SafeAreaView>
   );
@@ -251,6 +272,17 @@ const styles = StyleSheet.create({
   sheetName: { fontSize: 18, fontFamily: 'Inter_700Bold' },
   sheetSub: { fontSize: 14, fontFamily: 'Inter_400Regular' },
   deceased: { fontSize: 12, fontFamily: 'Inter_400Regular', fontStyle: 'italic' },
+  profileBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 8,
+    borderRadius: radius.full,
+    borderWidth: 1,
+    marginTop: spacing.xs,
+  },
+  profileBtnText: { fontSize: 13, fontFamily: 'Inter_600SemiBold' },
   closeSheet: {
     position: 'absolute',
     top: spacing.md,

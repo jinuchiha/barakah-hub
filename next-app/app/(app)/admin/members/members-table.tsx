@@ -10,6 +10,7 @@ import { hardDeleteMember } from '@/app/actions';
 import { toast } from 'sonner';
 import type { Member } from '@/lib/db/schema';
 import MemberDialog from './member-dialog';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 
 interface Props { initial: Member[] }
 
@@ -38,6 +39,7 @@ export default function MembersTable({ initial }: Props) {
   const [sortDir, setSortDir] = useState<SortDir>('asc');
   const [pending, startTransition] = useTransition();
   const [dialog, setDialog] = useState<{ kind: 'add' } | { kind: 'edit'; member: Member } | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Member | null>(null);
 
   function toggleSort(key: SortKey) {
     if (sortKey === key) setSortDir((d) => d === 'asc' ? 'desc' : 'asc');
@@ -86,8 +88,9 @@ export default function MembersTable({ initial }: Props) {
     window.open(`https://wa.me/${p}?text=${encodeURIComponent(text)}`, '_blank');
   }
 
-  function onDelete(m: Member) {
-    if (!confirm(`Delete ${m.nameEn || m.nameUr}? Children will be re-parented to admin.`)) return;
+  function confirmDelete(m: Member) { setDeleteTarget(m); }
+
+  function doDelete(m: Member) {
     startTransition(async () => {
       try { await hardDeleteMember(m.id); toast.success('Deleted'); }
       catch (e: unknown) { toast.error(e instanceof Error ? e.message : 'Failed'); }
@@ -137,7 +140,7 @@ export default function MembersTable({ initial }: Props) {
                   <td className="px-4 py-2 font-[var(--font-en)] text-xs text-[var(--color-gold-4)]">{i + 1}</td>
                   <td className="px-4 py-2">
                     <div className="flex items-center gap-2.5">
-                      <div className="grid size-7 place-items-center rounded-full text-[10px] font-bold text-white" style={{ background: m.color }}>
+                      <div className="grid size-7 shrink-0 place-items-center overflow-hidden rounded-full text-[10px] font-bold text-white" style={{ background: m.color }}>
                         {m.photoUrl ? <img src={m.photoUrl} alt={m.nameEn || m.nameUr || 'Member photo'} className="size-full rounded-full object-cover" /> : ini(m.nameEn || m.nameUr)}
                       </div>
                       <div>
@@ -171,7 +174,7 @@ export default function MembersTable({ initial }: Props) {
                         </button>
                       )}
                       {m.role !== 'admin' && (
-                        <button type="button" title="Delete" aria-label={`Delete ${m.nameEn || m.nameUr}`} onClick={() => onDelete(m)} disabled={pending} className="rounded p-1.5 hover:bg-[rgba(220,50,50,0.15)] disabled:opacity-50">
+                        <button type="button" title="Delete" aria-label={`Delete ${m.nameEn || m.nameUr}`} onClick={() => confirmDelete(m)} disabled={pending} className="rounded p-1.5 hover:bg-[rgba(220,50,50,0.15)] disabled:opacity-50">
                           <Trash2 className="size-3.5 text-[#f87171]" />
                         </button>
                       )}
@@ -194,6 +197,15 @@ export default function MembersTable({ initial }: Props) {
           onClose={() => setDialog(null)}
         />
       )}
+      <ConfirmDialog
+        open={!!deleteTarget}
+        onOpenChange={(o) => { if (!o) setDeleteTarget(null); }}
+        title="Delete Member"
+        description={`Delete ${(deleteTarget?.nameEn || deleteTarget?.nameUr) ?? 'this member'}? Children will be re-parented to admin.`}
+        confirmLabel="Delete"
+        destructive
+        onConfirm={() => { if (deleteTarget) doDelete(deleteTarget); }}
+      />
     </Card>
   );
 }
@@ -218,7 +230,9 @@ function SortTh({ label, col, sortKey, dir, onSort, right }: {
     <th
       className={`px-4 py-3 ${right ? 'text-right' : 'text-left'}`}
       style={{ cursor: 'pointer', userSelect: 'none' }}
+      tabIndex={0}
       onClick={() => onSort(col)}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSort(col); } }}
       aria-sort={active ? (dir === 'asc' ? 'ascending' : 'descending') : 'none'}
     >
       <span className={`inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-[1.5px] transition-colors ${active ? 'text-[var(--color-gold)]' : 'text-[var(--txt-4)] hover:text-[var(--txt-2)]'}`}>

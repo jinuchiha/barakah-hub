@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import {
   View, Text, StyleSheet, RefreshControl, TouchableOpacity, Alert,
 } from 'react-native';
@@ -16,6 +16,9 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { BrandedEmptyState } from '@/components/ui/BrandedEmptyState';
 import { StatCard } from '@/components/ui/StatCard';
 import { useMyPayments, useSubmitDonation } from '@/hooks/usePayments';
+import { useConfig } from '@/hooks/useConfig';
+import { useAuthStore } from '@/stores/auth.store';
+import { unlockAchievement } from '@/lib/achievements';
 import { formatPKR } from '@/lib/format';
 import { useTheme } from '@/lib/useTheme';
 import { spacing, radius } from '@/lib/theme';
@@ -50,7 +53,7 @@ function FABButton({ onPress }: { onPress: () => void }) {
       accessibilityLabel="Submit payment"
       accessibilityRole="button"
     >
-      <MaterialCommunityIcons name="plus" size={26} color="#0a0a0f" />
+      <MaterialCommunityIcons name="plus" size={26} color={colors.bg0} />
     </TouchableOpacity>
   );
 }
@@ -58,11 +61,27 @@ function FABButton({ onPress }: { onPress: () => void }) {
 function PaymentsScreen() {
   const { colors } = useTheme();
   const { t } = useTranslation();
+  const { user } = useAuthStore();
   const [showModal, setShowModal] = useState(false);
-  const [showSuccess, setShowSuccess] = useState(false);
+  const [successToast, setSuccessToast] = useState(false);
+  const [achievementMsg, setAchievementMsg] = useState<string | null>(null);
+  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [poolFilter, setPoolFilter] = useState<FundPool | 'all'>('all');
-  const { data, isLoading, refetch, isRefetching } = useMyPayments();
+  const { data, isLoading, isError, refetch, isRefetching } = useMyPayments();
   const submitMutation = useSubmitDonation();
+  const { data: config } = useConfig();
+  const achievementTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [modalMounted, setModalMounted] = useState(false);
+
+  useEffect(() => {
+    // Pre-warm modal 300ms after screen mounts so first open is instant
+    const t = setTimeout(() => setModalMounted(true), 300);
+    return () => {
+      clearTimeout(t);
+      if (achievementTimer.current) clearTimeout(achievementTimer.current);
+      if (toastTimer.current) clearTimeout(toastTimer.current);
+    };
+  }, []);
 
   const POOLS: Array<{ value: FundPool | 'all'; label: string }> = [
     { value: 'all', label: t('payments.all') },
@@ -84,13 +103,20 @@ function PaymentsScreen() {
 
   const pendingCount = data?.filter((p) => p.pendingVerify).length ?? 0;
 
+  // No try/catch here — errors propagate to PaymentSubmitModal which shows Alert.
   const handleSubmit = async (formData: { amount: number; pool: FundPool; monthLabel: string; note?: string; receiptUrl?: string }) => {
-    try {
-      await submitMutation.mutateAsync(formData);
-      setShowModal(false);
-      setShowSuccess(true);
-    } catch (err) {
-      Alert.alert('Error', err instanceof Error ? err.message : 'Submission failed');
+    await submitMutation.mutateAsync(formData);
+    setShowModal(false);
+    setSuccessToast(true);
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+    toastTimer.current = setTimeout(() => setSuccessToast(false), 2500);
+    const unlocked = unlockAchievement('first_donation');
+    if (unlocked) {
+      achievementTimer.current = setTimeout(() => setAchievementMsg('First Donation! +50 pts'), 1600);
+    }
+    const pledge = user?.monthlyPledge ?? 0;
+    if (pledge > 0 && formData.amount >= pledge * 2) {
+      unlockAchievement('generous_heart');
     }
   };
 
@@ -119,7 +145,9 @@ function PaymentsScreen() {
         ))}
       </Animated.View>
 
-      {isLoading ? (
+      {isError ? (
+        <EmptyState icon="alert-circle-outline" title={t('common.error')} actionLabel={t('common.retry')} onAction={() => void refetch()} />
+      ) : isLoading ? (
         <EmptyState icon="loading" title={t('common.loading')} />
       ) : (
         <FlashList
@@ -142,18 +170,31 @@ function PaymentsScreen() {
       )}
 
       <FABButton onPress={() => setShowModal(true)} />
+
+      {successToast ? (
+        <Animated.View entering={FadeInDown.duration(250)} style={[styles.toast, { backgroundColor: colors.bg2, borderColor: colors.success }]}>
+          <MaterialCommunityIcons name="check-circle" size={18} color={colors.success} />
+          <Text style={[styles.toastText, { color: colors.text1 }]}>Submitted! Pending admin review.</Text>
+        </Animated.View>
+      ) : null}
+
       <SuccessOverlay
-        visible={showSuccess}
+        visible={achievementMsg !== null}
         type="success"
-        message="Submitted!"
-        onDone={() => setShowSuccess(false)}
+        message={achievementMsg ?? ''}
+        onDone={() => setAchievementMsg(null)}
+        autoDismissMs={2200}
       />
 
-      <PaymentSubmitModal
-        visible={showModal}
-        onClose={() => setShowModal(false)}
-        onSubmit={handleSubmit}
-      />
+      {modalMounted && (
+        <PaymentSubmitModal
+          visible={showModal}
+          onClose={() => setShowModal(false)}
+          onSubmit={handleSubmit}
+          easyPaiseNumber={config?.easyPaiseNumber ?? undefined}
+          easyPaiseName={config?.easyPaiseName ?? undefined}
+        />
+      )}
     </SafeAreaView>
   );
 }
@@ -203,5 +244,27 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 6,
     elevation: 3,
+  },
+  toast: {
+    position: 'absolute',
+    bottom: 160,
+    left: spacing.md,
+    right: spacing.md,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    padding: spacing.md,
+    borderRadius: radius.lg,
+    borderWidth: 1.5,
+    zIndex: 200,
+    shadowColor: '#000',
+    shadowOpacity: 0.18,
+    shadowRadius: 8,
+    elevation: 10,
+  },
+  toastText: {
+    fontSize: 13,
+    fontFamily: 'Inter_600SemiBold',
+    flex: 1,
   },
 });

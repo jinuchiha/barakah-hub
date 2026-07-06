@@ -9,7 +9,7 @@
  *  - `audit_log` is append-only (DB triggers in migration 0002 enforce this).
  *  - Soft-delete via `deceased` flag on members.
  */
-import { pgTable, pgEnum, uuid, text, integer, timestamp, boolean, jsonb, index, primaryKey, date } from 'drizzle-orm/pg-core';
+import { pgTable, pgEnum, uuid, text, integer, timestamp, boolean, jsonb, index, primaryKey, date, type AnyPgColumn } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
 /* ─── BETTER-AUTH TABLES ─── */
@@ -86,12 +86,12 @@ export const members = pgTable('members', {
   fatherDeceased: boolean('father_deceased').notNull().default(false),
   clan: text('clan'),
   relation: text('relation'),
-  parentId: uuid('parent_id').references((): any => members.id, { onDelete: 'set null' }),
+  parentId: uuid('parent_id').references((): AnyPgColumn => members.id, { onDelete: 'set null' }),
   // Optional husband/wife pairing. Kept in sync bidirectionally by the
   // admin edit action — see updateMember in app/actions.ts. Used by the
   // family tree to render couples side-by-side and to walk lineage from
   // both partners' fathers.
-  spouseId: uuid('spouse_id').references((): any => members.id, { onDelete: 'set null' }),
+  spouseId: uuid('spouse_id').references((): AnyPgColumn => members.id, { onDelete: 'set null' }),
   role: roleEnum('role').notNull().default('member'),
   status: statusEnum('status').notNull().default('pending'),
   phone: text('phone'),

@@ -1,11 +1,38 @@
 import { NextResponse } from 'next/server';
-import { eq } from 'drizzle-orm';
-import { meOrThrow } from '@/lib/auth-server';
+import { eq, count, and } from 'drizzle-orm';
+import { meOrThrow, meApprovedOrThrow } from '@/lib/auth-server';
 import { db } from '@/lib/db';
-import { cases, loans, auditLog } from '@/lib/db/schema';
+import { cases, votes, members, loans, auditLog } from '@/lib/db/schema';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
+
+/** GET /api/cases/[id] — single case with vote counts, used by useRealtimeCase. */
+export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+  try {
+    const me = await meApprovedOrThrow();
+    const { id: caseId } = await params;
+    const [c] = await db.select().from(cases).where(eq(cases.id, caseId)).limit(1);
+    if (!c) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+
+    const caseVotes = await db.select().from(votes).where(eq(votes.caseId, caseId));
+    const [{ value: eligibleCount }] = await db
+      .select({ value: count() })
+      .from(members)
+      .where(and(eq(members.deceased, false), eq(members.status, 'approved')));
+    const myVote = caseVotes.find((v) => v.memberId === me.id);
+
+    return NextResponse.json({
+      ...c,
+      yesVotes: caseVotes.filter((v) => v.vote).length,
+      noVotes: caseVotes.filter((v) => !v.vote).length,
+      totalEligible: Math.max(1, eligibleCount - 1),
+      myVote: myVote ? myVote.vote : null,
+    });
+  } catch {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+}
 
 /**
  * Admin delete. Votes cascade via the votes.caseId FK. Disbursed cases

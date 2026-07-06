@@ -38,7 +38,8 @@ export default function HelpScreen() {
   const router = useRouter();
   const { colors } = useTheme();
   const { t } = useTranslation();
-  const FAQ = t('help.faq', { returnObjects: true }) as FaqItem[];
+  const faqRaw = t('help.faq', { returnObjects: true });
+  const FAQ: FaqItem[] = Array.isArray(faqRaw) ? (faqRaw as FaqItem[]) : [];
   const [openIdx, setOpenIdx] = useState<number | null>(null);
 
   const toggle = (i: number) => {

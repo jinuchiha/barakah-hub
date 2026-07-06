@@ -59,10 +59,8 @@ export function SuccessOverlay({ visible, type = 'success', message, onDone, aut
   const overlayStyle = useAnimatedStyle(() => ({ opacity: opacity.value }));
   const cardStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
 
-  if (!visible) return null;
-
   return (
-    <Modal transparent visible animationType="none" onRequestClose={onDone}>
+    <Modal transparent visible={visible} animationType="none" onRequestClose={onDone}>
       <Animated.View style={[styles.backdrop, overlayStyle]}>
         <Animated.View style={[styles.card, { backgroundColor: colors.bg2, borderColor: `${color}30` }, cardStyle]}>
           {type === 'success' ? <CheckIcon color={color} /> : <ErrorIcon color={color} />}

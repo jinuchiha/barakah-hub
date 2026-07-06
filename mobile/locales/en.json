@@ -59,12 +59,12 @@
     "incorrectPin": "Incorrect PIN. {{count}} attempt{{plural}} remaining."
   },
   "nav": {
-    "dashboard": "Dashboard",
-    "payments": "Payments",
+    "dashboard": "Home",
+    "payments": "Pay",
     "cases": "Cases",
     "loans": "Loans",
     "profile": "Profile",
-    "analytics": "Analytics"
+    "analytics": "Stats"
   },
   "dashboard": {
     "title": "Dashboard",

@@ -1,6 +1,8 @@
 import { redirect } from 'next/navigation';
-import { eq, desc, sql, and, isNull, isNotNull, or } from 'drizzle-orm';
+import type { Route } from 'next';
+import { eq, desc, sql, and, isNull, isNotNull } from 'drizzle-orm';
 import { getMeOrRedirect, canManageFunds } from '@/lib/auth-server';
+import { currentMonthLabel } from '@/lib/month';
 import { db } from '@/lib/db';
 import { members, payments } from '@/lib/db/schema';
 import { Card, CardHeader, CardTitle, CardBody } from '@/components/ui/card';
@@ -192,6 +194,23 @@ export default async function FundPage() {
   }
   const chartBuckets = [...bucketMap.values()].slice(0, 12).reverse();
 
+  // This-month contribution board — who has paid, who is pending, who hasn't.
+  const nowLabel = currentMonthLabel();
+  const monthPayments = await db
+    .select({ memberId: payments.memberId, pendingVerify: payments.pendingVerify })
+    .from(payments)
+    .where(eq(payments.monthLabel, nowLabel));
+  const monthStatus = new Map<string, 'paid' | 'pending'>();
+  for (const p of monthPayments) {
+    const prev = monthStatus.get(p.memberId);
+    if (!p.pendingVerify) monthStatus.set(p.memberId, 'paid');
+    else if (prev !== 'paid') monthStatus.set(p.memberId, 'pending');
+  }
+  const boardMembers = allMembers
+    .filter((m) => m.status === 'approved' && !m.deceased)
+    .sort((a, b) => (a.nameEn || a.nameUr || '').localeCompare(b.nameEn || b.nameUr || ''));
+  const paidCount = boardMembers.filter((m) => monthStatus.get(m.id) === 'paid').length;
+
   return (
     <div className="mx-auto max-w-[1400px]">
       <Breadcrumb crumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Admin' }, { label: 'Fund Register' }]} />
@@ -205,7 +224,7 @@ export default async function FundPage() {
           </h1>
           <p className="font-[var(--font-arabic)] mt-1 text-sm text-[var(--color-gold-2)]">فنڈ رجسٹر · صدقہ / زکوٰة / قرض</p>
         </div>
-        <ExportLink href={'/api/exports/fund' as any}>Export CSV</ExportLink>
+        <ExportLink href={'/api/exports/fund' as Route}>Export CSV</ExportLink>
       </header>
 
       <div className="mb-6 grid gap-3 grid-cols-3">
@@ -218,6 +237,48 @@ export default async function FundPage() {
         <CardHeader><CardTitle>Monthly Inflow · Last {chartBuckets.length} Months</CardTitle></CardHeader>
         <CardBody>
           <MonthlyFundChart buckets={chartBuckets} />
+        </CardBody>
+      </Card>
+
+      <Card className="mb-4">
+        <CardHeader>
+          <CardTitle>This Month · {nowLabel}</CardTitle>
+          <span className="text-[11px] text-[var(--color-gold-4)]">
+            <span className="tabular font-semibold text-[var(--color-gold-2)]">{paidCount}</span>
+            /{boardMembers.length} contributed
+          </span>
+        </CardHeader>
+        <CardBody>
+          <div className="flex flex-wrap gap-2">
+            {boardMembers.map((m) => {
+              const st = monthStatus.get(m.id);
+              const name = m.nameEn || m.nameUr || '—';
+              return (
+                <span
+                  key={m.id}
+                  title={st === 'paid' ? 'Verified this month' : st === 'pending' ? 'Awaiting verification' : 'No contribution yet'}
+                  className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[11.5px] transition-colors duration-200"
+                  style={
+                    st === 'paid'
+                      ? { borderColor: 'rgba(45,138,95,0.45)', background: 'rgba(45,138,95,0.10)', color: '#4ec38d' }
+                      : st === 'pending'
+                        ? { borderColor: 'rgba(200,155,60,0.40)', background: 'rgba(200,155,60,0.08)', color: 'var(--color-gold-2)' }
+                        : { borderColor: 'var(--border)', color: 'var(--txt-4)' }
+                  }
+                >
+                  <span
+                    aria-hidden
+                    className="size-1.5 rounded-full"
+                    style={{ background: st === 'paid' ? '#4ec38d' : st === 'pending' ? 'var(--color-gold-2)' : 'var(--txt-4)' }}
+                  />
+                  {name}
+                </span>
+              );
+            })}
+            {boardMembers.length === 0 && (
+              <span className="text-sm italic text-[var(--txt-3)]">No approved members yet.</span>
+            )}
+          </div>
         </CardBody>
       </Card>
 

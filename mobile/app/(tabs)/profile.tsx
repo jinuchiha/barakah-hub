@@ -14,6 +14,8 @@ import { StatCard } from '@/components/ui/StatCard';
 import { Button } from '@/components/ui/Button';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { useAuth } from '@/hooks/useAuth';
+import { useAuthStore } from '@/stores/auth.store';
+import { updateProfile } from '@/lib/auth';
 import { useMyPayments } from '@/hooks/usePayments';
 import { useMyLoans } from '@/hooks/useLoans';
 import { useBiometric } from '@/hooks/useBiometric';
@@ -80,6 +82,7 @@ function SettingsGroup({ title, children }: { title: string; children: React.Rea
 function ProfileScreen() {
   const router = useRouter();
   const { user, logout, language, switchLanguage } = useAuth();
+  const setUser = useAuthStore((s) => s.setUser);
   const { colors } = useTheme();
   const { t } = useTranslation();
   const { data: payments } = useMyPayments();
@@ -131,6 +134,18 @@ function ProfileScreen() {
     }
   };
 
+  const handleAvatarUploaded = async (url: string) => {
+    if (!user) return;
+    const previous = user;
+    setUser({ ...previous, photoUrl: url });
+    try {
+      await updateProfile({ photoUrl: url });
+    } catch {
+      setUser(previous);
+      Alert.alert(t('common.error'), t('editProfile.failedToSave'));
+    }
+  };
+
   if (!user) return <LoadingScreen />;
 
   return (
@@ -141,6 +156,7 @@ function ProfileScreen() {
             name={user.nameEn || user.nameUr}
             color={user.color}
             currentUrl={user.photoUrl}
+            onUploadComplete={handleAvatarUploaded}
           />
           <Text style={[styles.profileName, { color: colors.text1 }]}>{user.nameEn}</Text>
           {user.nameUr ? <Text style={[styles.profileNameUr, { color: colors.text3 }]}>{user.nameUr}</Text> : null}
@@ -152,10 +168,12 @@ function ProfileScreen() {
           </Text>
         </Animated.View>
 
-        <Animated.View entering={FadeInDown.duration(400).delay(80)} style={styles.statsRow}>
-          <StatCard icon="cash-check" value={formatPKR(totalDonated)} label={t('profile.totalDonated')} style={styles.stat} />
-          <StatCard icon="hand-heart-outline" value={formatPKR(user.monthlyPledge)} label={t('profile.monthlyPledge')} iconColor={colors.gold} style={styles.stat} />
-          <StatCard icon="handshake-outline" value={`${activeLoans}`} label={t('profile.activeLoans')} iconColor={colors.accent} style={styles.stat} />
+        <Animated.View entering={FadeInDown.duration(400).delay(80)} style={styles.statsOuter}>
+          <View style={styles.statsRow}>
+            <StatCard icon="cash-check" value={formatPKR(totalDonated)} label={t('profile.totalDonated')} style={styles.statHalf} />
+            <StatCard icon="hand-heart-outline" value={formatPKR(user.monthlyPledge)} label={t('profile.monthlyPledge')} iconColor={colors.gold} style={styles.statHalf} />
+          </View>
+          <StatCard icon="handshake-outline" value={`${activeLoans}`} label={t('profile.activeLoans')} iconColor={colors.accent} />
         </Animated.View>
 
         <SettingsGroup title={t('profile.account')}>
@@ -288,11 +306,9 @@ const styles = StyleSheet.create({
     fontFamily: 'SpaceMono_400Regular',
     marginTop: 4,
   },
-  statsRow: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-    marginBottom: spacing.md,
-  },
+  statsOuter: { gap: spacing.sm, marginBottom: spacing.md },
+  statsRow: { flexDirection: 'row', gap: spacing.sm },
+  statHalf: { flex: 1 },
   stat: { flex: 1 },
   settingsGroup: {
     marginBottom: spacing.md,

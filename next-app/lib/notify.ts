@@ -1,7 +1,8 @@
-import { and, eq, inArray } from 'drizzle-orm';
+import { and, eq, inArray, isNotNull } from 'drizzle-orm';
 import { db } from '@/lib/db';
-import { members, notifications } from '@/lib/db/schema';
+import { members, notifications, users } from '@/lib/db/schema';
 import { sendPushToMembers, type PushPayload } from '@/lib/push';
+import { sendPaymentReviewEmail, type ReviewInput } from '@/lib/email';
 
 export interface NotifContent {
   titleEn: string;
@@ -39,6 +40,29 @@ export async function fundApproverIds(excludeId?: string): Promise<string[]> {
       inArray(members.role, ['admin', 'supervisor']),
     ));
   return rows.filter((r) => r.id !== excludeId).map((r) => r.id);
+}
+
+/**
+ * Email every fund approver (supervisors + admins) a receipt-style
+ * "payment awaiting review" — the in-app/push twin of notifyMembers.
+ * Fire-and-forget from callers: email failure must never block a payment.
+ */
+export async function emailFundApprovers(review: ReviewInput, excludeId?: string): Promise<void> {
+  const rows = await db
+    .select({ id: members.id, email: users.email })
+    .from(members)
+    .innerJoin(users, eq(users.id, members.authId))
+    .where(and(
+      eq(members.deceased, false),
+      eq(members.status, 'approved'),
+      inArray(members.role, ['admin', 'supervisor']),
+      isNotNull(users.email),
+    ));
+  await Promise.allSettled(
+    rows
+      .filter((r) => r.id !== excludeId && r.email)
+      .map((r) => sendPaymentReviewEmail(r.email, review)),
+  );
 }
 
 /** Approved, living admins, excluding the actor. */

@@ -1,6 +1,6 @@
 'use client';
 import * as React from 'react';
-import { motion, useReducedMotion } from 'motion/react';
+import { motion, useMotionValue, useReducedMotion, useSpring, useTransform } from 'motion/react';
 import { cn } from '@/lib/utils';
 
 type Tone = 'emerald' | 'gold' | 'ruby' | 'sapphire' | 'violet' | 'ocean';
@@ -34,8 +34,27 @@ export function StatCard({ label, sublabel, value, hint, tone = 'emerald', spark
   const reduce = useReducedMotion();
   const deltaSign = delta?.[0] === '-' ? 'down' : delta?.[0] === '+' ? 'up' : null;
 
+  // Pointer-tracked 3D tilt — ±4° max, spring-damped, off for reduced motion.
+  const px = useMotionValue(0.5);
+  const py = useMotionValue(0.5);
+  const rotateX = useSpring(useTransform(py, [0, 1], [4, -4]), { stiffness: 260, damping: 24 });
+  const rotateY = useSpring(useTransform(px, [0, 1], [-4, 4]), { stiffness: 260, damping: 24 });
+
+  function track(e: React.PointerEvent<HTMLDivElement>) {
+    if (reduce || e.pointerType === 'touch') return;
+    const r = e.currentTarget.getBoundingClientRect();
+    px.set((e.clientX - r.left) / r.width);
+    py.set((e.clientY - r.top) / r.height);
+  }
+  function settle() {
+    px.set(0.5);
+    py.set(0.5);
+  }
+
   return (
     <motion.div
+      onPointerMove={track}
+      onPointerLeave={settle}
       whileHover={reduce ? undefined : { y: -2, scale: 1.012 }}
       transition={{ type: 'spring', stiffness: 420, damping: 28 }}
       className={cn(
@@ -44,6 +63,9 @@ export function StatCard({ label, sublabel, value, hint, tone = 'emerald', spark
       )}
       style={{
         boxShadow: `inset 3px 0 0 0 ${accent}, 0 8px 24px -8px ${accent}35`,
+        rotateX: reduce ? 0 : rotateX,
+        rotateY: reduce ? 0 : rotateY,
+        transformPerspective: 900,
       }}
     >
       {/* Radial ambient glow */}

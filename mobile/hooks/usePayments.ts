@@ -72,10 +72,7 @@ export function useSubmitDonation() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: submitDonation,
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['payments'] });
-      qc.invalidateQueries({ queryKey: ['dashboard'] });
-    },
+    onSuccess: () => invalidatePaymentQueries(qc),
   });
 }
 

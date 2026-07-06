@@ -1,7 +1,8 @@
 import { create } from 'zustand';
 import type { MemberWithSession } from '@/types';
+import type { SupportedLanguage } from '@/lib/i18n';
 
-type Language = 'en' | 'ur';
+type Language = SupportedLanguage;
 
 interface AuthState {
   user: MemberWithSession | null;
@@ -10,7 +11,7 @@ interface AuthState {
   language: Language;
   setUser: (user: MemberWithSession | null) => void;
   setLoading: (loading: boolean) => void;
-  setLanguage: (lang: Language) => void;
+  setLanguage: (lang: SupportedLanguage) => void;
   logout: () => void;
 }
 

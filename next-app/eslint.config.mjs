@@ -9,6 +9,9 @@ const config = [
     rules: {
       '@typescript-eslint/no-explicit-any': 'warn',
       '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
+      // All <img> uses are blob/data URLs (avatars, QR codes) — next/image
+      // optimization is unavailable on the Cloudflare Workers (OpenNext) target.
+      '@next/next/no-img-element': 'off',
     },
   },
 ];

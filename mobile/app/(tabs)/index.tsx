@@ -7,13 +7,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Animated, {
   FadeInDown, FadeInRight, useSharedValue, useAnimatedStyle,
-  withRepeat, withTiming, withSequence, withSpring,
+  withRepeat, withTiming, withSequence, withSpring, cancelAnimation,
 } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/stores/auth.store';
 import { useAppStore } from '@/stores/app.store';
+import { useQueryClient } from '@tanstack/react-query';
 import { useDashboard } from '@/hooks/useDashboard';
 import { useCommunity } from '@/hooks/useCommunity';
 import { ActivityFeed } from '@/components/ActivityFeed';
@@ -27,7 +28,7 @@ import { DailyVerseCard } from '@/components/DailyVerseCard';
 import { GlobalSearch } from '@/components/GlobalSearch';
 import { useTheme } from '@/lib/useTheme';
 import { spacing } from '@/lib/theme';
-import { formatPKR } from '@/lib/format';
+import { formatPKR, formatPKRFull } from '@/lib/format';
 import { format } from 'date-fns';
 import { SkeletonCard, Skeleton } from '@/components/ui/Skeleton';
 
@@ -183,7 +184,7 @@ function StatsGrid({ pledge, pendingCount, isPaid }: {
     <Animated.View entering={FadeInDown.duration(400).delay(120)} style={styles.statsGrid}>
       <StatCard
         icon="hand-coin-outline"
-        value={formatPKR(pledge ?? 0)}
+        value={formatPKRFull(pledge ?? 0)}
         label="My Pledge"
         style={styles.statHalf}
       />
@@ -199,13 +200,6 @@ function StatsGrid({ pledge, pendingCount, isPaid }: {
         value={`${pendingCount ?? 0}`}
         label={t('dashboard.pending')}
         iconColor={colors.gold}
-        style={styles.statHalf}
-      />
-      <StatCard
-        icon="account-group-outline"
-        value={t('dashboard.totalMembers')}
-        label="Community"
-        iconColor="#608dd7"
         style={styles.statHalf}
       />
     </Animated.View>
@@ -265,9 +259,19 @@ function SectionHead({ title, onSeeAll }: { title: string; onSeeAll?: () => void
 function CommunityFeed() {
   const { colors } = useTheme();
   const { t } = useTranslation();
-  const { data } = useCommunity();
-  const items = (data?.payments ?? []).filter((p) => !p.pendingVerify).slice(0, 5);
-  if (!items.length) return null;
+  const { data, isLoading, isError } = useCommunity();
+  const items = (data?.payments ?? []).slice(0, 5);
+
+  if (isLoading) {
+    return (
+      <Animated.View entering={FadeInDown.duration(400).delay(280)}>
+        <SectionHead title={t('dashboard.communityActivity')} />
+        <SkeletonCard />
+      </Animated.View>
+    );
+  }
+
+  if (isError || !items.length) return null;
 
   return (
     <Animated.View entering={FadeInDown.duration(400).delay(280)}>
@@ -305,7 +309,7 @@ function AIFab() {
       withSequence(withTiming(1.15, { duration: 900 }), withTiming(1, { duration: 900 })),
       -1, false,
     );
-    return () => { pulse.value = 1; };
+    return () => { cancelAnimation(pulse); pulse.value = 1; };
   }, [pulse]);
 
   const glowStyle = useAnimatedStyle(() => ({
@@ -333,8 +337,14 @@ function DashboardScreen() {
   const { notificationCount } = useAppStore();
   const { colors } = useTheme();
   const { t } = useTranslation();
+  const qc = useQueryClient();
   const { data, isLoading, error, refetch, isRefetching } = useDashboard();
   const [searchVisible, setSearchVisible] = useState(false);
+
+  const handleRefresh = () => {
+    void refetch();
+    void qc.invalidateQueries({ queryKey: ['dashboard', 'community'] });
+  };
 
   if (isLoading && !data) {
     return (
@@ -355,7 +365,7 @@ function DashboardScreen() {
     );
   }
 
-  if (!isLoading && error) {
+  if (!data && error) {
     return <EmptyState icon="wifi-off" title="Could not load dashboard" subtitle={error.message} actionLabel="Retry" onAction={() => refetch()} />;
   }
 
@@ -378,7 +388,7 @@ function DashboardScreen() {
 
       <ScrollView
         contentContainerStyle={styles.scroll}
-        refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={colors.primary} />}
+        refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={handleRefresh} tintColor={colors.primary} />}
         showsVerticalScrollIndicator={false}
       >
         {/* Top bar */}
@@ -406,7 +416,7 @@ function DashboardScreen() {
         <PaymentBanner
           isPaid={!!data?.myCurrentMonth}
           pledge={user?.monthlyPledge}
-          amount={user?.monthlyPledge}
+          amount={data?.myCurrentMonth?.amount}
           onPay={() => router.push('/(tabs)/payments')}
         />
 
@@ -446,7 +456,7 @@ export default DashboardScreen;
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
-  scroll: { paddingHorizontal: spacing.md, paddingBottom: 110 },
+  scroll: { paddingHorizontal: spacing.md, paddingBottom: 150 },
   // Top bar
   topBar: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start',
@@ -479,10 +489,10 @@ const styles = StyleSheet.create({
   },
   heroLabel: {
     fontSize: 10, fontFamily: 'Inter_700Bold',
-    color: 'rgba(0,0,0,0.5)', letterSpacing: 2, textTransform: 'uppercase',
+    color: 'rgba(255,255,255,0.70)', letterSpacing: 2, textTransform: 'uppercase',
   },
   heroAmount: {
-    fontSize: 38, fontFamily: 'Inter_700Bold', color: '#0a0f1a',
+    fontSize: 38, fontFamily: 'Inter_700Bold', color: '#ffffff',
     letterSpacing: -1.2, marginTop: 4, marginBottom: 14,
   },
   poolBar: { flexDirection: 'row', height: 6, borderRadius: 3, overflow: 'hidden', marginBottom: 10 },
@@ -490,10 +500,10 @@ const styles = StyleSheet.create({
   poolLegend: { flexDirection: 'row', gap: 16, marginBottom: 12 },
   poolLegendItem: { flexDirection: 'row', alignItems: 'center', gap: 5 },
   poolDot: { width: 7, height: 7, borderRadius: 4 },
-  poolLegendLabel: { fontSize: 11, fontFamily: 'Inter_600SemiBold', color: 'rgba(0,0,0,0.55)' },
-  heroDivider: { height: 1, backgroundColor: 'rgba(0,0,0,0.15)', marginVertical: 10 },
+  poolLegendLabel: { fontSize: 11, fontFamily: 'Inter_600SemiBold', color: 'rgba(255,255,255,0.65)' },
+  heroDivider: { height: 1, backgroundColor: 'rgba(255,255,255,0.20)', marginVertical: 10 },
   heroFooter: { flexDirection: 'row', gap: 14 },
-  heroFooterText: { fontSize: 12, fontFamily: 'Inter_600SemiBold', color: 'rgba(0,0,0,0.5)' },
+  heroFooterText: { fontSize: 12, fontFamily: 'Inter_600SemiBold', color: 'rgba(255,255,255,0.65)' },
   // Banner
   banner: {
     flexDirection: 'row', alignItems: 'center',
@@ -505,9 +515,9 @@ const styles = StyleSheet.create({
   bannerSub: { fontSize: 12, fontFamily: 'Inter_400Regular', marginTop: 2 },
   // Stats grid
   statsGrid: {
-    flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginBottom: spacing.md,
+    flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.md,
   },
-  statHalf: { width: '47.5%' },
+  statHalf: { flex: 1 },
   // Quick actions
   quickRow: {
     flexDirection: 'row', justifyContent: 'space-between',

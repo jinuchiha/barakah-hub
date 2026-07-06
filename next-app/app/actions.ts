@@ -30,7 +30,7 @@ import { db } from '@/lib/db';
 import { members, payments, cases, votes, loans, repayments, auditLog, notifications, messages, memberInvites, users, config as configTbl } from '@/lib/db/schema';
 import { monthStartFromLabel } from '@/lib/month';
 import { broadcastPush, sendPushToMembers } from '@/lib/push';
-import { notifyMembers as notify, fundApproverIds, adminIds } from '@/lib/notify';
+import { notifyMembers as notify, fundApproverIds, adminIds, emailFundApprovers } from '@/lib/notify';
 import { sendApprovalEmail, sendPaymentReceiptEmail, sendEmergencyCaseEmail } from '@/lib/email';
 
 /** Lookup the auth email for a member via auth_id → users.email. Null if missing. */
@@ -76,6 +76,29 @@ export async function approveMember(memberId: string) {
   void emailForMember(m.authId).then((email) => {
     if (email) return sendApprovalEmail(email, m.nameEn || m.nameUr);
   }).catch((err) => { console.error('[email] approve member:', err); });
+  revalidatePath('/admin/members');
+}
+
+/* ─── reject pending member (admin) */
+export async function rejectMember(memberId: string) {
+  const me = await meOrThrow();
+  if (me.role !== 'admin') throw new Error('Admin only');
+  if (!/^[0-9a-f-]{36}$/i.test(memberId)) throw new Error('Invalid id');
+
+  const [m] = await db.select().from(members).where(eq(members.id, memberId)).limit(1);
+  if (!m) throw new Error('Member not found');
+  if (m.status === 'rejected') return;
+
+  await db.update(members).set({ status: 'rejected' }).where(eq(members.id, memberId));
+  await audit(me.id, 'member-rejected', `Rejected ${m.nameEn || m.nameUr}`, memberId);
+  await db.insert(notifications).values({
+    recipientId: memberId,
+    titleEn: 'Application not approved',
+    titleUr: 'درخواست منظور نہیں ہوئی',
+    en: 'Your membership application was not approved at this time. Please contact the administrator for details.',
+    ur: 'آپ کی رکنیت کی درخواست اس وقت منظور نہیں ہوئی۔ تفصیل کے لیے ایڈمن سے رابطہ کریں۔',
+    type: 'rejected',
+  });
   revalidatePath('/admin/members');
 }
 
@@ -219,6 +242,13 @@ export async function recordPayment(input: z.infer<typeof recordPaymentSchema>) 
     },
     { title: '🧾 New payment to review', body: `Rs ${data.amount.toLocaleString('en-PK')} ${data.pool}`, data: { type: 'payment-pending' }, channelId: 'payments' },
   );
+  void (async () => {
+    const [m] = await db.select().from(members).where(eq(members.id, data.memberId)).limit(1);
+    await emailFundApprovers(
+      { memberName: m?.nameEn || m?.nameUr || 'A member', amount: data.amount, pool: data.pool, monthLabel: data.monthLabel, note: data.note },
+      me.id,
+    );
+  })().catch((err) => { console.error('[email] payment review:', err); });
   revalidatePath('/admin/fund');
   revalidatePath('/dashboard');
   return created;
@@ -232,6 +262,8 @@ const submitDonationSchema = z.object({
   pool: z.enum(['sadaqah', 'zakat']).default('sadaqah'),
   monthLabel: z.string().min(3).max(40),
   note: z.string().max(200).optional(),
+  // https-only — matches /api/payments/submit
+  receiptUrl: z.string().url().startsWith('https://').or(z.string().startsWith('/uploads/')).optional(),
 });
 
 export async function submitDonation(input: z.infer<typeof submitDonationSchema>) {
@@ -265,6 +297,10 @@ export async function submitDonation(input: z.infer<typeof submitDonationSchema>
       data: { type: 'payment-pending' }, channelId: 'payments',
     },
   );
+  void emailFundApprovers(
+    { memberName: me.nameEn || me.nameUr, amount: data.amount, pool: data.pool, monthLabel: data.monthLabel, note: data.note, receiptUrl: data.receiptUrl },
+    me.id,
+  ).catch((err) => { console.error('[email] payment review:', err); });
   revalidatePath('/myaccount');
   revalidatePath('/admin/fund');
   revalidatePath('/dashboard');
@@ -459,18 +495,6 @@ export async function verifyPayment(paymentId: string) {
   revalidatePath('/myaccount');
 }
 
-// Deprecated: use adminDeletePayment instead — this function is not called from any UI.
-async function rejectPayment(paymentId: string) {
-  const me = await meOrThrow();
-  if (!/^[0-9a-f-]{36}$/i.test(paymentId)) throw new Error('Invalid id');
-  if (me.role !== 'admin') throw new Error('Admin only');
-  const [p] = await db.select().from(payments).where(eq(payments.id, paymentId)).limit(1);
-  if (!p) throw new Error('Payment not found');
-  await db.delete(payments).where(eq(payments.id, paymentId));
-  await audit(me.id, 'payment-rejected', `Rejected payment ${paymentId} (${p.amount})`, p.memberId);
-  revalidatePath('/admin/fund');
-}
-
 /* ─── cast vote on a case
  *
  * Self-vote is normally disallowed (conflict of interest), but admins
@@ -574,6 +598,10 @@ const adminCfgSchema = z.object({
   orgNameEn: z.string().max(80).optional(),
   easyPaiseName: z.string().max(80).optional().nullable(),
   easyPaiseNumber: z.string().max(20).optional().nullable(),
+  goalAmount: z.number().int().min(0).max(1_000_000_000).optional(),
+  goalLabelEn: z.string().max(80).optional().nullable(),
+  goalLabelUr: z.string().max(80).optional().nullable(),
+  goalDeadline: z.string().nullable().optional(),
 });
 
 export async function updateAdminConfig(input: z.infer<typeof adminCfgSchema>) {
@@ -876,9 +904,9 @@ export async function recordRepayment(input: z.infer<typeof repaySchema>) {
   const settledLoan = updated[0];
   const fullySettled = !settledLoan.active;
 
-  // Now-safe insert + audit; if either fails, a nightly reconcile job
-  // (TODO: not yet implemented) would notice loan.paid disagreeing with
-  // SUM(repayments.amount).
+  // Now-safe insert + audit; if either fails, the weekly reconcile in
+  // /api/cron/weekly-backup notices loans.paid disagreeing with
+  // SUM(repayments.amount) and writes a ledger-reconcile-mismatch audit row.
   await db.insert(repayments).values({
     loanId: data.loanId,
     amount: data.amount,

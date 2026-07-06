@@ -1,9 +1,10 @@
-import React, { useEffect } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, Pressable } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedProps,
   withTiming,
+  cancelAnimation,
   Easing,
 } from 'react-native-reanimated';
 import Svg, { Circle } from 'react-native-svg';
@@ -13,6 +14,7 @@ import { GlassCard } from './ui/GlassCard';
 import { formatPKR, formatDate } from '@/lib/format';
 import { useTheme } from '@/lib/useTheme';
 import { spacing, radius } from '@/lib/theme';
+import { useLoanRepayments } from '@/hooks/useLoans';
 
 interface LoanCardProps {
   loan: Loan;
@@ -34,7 +36,7 @@ function RepaymentRing({ progress, color }: { progress: number; color: string })
       CIRCUMFERENCE * (1 - Math.min(1, Math.max(0, progress))),
       { duration: 1000, easing: Easing.out(Easing.cubic) },
     );
-    return () => { strokeDashoffset.value = CIRCUMFERENCE; };
+    return () => { cancelAnimation(strokeDashoffset); strokeDashoffset.value = CIRCUMFERENCE; };
   }, [progress, strokeDashoffset]);
 
   const animProps = useAnimatedProps(() => ({
@@ -70,11 +72,16 @@ function RepaymentRing({ progress, color }: { progress: number; color: string })
 
 export function LoanCard({ loan }: LoanCardProps) {
   const { colors } = useTheme();
+  const [expanded, setExpanded] = useState(false);
   const remaining = loan.amount - loan.paid;
   const progress = loan.amount > 0 ? loan.paid / loan.amount : 0;
-  const ringColor = loan.active ? colors.accent : colors.primary;
+  const isOverdue = loan.active && !!loan.expectedReturn && new Date(loan.expectedReturn) < new Date();
+  const ringColor = isOverdue ? colors.danger : loan.active ? colors.accent : colors.primary;
+
+  const { data: repayments } = useLoanRepayments(expanded ? loan.id : '');
 
   return (
+    <Pressable onPress={() => setExpanded((v) => !v)}>
     <GlassCard glowColor={colors.accentDim} style={styles.card}>
       <View style={styles.topRow}>
         <View style={styles.ringWrapper}>
@@ -89,11 +96,14 @@ export function LoanCard({ loan }: LoanCardProps) {
           <Text style={[styles.purpose, { color: colors.text1 }]} numberOfLines={2}>
             {loan.purpose}
           </Text>
-          <Badge
-            label={loan.active ? 'Active' : 'Settled'}
-            variant={loan.active ? 'info' : 'success'}
-            style={styles.badge}
-          />
+          <View style={styles.badgeRow}>
+            <Badge
+              label={loan.active ? 'Active' : 'Settled'}
+              variant={loan.active ? 'info' : 'success'}
+              style={styles.badge}
+            />
+            {isOverdue ? <Badge label="Overdue" variant="danger" style={styles.badge} /> : null}
+          </View>
         </View>
       </View>
 
@@ -115,7 +125,23 @@ export function LoanCard({ loan }: LoanCardProps) {
           </Text>
         ) : null}
       </View>
+
+      {expanded && repayments && repayments.length > 0 ? (
+        <View style={[styles.historySection, { borderTopColor: colors.border1 }]}>
+          <Text style={[styles.historyTitle, { color: colors.text4 }]}>Repayment History</Text>
+          {repayments.map((r) => (
+            <View key={r.id} style={styles.historyRow}>
+              <Text style={[styles.historyDate, { color: colors.text3 }]}>{formatDate(r.paidOn)}</Text>
+              <Text style={[styles.historyAmt, { color: colors.primary }]}>{formatPKR(r.amount)}</Text>
+            </View>
+          ))}
+        </View>
+      ) : null}
+      {expanded && repayments && repayments.length === 0 ? (
+        <Text style={[styles.noHistory, { color: colors.text4 }]}>No repayments recorded yet.</Text>
+      ) : null}
     </GlassCard>
+    </Pressable>
   );
 }
 
@@ -161,6 +187,7 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     marginBottom: spacing.sm,
   },
+  badgeRow: { flexDirection: 'row', gap: 6, flexWrap: 'wrap' },
   badge: {},
   divider: {
     height: 1,
@@ -192,4 +219,24 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontFamily: 'Inter_400Regular',
   },
+  historySection: {
+    marginTop: spacing.sm,
+    paddingTop: spacing.sm,
+    borderTopWidth: 1,
+    gap: 6,
+  },
+  historyTitle: {
+    fontSize: 10,
+    fontFamily: 'Inter_600SemiBold',
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+    marginBottom: 2,
+  },
+  historyRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  historyDate: { fontSize: 12, fontFamily: 'Inter_400Regular' },
+  historyAmt: { fontSize: 12, fontFamily: 'Inter_700Bold' },
+  noHistory: { fontSize: 12, fontFamily: 'Inter_400Regular', marginTop: spacing.sm, textAlign: 'center' },
 });

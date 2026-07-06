@@ -92,8 +92,6 @@ export default function SearchScreen() {
       router.push('/(tabs)/payments' as never);
     } else if (item.type === 'case') {
       router.push('/(tabs)/cases' as never);
-    } else if (item.type === 'loan') {
-      router.push('/(tabs)/loans' as never);
     }
   }, [router]);
 

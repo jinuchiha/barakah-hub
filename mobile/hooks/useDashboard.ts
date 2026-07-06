@@ -26,9 +26,9 @@ export function useDashboard() {
   return useQuery({
     queryKey: ['dashboard'],
     queryFn: fetchDashboard,
-    // Live-ish: refetch every 15 s while the screen is mounted, plus on
-    // window/app focus. Cheap polling — Neon HTTP + Vercel cache covers it.
-    staleTime: 10_000,
+    // refetchInterval owns freshness — staleTime=Infinity prevents focus
+    // refetches from duplicating the 15s poll.
+    staleTime: Infinity,
     refetchInterval: 15_000,
     refetchOnWindowFocus: true,
     refetchOnReconnect: true,

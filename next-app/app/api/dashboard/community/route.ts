@@ -28,7 +28,7 @@ export async function GET() {
     const isAdmin = me.role === 'admin';
 
     const [recentPayments, recentCases, recentLoans, allMembers] = await Promise.all([
-      db.select().from(payments).orderBy(desc(payments.createdAt)).limit(20),
+      db.select().from(payments).where(eq(payments.pendingVerify, false)).orderBy(desc(payments.createdAt)).limit(20),
       db.select().from(cases).orderBy(desc(cases.createdAt)).limit(10),
       db.select().from(loans).orderBy(desc(loans.issuedOn)).limit(10),
       db.select({ id: members.id, nameEn: members.nameEn, nameUr: members.nameUr, color: members.color, photoUrl: members.photoUrl }).from(members).where(eq(members.deceased, false)),
@@ -52,7 +52,6 @@ export async function GET() {
         amount: p.amount,
         pool: p.pool,
         monthLabel: p.monthLabel,
-        pendingVerify: p.pendingVerify,
         createdAt: p.createdAt,
         member: maskDonor(p.memberId, p.pool),
       })),

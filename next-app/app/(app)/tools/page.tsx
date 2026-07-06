@@ -5,6 +5,7 @@ import { Card, CardHeader, CardTitle, CardBody } from '@/components/ui/card';
 import { formatHijriDate } from '@/lib/hijri';
 import { getDailyVerse } from '@/lib/quran';
 import ZakatCalc from './zakat-calc';
+import { PrayerTimesCard } from '@/components/prayer-times-card';
 
 export const metadata = { title: 'Islamic Tools — Barakah Hub' };
 
@@ -39,26 +40,13 @@ export default async function ToolsPage() {
           </CardBody>
         </Card>
 
-        {/* Prayer Times */}
-        <Card>
+        {/* Prayer Times — computed locally, live next-prayer countdown */}
+        <Card className="sm:col-span-2">
           <CardHeader>
-            <CardTitle>Prayer Times</CardTitle>
+            <CardTitle>Prayer Times · اوقاتِ نماز</CardTitle>
           </CardHeader>
           <CardBody>
-            <p className="mb-3 text-sm text-[var(--txt-2)]">
-              Accurate prayer times based on your location.
-            </p>
-            <a
-              href="https://salahtimes.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 rounded-lg bg-[rgba(200,155,60,0.12)] px-3 py-2 text-sm text-[var(--color-gold)] transition-colors hover:bg-[rgba(200,155,60,0.2)]"
-            >
-              Open Salah Times ↗
-            </a>
-            <div className="mt-3 text-xs text-[var(--txt-4)]">
-              Full prayer times with Adhan notifications available in the Barakah Hub mobile app.
-            </div>
+            <PrayerTimesCard />
           </CardBody>
         </Card>
 

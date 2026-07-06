@@ -4,7 +4,7 @@ import { meApprovedOrThrow } from '@/lib/auth-server';
 import { db } from '@/lib/db';
 import { payments, auditLog } from '@/lib/db/schema';
 import { monthStartFromLabel } from '@/lib/month';
-import { notifyMembers, fundApproverIds } from '@/lib/notify';
+import { notifyMembers, fundApproverIds, emailFundApprovers } from '@/lib/notify';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -16,7 +16,8 @@ const schema = z.object({
   pool: z.enum(['sadaqah', 'zakat']).default('sadaqah'),
   monthLabel: z.string().min(3).max(40),
   note: z.string().max(200).optional(),
-  receiptUrl: z.string().url().or(z.string().startsWith('/uploads/')).optional(),
+  // https-only — z.string().url() alone also accepts javascript:/data: schemes
+  receiptUrl: z.string().url().startsWith('https://').or(z.string().startsWith('/uploads/')).optional(),
 });
 
 export async function POST(req: NextRequest) {
@@ -25,6 +26,8 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const data = schema.parse(body);
 
+    // Sequential inserts — the neon-http driver has no transaction support
+    // (see lib/db/index.ts). Matches the web path in app/actions.ts.
     const [created] = await db
       .insert(payments)
       .values({
@@ -34,7 +37,6 @@ export async function POST(req: NextRequest) {
         pendingVerify: true,
       })
       .returning();
-
     await db.insert(auditLog).values({
       actorId: me.id,
       action: 'payment-self-submit',
@@ -46,6 +48,10 @@ export async function POST(req: NextRequest) {
       await fundApproverIds(me.id),
       { titleEn: 'New payment to review', titleUr: 'نئی ادائیگی برائے منظوری', en: `${me.nameEn || me.nameUr} submitted Rs ${data.amount} (${data.pool}) for ${data.monthLabel}.`, ur: `${me.nameUr || me.nameEn} نے ${data.monthLabel} کے لیے روپے ${data.amount} جمع کیے۔`, type: 'payment-pending' },
       { title: '🧾 New payment to review', body: `${me.nameEn || me.nameUr} — Rs ${data.amount} ${data.pool}`, data: { type: 'payment-pending' }, channelId: 'payments' },
+    ).catch(() => {});
+    void emailFundApprovers(
+      { memberName: me.nameEn || me.nameUr, amount: data.amount, pool: data.pool, monthLabel: data.monthLabel, note: data.note, receiptUrl: data.receiptUrl },
+      me.id,
     ).catch(() => {});
 
     return NextResponse.json(created, { status: 201 });

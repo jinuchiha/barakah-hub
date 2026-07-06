@@ -81,21 +81,21 @@ export function Button({
   const textStyle = buildTextStyle(variant, colors, sz);
 
   return (
-    <Animated.View style={[animStyle, style, { borderRadius: radius.full, overflow: 'hidden' }]}>
-      <Pressable
-        onPress={handlePress}
-        onPressIn={handlePressIn}
-        onPressOut={handlePressOut}
-        disabled={isDisabled}
-        style={containerStyle}
-      >
+    <Pressable
+      onPress={handlePress}
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
+      disabled={isDisabled}
+      style={[containerStyle, style, { overflow: 'hidden' }]}
+    >
+      <Animated.View style={[animStyle, { alignItems: 'center', justifyContent: 'center', flexDirection: 'row' }]}>
         {loading ? (
           <ActivityIndicator size="small" color={getSpinnerColor(variant, colors)} />
         ) : (
           <Text style={textStyle}>{label}</Text>
         )}
-      </Pressable>
-    </Animated.View>
+      </Animated.View>
+    </Pressable>
   );
 }
 

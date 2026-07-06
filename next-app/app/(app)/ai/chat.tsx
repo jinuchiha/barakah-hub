@@ -110,7 +110,7 @@ export function AIChatClient({ userName }: Props) {
     setStreaming(true);
 
     try {
-      const history = messages.map((m) => ({ role: m.role, content: m.content }));
+      const history = messages.slice(-20).map((m) => ({ role: m.role, content: m.content }));
       const res = await fetch('/api/ai/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -154,7 +154,7 @@ export function AIChatClient({ userName }: Props) {
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong');
-      setMessages((prev) => prev.slice(0, -2));
+      setMessages((prev) => prev.at(-1)?.role === 'assistant' ? prev.slice(0, -1) : prev);
     } finally {
       setStreaming(false);
       streamingRef.current = '';

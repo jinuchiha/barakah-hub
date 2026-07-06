@@ -93,7 +93,8 @@ export function useAIChat(): AIChatState {
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to send message');
-      setMessages((prev) => prev.slice(0, -2));
+      // Keep the user's message but drop the empty assistant placeholder.
+      setMessages((prev) => (prev.at(-1)?.role === 'assistant' ? prev.slice(0, -1) : prev));
     } finally {
       setIsStreaming(false);
       streamingRef.current = '';

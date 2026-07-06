@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Pressable, Linking } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import type { Payment } from '@/types';
 import { Badge } from './ui/Badge';
@@ -19,7 +19,10 @@ const POOL_ICONS: Record<string, keyof typeof MaterialCommunityIcons.glyphMap> =
 };
 
 function getStatusInfo(payment: Payment) {
-  if (payment.pendingVerify) return { label: 'Pending', variant: 'warning', pulse: true } as const;
+  if (payment.pendingVerify) {
+    if (payment.supervisorRejectedAt) return { label: 'Supervisor Rejected', variant: 'danger', pulse: false } as const;
+    return { label: 'Pending', variant: 'warning', pulse: true } as const;
+  }
   if (payment.verifiedAt) return { label: 'Verified', variant: 'success', pulse: false } as const;
   return { label: 'Rejected', variant: 'danger', pulse: false } as const;
 }
@@ -54,6 +57,20 @@ export function PaymentCard({ payment }: PaymentCardProps) {
           <Badge label={status.label} variant={status.variant} pulse={status.pulse} />
         </View>
       </View>
+      {payment.receiptUrl ? (
+        <Pressable
+          style={[styles.receiptStrip, { borderTopColor: colors.border1 }]}
+          onPress={() => {
+            const raw = payment.receiptUrl!;
+            const uri = raw.startsWith('/') ? `${process.env.EXPO_PUBLIC_API_URL ?? ''}${raw}` : raw;
+            void Linking.openURL(uri);
+          }}
+        >
+          <MaterialCommunityIcons name="file-image-outline" size={14} color={colors.text3} />
+          <Text style={[styles.receiptLabel, { color: colors.text3 }]}>View receipt</Text>
+          <MaterialCommunityIcons name="open-in-new" size={12} color={colors.text4} />
+        </Pressable>
+      ) : null}
     </View>
   );
 }
@@ -112,6 +129,19 @@ const styles = StyleSheet.create({
   },
   date: {
     fontSize: 11,
+    fontFamily: 'Inter_400Regular',
+  },
+  receiptStrip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 6,
+    borderTopWidth: 1,
+  },
+  receiptLabel: {
+    flex: 1,
+    fontSize: 12,
     fontFamily: 'Inter_400Regular',
   },
 });

@@ -24,9 +24,21 @@ export default async function SearchPage({ searchParams }: Props) {
         <header className="mb-6 border-b border-[var(--border)] pb-4">
           <h1 className="font-[var(--font-arabic)] text-3xl text-[var(--color-gold-2)]">تلاش</h1>
           <p className="mt-1 font-[var(--font-en)] text-sm italic text-[var(--color-gold-4)]">
-            Use the search bar above. Searches members{isAdmin ? ', payments, cases, loans' : ' and cases'}.
+            Searches members{isAdmin ? ', payments, cases, loans' : ' and cases'}.
           </p>
         </header>
+        <form method="get" action="/search" className="flex gap-2">
+          <input
+            name="q"
+            autoFocus
+            autoComplete="off"
+            placeholder="Search…"
+            className="flex-1 rounded-md border border-[var(--border)] bg-[var(--surf-3)] px-4 py-2.5 text-sm text-[var(--color-cream)] placeholder-[var(--txt-4)] outline-none focus:border-[var(--color-gold-3)]"
+          />
+          <button type="submit" className="rounded-md bg-[var(--surf-3)] border border-[var(--border)] px-4 py-2.5 text-sm text-[var(--color-gold-2)] hover:bg-[rgba(214,210,199,0.06)]">
+            Search
+          </button>
+        </form>
       </div>
     );
   }

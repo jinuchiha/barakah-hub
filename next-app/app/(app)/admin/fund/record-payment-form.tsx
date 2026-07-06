@@ -43,7 +43,7 @@ export default function RecordPaymentForm({ members }: { members: { id: string; 
         <div><Label>Amount *</Label><Input type="number" value={amount || ''} onChange={(e) => setAmount(parseInt(e.target.value) || 0)} /></div>
         <div>
           <Label>Pool</Label>
-          <select value={pool} onChange={(e) => setPool(e.target.value as any)} className="w-full rounded-md border border-[var(--border)] bg-[var(--surf-3)] px-3 py-2.5 text-sm text-[var(--color-cream)]">
+          <select value={pool} onChange={(e) => setPool(e.target.value as 'sadaqah' | 'zakat' | 'qarz')} className="w-full rounded-md border border-[var(--border)] bg-[var(--surf-3)] px-3 py-2.5 text-sm text-[var(--color-cream)]">
             <option value="sadaqah">Sadaqah / صدقہ</option>
             <option value="zakat">Zakat / زکوٰۃ</option>
             <option value="qarz">Qarz pool</option>

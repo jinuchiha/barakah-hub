@@ -419,3 +419,143 @@ button:disabled,
 ::-webkit-scrollbar-thumb:hover { background: rgba(214,210,199,0.32); }
 .light ::-webkit-scrollbar-thumb { background: rgba(20,23,28,0.18); }
 .light ::-webkit-scrollbar-thumb:hover { background: rgba(20,23,28,0.32); }
+
+/* ─────────────────────────────────────────
+   AMBIENT DEPTH — two slow-drifting light fields + a vignette behind
+   the app canvas. Opacity is kept whisper-low so the fintech restraint
+   holds; the layers only register as depth, not decoration.
+   ───────────────────────────────────────── */
+.ambient-depth::before,
+.ambient-depth::after {
+  content: '';
+  position: fixed;
+  z-index: 0;
+  pointer-events: none;
+  width: 55vmax;
+  height: 55vmax;
+  border-radius: 50%;
+  filter: blur(80px);
+  will-change: transform;
+}
+.ambient-depth::before {
+  top: -18vmax;
+  right: -12vmax;
+  background: radial-gradient(circle, rgba(200,155,60,0.055), transparent 65%);
+  animation: ambientDriftA 46s ease-in-out infinite alternate;
+}
+.ambient-depth::after {
+  bottom: -22vmax;
+  left: -14vmax;
+  background: radial-gradient(circle, rgba(45,138,95,0.05), transparent 65%);
+  animation: ambientDriftB 58s ease-in-out infinite alternate;
+}
+.ambient-depth > * { position: relative; z-index: 1; }
+
+@keyframes ambientDriftA {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to   { transform: translate3d(-7vmax, 5vmax, 0) scale(1.12); }
+}
+@keyframes ambientDriftB {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to   { transform: translate3d(6vmax, -4vmax, 0) scale(1.08); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ambient-depth::before,
+  .ambient-depth::after { animation: none; }
+}
+
+/* ─────────────────────────────────────────
+   BUTTON SHINE — one light sweep across gold CTAs on hover.
+   ───────────────────────────────────────── */
+.btn-shine {
+  position: relative;
+  overflow: hidden;
+}
+.btn-shine::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -80%;
+  width: 55%;
+  height: 100%;
+  background: linear-gradient(105deg, transparent, rgba(255,255,255,0.34), transparent);
+  transform: skewX(-20deg);
+  transition: left 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+  pointer-events: none;
+}
+.btn-shine:hover::after { left: 130%; }
+@media (prefers-reduced-motion: reduce) {
+  .btn-shine::after { display: none; }
+}
+
+/* ─────────────────────────────────────────
+   CALLIGRAPHY BACKDROP — ghost haroof drifting far behind the canvas.
+   ───────────────────────────────────────── */
+.calligraphy-word {
+  position: absolute;
+  color: var(--color-gold);
+  opacity: 0.028;
+  line-height: 1;
+  user-select: none;
+  will-change: transform;
+  animation: calligraphyDrift ease-in-out infinite alternate;
+}
+@keyframes calligraphyDrift {
+  from { transform: translateY(-1.5rem); }
+  to   { transform: translateY(1.5rem); }
+}
+
+/* ─────────────────────────────────────────
+   LOGIN SCENE — bismillah write-on, hairline, embers, star geometry.
+   ───────────────────────────────────────── */
+.bismillah-write {
+  clip-path: inset(0 0 0 100%);
+  animation: bismillahWrite 1.7s cubic-bezier(0.4, 0, 0.2, 1) 0.25s both;
+}
+@keyframes bismillahWrite {
+  from { clip-path: inset(0 0 0 100%); opacity: 0.4; }
+  to   { clip-path: inset(0 0 0 0); opacity: 1; }
+}
+
+.hairline-grow {
+  transform: scaleX(0);
+  animation: hairlineGrow 0.9s cubic-bezier(0.22, 1, 0.36, 1) 1.55s both;
+}
+@keyframes hairlineGrow {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+
+.ember {
+  position: absolute;
+  bottom: -2vh;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(232,197,99,0.9), rgba(200,155,60,0.35) 70%, transparent);
+  opacity: 0;
+  animation: emberRise linear infinite;
+}
+@keyframes emberRise {
+  0%   { transform: translateY(0) scale(1); opacity: 0; }
+  10%  { opacity: var(--ember-o, 0.4); }
+  85%  { opacity: calc(var(--ember-o, 0.4) * 0.5); }
+  100% { transform: translateY(-92vh) scale(0.35); opacity: 0; }
+}
+
+.star-spin { animation: starSpin 140s linear infinite; }
+.star-spin-reverse { animation: starSpin 200s linear infinite reverse; }
+@keyframes starSpin { to { transform: rotate(360deg); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .calligraphy-word,
+  .ember,
+  .star-spin,
+  .star-spin-reverse,
+  .bismillah-write,
+  .hairline-grow {
+    animation: none;
+  }
+  .bismillah-write { clip-path: none; }
+  .hairline-grow { transform: scaleX(1); }
+  .ember { display: none; }
+}

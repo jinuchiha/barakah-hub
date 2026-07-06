@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
-import { meOrThrow } from '@/lib/auth-server';
+import { z } from 'zod';
+import { meApprovedOrThrow } from '@/lib/auth-server';
 
 /**
  * AI chat — streams Server-Sent Events with `data: { delta }` chunks.
@@ -16,22 +17,30 @@ import { meOrThrow } from '@/lib/auth-server';
  * for `delta`, ending on `[DONE]`. We keep that protocol identical
  * across every provider.
  */
+// Caller never controls the system prompt — this endpoint fronts the org's
+// paid LLM keys, so both the persona and the payload size are server-enforced.
+const bodySchema = z.object({
+  messages: z
+    .array(z.object({ role: z.enum(['user', 'assistant']), content: z.string().max(4000) }))
+    .max(30)
+    .default([]),
+});
+
 export async function POST(req: Request) {
   try {
-    await meOrThrow();
+    await meApprovedOrThrow();
   } catch {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  let body: { messages?: { role: 'user' | 'assistant'; content: string }[]; systemPrompt?: string };
+  let messages: { role: 'user' | 'assistant'; content: string }[];
   try {
-    body = await req.json();
+    messages = bodySchema.parse(await req.json()).messages;
   } catch {
-    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+    return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
   }
 
-  const messages = body.messages ?? [];
-  const system = body.systemPrompt ?? defaultSystem();
+  const system = defaultSystem();
   const encoder = new TextEncoder();
 
   // ── 1. Anthropic Claude ─────────────────────────────────────────
@@ -39,7 +48,7 @@ export async function POST(req: Request) {
     return streamSSE(async (push) => {
       const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
       const claudeStream = await anthropic.messages.stream({
-        model: 'claude-haiku-4-5-20251001',
+        model: 'claude-haiku-4-5',
         max_tokens: 1024,
         system,
         messages: messages.map((m) => ({ role: m.role, content: m.content })),

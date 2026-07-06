@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { and, eq, inArray, sql } from 'drizzle-orm';
+import { and, eq, sql } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { members, payments, notifications } from '@/lib/db/schema';
 import { sendPushToMembers } from '@/lib/push';

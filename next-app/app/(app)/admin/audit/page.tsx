@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation';
+import type { Route } from 'next';
 import { and, desc, eq, gte, lte, inArray, or, ilike, type SQL } from 'drizzle-orm';
 import { getMeOrRedirect } from '@/lib/auth-server';
 import { db } from '@/lib/db';
@@ -121,7 +122,7 @@ export default async function AuditPage({ searchParams }: PageProps) {
         </div>
         <div className="flex items-center gap-3">
           <div className="text-xs text-[var(--color-gold-4)]">Showing {entries.length} entries {filtersActive && '(filtered)'}</div>
-          <ExportLink href={exportHref as any}>Export CSV</ExportLink>
+          <ExportLink href={exportHref as Route}>Export CSV</ExportLink>
         </div>
       </header>
 

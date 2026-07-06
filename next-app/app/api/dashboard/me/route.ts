@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { eq, desc } from 'drizzle-orm';
-import { meOrThrow } from '@/lib/auth-server';
+import { eq, desc, or, like } from 'drizzle-orm';
+import { meApprovedOrThrow } from '@/lib/auth-server';
 import { db } from '@/lib/db';
 import { payments, auditLog } from '@/lib/db/schema';
 import { currentMonthLabel } from '@/lib/month';
@@ -10,7 +10,7 @@ export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
-    const me = await meOrThrow();
+    const me = await meApprovedOrThrow();
 
     const monthLabel = currentMonthLabel();
     const myPaymentsThisMonth = await db
@@ -23,13 +23,25 @@ export async function GET() {
     const currentMonthPayment =
       myPaymentsThisMonth.find((p) => p.monthLabel === monthLabel) ?? null;
 
+    const isAdmin = me.role === 'admin';
+
+    // Non-admins only need entries relevant to their feed: own actions + public
+    // community event families (payment/case/loan/emergency). Fetching the global
+    // trail would waste DB rows on internal admin events and starve the feed.
+    const memberAuditFilter = or(
+      eq(auditLog.actorId, me.id),
+      like(auditLog.action, 'payment%'),
+      like(auditLog.action, 'case%'),
+      like(auditLog.action, 'emergency%'),
+      like(auditLog.action, 'loan%'),
+    );
+
     const recentAudit = await db
       .select()
       .from(auditLog)
+      .where(isAdmin ? undefined : memberAuditFilter)
       .orderBy(desc(auditLog.createdAt))
       .limit(30);
-
-    const isAdmin = me.role === 'admin';
 
     /**
      * Privacy policy for the activity feed (per user request 2026-05-15):

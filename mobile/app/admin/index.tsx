@@ -92,7 +92,7 @@ export default function AdminDashboard() {
   const hasPending = (data?.pendingMembers ?? 0) + (data?.pendingPayments ?? 0) > 0;
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: colors.bg1 }]} edges={['bottom']}>
+    <SafeAreaView style={[styles.safe, { backgroundColor: colors.bg1 }]} edges={['top', 'bottom']}>
       <ScrollView
         contentContainerStyle={styles.scroll}
         refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={colors.primary} />}

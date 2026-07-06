@@ -19,7 +19,7 @@ import { haptic } from '@/lib/haptics';
 function BrandMark({ size = 72 }: { size?: number }) {
   const c = size / 2;
   return (
-    <Svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+    <Svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ backgroundColor: 'transparent' }}>
       {/* Outer ring */}
       <Circle cx={c} cy={c} r={c - 3} fill="none" stroke="rgba(200,155,60,0.25)" strokeWidth={1.5} />
       {/* Crescent */}
@@ -58,6 +58,7 @@ export default function LoginScreen() {
     setLoading(true);
     try {
       await login({ email: emailTrimmed, password });
+      router.replace('/(tabs)' as any);
       void haptic.success();
     } catch (err) {
       void haptic.error();
@@ -88,6 +89,12 @@ export default function LoginScreen() {
             {/* ── Brand section ── */}
             <Animated.View entering={FadeInDown.duration(500)} style={styles.brandSection}>
               <View style={styles.logoWrap}>
+                <LinearGradient
+                  colors={['rgba(200,155,60,0.22)', 'rgba(200,155,60,0.06)']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={[StyleSheet.absoluteFillObject, { borderRadius: 24 }]}
+                />
                 <BrandMark size={72} />
               </View>
               <Text style={styles.appName}>Barakah Hub</Text>
@@ -184,13 +191,10 @@ const styles = StyleSheet.create({
   brandSection: { alignItems: 'center', paddingTop: 52, paddingBottom: 20 },
   logoWrap: {
     width: 88, height: 88, borderRadius: 24,
-    backgroundColor: 'rgba(200,155,60,0.08)',
-    borderWidth: 1, borderColor: 'rgba(200,155,60,0.18)',
+    borderWidth: 1.5, borderColor: 'rgba(200,155,60,0.35)',
     alignItems: 'center', justifyContent: 'center',
     marginBottom: 14,
-    shadowColor: '#c89b3c', shadowOpacity: 0.2,
-    shadowRadius: 8, shadowOffset: { width: 0, height: 2 },
-    elevation: 3,
+    overflow: 'hidden',
   },
   appName: { fontSize: 22, fontFamily: 'Inter_700Bold', color: '#ecebe6', letterSpacing: -0.4 },
   appNameAr: { fontSize: 14, fontFamily: 'Inter_400Regular', color: '#c89b3c', marginTop: 3 },

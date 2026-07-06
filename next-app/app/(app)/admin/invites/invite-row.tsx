@@ -1,7 +1,9 @@
 'use client';
-import { useTransition, useState } from 'react';
+import { useTransition, useState, useEffect } from 'react';
+import QRCode from 'qrcode';
 import { toast } from 'sonner';
 import { revokeInvite } from '@/app/actions';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 
 interface Invite {
   id: string;
@@ -17,10 +19,15 @@ interface Invite {
 
 export default function InviteRow({ invite, origin }: { invite: Invite; origin: string }) {
   const url = `${origin}/join/${invite.token}`;
-  // Use external QR service (no extra dependency) — server-side image generation
-  const qr = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&margin=8&data=${encodeURIComponent(url)}`;
   const [pending, start] = useTransition();
   const [showQR, setShowQR] = useState(false);
+  const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
+  const [confirmRevoke, setConfirmRevoke] = useState(false);
+
+  useEffect(() => {
+    if (!showQR || qrDataUrl) return;
+    void QRCode.toDataURL(url, { width: 180, margin: 1 }).then(setQrDataUrl);
+  }, [showQR, url, qrDataUrl]);
 
   const expired = invite.expiresAt && new Date(invite.expiresAt) < new Date();
   const exhausted = invite.usedCount >= invite.maxUses;
@@ -42,7 +49,6 @@ export default function InviteRow({ invite, origin }: { invite: Invite; origin: 
   }
 
   function revoke() {
-    if (!confirm('Revoke this invite? New signups via this link will be rejected.')) return;
     start(async () => {
       try {
         await revokeInvite(invite.id);
@@ -71,13 +77,24 @@ export default function InviteRow({ invite, origin }: { invite: Invite; origin: 
           <button onClick={copy} disabled={inactive} className="rounded-md border border-[var(--border)] px-3 py-1.5 text-xs text-[var(--color-gold-2)] hover:bg-[rgba(214,210,199,0.06)] disabled:cursor-not-allowed">📋 Copy</button>
           <button onClick={() => setShowQR((s) => !s)} disabled={inactive} className="rounded-md border border-[var(--border)] px-3 py-1.5 text-xs text-[var(--color-gold-2)] hover:bg-[rgba(214,210,199,0.06)] disabled:cursor-not-allowed">{showQR ? '✕ Close QR' : '📱 Show QR'}</button>
           {!invite.revoked && (
-            <button onClick={revoke} disabled={pending} className="rounded-md border border-red-500/40 bg-red-500/10 px-3 py-1.5 text-xs text-red-400 hover:bg-red-500/20">{pending ? '…' : '🚫 Revoke'}</button>
+            <button type="button" onClick={() => setConfirmRevoke(true)} disabled={pending} className="rounded-md border border-red-500/40 bg-red-500/10 px-3 py-1.5 text-xs text-red-400 hover:bg-red-500/20">{pending ? '…' : '🚫 Revoke'}</button>
           )}
         </div>
       </div>
+      <ConfirmDialog
+        open={confirmRevoke}
+        onOpenChange={setConfirmRevoke}
+        title="Revoke Invite"
+        description="New signups via this link will be rejected. This cannot be undone."
+        confirmLabel="Revoke"
+        destructive
+        onConfirm={revoke}
+      />
       {showQR && (
         <div className="mt-3 flex justify-center rounded-md border border-[var(--border)] bg-white p-3">
-          <img src={qr} alt="Invite QR code" width={180} height={180} />
+          {qrDataUrl
+            ? <img src={qrDataUrl} alt="Invite QR code" width={180} height={180} />
+            : <div className="size-[180px] animate-pulse rounded bg-gray-200" />}
         </div>
       )}
     </div>

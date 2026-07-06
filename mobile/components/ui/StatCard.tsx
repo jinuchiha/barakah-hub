@@ -30,13 +30,13 @@ export function StatCard({ icon, value, label, iconColor, style, trend, onPress 
   }));
 
   return (
-    <Animated.View style={[style, animStyle, { borderRadius: radius.lg, overflow: 'hidden' }]}>
-      <Pressable
-        onPressIn={() => { scale.value = withSpring(0.97, { damping: 20, stiffness: 400 }); }}
-        onPressOut={() => { scale.value = withSpring(1, { damping: 20, stiffness: 400 }); }}
-        onPress={onPress}
-        style={{ borderRadius: radius.lg, overflow: 'hidden' }}
-      >
+    <Pressable
+      onPressIn={() => { scale.value = withSpring(0.97, { damping: 20, stiffness: 400 }); }}
+      onPressOut={() => { scale.value = withSpring(1, { damping: 20, stiffness: 400 }); }}
+      onPress={onPress}
+      style={[style, { borderRadius: radius.lg, overflow: 'hidden' }]}
+    >
+      <Animated.View style={[animStyle, { borderRadius: radius.lg, overflow: 'hidden' }]}>
         <View style={[styles.card, { backgroundColor: colors.bg1, borderColor: `${color}22` }]}>
           <LinearGradient colors={[`${color}15`, 'transparent']} start={{ x: 0, y: 0 }} end={{ x: 1.5, y: 1.5 }} style={StyleSheet.absoluteFillObject} />
           <View style={styles.header}>
@@ -54,8 +54,8 @@ export function StatCard({ icon, value, label, iconColor, style, trend, onPress 
           ) : null}
           <View style={[styles.bottomLine, { backgroundColor: color }]} />
         </View>
-      </Pressable>
-    </Animated.View>
+      </Animated.View>
+    </Pressable>
   );
 }
 

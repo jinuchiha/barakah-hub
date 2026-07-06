@@ -75,6 +75,19 @@ export const auth = betterAuth({
   // Trusted origins for CORS / CSRF (same-origin in our case).
   trustedOrigins: [baseURL],
 
+  // Brute-force protection. In-memory storage is per-lambda on Vercel, so
+  // the cap is per-instance rather than global — still enough to make
+  // credential-stuffing impractical without a schema change.
+  rateLimit: {
+    enabled: true,
+    window: 60,
+    max: 30,
+    customRules: {
+      '/sign-in/email': { window: 60, max: 5 },
+      '/forget-password': { window: 300, max: 3 },
+    },
+  },
+
   // Bearer plugin — required for the mobile app (Expo / React Native)
   // which sends `Authorization: Bearer <session-token>` instead of cookies.
   plugins: [bearer()],

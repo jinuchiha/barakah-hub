@@ -125,10 +125,6 @@ export async function fetchMyMember(): Promise<MemberWithSession> {
 }
 
 export interface UpdateProfileInput {
-  nameEn?: string;
-  nameUr?: string;
-  fatherName?: string;
-  fatherDeceased?: boolean;
   phone?: string | null;
   city?: string | null;
   province?: string | null;

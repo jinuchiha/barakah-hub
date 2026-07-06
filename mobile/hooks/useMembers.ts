@@ -70,6 +70,7 @@ export function useMember(id: string) {
     queryKey: ['members', id],
     queryFn: () => fetchMember(id),
     enabled: !!id,
+    staleTime: 60_000,
   });
 }
 

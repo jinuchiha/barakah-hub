@@ -42,7 +42,7 @@ export default async function MyAccountPage() {
         <CardBody className="p-6">
           <div className="mb-4 flex items-center gap-4">
             <div
-              className="grid size-14 place-items-center rounded-full text-xl font-bold text-white shadow-[0_0_12px_rgba(214,210,199,0.2)]"
+              className="grid size-14 shrink-0 place-items-center overflow-hidden rounded-full text-xl font-bold text-white shadow-[0_0_12px_rgba(214,210,199,0.2)]"
               style={{ background: me.color }}
               aria-hidden="true"
             >
@@ -86,6 +86,9 @@ export default async function MyAccountPage() {
         <Card className="mb-4">
           <CardHeader><CardTitle>My Active Loans</CardTitle></CardHeader>
           <CardBody className="p-0">
+            <div className="border-b border-[rgba(214,210,199,0.06)] bg-[rgba(200,155,60,0.04)] px-4 py-2.5 text-xs text-[var(--txt-3)]">
+              To report a repayment, send a message to the admin with the loan amount and transfer reference. The admin will record it.
+            </div>
             <div className="divide-y divide-[rgba(214,210,199,0.06)]">
               {myLoans.map((loan) => {
                 const remaining = loan.amount - loan.paid;
@@ -123,6 +126,12 @@ export default async function MyAccountPage() {
       <Card>
         <CardHeader>
           <CardTitle>My Payment History</CardTitle>
+          <a
+            href="/api/exports/my-statement"
+            className="text-[11px] font-semibold tracking-wide text-[var(--color-gold-4)] transition-colors hover:text-[var(--color-gold-2)]"
+          >
+            ↓ Download my statement (CSV)
+          </a>
         </CardHeader>
         <CardBody className="p-0">
           {myPayments.length === 0 ? (

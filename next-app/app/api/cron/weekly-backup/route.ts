@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { desc } from 'drizzle-orm';
 import { db } from '@/lib/db';
-import { members, payments, loans, cases, auditLog, config as configTbl } from '@/lib/db/schema';
+import { members, payments, loans, cases, auditLog, repayments, config as configTbl } from '@/lib/db/schema';
 import { sendWeeklyBackupEmail } from '@/lib/email';
 
 export const runtime = 'nodejs';
@@ -22,14 +22,36 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const [memberRows, paymentRows, loanRows, caseRows, auditRows, [cfg]] = await Promise.all([
+  const [memberRows, paymentRows, loanRows, caseRows, auditRows, repaymentRows, [cfg]] = await Promise.all([
     db.select().from(members).orderBy(desc(members.createdAt)),
     db.select().from(payments).orderBy(desc(payments.createdAt)),
     db.select().from(loans).orderBy(desc(loans.issuedOn)),
     db.select().from(cases).orderBy(desc(cases.createdAt)),
     db.select().from(auditLog).orderBy(desc(auditLog.createdAt)).limit(1000),
+    db.select().from(repayments),
     db.select().from(configTbl).limit(1),
   ]);
+
+  // Ledger reconcile — the non-transactional repayment path in
+  // app/actions.ts relies on this weekly check: loans.paid must equal
+  // SUM(repayments.amount) per loan. A mismatch means an insert failed
+  // between the UPDATE and the repayment row landing.
+  const paidByLoan = new Map<string, number>();
+  for (const r of repaymentRows) {
+    paidByLoan.set(r.loanId, (paidByLoan.get(r.loanId) ?? 0) + r.amount);
+  }
+  const mismatches = loanRows
+    .filter((l) => l.paid !== (paidByLoan.get(l.id) ?? 0))
+    .map((l) => ({ loanId: l.id, ledgerPaid: l.paid, repaymentsSum: paidByLoan.get(l.id) ?? 0 }));
+  if (mismatches.length > 0) {
+    // targetId is an FK to members — loan IDs go in detail only.
+    await db.insert(auditLog).values(
+      mismatches.map((m) => ({
+        action: 'ledger-reconcile-mismatch',
+        detail: `Loan ${m.loanId}: loans.paid=${m.ledgerPaid} but SUM(repayments)=${m.repaymentsSum}`,
+      })),
+    );
+  }
 
   const date = new Date().toISOString().slice(0, 10);
   const summary = {
@@ -40,6 +62,7 @@ export async function GET(req: Request) {
     cases: { total: caseRows.length, approved: caseRows.filter((c) => c.status === 'approved').length },
     auditEntries: auditRows.length,
     fundTotal: paymentRows.filter((p) => !p.pendingVerify).reduce((s, p) => s + p.amount, 0),
+    ledgerReconcile: { loansChecked: loanRows.length, mismatches },
     config: cfg ? { voteThreshold: cfg.voteThresholdPct, easyPaise: cfg.easyPaiseNumber ?? 'not set' } : null,
   };
 

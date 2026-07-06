@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView, KeyboardAvoidingView, Platform, Alert, TouchableOpacity, Switch,
+  View, Text, StyleSheet, ScrollView, KeyboardAvoidingView, Platform, Alert, TouchableOpacity,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -18,10 +18,6 @@ import { useTheme } from '@/lib/useTheme';
 import { spacing } from '@/lib/theme';
 
 const schema = z.object({
-  nameEn: z.string().min(1, 'English name is required').max(80),
-  nameUr: z.string().max(80).optional().or(z.literal('')),
-  fatherName: z.string().max(80).optional().or(z.literal('')),
-  fatherDeceased: z.boolean().optional(),
   phone: z.string().max(30).optional().or(z.literal('')),
   city: z.string().max(60).optional().or(z.literal('')),
   province: z.string().max(40).optional().or(z.literal('')),
@@ -48,10 +44,6 @@ export default function EditProfileScreen() {
     resolver: zodResolver(schema),
     mode: 'onTouched',
     defaultValues: {
-      nameEn: user?.nameEn ?? '',
-      nameUr: user?.nameUr ?? '',
-      fatherName: user?.fatherName && user.fatherName !== '—' ? user.fatherName : '',
-      fatherDeceased: user?.fatherDeceased ?? false,
       phone: user?.phone ?? '',
       city: user?.city ?? '',
       province: user?.province ?? '',
@@ -71,10 +63,6 @@ export default function EditProfileScreen() {
     const previous = user;
     try {
       const updated = await updateProfile({
-        nameEn: data.nameEn,
-        nameUr: data.nameUr || undefined,
-        fatherName: data.fatherName || undefined,
-        fatherDeceased: data.fatherDeceased ?? false,
         phone: data.phone || null,
         city: data.city || null,
         province: data.province || null,
@@ -131,65 +119,6 @@ export default function EditProfileScreen() {
             />
             <Text style={[styles.avatarHint, { color: colors.text4 }]}>{t('editProfile.tapAvatarHint')}</Text>
           </View>
-
-          <Controller
-            control={control}
-            name="nameEn"
-            render={({ field: { onChange, value } }) => (
-              <Input
-                label={t('editProfile.fullNameEn')}
-                value={value}
-                onChangeText={onChange}
-                error={errors.nameEn?.message}
-                autoCapitalize="words"
-              />
-            )}
-          />
-
-          <Controller
-            control={control}
-            name="nameUr"
-            render={({ field: { onChange, value } }) => (
-              <Input
-                label="نام (Urdu)"
-                value={value ?? ''}
-                onChangeText={onChange}
-                error={errors.nameUr?.message}
-                placeholder="اختیاری"
-              />
-            )}
-          />
-
-          <Controller
-            control={control}
-            name="fatherName"
-            render={({ field: { onChange, value } }) => (
-              <Input
-                label={t('editProfile.fatherName')}
-                value={value ?? ''}
-                onChangeText={onChange}
-                error={errors.fatherName?.message}
-                placeholder="Used to link siblings in the family tree"
-                autoCapitalize="words"
-              />
-            )}
-          />
-
-          <Controller
-            control={control}
-            name="fatherDeceased"
-            render={({ field: { onChange, value } }) => (
-              <View style={styles.switchRow}>
-                <Text style={[styles.switchLabel, { color: colors.text2 }]}>{t('editProfile.fatherDeceased')}</Text>
-                <Switch
-                  value={!!value}
-                  onValueChange={onChange}
-                  trackColor={{ false: colors.bg4, true: colors.primaryDim }}
-                  thumbColor={colors.primary}
-                />
-              </View>
-            )}
-          />
 
           <Controller
             control={control}
@@ -273,11 +202,6 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   avatarHint: { fontSize: 11, fontFamily: 'Inter_400Regular' },
-  switchRow: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingVertical: spacing.sm, marginBottom: spacing.sm,
-  },
-  switchLabel: { fontSize: 14, fontFamily: 'Inter_400Regular', flex: 1, marginRight: spacing.md },
   btnRow: {
     flexDirection: 'row',
     gap: spacing.sm,

@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
-import { asc, ne, eq } from 'drizzle-orm';
+import type { Route } from 'next';
+import { asc, ne } from 'drizzle-orm';
 import { Users, UserCheck, UserX, Clock } from 'lucide-react';
 import { getMeOrRedirect } from '@/lib/auth-server';
 import { db } from '@/lib/db';
@@ -10,6 +11,7 @@ import { Breadcrumb } from '@/components/breadcrumb';
 import { ini } from '@/lib/utils';
 import MembersTable from './members-table';
 import ApproveButton from './approve-button';
+import RejectButton from './reject-button';
 import BulkImportDialog from './bulk-import-dialog';
 import { ExportLink } from '@/components/export-link';
 
@@ -73,7 +75,7 @@ export default async function MembersPage({
             {includeRejected ? 'Hide rejected' : 'Show rejected'}
           </a>
           <BulkImportDialog />
-          <ExportLink href={'/api/exports/members' as any}>Export CSV</ExportLink>
+          <ExportLink href={'/api/exports/members' as Route}>Export CSV</ExportLink>
         </div>
       </header>
 
@@ -127,7 +129,10 @@ export default async function MembersPage({
                     {m.city ? ` · ${m.city}` : ''}
                   </div>
                 </div>
-                <ApproveButton memberId={m.id} />
+                <div className="flex gap-2">
+                  <ApproveButton memberId={m.id} />
+                  <RejectButton memberId={m.id} name={m.nameEn || m.nameUr || 'member'} />
+                </div>
               </div>
             ))}
           </CardBody>

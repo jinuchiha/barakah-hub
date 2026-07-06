@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation';
+import type { Route } from 'next';
 import { eq, desc, asc } from 'drizzle-orm';
 import { FileText, CheckCircle2, AlertCircle } from 'lucide-react';
 import { getMeOrRedirect } from '@/lib/auth-server';
@@ -41,7 +42,7 @@ export default async function LoansPage() {
           <h1 className="text-[28px] font-semibold leading-tight tracking-[-0.5px] text-[var(--color-cream)]">Qarz-e-Hasana</h1>
           <p className="font-[var(--font-arabic)] mt-1 text-sm text-[var(--color-gold-2)]">قرض حسنہ · Interest-free loans</p>
         </div>
-        <ExportLink href={'/api/exports/loans' as any}>Export CSV</ExportLink>
+        <ExportLink href={'/api/exports/loans' as Route}>Export CSV</ExportLink>
       </header>
 
       <div className="mb-6 grid grid-cols-3 gap-3">

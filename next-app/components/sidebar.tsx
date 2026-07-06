@@ -1,6 +1,8 @@
 'use client';
 import Link from 'next/link';
+import type { Route } from 'next';
 import { usePathname } from 'next/navigation';
+import { motion } from 'motion/react';
 import { cn } from '@/lib/utils';
 import {
   LayoutDashboard, User, Users, GitBranch, Bell, Mail, Settings, Wallet,
@@ -56,11 +58,11 @@ export function SidebarNav({ isAdmin = false, isSupervisor = false, locale = 'en
           return (
             <div key={itemKey}>
               <SectionLabel label={locale === 'ur' ? 'ایڈمن' : 'ADMIN'} />
-              <NavItem n={n} isActive={isActive} locale={locale} onNavigate={onNavigate} badge={badges[n.href]} />
+              <NavItem n={n} isActive={isActive} locale={locale} onNavigate={onNavigate} badge={badges[n.href]} layoutId={`nav-pill-${layoutIdSuffix}`} />
             </div>
           );
         }
-        return <NavItem key={itemKey} n={n} isActive={isActive} locale={locale} onNavigate={onNavigate} badge={badges[n.href]} />;
+        return <NavItem key={itemKey} n={n} isActive={isActive} locale={locale} onNavigate={onNavigate} badge={badges[n.href]} layoutId={`nav-pill-${layoutIdSuffix}`} />;
       })}
     </nav>
   );
@@ -96,29 +98,38 @@ function SectionLabel({ label }: { label: string }) {
   );
 }
 
-function NavItem({ n, isActive, locale, onNavigate, badge }: {
-  n: typeof NAV[number]; isActive: boolean; locale: 'ur' | 'en'; onNavigate?: () => void; badge?: number;
+function NavItem({ n, isActive, locale, onNavigate, badge, layoutId }: {
+  n: typeof NAV[number]; isActive: boolean; locale: 'ur' | 'en'; onNavigate?: () => void; badge?: number; layoutId: string;
 }) {
   const Icon = n.icon;
   return (
     <Link
-      href={n.href as any}
+      href={n.href as Route}
       onClick={onNavigate}
       aria-current={isActive ? 'page' : undefined}
       className={cn(
-        'group relative my-0.5 flex items-center gap-2.5 rounded-xl px-3 py-2 text-[13px] transition-all duration-150',
+        'group relative my-0.5 flex items-center gap-2.5 rounded-xl px-3 py-2 text-[13px] transition-colors duration-150',
         isActive ? 'font-medium' : 'hover:bg-white/[0.04]',
       )}
-      style={isActive ? {
-        background: 'linear-gradient(90deg,rgba(200,155,60,0.20) 0%,rgba(200,155,60,0.05) 100%)',
-        color: '#ecebe6',
-        boxShadow: 'inset 2.5px 0 0 #c89b3c',
-      } : { color: 'rgba(236,235,230,0.50)' }}
+      style={{ color: isActive ? '#ecebe6' : 'rgba(236,235,230,0.50)' }}
     >
-      <Icon className={cn('size-[15px] shrink-0', isActive ? 'text-[#c89b3c]' : 'text-[rgba(236,235,230,0.35)]')} />
-      <span className="flex-1 truncate">{locale === 'ur' ? n.labelUr : n.label}</span>
+      {/* Shared-layout pill glides between items on navigation. */}
+      {isActive && (
+        <motion.span
+          layoutId={layoutId}
+          aria-hidden
+          transition={{ type: 'spring', stiffness: 420, damping: 34 }}
+          className="absolute inset-0 rounded-xl"
+          style={{
+            background: 'linear-gradient(90deg,rgba(200,155,60,0.20) 0%,rgba(200,155,60,0.05) 100%)',
+            boxShadow: 'inset 2.5px 0 0 #c89b3c',
+          }}
+        />
+      )}
+      <Icon className={cn('relative size-[15px] shrink-0', isActive ? 'text-[#c89b3c]' : 'text-[rgba(236,235,230,0.35)]')} />
+      <span className="relative flex-1 truncate">{locale === 'ur' ? n.labelUr : n.label}</span>
       {!!badge && badge > 0 && (
-        <span className="num ml-auto grid min-w-[20px] place-items-center rounded-full px-1.5 text-[10px] font-bold"
+        <span className="num relative ml-auto grid min-w-[20px] place-items-center rounded-full px-1.5 text-[10px] font-bold"
           style={{ background: '#c89b3c', color: '#0a0f1a' }}>
           {badge > 99 ? '99+' : badge}
         </span>

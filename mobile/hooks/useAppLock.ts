@@ -24,6 +24,7 @@ export function useAppLock(active = true): { ready: boolean } {
         if (cancelled) return;
         if (enabled && !isUnlocked()) {
           router.replace('/lock');
+          setReady(true); // tabs content ready under the lock screen (invisible)
         } else {
           setReady(true);
         }

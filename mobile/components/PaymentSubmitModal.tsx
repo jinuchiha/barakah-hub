@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
   View, Text, StyleSheet, Modal, ScrollView,
-  TouchableOpacity, Alert, Platform, KeyboardAvoidingView,
+  TouchableOpacity, Alert, Platform, KeyboardAvoidingView, TextInput, ActivityIndicator,
 } from 'react-native';
 import { useForm, Controller, type FieldErrors } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -14,7 +14,6 @@ import { radius, spacing } from '@/lib/theme';
 import { useTheme } from '@/lib/useTheme';
 import { currentMonthLabel } from '@/lib/format';
 import { pickImageWithChoice } from '@/lib/camera';
-import { useConfig } from '@/hooks/useConfig';
 import { api } from '@/lib/api';
 
 type Colors = ReturnType<typeof useTheme>['colors'];
@@ -22,7 +21,7 @@ type Colors = ReturnType<typeof useTheme>['colors'];
 // Members self-submit Sadaqah/Zakat only — qarz is disbursed by admins,
 // never self-credited (mirrors the server-side restriction).
 const schema = z.object({
-  amount: z.coerce.number().int().positive('Amount must be positive').max(10_000_000),
+  amount: z.coerce.number().int().min(1, 'Please enter a valid amount').max(10_000_000, 'Amount too large'),
   pool: z.enum(['sadaqah', 'zakat']),
   monthLabel: z.string().min(3),
   note: z.string().max(200).optional(),
@@ -34,6 +33,8 @@ interface PaymentSubmitModalProps {
   visible: boolean;
   onClose: () => void;
   onSubmit: (data: FormData & { receiptUrl?: string }) => Promise<void>;
+  easyPaiseNumber?: string;
+  easyPaiseName?: string;
 }
 
 const pools = [
@@ -41,12 +42,15 @@ const pools = [
   { value: 'zakat' as const, label: 'Zakat' },
 ];
 
-export function PaymentSubmitModal({ visible, onClose, onSubmit }: PaymentSubmitModalProps) {
+const STEP = 500;
+const QUICK_AMOUNTS = [500, 1000, 2000, 5000];
+
+export function PaymentSubmitModal({ visible, onClose, onSubmit, easyPaiseNumber, easyPaiseName }: PaymentSubmitModalProps) {
   const { colors } = useTheme();
   const styles = React.useMemo(() => makeStyles(colors), [colors]);
-  const { data: config } = useConfig();
   const [screenshotUri, setScreenshotUri] = useState<string | undefined>();
   const [submitting, setSubmitting] = useState(false);
+  const [receiptUploadFailed, setReceiptUploadFailed] = useState(false);
 
   const {
     control,
@@ -77,9 +81,7 @@ export function PaymentSubmitModal({ visible, onClose, onSubmit }: PaymentSubmit
       });
       return data.url;
     } catch {
-      // Receipt is optional — if the upload fails (e.g. storage not yet
-      // configured) we submit the payment without it rather than blocking
-      // the donation with an error popup. Admin can request the slip later.
+      setReceiptUploadFailed(true);
       return undefined;
     }
   }
@@ -94,9 +96,9 @@ export function PaymentSubmitModal({ visible, onClose, onSubmit }: PaymentSubmit
     try {
       const receiptUrl = await uploadReceiptIfPresent();
       await onSubmit({ ...data, receiptUrl });
-      // Reset form state before closing — onSubmit already handles close + success
       reset({ amount: undefined, pool: 'sadaqah', monthLabel: currentMonthLabel(), note: '' });
       setScreenshotUri(undefined);
+      setReceiptUploadFailed(false);
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Failed to submit';
       Alert.alert('Submission failed', msg);
@@ -118,26 +120,32 @@ export function PaymentSubmitModal({ visible, onClose, onSubmit }: PaymentSubmit
   const handleCancel = () => {
     reset({ amount: undefined, pool: 'sadaqah', monthLabel: currentMonthLabel(), note: '' });
     setScreenshotUri(undefined);
+    setReceiptUploadFailed(false);
     onClose();
   };
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={handleCancel}>
+    <Modal visible={visible} transparent animationType={Platform.OS === 'android' ? 'none' : 'slide'} hardwareAccelerated onRequestClose={handleCancel}>
       <KeyboardAvoidingView
         style={styles.backdrop}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <View style={styles.sheet}>
+          {submitting ? (
+            <View style={styles.submittingOverlay}>
+              <ActivityIndicator size="large" color={colors.primary} />
+              <Text style={[styles.submittingText, { color: colors.text1 }]}>Processing…</Text>
+            </View>
+          ) : null}
           <View style={styles.handle} />
           <Text style={styles.title}>Submit Payment</Text>
           <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-            {/* EasyPaisa instructions — shown when supervisor has set their number */}
-            {config?.easyPaiseNumber ? (
+            {easyPaiseNumber ? (
               <View style={[styles.easyPaiseBox, { borderColor: colors.primary, backgroundColor: colors.primaryDim }]}>
-                <Text style={[styles.easyPaiseTitle, { color: colors.primary }]}>📱 Send via EasyPaisa First</Text>
+                <Text style={[styles.easyPaiseTitle, { color: colors.primary }]}>Send via EasyPaisa First</Text>
                 <Text style={[styles.easyPaiseName, { color: colors.text1 }]}>
-                  {config.easyPaiseName ? `${config.easyPaiseName} — ` : ''}
-                  <Text style={{ fontFamily: 'SpaceMono_400Regular', fontWeight: '700' }}>{config.easyPaiseNumber}</Text>
+                  {easyPaiseName ? `${easyPaiseName} — ` : ''}
+                  <Text style={{ fontFamily: 'SpaceMono_400Regular', fontWeight: '700' }}>{easyPaiseNumber}</Text>
                 </Text>
                 <Text style={[styles.easyPaiseHint, { color: colors.text3 }]}>
                   Pehle is number pe paisa bhejein, phir neeche receipt upload karein.
@@ -147,15 +155,59 @@ export function PaymentSubmitModal({ visible, onClose, onSubmit }: PaymentSubmit
             <Controller
               control={control}
               name="amount"
-              render={({ field: { onChange, value } }) => (
-                <Input
-                  label="Amount (PKR)"
-                  value={value?.toString() ?? ''}
-                  onChangeText={(t) => onChange(t)}
-                  keyboardType="numeric"
-                  error={errors.amount?.message}
-                />
-              )}
+              render={({ field: { onChange, value } }) => {
+                const num = typeof value === 'number' ? value : 0;
+                return (
+                  <View style={styles.amountBlock}>
+                    <Text style={styles.fieldLabel}>Amount (PKR)</Text>
+                    <View style={styles.presetsRow}>
+                      {QUICK_AMOUNTS.map((amt) => (
+                        <TouchableOpacity
+                          key={amt}
+                          style={[
+                            styles.presetChip,
+                            { borderColor: num === amt ? colors.primary : colors.border1, backgroundColor: num === amt ? colors.primaryDim : colors.glass2 },
+                          ]}
+                          onPress={() => onChange(amt)}
+                        >
+                          <Text style={[styles.presetText, { color: num === amt ? colors.primary : colors.text3 }]}>
+                            {amt >= 1000 ? `₨${amt / 1000}K` : `₨${amt}`}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                    <View style={styles.stepperRow}>
+                      <TouchableOpacity
+                        style={[styles.stepBtn, { borderColor: colors.border1, backgroundColor: colors.glass2 }]}
+                        onPress={() => onChange(Math.max(STEP, num - STEP))}
+                        accessibilityLabel="Decrease amount"
+                      >
+                        <MaterialCommunityIcons name="minus" size={22} color={colors.text2} />
+                      </TouchableOpacity>
+                      <TextInput
+                        style={[styles.stepInput, { color: colors.text1, borderColor: colors.border1, backgroundColor: colors.glass1 }]}
+                        value={value !== undefined ? String(value) : ''}
+                        onChangeText={(t) => {
+                          const n = parseInt(t.replace(/[^0-9]/g, ''), 10);
+                          onChange(Number.isNaN(n) ? undefined : n);
+                        }}
+                        keyboardType="numeric"
+                        placeholder="0"
+                        placeholderTextColor={colors.text4}
+                        returnKeyType="done"
+                      />
+                      <TouchableOpacity
+                        style={[styles.stepBtn, { borderColor: colors.border1, backgroundColor: colors.glass2 }]}
+                        onPress={() => onChange(num + STEP)}
+                        accessibilityLabel="Increase amount"
+                      >
+                        <MaterialCommunityIcons name="plus" size={22} color={colors.text2} />
+                      </TouchableOpacity>
+                    </View>
+                    {errors.amount ? <Text style={styles.errorText}>{errors.amount.message}</Text> : null}
+                  </View>
+                );
+              }}
             />
 
             <Text style={styles.fieldLabel}>Fund Pool</Text>
@@ -223,6 +275,15 @@ export function PaymentSubmitModal({ visible, onClose, onSubmit }: PaymentSubmit
                 </>
               )}
             </TouchableOpacity>
+
+            {receiptUploadFailed ? (
+              <View style={[styles.uploadWarn, { backgroundColor: colors.goldDim, borderColor: colors.gold }]}>
+                <MaterialCommunityIcons name="alert-outline" size={14} color={colors.gold} />
+                <Text style={[styles.uploadWarnText, { color: colors.gold }]}>
+                  Receipt upload failed — payment will be submitted without it. Admin may request the slip later.
+                </Text>
+              </View>
+            ) : null}
 
             <View style={styles.buttons}>
               <Button label="Cancel" onPress={handleCancel} variant="ghost" style={styles.btn} />
@@ -336,4 +397,25 @@ const makeStyles = (colors: Colors) => StyleSheet.create({
   easyPaiseTitle: { fontSize: 11, fontFamily: 'Inter_700Bold', letterSpacing: 1, marginBottom: 4 },
   easyPaiseName: { fontSize: 15, fontFamily: 'Inter_600SemiBold' },
   easyPaiseHint: { fontSize: 12, fontFamily: 'Inter_400Regular', marginTop: 4 },
+  amountBlock: { marginBottom: spacing.md },
+  presetsRow: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.sm },
+  presetChip: { flex: 1, paddingVertical: 10, borderRadius: radius.full, borderWidth: 1.5, alignItems: 'center' },
+  presetText: { fontSize: 13, fontFamily: 'Inter_600SemiBold' },
+  stepperRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  stepBtn: { width: 50, height: 50, borderRadius: 14, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
+  stepInput: { flex: 1, height: 50, borderRadius: 14, borderWidth: 1.5, textAlign: 'center', fontSize: 22, fontFamily: 'SpaceMono_400Regular', paddingHorizontal: 8 },
+  errorText: { fontSize: 11, fontFamily: 'Inter_400Regular', color: '#dc5252', marginTop: 6 },
+  uploadWarn: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, borderWidth: 1, borderRadius: radius.sm, padding: spacing.sm, marginBottom: spacing.sm },
+  uploadWarnText: { fontSize: 12, fontFamily: 'Inter_400Regular', flex: 1 },
+  submittingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderTopLeftRadius: radius.xl,
+    borderTopRightRadius: radius.xl,
+    zIndex: 20,
+    gap: 14,
+  },
+  submittingText: { fontSize: 16, fontFamily: 'Inter_600SemiBold' },
 });

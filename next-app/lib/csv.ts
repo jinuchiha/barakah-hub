@@ -12,12 +12,16 @@ type Cell = string | number | boolean | Date | null | undefined;
 
 function escape(cell: Cell): string {
   if (cell === null || cell === undefined) return '';
-  const raw =
+  let raw =
     cell instanceof Date
       ? cell.toISOString()
       : typeof cell === 'boolean'
         ? cell ? 'true' : 'false'
         : String(cell);
+  // Member-supplied text (names, payment notes) reaches admin spreadsheets —
+  // neutralize formula injection (=, +, -, @, tab/CR-prefixed) per OWASP.
+  // Only strings: numeric cells (e.g. negative amounts) are not injectable.
+  if (typeof cell === 'string' && /^[=+\-@\t\r]/.test(raw)) raw = `'${raw}`;
   if (/[",\r\n]/.test(raw)) return `"${raw.replace(/"/g, '""')}"`;
   return raw;
 }
