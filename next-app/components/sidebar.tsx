@@ -5,6 +5,7 @@ import type { Route } from 'next';
 import { usePathname } from 'next/navigation';
 import { motion } from 'motion/react';
 import { cn } from '@/lib/utils';
+import { useLocale } from '@/lib/i18n/use-locale';
 import {
   LayoutDashboard, User, Users, GitBranch, Bell, Mail, Settings, Wallet,
   AlertTriangle, FileText, Megaphone, ScrollText, UserPlus, BookOpen, Bot, Wrench,
@@ -42,7 +43,8 @@ interface NavProps {
   collapsed?: boolean;
 }
 
-export function SidebarNav({ isAdmin = false, isSupervisor = false, locale = 'en', onNavigate, layoutIdSuffix = 'desktop', badges = {}, collapsed = false }: NavProps) {
+export function SidebarNav({ isAdmin = false, isSupervisor = false, onNavigate, layoutIdSuffix = 'desktop', badges = {}, collapsed = false }: NavProps) {
+  const locale = useLocale();
   const pathname = usePathname();
   const items = NAV.filter((n) => {
     if (n.admin) return isAdmin;

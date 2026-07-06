@@ -180,7 +180,7 @@ export function AIChatClient({ userName }: Props) {
         @keyframes bounce { 0%,60%,100%{transform:translateY(0)} 30%{transform:translateY(-5px)} }
       `}</style>
 
-      <div className="flex h-full flex-col">
+      <div className="mx-auto flex h-full w-full max-w-4xl flex-col">
         {/* Header */}
         <header
           className="flex items-center justify-between border-b px-6 py-4"

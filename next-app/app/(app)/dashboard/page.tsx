@@ -13,10 +13,12 @@ import { StatCard } from '@/components/stat-card';
 import { GoalBar } from '@/components/goal-bar';
 import { SpendingDonut, type DonutSlice } from '@/components/spending-donut';
 import { Card, CardHeader, CardTitle, CardBody } from '@/components/ui/card';
-import { fmtRs } from '@/lib/i18n/dict';
+import { fmtRs, t } from '@/lib/i18n/dict';
+import { getLocale } from '@/lib/i18n/server';
 import { ini } from '@/lib/utils';
 
 export default async function DashboardPage() {
+  const locale = await getLocale();
   const me = await getMeOrRedirect();
   const isAdmin = me.role === 'admin';
 
@@ -132,7 +134,7 @@ export default async function DashboardPage() {
           <div className="relative z-10">
             <div className="flex items-center gap-2">
               <span aria-hidden className="fund-hero-dot" />
-              <span className="text-[11px] font-bold uppercase tracking-[2.5px] text-[var(--color-gold-4)]">Total Family Fund · Live</span>
+              <span className="text-[11px] font-bold uppercase tracking-[2.5px] text-[var(--color-gold-4)]">{t('dash.totalFamilyFund', locale)}</span>
             </div>
             <AnimatedNumber value={totalFund} prefix="Rs. " className="fund-hero-number tabular mt-2 text-[44px] font-bold leading-none" />
             <div className="mt-3 h-px w-14 bg-[rgba(200,155,60,0.35)]" />
@@ -258,7 +260,7 @@ export default async function DashboardPage() {
           <CardHeader>
             <div className="flex items-center gap-2.5">
               <Users className="size-4 text-[var(--color-gold)]" />
-              <CardTitle>Community Activity</CardTitle>
+              <CardTitle>{t('dash.communityFeed', locale)}</CardTitle>
             </div>
             <span className="text-[10px] uppercase tracking-[1.5px] text-[var(--txt-3)]">Anonymized</span>
           </CardHeader>
