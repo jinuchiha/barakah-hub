@@ -93,7 +93,7 @@ export default function LoginForm({ next }: { next?: string }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="px-8 pb-8 pt-6">
+    <form onSubmit={handleSubmit} className="px-5 pb-8 pt-6 sm:px-8">
       <WelcomeWipe show={welcome} />
       <div className="mb-4">
         <Label htmlFor="email">Email</Label>

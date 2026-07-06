@@ -10,12 +10,12 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
   const { next } = await searchParams;
 
   return (
-    <main className="relative min-h-screen overflow-hidden">
+    <main className="relative min-h-svh overflow-x-clip">
       <BackgroundPattern />
       <LoginScene>
         <div className="relative overflow-hidden rounded-[var(--radius-r-lg)] border border-[var(--border-2)] bg-gradient-to-br from-[#1d2127] to-[#14171c] shadow-[0_24px_60px_rgba(0,0,0,0.45),0_4px_12px_rgba(0,0,0,0.25)]">
           <div className="absolute left-0 right-0 top-0 h-0.5 bg-gradient-to-r from-transparent via-[var(--color-gold)] to-transparent" />
-          <div className="border-b border-[var(--border)] bg-gradient-to-b from-[rgba(214,210,199,0.06)] to-transparent px-8 pb-6 pt-8 text-center">
+          <div className="border-b border-[var(--border)] bg-gradient-to-b from-[rgba(214,210,199,0.06)] to-transparent px-5 pb-6 pt-8 text-center sm:px-8">
             <Crescent />
             <h1 className="font-[var(--font-arabic)] text-2xl text-[var(--color-gold-2)]">بَرَكَة ہب</h1>
             <div className="mt-1.5 font-[var(--font-display)] text-[11px] uppercase tracking-[4px] text-[var(--color-gold-4)] opacity-80">
