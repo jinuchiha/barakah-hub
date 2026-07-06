@@ -137,7 +137,7 @@ export default function DonationForm({ easyPaiseName, easyPaiseNumber }: Donatio
     start(async () => {
       try {
         await submitDonation({ amount, pool, monthLabel: month, note: note || undefined, receiptUrl: receiptUrl || undefined });
-        toast.success('Submitted · admin will verify');
+        toast.success(tr('toast.donationSubmitted', locale));
         setDuaFor(pool);
         reset();
         setOpen(false);

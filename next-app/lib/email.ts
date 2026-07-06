@@ -87,31 +87,62 @@ export async function sendApprovalEmail(to: string, name: string): Promise<void>
   await send(to, '✅ Your Barakah Hub account is approved', shell('Account Approved', body, 'Open dashboard', `${APP_URL}/dashboard`), text);
 }
 
-/* ─── 3. Payment receipt ─── */
+/* ─── 3. Payment receipt — a digital slip: scannable QR (verification
+ * page), a randomly chosen sourced dua, and Islamic ornament framing.
+ * QR is served from our own domain because mail clients block data: URIs. */
 export interface ReceiptInput { name: string; amount: number; pool: string; monthLabel: string; paymentId: string; verifiedAt: Date }
 export async function sendPaymentReceiptEmail(to: string, r: ReceiptInput): Promise<void> {
+  const { randomDua } = await import('./duas');
+  const dua = randomDua();
   const formatted = r.amount.toLocaleString('en-PK');
   const poolLabel = r.pool === 'sadaqah' ? 'Sadaqah / صدقہ' : r.pool === 'zakat' ? 'Zakat / زکوٰۃ' : 'Qarz pool';
+  const receiptNo = r.paymentId.slice(0, 8).toUpperCase();
+  const qrUrl = `${APP_URL}/api/receipt-qr/${r.paymentId}`;
+  const verifyUrl = `${APP_URL}/verify-receipt/${r.paymentId}`;
   const body = `
     <p>السلام علیکم <strong style="color:#f8fafc;">${escape(r.name)}</strong>،</p>
     <p>Your contribution has been <strong style="color:#10b981;">verified</strong>. Jazak Allahu Khairan.</p>
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:20px 0;border:1px solid #1e293b;border-radius:12px;overflow:hidden;">
-      <tr><td style="padding:14px 18px;background:#1e293b;border-bottom:1px solid #334155;">
-        <div style="font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:#94a3b8;">Receipt</div>
-        <div style="font-size:11px;color:#64748b;font-family:'Courier New',monospace;">#${r.paymentId.slice(0, 8).toUpperCase()}</div>
+
+    <!-- ── The slip ── -->
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:20px 0;border:1px solid #8a6d2f;border-radius:14px;overflow:hidden;background:linear-gradient(160deg,#141b2c 0%,#0f1626 55%,#1a1408 100%);">
+      <tr><td align="center" style="padding:16px 18px 10px;border-bottom:1px solid rgba(200,155,60,0.35);background:linear-gradient(90deg,rgba(200,155,60,0.14),rgba(200,155,60,0.03),rgba(200,155,60,0.14));">
+        <div style="font-size:20px;color:#d9b04c;line-height:1;">﷽</div>
+        <div style="margin-top:6px;font-size:10px;text-transform:uppercase;letter-spacing:3px;color:#a08748;">Barakah Hub · Official Receipt</div>
       </td></tr>
-      <tr><td style="padding:18px 18px 4px;font-size:13px;color:#cbd5e1;">Amount</td></tr>
-      <tr><td style="padding:0 18px 14px;font-size:28px;font-weight:bold;color:#f59e0b;">Rs ${formatted}</td></tr>
-      <tr><td style="padding:0 18px 14px;font-size:13px;color:#cbd5e1;border-top:1px solid #1e293b;padding-top:14px;">
-        <strong style="color:#f8fafc;">Pool:</strong> ${poolLabel}<br>
-        <strong style="color:#f8fafc;">For month:</strong> ${escape(r.monthLabel)}<br>
-        <strong style="color:#f8fafc;">Verified on:</strong> ${r.verifiedAt.toLocaleDateString('en-GB')}
+      <tr><td style="padding:18px;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+          <tr>
+            <td valign="top">
+              <div style="font-size:11px;color:#94a3b8;">Receipt <span style="font-family:'Courier New',monospace;color:#d9b04c;">#${receiptNo}</span></div>
+              <div style="margin-top:10px;font-size:30px;font-weight:bold;color:#e8c563;">Rs ${formatted}</div>
+              <div style="margin-top:10px;font-size:13px;color:#cbd5e1;line-height:1.8;">
+                <strong style="color:#f8fafc;">Pool:</strong> ${poolLabel}<br>
+                <strong style="color:#f8fafc;">For month:</strong> ${escape(r.monthLabel)}<br>
+                <strong style="color:#f8fafc;">Verified on:</strong> ${r.verifiedAt.toLocaleDateString('en-GB')}
+              </div>
+            </td>
+            <td valign="top" align="right" width="120">
+              <a href="${verifyUrl}" style="text-decoration:none;">
+                <img src="${qrUrl}" width="108" height="108" alt="Scan to verify receipt" style="border-radius:10px;border:3px solid #d9b04c;display:block;background:#f8f5ec;">
+              </a>
+              <div style="margin-top:6px;font-size:9px;text-transform:uppercase;letter-spacing:1px;color:#a08748;text-align:center;">Scan to verify</div>
+            </td>
+          </tr>
+        </table>
+      </td></tr>
+      <!-- ── Dua band ── -->
+      <tr><td align="center" style="padding:16px 22px 18px;border-top:1px dashed rgba(200,155,60,0.4);background:linear-gradient(180deg,rgba(200,155,60,0.08),rgba(200,155,60,0.02));">
+        <div style="font-size:13px;color:#d9b04c;letter-spacing:6px;">۞ ۞ ۞</div>
+        <div dir="rtl" style="margin-top:10px;font-size:17px;line-height:2;color:#e8c563;font-family:'Amiri','Times New Roman',serif;">${escape(dua.arabic)}</div>
+        <div style="margin-top:6px;font-size:12px;font-style:italic;color:#cbd5e1;">${escape(dua.english)}</div>
+        <div style="margin-top:6px;font-size:10px;letter-spacing:1.5px;color:#a08748;">${escape(dua.source)}</div>
       </td></tr>
     </table>
-    <p style="font-size:12px;color:#64748b;">This receipt is tamper-evident and recorded in the audit log. Keep it for your records.</p>
+
+    <p style="font-size:12px;color:#64748b;">This receipt is tamper-evident and recorded in the audit log · scan the QR (or tap it) any time to verify authenticity.</p>
   `;
-  const text = `Receipt #${r.paymentId.slice(0, 8).toUpperCase()}\n\nAmount: Rs ${formatted}\nPool: ${poolLabel}\nFor: ${r.monthLabel}\nVerified: ${r.verifiedAt.toLocaleDateString('en-GB')}\n\nJazak Allahu Khairan.\n\n${APP_URL}/myaccount`;
-  await send(to, `🧾 Receipt: Rs ${formatted} ${r.pool}`, shell('Payment Verified', body, 'View history', `${APP_URL}/myaccount`), text);
+  const text = `BARAKAH HUB · OFFICIAL RECEIPT\nReceipt #${receiptNo}\n\nAmount: Rs ${formatted}\nPool: ${poolLabel}\nFor: ${r.monthLabel}\nVerified: ${r.verifiedAt.toLocaleDateString('en-GB')}\n\nVerify: ${verifyUrl}\n\n"${dua.english}" — ${dua.source}\n\nJazak Allahu Khairan.`;
+  await send(to, `🧾 Receipt #${receiptNo}: Rs ${formatted} ${r.pool}`, shell('Payment Verified', body, 'View history', `${APP_URL}/myaccount`), text);
 }
 
 /* ─── 3b. Payment review request (to supervisors/admins) ─── */
