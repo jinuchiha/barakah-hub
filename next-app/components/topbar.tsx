@@ -1,5 +1,5 @@
 'use client';
-import { Search, Bell, Sun, Moon, LogOut, User as UserIcon, Settings as SettingsIcon, Globe } from 'lucide-react';
+import { Search, Bell, LogOut, User as UserIcon, Settings as SettingsIcon, Globe } from 'lucide-react';
 import { useEffect, useState, useSyncExternalStore } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -28,19 +28,6 @@ interface TopbarProps {
 const THEME_KEY = 'barakah_theme';
 const LANG_KEY = 'barakah_lang';
 
-const themeStore = {
-  subscribe: (cb: () => void) => {
-    if (typeof window === 'undefined') return () => {};
-    window.addEventListener('storage', cb);
-    return () => window.removeEventListener('storage', cb);
-  },
-  getSnapshot: (): 'dark' | 'light' => {
-    if (typeof window === 'undefined') return 'dark';
-    return (localStorage.getItem(THEME_KEY) as 'dark' | 'light' | null) ?? 'dark';
-  },
-  getServerSnapshot: (): 'dark' | 'light' => 'dark',
-};
-
 const langStore = {
   subscribe: (cb: () => void) => {
     if (typeof window === 'undefined') return () => {};
@@ -56,16 +43,18 @@ const langStore = {
 
 export function Topbar({ user, unreadCount = 0, isAdmin = false, isSupervisor = false, badges = {} }: TopbarProps) {
   const [q, setQ] = useState('');
-  const mode = useSyncExternalStore(themeStore.subscribe, themeStore.getSnapshot, themeStore.getServerSnapshot);
   const lang = useSyncExternalStore(langStore.subscribe, langStore.getSnapshot, langStore.getServerSnapshot);
   const [langOpen, setLangOpen] = useState(false);
   const router = useRouter();
 
-  // DOM-only side effect: keep <html> classList synced with the persisted theme.
+  // The design system is dark-only luxury — a half-implemented light
+  // theme shipped once and broke every hardcoded surface. Clear any
+  // persisted 'light' preference so those users land back on dark.
   useEffect(() => {
-    document.documentElement.classList.toggle('light', mode === 'light');
-    document.documentElement.classList.toggle('dark', mode === 'dark');
-  }, [mode]);
+    localStorage.removeItem(THEME_KEY);
+    document.documentElement.classList.remove('light');
+    document.documentElement.classList.add('dark');
+  }, []);
 
   // Close language dropdown on outside click.
   useEffect(() => {
@@ -83,15 +72,6 @@ export function Topbar({ user, unreadCount = 0, isAdmin = false, isSupervisor = 
     }
     router.push('/login');
     router.refresh();
-  }
-
-  function toggleMode() {
-    const next = mode === 'dark' ? 'light' : 'dark';
-    localStorage.setItem(THEME_KEY, next);
-    document.documentElement.classList.toggle('light', next === 'light');
-    document.documentElement.classList.toggle('dark', next === 'dark');
-    // Manually fire so other tabs' subscribers (and ours) re-read.
-    window.dispatchEvent(new StorageEvent('storage', { key: THEME_KEY, newValue: next }));
   }
 
   function onSearchSubmit(e: React.FormEvent) {
@@ -188,14 +168,6 @@ export function Topbar({ user, unreadCount = 0, isAdmin = false, isSupervisor = 
             </div>
           )}
         </div>
-        <button
-          type="button"
-          onClick={toggleMode}
-          aria-label={`Switch to ${mode === 'dark' ? 'light' : 'dark'} mode`}
-          className="hidden size-9 place-items-center rounded-lg text-[var(--txt-2)] transition-colors hover:bg-[var(--surf-3)] hover:text-[var(--color-cream)] sm:grid"
-        >
-          {mode === 'dark' ? <Sun className="size-[18px]" /> : <Moon className="size-[18px]" />}
-        </button>
         <Link
           href="/notifications"
           aria-label={unreadCount > 0 ? `Notifications, ${unreadCount} unread` : 'Notifications'}

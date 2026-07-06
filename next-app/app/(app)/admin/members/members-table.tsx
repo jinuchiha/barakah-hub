@@ -1,5 +1,7 @@
 'use client';
 import { useState, useMemo, useTransition } from 'react';
+import Link from 'next/link';
+import type { Route } from 'next';
 import { Search, Pencil, Trash2, MessageCircle, Plus, ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardBody } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -139,15 +141,15 @@ export default function MembersTable({ initial }: Props) {
                 <tr key={m.id} className="table-row-hover border-b border-[rgba(214,210,199,0.06)]">
                   <td className="px-4 py-2 font-[var(--font-en)] text-xs text-[var(--color-gold-4)]">{i + 1}</td>
                   <td className="px-4 py-2">
-                    <div className="flex items-center gap-2.5">
+                    <Link href={`/admin/members/${m.id}` as Route} className="group/name flex items-center gap-2.5">
                       <div className="grid size-7 shrink-0 place-items-center overflow-hidden rounded-full text-[10px] font-bold text-white" style={{ background: m.color }}>
                         {m.photoUrl ? <img src={m.photoUrl} alt={m.nameEn || m.nameUr || 'Member photo'} className="size-full rounded-full object-cover" /> : ini(m.nameEn || m.nameUr)}
                       </div>
                       <div>
-                        <div className="text-sm font-semibold text-[var(--color-cream)]">{m.nameEn || m.nameUr}</div>
+                        <div className="text-sm font-semibold text-[var(--color-cream)] transition-colors group-hover/name:text-[var(--color-gold-2)]">{m.nameEn || m.nameUr}</div>
                         {m.relation ? <div className="text-[10px] text-[var(--txt-3)]">{m.relation}</div> : null}
                       </div>
-                    </div>
+                    </Link>
                   </td>
                   <td className="px-4 py-2 text-xs text-[var(--txt-2)]">{m.fatherName === '—' ? '' : m.fatherName}</td>
                   <td className="px-4 py-2 text-xs text-[var(--txt-3)]">{m.city ?? ''}{m.province ? <><br /><span className="opacity-70">{m.province}</span></> : null}</td>
