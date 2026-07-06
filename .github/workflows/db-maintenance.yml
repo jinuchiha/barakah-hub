@@ -11,11 +11,15 @@ on:
         description: migrate | verify | e2e-approve | e2e-promote | e2e-cleanup
         required: true
         type: choice
-        options: [migrate, verify, e2e-approve, e2e-promote, e2e-cleanup]
+        options: [branches, migrate, verify, e2e-approve, e2e-promote, e2e-cleanup]
       email:
         description: e2e test account email (@barakah-test.dev only)
         required: false
         default: ''
+      branch:
+        description: Neon branch name to target
+        required: false
+        default: main
 
 defaults:
   run:
@@ -38,10 +42,12 @@ jobs:
           echo "uri=$uri" >> "$GITHUB_OUTPUT"
 
       - name: Setup pnpm
+        if: inputs.task != 'branches'
         uses: pnpm/action-setup@v4
         with: { version: 9, run_install: false }
 
       - name: Setup Node
+        if: inputs.task != 'branches'
         uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -49,9 +55,11 @@ jobs:
           cache-dependency-path: next-app/pnpm-lock.yaml
 
       - name: Install
+        if: inputs.task != 'branches'
         run: pnpm install --frozen-lockfile
 
       - name: Run task
+        if: inputs.task != 'branches'
         env:
           DATABASE_URL_DIRECT: ${{ steps.conn.outputs.uri }}
           TASK: ${{ inputs.task }}
