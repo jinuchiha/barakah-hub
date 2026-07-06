@@ -229,9 +229,9 @@ export default async function FundPage() {
       </header>
 
       <div className="mb-6 grid gap-3 grid-cols-3">
-        <StatCard label="Sadaqah Pool" value={fmtRs(Number(poolTotals.sadaqah))} tone="gold"     hint="Voluntary charity" />
-        <StatCard label="Zakat Pool"   value={fmtRs(Number(poolTotals.zakat))}   tone="emerald"  hint="Obligatory alms" />
-        <StatCard label="Qarz Pool"    value={fmtRs(Number(poolTotals.qarz))}    tone="sapphire" hint="Interest-free loans" />
+        <StatCard label="Sadaqah Pool" value={Number(poolTotals.sadaqah)} money tone="gold"     hint="Voluntary charity" />
+        <StatCard label="Zakat Pool"   value={Number(poolTotals.zakat)} money  tone="emerald"  hint="Obligatory alms" />
+        <StatCard label="Qarz Pool"    value={Number(poolTotals.qarz)} money   tone="sapphire" hint="Interest-free loans" />
       </div>
 
       <Card className="mb-4">

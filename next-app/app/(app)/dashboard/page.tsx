@@ -176,9 +176,9 @@ export default async function DashboardPage() {
       <div className="animate-enter-delay-1 mb-6 grid gap-3" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
         {isAdmin ? (
           <>
-            <StatCard label="Pending Approval"   icon={<Hourglass />} value={fmtRs(pendingAmount)}                                   hint={pendingAmount > 0 ? 'In supervisor/admin flow' : 'Nothing pending'} tone="gold" />
+            <StatCard label="Pending Approval"   icon={<Hourglass />} value={pendingAmount} money                                   hint={pendingAmount > 0 ? 'In supervisor/admin flow' : 'Nothing pending'} tone="gold" />
             <StatCard label="Active Members"     icon={<Users />}     value={memberCount}                                          hint="Approved family" tone="violet" />
-            <StatCard label="Outstanding Loans"  icon={<FileText />}  value={fmtRs(Number(outstandingLoans[0]?.owed ?? 0))}          hint="Active qarz" tone="ruby" />
+            <StatCard label="Outstanding Loans"  icon={<FileText />}  value={Number(outstandingLoans[0]?.owed ?? 0)} money          hint="Active qarz" tone="ruby" />
             <StatCard label="Pending Votes"      icon={<Vote />}      value={pendingVotes}                                           hint={pendingVotes ? 'Needs review' : 'All resolved'} tone="sapphire" />
           </>
         ) : (

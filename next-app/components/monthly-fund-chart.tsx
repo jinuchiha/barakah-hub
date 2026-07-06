@@ -37,10 +37,13 @@ export function MonthlyFundChart({ buckets }: { buckets: MonthBucket[] }) {
   const max = Math.max(...totals, 1);
 
   // Geometry: chart fills 100% width, bars have a gap, height fixed.
+  // Bar width is capped so 2-3 months don't render as giant slabs.
   const W = 720;
   const H = 180;
-  const gap = 6;
-  const barW = (W - gap * (buckets.length - 1)) / buckets.length;
+  const gap = 10;
+  const barW = Math.min(56, (W - gap * (buckets.length - 1)) / buckets.length);
+  const groupW = barW * buckets.length + gap * (buckets.length - 1);
+  const xOffset = (W - groupW) / 2;
 
   return (
     <div className="overflow-x-auto">
@@ -51,17 +54,35 @@ export function MonthlyFundChart({ buckets }: { buckets: MonthBucket[] }) {
         role="img"
         aria-label={`Monthly fund inflow over ${buckets.length} months`}
       >
+        <defs>
+          <linearGradient id="mf-sadaqah" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#3aa574" />
+            <stop offset="100%" stopColor="#1d5c3f" />
+          </linearGradient>
+          <linearGradient id="mf-zakat" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#e8c563" />
+            <stop offset="100%" stopColor="#9c7a2e" />
+          </linearGradient>
+          <linearGradient id="mf-qarz" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#6ba3f5" />
+            <stop offset="100%" stopColor="#2856a8" />
+          </linearGradient>
+        </defs>
+        {/* Quiet horizontal guides */}
+        {[0.25, 0.5, 0.75].map((f) => (
+          <line key={f} x1={0} x2={W} y1={H * f} y2={H * f} stroke="rgba(236,235,230,0.05)" strokeWidth={1} />
+        ))}
         {buckets.map((b, i) => {
           const total = b.sadaqah + b.zakat + b.qarz;
-          const x = i * (barW + gap);
+          const x = xOffset + i * (barW + gap);
           const sH = (b.sadaqah / max) * H;
           const zH = (b.zakat / max) * H;
           const qH = (b.qarz / max) * H;
           let y = H;
           const segments: Array<[number, number, string]> = [];
-          if (sH > 0) { y -= sH; segments.push([y, sH, POOL_COLORS.sadaqah]); }
-          if (zH > 0) { y -= zH; segments.push([y, zH, POOL_COLORS.zakat]); }
-          if (qH > 0) { y -= qH; segments.push([y, qH, POOL_COLORS.qarz]); }
+          if (sH > 0) { y -= sH; segments.push([y, sH, 'url(#mf-sadaqah)']); }
+          if (zH > 0) { y -= zH; segments.push([y, zH, 'url(#mf-zakat)']); }
+          if (qH > 0) { y -= qH; segments.push([y, qH, 'url(#mf-qarz)']); }
           const parts = b.monthLabel.split(' ');
           const mon = parts[0] ?? b.monthLabel;
           const yr  = parts[1] ?? '';
@@ -70,7 +91,17 @@ export function MonthlyFundChart({ buckets }: { buckets: MonthBucket[] }) {
             <g key={b.monthStart}>
               <title>{`${b.monthLabel}: ${fmtRs(total)}`}</title>
               {segments.map(([sy, sh, fill], k) => (
-                <rect key={k} x={x} y={sy} width={barW} height={sh} fill={fill} rx={k === segments.length - 1 ? 3 : 0} />
+                <rect
+                  key={k}
+                  x={x}
+                  y={sy}
+                  width={barW}
+                  height={sh}
+                  fill={fill}
+                  rx={k === segments.length - 1 ? 4 : 0}
+                  className="chart-bar-grow"
+                  style={{ animationDelay: `${i * 90}ms` }}
+                />
               ))}
               {/* Month label */}
               <text

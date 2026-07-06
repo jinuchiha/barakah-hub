@@ -3,6 +3,7 @@ import * as React from 'react';
 import { motion, useMotionValue, useReducedMotion, useSpring, useTransform } from 'motion/react';
 import { cn } from '@/lib/utils';
 import { AnimatedNumber } from '@/components/animated-number';
+import { fmtRs } from '@/lib/i18n/dict';
 
 type Tone = 'emerald' | 'gold' | 'ruby' | 'sapphire' | 'violet' | 'ocean';
 
@@ -19,6 +20,8 @@ interface StatCardProps {
   icon?: React.ReactNode;
   /** Optional delta: e.g. "+12.4%". Sign drives the color. */
   delta?: string;
+  /** Numeric value renders as animated rupees (fmtRs count-up). */
+  money?: boolean;
 }
 
 const TONE_ACCENT: Record<Tone, string> = {
@@ -30,7 +33,7 @@ const TONE_ACCENT: Record<Tone, string> = {
   ocean:    '#4ab8d6',
 };
 
-export function StatCard({ label, sublabel, value, hint, tone = 'emerald', spark, icon, delta }: StatCardProps) {
+export function StatCard({ label, sublabel, value, hint, tone = 'emerald', spark, icon, delta, money = false }: StatCardProps) {
   const accent = TONE_ACCENT[tone];
   const reduce = useReducedMotion();
   const deltaSign = delta?.[0] === '-' ? 'down' : delta?.[0] === '+' ? 'up' : null;
@@ -101,7 +104,7 @@ export function StatCard({ label, sublabel, value, hint, tone = 'emerald', spark
       {/* Value — plain numbers count up; formatted strings render as-is */}
       <div className="relative mt-3 flex items-end justify-between gap-3">
         <div className="num-display text-[26px] leading-none tracking-[-0.5px] text-[var(--color-cream)]">
-          {typeof value === 'number' ? <AnimatedNumber value={value} /> : value}
+          {typeof value === 'number' ? <AnimatedNumber value={value} formatter={money ? fmtRs : undefined} /> : value}
         </div>
         {spark && spark.length > 0 && <Sparkline values={spark} color={accent} />}
       </div>
