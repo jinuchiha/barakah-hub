@@ -14,38 +14,36 @@ const GOLD_A = new THREE.Color('#c89b3c');
 const GOLD_B = new THREE.Color('#e8c563');
 const EMERALD = new THREE.Color('#2d8a5f');
 
-/** Points along the outline of an 8-point star (two squares, one at 45°). */
-function starOutline(count: number, radius: number, z: number, jitter: number): number[] {
+/**
+ * Points filling a crescent (hilal): the region inside the outer circle
+ * but outside a slightly smaller circle offset toward one side. Rejection
+ * sampling keeps the shape crisp; jitter adds depth.
+ */
+function crescent(count: number, radius: number, z: number, jitter: number): number[] {
   const pts: number[] = [];
-  const corners: [number, number][] = [];
-  for (const rot of [0, Math.PI / 4]) {
-    for (let i = 0; i < 4; i++) {
-      const a = rot + (i * Math.PI) / 2 + Math.PI / 4;
-      corners.push([Math.cos(a) * radius, Math.sin(a) * radius]);
-    }
-  }
-  // Sample each square's edges.
-  for (let s = 0; s < 2; s++) {
-    const quad = corners.slice(s * 4, s * 4 + 4);
-    for (let i = 0; i < count / 8; i++) {
-      const edge = Math.floor(Math.random() * 4);
-      const [x1, y1] = quad[edge];
-      const [x2, y2] = quad[(edge + 1) % 4];
-      const t = Math.random();
-      pts.push(
-        x1 + (x2 - x1) * t + (Math.random() - 0.5) * jitter,
-        y1 + (y2 - y1) * t + (Math.random() - 0.5) * jitter,
-        z + (Math.random() - 0.5) * jitter * 2,
-      );
-    }
+  const innerR = radius * 0.82;
+  const offset = radius * 0.38;
+  while (pts.length < count * 3) {
+    const a = Math.random() * Math.PI * 2;
+    const r = radius * Math.sqrt(Math.random());
+    const x = Math.cos(a) * r;
+    const y = Math.sin(a) * r;
+    // Inside the offset inner circle → the "bite" — reject.
+    const dx = x - offset;
+    if (dx * dx + y * y < innerR * innerR) continue;
+    pts.push(
+      x + (Math.random() - 0.5) * jitter,
+      y + (Math.random() - 0.5) * jitter,
+      z + (Math.random() - 0.5) * jitter * 2,
+    );
   }
   return pts;
 }
 
 function buildGeometry(): THREE.BufferGeometry {
   const positions: number[] = [
-    ...starOutline(2600, 11, 0, 0.55),
-    ...starOutline(1400, 6.5, -2, 0.45),
+    ...crescent(3200, 11, 0, 0.5),
+    ...crescent(1200, 6, -2.5, 0.4),
   ];
   // Loose ambient dust sphere around the stars.
   for (let i = 0; i < 700; i++) {
@@ -133,7 +131,8 @@ export default function BarakahField() {
       raf = requestAnimationFrame(animate);
       if (hidden) return;
       const t = clock.getElapsedTime();
-      points.rotation.z = t * 0.018;
+      // Gentle sway, not a full spin — a crescent shouldn't invert.
+      points.rotation.z = Math.sin(t * 0.07) * 0.16;
       const breathe = 1 + Math.sin(t * 0.32) * 0.025;
       points.scale.setScalar(breathe);
       // Pointer parallax — eased toward the cursor.

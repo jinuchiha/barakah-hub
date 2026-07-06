@@ -38,9 +38,9 @@ export default function BroadcastForm() {
       <div className="mb-3">
         <Label>Type</Label>
         <select value={type} onChange={(e) => setType(e.target.value as 'info' | 'urgent' | 'payment')} className="w-full rounded-md border border-[var(--border)] bg-[var(--surf-3)] px-3 py-2.5 text-sm text-[var(--color-cream)]">
-          <option value="info">📋 Information</option>
-          <option value="urgent">🚨 Urgent</option>
-          <option value="payment">💰 Payment Reminder</option>
+          <option value="info">Information</option>
+          <option value="urgent">Urgent</option>
+          <option value="payment">Payment Reminder</option>
         </select>
       </div>
       <div className="grid gap-3 md:grid-cols-2">
@@ -56,7 +56,7 @@ export default function BroadcastForm() {
         </div>
       </div>
       <Button type="submit" variant="gold" className="mt-4" disabled={pending}>
-        {pending ? 'Sending…' : '📢 Broadcast to all'}
+        {pending ? 'Sending…' : 'Broadcast to all'}
       </Button>
     </form>
   );

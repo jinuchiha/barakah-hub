@@ -327,7 +327,7 @@ function NodeCard({
         {m.nameUr || m.nameEn}
       </div>
       {m.nameUr && m.nameEn && <div className="mt-0.5 text-[10px] text-[var(--txt-3)]">{m.nameEn}</div>}
-      {m.city && <div className="mt-0.5 text-[9px] text-[var(--color-gold-4)]">📍 {m.city}</div>}
+      {m.city && <div className="mt-0.5 text-[9px] text-[var(--color-gold-4)]">{m.city}</div>}
       {m.deceased && <div className="mt-0.5 text-[9px] text-[var(--color-gold-4)] italic">مرحوم</div>}
       {(viewerIsAdmin || m.id === viewerId) && paidBy[m.id] > 0 && (
         <div className="mt-1 font-[var(--font-display)] text-xs text-[var(--color-gold)]">{fmtRs(paidBy[m.id])}</div>

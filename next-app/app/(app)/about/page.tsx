@@ -86,16 +86,16 @@ export default async function AboutPage() {
       </div>
 
       <Card className="mt-6">
-        <CardHeader><CardTitle>📋 How This Fund Works</CardTitle></CardHeader>
+        <CardHeader><CardTitle>How This Fund Works</CardTitle></CardHeader>
         <CardBody>
           <div className="grid gap-3 text-sm text-[var(--txt-2)] sm:grid-cols-2">
             {[
-              ['🤲 Sadaqah', 'Monthly voluntary donations. Donor identity is hidden from other members per the principle of giving in secret.'],
-              ['⭐ Zakat', 'Annual obligatory charity on qualifying wealth. Routed to eligible recipients through the admin.'],
-              ['🤝 Qarz-e-Hasana', 'Interest-free loan to a family member in need. Community votes on approval; repaid without any extra charge.'],
-              ['🗳️ Emergency Vote', 'Cases are submitted and voted on by all approved members. Threshold can be set by admin (30–75%).'],
-              ['🔒 Privacy', 'Sadaqah donors are never named to other members · only the admin can see who gave what.'],
-              ['📜 Audit Trail', 'Every action is logged with actor, timestamp, and detail. The log is append-only and cannot be altered.'],
+              ['Sadaqah', 'Monthly voluntary donations. Donor identity is hidden from other members per the principle of giving in secret.'],
+              ['Zakat', 'Annual obligatory charity on qualifying wealth. Routed to eligible recipients through the admin.'],
+              ['Qarz-e-Hasana', 'Interest-free loan to a family member in need. Community votes on approval; repaid without any extra charge.'],
+              ['Emergency Vote', 'Cases are submitted and voted on by all approved members. Threshold can be set by admin (30–75%).'],
+              ['Privacy', 'Sadaqah donors are never named to other members · only the admin can see who gave what.'],
+              ['Audit Trail', 'Every action is logged with actor, timestamp, and detail. The log is append-only and cannot be altered.'],
             ].map(([title, desc]) => (
               <div key={String(title)} className="rounded-lg border border-[var(--border)] p-3">
                 <div className="mb-1 font-semibold text-[var(--color-cream)]">{title}</div>

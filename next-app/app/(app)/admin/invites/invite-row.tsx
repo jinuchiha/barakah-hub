@@ -74,10 +74,10 @@ export default function InviteRow({ invite, origin }: { invite: Invite; origin: 
           <code className="mt-2 inline-block break-all font-[var(--font-en)] text-[11px] text-[var(--color-gold-2)]">{url}</code>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <button onClick={copy} disabled={inactive} className="rounded-md border border-[var(--border)] px-3 py-1.5 text-xs text-[var(--color-gold-2)] hover:bg-[rgba(214,210,199,0.06)] disabled:cursor-not-allowed">📋 Copy</button>
-          <button onClick={() => setShowQR((s) => !s)} disabled={inactive} className="rounded-md border border-[var(--border)] px-3 py-1.5 text-xs text-[var(--color-gold-2)] hover:bg-[rgba(214,210,199,0.06)] disabled:cursor-not-allowed">{showQR ? '✕ Close QR' : '📱 Show QR'}</button>
+          <button onClick={copy} disabled={inactive} className="rounded-md border border-[var(--border)] px-3 py-1.5 text-xs text-[var(--color-gold-2)] hover:bg-[rgba(214,210,199,0.06)] disabled:cursor-not-allowed">Copy link</button>
+          <button onClick={() => setShowQR((s) => !s)} disabled={inactive} className="rounded-md border border-[var(--border)] px-3 py-1.5 text-xs text-[var(--color-gold-2)] hover:bg-[rgba(214,210,199,0.06)] disabled:cursor-not-allowed">{showQR ? '✕ Close QR' : 'Show QR'}</button>
           {!invite.revoked && (
-            <button type="button" onClick={() => setConfirmRevoke(true)} disabled={pending} className="rounded-md border border-red-500/40 bg-red-500/10 px-3 py-1.5 text-xs text-red-400 hover:bg-red-500/20">{pending ? '…' : '🚫 Revoke'}</button>
+            <button type="button" onClick={() => setConfirmRevoke(true)} disabled={pending} className="rounded-md border border-red-500/40 bg-red-500/10 px-3 py-1.5 text-xs text-red-400 hover:bg-red-500/20">{pending ? '…' : 'Revoke'}</button>
           )}
         </div>
       </div>

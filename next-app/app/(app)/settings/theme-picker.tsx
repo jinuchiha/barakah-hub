@@ -67,8 +67,8 @@ export default function ThemePicker({ initial, canSave }: { initial: string; can
       </div>
       <div className="mb-4 flex items-center gap-3 rounded-md border border-[var(--border)] bg-[var(--surf-3)] p-3">
         <span className="flex-1 text-sm text-[var(--color-cream)]">Background mode</span>
-        <button onClick={() => setMd('dark')} className={`rounded-md px-3 py-1 text-xs ${mode === 'dark' ? 'bg-[var(--color-gold)] text-[var(--color-ink)]' : 'border border-[var(--border)]'}`}>🌙 Dark</button>
-        <button onClick={() => setMd('light')} className={`rounded-md px-3 py-1 text-xs ${mode === 'light' ? 'bg-[var(--color-gold)] text-[var(--color-ink)]' : 'border border-[var(--border)]'}`}>☀️ Light</button>
+        <button onClick={() => setMd('dark')} className={`rounded-md px-3 py-1 text-xs ${mode === 'dark' ? 'bg-[var(--color-gold)] text-[var(--color-ink)]' : 'border border-[var(--border)]'}`}>Dark</button>
+        <button onClick={() => setMd('light')} className={`rounded-md px-3 py-1 text-xs ${mode === 'light' ? 'bg-[var(--color-gold)] text-[var(--color-ink)]' : 'border border-[var(--border)]'}`}>Light</button>
       </div>
       {canSave && (
         <button onClick={save} disabled={pending} className="rounded-md bg-gradient-to-br from-[var(--color-gold-4)] to-[var(--color-gold)] px-5 py-2 text-xs font-bold uppercase tracking-wider text-[var(--color-ink)] disabled:opacity-50">

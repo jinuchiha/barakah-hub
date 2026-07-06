@@ -76,7 +76,7 @@ export default async function MyAccountPage() {
       </Card>
 
       <Card className="mb-4">
-        <CardHeader><CardTitle>🤲 Submit a Donation</CardTitle></CardHeader>
+        <CardHeader><CardTitle>Submit a Donation</CardTitle></CardHeader>
         <CardBody>
           <DonationForm easyPaiseName={cfg?.easyPaiseName ?? null} easyPaiseNumber={cfg?.easyPaiseNumber ?? null} />
         </CardBody>

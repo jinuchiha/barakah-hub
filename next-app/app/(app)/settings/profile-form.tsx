@@ -49,7 +49,7 @@ export default function ProfileForm({ member }: { member: Member }) {
         </div>
         <div className="flex gap-2">
           <button type="button" onClick={() => setShowColors((s) => !s)} className="rounded-full border border-[var(--border)] px-4 py-1.5 text-xs transition-colors hover:border-[var(--color-gold)]">
-            🎨 Color
+            Color
           </button>
           {form.photoUrl && (
             <button type="button" onClick={() => set('photoUrl', null)} className="rounded-full border border-red-500/40 px-4 py-1.5 text-xs text-red-400 transition-colors hover:bg-red-500/10">

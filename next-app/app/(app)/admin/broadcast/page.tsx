@@ -22,7 +22,7 @@ export default async function BroadcastPage() {
       </header>
 
       <Card>
-        <CardHeader><CardTitle>📢 Compose</CardTitle></CardHeader>
+        <CardHeader><CardTitle>Compose</CardTitle></CardHeader>
         <CardBody><BroadcastForm /></CardBody>
       </Card>
     </div>

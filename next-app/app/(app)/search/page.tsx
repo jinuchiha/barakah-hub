@@ -107,7 +107,7 @@ export default async function SearchPage({ searchParams }: Props) {
 
       {memberHits.length > 0 && (
         <Card className="mb-4">
-          <CardHeader><CardTitle>👥 Members ({memberHits.length})</CardTitle></CardHeader>
+          <CardHeader><CardTitle>Members ({memberHits.length})</CardTitle></CardHeader>
           <CardBody className="p-0">
             {memberHits.map((m) => (
               <Link key={m.id} href={`/tree?focus=${m.id}`} className="flex items-center gap-3 border-b border-[rgba(214,210,199,0.06)] px-3 py-2.5 hover:bg-[rgba(214,210,199,0.04)]">
@@ -127,7 +127,7 @@ export default async function SearchPage({ searchParams }: Props) {
 
       {caseHits.length > 0 && (
         <Card className="mb-4">
-          <CardHeader><CardTitle>🚨 Cases ({caseHits.length})</CardTitle></CardHeader>
+          <CardHeader><CardTitle>Cases ({caseHits.length})</CardTitle></CardHeader>
           <CardBody className="p-0">
             {caseHits.map((c) => (
               <div key={c.id} className="border-b border-[rgba(214,210,199,0.06)] px-3 py-2.5">
@@ -141,7 +141,7 @@ export default async function SearchPage({ searchParams }: Props) {
 
       {isAdmin && paymentHits.length > 0 && (
         <Card className="mb-4">
-          <CardHeader><CardTitle>💰 Payments ({paymentHits.length})</CardTitle></CardHeader>
+          <CardHeader><CardTitle>Payments ({paymentHits.length})</CardTitle></CardHeader>
           <CardBody className="p-0">
             {paymentHits.map((p) => (
               <div key={p.id} className="border-b border-[rgba(214,210,199,0.06)] px-3 py-2.5">
@@ -155,7 +155,7 @@ export default async function SearchPage({ searchParams }: Props) {
 
       {isAdmin && loanHits.length > 0 && (
         <Card className="mb-4">
-          <CardHeader><CardTitle>📋 Loans ({loanHits.length})</CardTitle></CardHeader>
+          <CardHeader><CardTitle>Loans ({loanHits.length})</CardTitle></CardHeader>
           <CardBody className="p-0">
             {loanHits.map((l) => (
               <div key={l.id} className="border-b border-[rgba(214,210,199,0.06)] px-3 py-2.5">
