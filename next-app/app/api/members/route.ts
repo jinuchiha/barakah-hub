@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { asc, eq, ne, and } from 'drizzle-orm';
+import { asc, eq, ne } from 'drizzle-orm';
 import { meOrThrow } from '@/lib/auth-server';
 import { db } from '@/lib/db';
 import { members } from '@/lib/db/schema';
@@ -43,7 +43,7 @@ export async function GET(req: NextRequest) {
 
     if (me.role !== 'admin') {
       return NextResponse.json(
-        rows.map(({ monthlyPledge: _mp, phone, ...rest }) => rest),
+        rows.map(({ monthlyPledge: _mp, phone: _ph, ...rest }) => rest),
       );
     }
 

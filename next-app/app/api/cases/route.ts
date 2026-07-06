@@ -71,7 +71,8 @@ const caseSchema = z.object({
   reasonEn: z.string().max(500).optional(),
   emergency: z.boolean().default(false),
   returnDate: z.string().nullable().optional(),
-  doc: z.string().url().nullable().optional(),
+  // https-only — z.string().url() alone also accepts javascript:/data: schemes
+  doc: z.string().url().startsWith('https://').nullable().optional(),
 }).refine(
   (v) => !!(v.reason || v.reasonEn || v.reasonUr),
   { message: 'Reason is required', path: ['reason'] },

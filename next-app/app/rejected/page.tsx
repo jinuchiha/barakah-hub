@@ -14,7 +14,7 @@ export default async function RejectedPage() {
   const [me] = await db.select().from(members).where(eq(members.authId, session.user.id)).limit(1);
   if (!me) redirect('/onboarding');
   if (me.status === 'approved') redirect('/dashboard');
-  if (me.status === 'pending') redirect('/pending' as any);
+  if (me.status === 'pending') redirect('/pending');
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-[var(--color-ink)] px-4">

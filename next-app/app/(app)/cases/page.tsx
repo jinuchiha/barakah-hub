@@ -78,7 +78,6 @@ export default async function CasesPage() {
           const applicant = memById.get(c.applicantId);
           const myVote = allVotes.find((v) => v.caseId === c.id && v.memberId === me.id);
           const yes = allVotes.filter((v) => v.caseId === c.id && v.vote).length;
-          const no = allVotes.filter((v) => v.caseId === c.id && !v.vote).length;
           const pct = eligibleCount > 0 ? Math.round((yes / eligibleCount) * 100) : 0;
           return (
             <Card key={c.id} className={c.emergency ? 'border-l-4 border-l-red-500' : ''}>

@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
-import { and, asc, eq, gte, lte, sql, inArray } from 'drizzle-orm';
+import { and, eq, gte, lte, sql, inArray } from 'drizzle-orm';
 import { getMeOrRedirect } from '@/lib/auth-server';
 import { db } from '@/lib/db';
 import { members, payments, cases, loans, repayments } from '@/lib/db/schema';

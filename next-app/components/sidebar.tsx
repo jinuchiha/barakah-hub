@@ -1,5 +1,6 @@
 'use client';
 import Link from 'next/link';
+import type { Route } from 'next';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import {
@@ -37,7 +38,7 @@ interface NavProps {
   badges?: Record<string, number>;
 }
 
-export function SidebarNav({ isAdmin = false, isSupervisor = false, locale = 'en', onNavigate, layoutIdSuffix = 'desktop', badges = {} }: NavProps) {
+export function SidebarNav({ isAdmin = false, isSupervisor = false, locale = 'en', onNavigate, badges = {} }: NavProps) {
   const pathname = usePathname();
   const items = NAV.filter((n) => {
     if (n.admin) return isAdmin;
@@ -102,7 +103,7 @@ function NavItem({ n, isActive, locale, onNavigate, badge }: {
   const Icon = n.icon;
   return (
     <Link
-      href={n.href as any}
+      href={n.href as Route}
       onClick={onNavigate}
       aria-current={isActive ? 'page' : undefined}
       className={cn(

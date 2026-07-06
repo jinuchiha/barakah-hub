@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { eq, desc, or, like } from 'drizzle-orm';
-import { meOrThrow } from '@/lib/auth-server';
+import { meApprovedOrThrow } from '@/lib/auth-server';
 import { db } from '@/lib/db';
 import { payments, auditLog } from '@/lib/db/schema';
 import { currentMonthLabel } from '@/lib/month';
@@ -10,7 +10,7 @@ export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
-    const me = await meOrThrow();
+    const me = await meApprovedOrThrow();
 
     const monthLabel = currentMonthLabel();
     const myPaymentsThisMonth = await db

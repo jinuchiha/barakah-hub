@@ -10,7 +10,7 @@ communities to pool monthly donations, issue interest-free loans
 *sadqa* principle of donor-name privacy enforced at the data layer.
 
 Stack: **Next.js 16 · React 19 · TypeScript · Drizzle ORM · Neon Postgres ·
-Better-Auth · Tailwind v4 · Vitest · Cloudflare Workers (OpenNext)**.
+Better-Auth · Tailwind v4 · Vitest · Vercel**.
 
 ---
 
@@ -19,14 +19,14 @@ Better-Auth · Tailwind v4 · Vitest · Cloudflare Workers (OpenNext)**.
 | | |
 |---|---|
 | **Active codebase** | [`next-app/`](next-app/) — Next.js 16 App Router |
-| **Legacy predecessor** | [`index.html`](index.html) — single-HTML PWA (frozen, kept for data-import reference) |
+| **Mobile app** | [`mobile/`](mobile/) — Expo / React Native (Android APK via EAS) |
+| **Legacy predecessor** | single-HTML PWA — removed from the tree; recover via git history if needed for data import |
 | **Database** | Neon Postgres (serverless, branch-per-PR via [`@neondatabase/serverless`](https://neon.tech)) |
 | **Auth** | [Better-Auth](https://www.better-auth.com) — email + password, sessions, password-reset via Resend |
 | **Migrations** | [`next-app/supabase/migrations/`](next-app/supabase/migrations/) — `0001` → `0004`, applied in order |
 | **Tests** | 47 in [`next-app/test/`](next-app/test/) — `pnpm test` |
 | **CI** | [`.github/workflows/ci.yml`](.github/workflows/ci.yml) — typecheck → lint → test → build |
-| **Deploy target** | Cloudflare Workers via [`@opennextjs/cloudflare`](https://opennext.js.org/cloudflare) — auto-deploy on merge to `main` |
-| **Live URL** | <https://barakah-hub.bakerabi91.workers.dev> |
+| **Deploy target** | Vercel (Hobby) — native Next.js runtime, crons in [`next-app/vercel.json`](next-app/vercel.json), auto-deploy on merge to `main` |
 | **Audit history** | [`next-app/AUDIT_PHASE3.md`](next-app/AUDIT_PHASE3.md) — every P0/P1/P2 finding with status |
 | **Migration history** | [`next-app/docs/MIGRATING_TO_NEON.md`](next-app/docs/MIGRATING_TO_NEON.md) — Supabase → Neon + Better-Auth playbook |
 
@@ -106,7 +106,6 @@ barakah-hub/
 ├── .github/
 │   └── workflows/
 │       ├── ci.yml                typecheck · lint · test · build on every PR
-│       ├── deploy.yml            wrangler deploy on push to main
 │       ├── neon-pr-branch.yml    Branch-per-PR Neon DB
 │       └── neon-cleanup.yml      Delete PR-branch on close
 │
@@ -133,17 +132,14 @@ barakah-hub/
 │   │   ├── BACKEND_ALTERNATIVES.md
 │   │   └── MIGRATING_TO_NEON.md
 │   ├── scripts/                  Legacy-data importer
-│   ├── middleware.ts             Edge-runtime auth gate (Workers requirement)
-│   ├── wrangler.toml             Cloudflare Workers config
-│   ├── open-next.config.ts       OpenNext adapter config
+│   ├── middleware.ts             Edge auth gate (pages only; APIs self-auth)
+│   ├── vercel.json               Vercel config + cron schedules
 │   ├── README.md                 Stack decisions, security, status
-│   ├── DEPLOY.md                 Cloudflare Workers + Neon deploy guide
+│   ├── DEPLOY.md                 Deploy guide (historical — now on Vercel)
 │   ├── AUDIT_PHASE3.md           Audit + remediation history
 │   └── CONTRIBUTING.md           Branching, commits, review etiquette
 │
-├── index.html                    legacy single-HTML predecessor (frozen)
-├── manifest.json                 legacy PWA manifest
-├── sw.js                         legacy service worker
+├── mobile/                       Expo / React Native app (Android APK via EAS)
 └── AUDIT.md                      legacy audit (Phase 1)
 ```
 
@@ -153,7 +149,7 @@ barakah-hub/
 
 We use **GitHub Flow** rather than Gitflow. Family-scale tooling does not
 need release branches; small, frequent, always-deployable PRs into `main`
-are simpler and pair well with Cloudflare Pages preview deployments.
+are simpler and pair well with Vercel preview deployments.
 
 ```
 main ──●──●──●──●──●─────●──● (always deployable; CI required)
@@ -208,10 +204,10 @@ push / PR → checkout → setup-node + pnpm cache
 migrations, and posts the connection URL as a sticky comment on the PR.
 The cleanup workflow deletes the branch when the PR closes.
 
-**Production deploy** ([`.github/workflows/deploy.yml`](.github/workflows/deploy.yml))
-— on push to `main`, OpenNext bundles the app and `cloudflare/wrangler-action`
-deploys to the `barakah-hub` Worker. Gated by GitHub's `production`
-environment so deploys can require manual approval.
+**Production deploy** — the Vercel GitHub integration builds and deploys
+`next-app/` on every push to `main` (previews on every PR). Cloudflare
+Workers was dropped: the 3 MiB free-tier Worker limit was too tight for
+the app bundle (see commit `d4e0d7d`).
 
 ---
 
@@ -257,7 +253,7 @@ git commit -m "chore: rename project to Barakah Hub"
 git push origin main
 ```
 
-Cloudflare Pages and any other GitHub integrations will follow the
+Vercel and any other GitHub integrations will follow the
 redirect; update them to the new URL at your leisure.
 
 ---

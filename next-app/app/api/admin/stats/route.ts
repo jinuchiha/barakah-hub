@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { eq, and } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import { meOrThrow, canManageFunds } from '@/lib/auth-server';
 import { db } from '@/lib/db';
 import { members, payments, loans, cases } from '@/lib/db/schema';

@@ -3,7 +3,6 @@ import { and, eq, sql, inArray } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { members, payments, cases, loans, users } from '@/lib/db/schema';
 import { sendMonthlyStatementEmail } from '@/lib/email';
-import { currentMonthLabel } from '@/lib/month';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';

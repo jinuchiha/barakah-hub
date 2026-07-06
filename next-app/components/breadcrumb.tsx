@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+import type { Route } from 'next';
 import { ChevronRight } from 'lucide-react';
 
 export interface Crumb {
@@ -27,7 +27,7 @@ export function Breadcrumb({ crumbs }: { crumbs: Crumb[] }) {
             )}
             {c.href && !isLast ? (
               <Link
-                href={c.href as any}
+                href={c.href as Route}
                 className="text-[var(--txt-3)] transition-colors hover:text-[var(--txt-1)]"
               >
                 {c.label}

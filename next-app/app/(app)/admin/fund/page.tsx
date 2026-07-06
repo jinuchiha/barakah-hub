@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
-import { eq, desc, sql, and, isNull, isNotNull, or } from 'drizzle-orm';
+import type { Route } from 'next';
+import { eq, desc, sql, and, isNull, isNotNull } from 'drizzle-orm';
 import { getMeOrRedirect, canManageFunds } from '@/lib/auth-server';
 import { db } from '@/lib/db';
 import { members, payments } from '@/lib/db/schema';
@@ -205,7 +206,7 @@ export default async function FundPage() {
           </h1>
           <p className="font-[var(--font-arabic)] mt-1 text-sm text-[var(--color-gold-2)]">فنڈ رجسٹر · صدقہ / زکوٰة / قرض</p>
         </div>
-        <ExportLink href={'/api/exports/fund' as any}>Export CSV</ExportLink>
+        <ExportLink href={'/api/exports/fund' as Route}>Export CSV</ExportLink>
       </header>
 
       <div className="mb-6 grid gap-3 grid-cols-3">

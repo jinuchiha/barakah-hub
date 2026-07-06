@@ -1,6 +1,6 @@
 'use server';
 import { revalidatePath } from 'next/cache';
-import { eq, sql } from 'drizzle-orm';
+import { and, eq, lt, sql } from 'drizzle-orm';
 import { z } from 'zod';
 import { getSession } from '@/lib/auth-server';
 import { db } from '@/lib/db';
@@ -135,12 +135,13 @@ export async function onboardSelf(input: z.infer<typeof schema>) {
     detail: `Self-registered as ${username}`,
   });
 
-  // Atomically increment the invite usedCount (race-safe via WHERE clause).
+  // Atomically increment the invite usedCount — the usedCount < maxUses
+  // condition makes concurrent signups unable to exceed the cap.
   if (validInvite) {
     await db
       .update(memberInvites)
       .set({ usedCount: sql`${memberInvites.usedCount} + 1` })
-      .where(eq(memberInvites.id, validInvite.id));
+      .where(and(eq(memberInvites.id, validInvite.id), lt(memberInvites.usedCount, memberInvites.maxUses)));
   }
 
   // Welcome email — fire and forget, don't block onboarding on email failure.

@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
-import { asc, ne, eq } from 'drizzle-orm';
+import type { Route } from 'next';
+import { asc, ne } from 'drizzle-orm';
 import { Users, UserCheck, UserX, Clock } from 'lucide-react';
 import { getMeOrRedirect } from '@/lib/auth-server';
 import { db } from '@/lib/db';
@@ -74,7 +75,7 @@ export default async function MembersPage({
             {includeRejected ? 'Hide rejected' : 'Show rejected'}
           </a>
           <BulkImportDialog />
-          <ExportLink href={'/api/exports/members' as any}>Export CSV</ExportLink>
+          <ExportLink href={'/api/exports/members' as Route}>Export CSV</ExportLink>
         </div>
       </header>
 

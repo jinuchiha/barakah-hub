@@ -1,6 +1,6 @@
 import { db } from '@/lib/db';
 import { pushTokens } from '@/lib/db/schema';
-import { eq, inArray } from 'drizzle-orm';
+import { inArray } from 'drizzle-orm';
 
 /**
  * Server-side Expo push delivery.

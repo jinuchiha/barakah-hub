@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { eq, inArray, count, and } from 'drizzle-orm';
-import { meOrThrow } from '@/lib/auth-server';
+import { eq, count, and } from 'drizzle-orm';
+import { meOrThrow, meApprovedOrThrow } from '@/lib/auth-server';
 import { db } from '@/lib/db';
 import { cases, votes, members, loans, auditLog } from '@/lib/db/schema';
 
@@ -10,7 +10,7 @@ export const dynamic = 'force-dynamic';
 /** GET /api/cases/[id] — single case with vote counts, used by useRealtimeCase. */
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const me = await meOrThrow();
+    const me = await meApprovedOrThrow();
     const { id: caseId } = await params;
     const [c] = await db.select().from(cases).where(eq(cases.id, caseId)).limit(1);
     if (!c) return NextResponse.json({ error: 'Not found' }, { status: 404 });

@@ -1,5 +1,13 @@
 # Deploy Guide — Barakah Hub on Cloudflare Pages + Supabase
 
+> ⚠️ **HISTORICAL DOCUMENT.** The app has since migrated twice:
+> Supabase → **Neon + Better-Auth** (see [`docs/MIGRATING_TO_NEON.md`](docs/MIGRATING_TO_NEON.md))
+> and Cloudflare → **Vercel** (commit `d4e0d7d` — the 3 MiB Worker limit was
+> too tight). Current deploy: connect the repo to Vercel with root directory
+> `next-app/`, set the env vars from [`.env.example`](.env.example) plus
+> `CRON_SECRET`, and crons in [`vercel.json`](vercel.json) run automatically.
+> Everything below is kept only as a record of the old setup.
+
 > Replace placeholders below with your real values:
 > - `<your-project>` — your Supabase project ref (the slug in the dashboard URL)
 > - `<cf-account-id>` — your Cloudflare account ID

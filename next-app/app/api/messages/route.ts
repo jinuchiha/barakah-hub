@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { or, eq, inArray, desc } from 'drizzle-orm';
-import { meOrThrow } from '@/lib/auth-server';
+import { meApprovedOrThrow } from '@/lib/auth-server';
 import { db } from '@/lib/db';
 import { messages, members } from '@/lib/db/schema';
 import { sendMessage } from '@/app/actions';
@@ -11,7 +11,7 @@ export const dynamic = 'force-dynamic';
 /** List my messages (sent + received) with sender/recipient names. */
 export async function GET() {
   try {
-    const me = await meOrThrow();
+    const me = await meApprovedOrThrow();
     const rows = await db
       .select()
       .from(messages)

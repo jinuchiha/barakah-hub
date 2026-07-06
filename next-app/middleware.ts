@@ -13,10 +13,17 @@ import { getSessionCookie } from 'better-auth/cookies';
  * switch to `proxy.ts` when convenient.
  */
 
-const PUBLIC_ROUTES = ['/login', '/register', '/forgot-password', '/reset-password', '/api/auth', '/pending', '/rejected', '/join'];
+const PUBLIC_ROUTES = ['/login', '/register', '/forgot-password', '/reset-password', '/pending', '/rejected', '/join'];
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  // API routes authenticate themselves (session cookie OR Bearer token OR
+  // CRON_SECRET) and must return JSON, never a login redirect. A cookie
+  // redirect here silently killed Vercel cron jobs and mobile Bearer calls.
+  if (pathname.startsWith('/api')) {
+    return NextResponse.next();
+  }
 
   // Don't gate public routes or static assets — matcher handles assets.
   if (PUBLIC_ROUTES.some((p) => pathname.startsWith(p)) || pathname === '/') {

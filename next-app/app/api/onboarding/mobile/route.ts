@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { eq, sql } from 'drizzle-orm';
+import { and, eq, lt, sql } from 'drizzle-orm';
 import { z } from 'zod';
 import { getUser } from '@/lib/auth-server';
 import { db } from '@/lib/db';
@@ -102,12 +102,13 @@ export async function POST(req: NextRequest) {
       })
       .returning();
 
-    // Atomically increment invite usedCount (race-safe via WHERE clause)
+    // Atomically increment the invite usedCount — the usedCount < maxUses
+    // condition makes concurrent signups unable to exceed the cap.
     if (validInvite) {
       await db
         .update(memberInvites)
         .set({ usedCount: sql`${memberInvites.usedCount} + 1` })
-        .where(eq(memberInvites.id, validInvite.id));
+        .where(and(eq(memberInvites.id, validInvite.id), lt(memberInvites.usedCount, memberInvites.maxUses)));
     }
 
     await db.insert(auditLog).values({
