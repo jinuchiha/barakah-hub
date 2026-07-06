@@ -258,7 +258,11 @@ a:focus-visible {
    (Linear / Mercury style — no more rainbow gradient blocks)
    ───────────────────────────────────────── */
 .sc-base {
-  background: var(--surf-1);
+  background:
+    linear-gradient(150deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.008) 60%, transparent 100%),
+    rgba(13,22,37,0.78);
+  backdrop-filter: blur(12px) saturate(1.1);
+  -webkit-backdrop-filter: blur(12px) saturate(1.1);
   border: 1px solid var(--border);
   transition: box-shadow 0.18s ease, border-color 0.18s ease, transform 0.15s ease;
 }
@@ -271,32 +275,36 @@ a:focus-visible {
 .sc-rail-violet   { box-shadow: inset 3px 0 0 0 #8b6ec9, 0 6px 20px rgba(0,0,0,0.22); }
 .sc-rail-ocean    { box-shadow: inset 3px 0 0 0 #4ab8d6, 0 6px 20px rgba(0,0,0,0.22); }
 
-/* ── Ultra-modern card system (Mercury / Linear level) ── */
+/* ── Glass depth card system — translucent surface floating over the
+   3D moonfield, with a light-caught top edge. The blur is what sells
+   the "layered in space" read. ── */
 .card-premium {
   background:
-    linear-gradient(145deg, rgba(255,255,255,0.042) 0%, rgba(255,255,255,0.009) 60%, transparent 100%),
-    #0c1422;
+    linear-gradient(145deg, rgba(255,255,255,0.055) 0%, rgba(255,255,255,0.012) 55%, rgba(200,155,60,0.015) 100%),
+    rgba(12,20,34,0.72);
+  backdrop-filter: blur(14px) saturate(1.15);
+  -webkit-backdrop-filter: blur(14px) saturate(1.15);
   border: 1px solid rgba(200,155,60,0.18);
   border-radius: var(--radius-r);
-  /* Layered shadows: crisp inner highlight + soft ambient + gold glow on hover */
+  /* Layered shadows: lit top hairline + ambient depth + contact shadow */
   box-shadow:
-    0 1px 0 rgba(255,255,255,0.030) inset,
-    0 -1px 0 rgba(0,0,0,0.20) inset,
-    0 4px 16px rgba(0,0,0,0.24),
-    0 1px 3px rgba(0,0,0,0.18);
+    0 1px 0 rgba(255,255,255,0.055) inset,
+    0 -1px 0 rgba(0,0,0,0.22) inset,
+    0 8px 28px rgba(0,0,0,0.32),
+    0 1px 3px rgba(0,0,0,0.2);
   transition: box-shadow 0.20s cubic-bezier(0.16,1,0.3,1),
               border-color 0.20s ease,
               transform 0.18s cubic-bezier(0.16,1,0.3,1);
   will-change: transform, box-shadow;
 }
 .card-premium:hover {
-  border-color: rgba(200,155,60,0.28);
+  border-color: rgba(200,155,60,0.32);
   box-shadow:
-    0 1px 0 rgba(255,255,255,0.046) inset,
-    0 -1px 0 rgba(0,0,0,0.22) inset,
-    0 12px 32px rgba(0,0,0,0.34),
-    0 3px 8px rgba(0,0,0,0.22),
-    0 0 0 3px rgba(200,155,60,0.07);
+    0 1px 0 rgba(255,255,255,0.07) inset,
+    0 -1px 0 rgba(0,0,0,0.24) inset,
+    0 18px 44px rgba(0,0,0,0.4),
+    0 4px 10px rgba(0,0,0,0.24),
+    0 0 0 3px rgba(200,155,60,0.08);
   transform: translateY(-2px);
 }
 

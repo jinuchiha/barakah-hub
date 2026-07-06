@@ -1,5 +1,5 @@
 /**
- * Tiny i18n — a key → [ur, en] dictionary.
+ * Tiny i18n · a key → [ur, en] dictionary.
  * Hooks into Server Components via `getDictionary(locale)`.
  *
  * For ICU MessageFormat / pluralization, swap to `next-intl` later.
@@ -57,12 +57,12 @@ export function t(key: DictKey, locale: Locale = 'en'): string {
   return locale === 'ur' ? entry[0] : entry[1];
 }
 
-/** Helper for "Welcome — Ahmad" style strings. */
+/** Helper for "Welcome · Ahmad" style strings. */
 export function tWith(key: DictKey, locale: Locale, suffix: string): string {
-  return `${t(key, locale)} — ${suffix}`;
+  return `${t(key, locale)} · ${suffix}`;
 }
 
-/** Currency formatter — Pakistani Rupees (South Asian 2-2-3 grouping: 1,00,000). */
+/** Currency formatter · Pakistani Rupees (South Asian 2-2-3 grouping: 1,00,000). */
 export function fmtRs(n: number): string {
   const abs = Math.abs(n || 0);
   const fmt = new Intl.NumberFormat('en-IN', {

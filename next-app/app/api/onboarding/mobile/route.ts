@@ -14,7 +14,7 @@ export const dynamic = 'force-dynamic';
  *
  * The mobile register screen only asks the user for `name`, `email`,
  * `password`, optional `phone` and `monthlyPledge`. The full web
- * onboarding form requires fatherName / city / province too — too
+ * onboarding form requires fatherName / city / province too · too
  * heavy for the mobile signup UX.
  *
  * This route accepts the minimal mobile signup payload and creates a
@@ -102,7 +102,7 @@ export async function POST(req: NextRequest) {
       })
       .returning();
 
-    // Atomically increment the invite usedCount — the usedCount < maxUses
+    // Atomically increment the invite usedCount · the usedCount < maxUses
     // condition makes concurrent signups unable to exceed the cap.
     if (validInvite) {
       await db
@@ -114,7 +114,7 @@ export async function POST(req: NextRequest) {
     await db.insert(auditLog).values({
       actorId: created.id,
       action: 'member-added',
-      detail: `Mobile signup: ${data.nameEn} (${authUser.email}) — awaiting approval`,
+      detail: `Mobile signup: ${data.nameEn} (${authUser.email}) · awaiting approval`,
     });
 
     // Tell admins a new member is waiting for approval.

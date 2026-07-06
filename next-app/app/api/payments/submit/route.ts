@@ -11,12 +11,12 @@ export const dynamic = 'force-dynamic';
 
 const schema = z.object({
   amount: z.number().int().positive().max(10_000_000),
-  // Members self-submit donations only — the qarz pool is disbursed by
+  // Members self-submit donations only · the qarz pool is disbursed by
   // admins, never self-credited.
   pool: z.enum(['sadaqah', 'zakat']).default('sadaqah'),
   monthLabel: z.string().min(3).max(40),
   note: z.string().max(200).optional(),
-  // https-only — z.string().url() alone also accepts javascript:/data: schemes
+  // https-only · z.string().url() alone also accepts javascript:/data: schemes
   receiptUrl: z.string().url().startsWith('https://').or(z.string().startsWith('/uploads/')).optional(),
 });
 
@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const data = schema.parse(body);
 
-    // Sequential inserts — the neon-http driver has no transaction support
+    // Sequential inserts · the neon-http driver has no transaction support
     // (see lib/db/index.ts). Matches the web path in app/actions.ts.
     const [created] = await db
       .insert(payments)
@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
     void notifyMembers(
       await fundApproverIds(me.id),
       { titleEn: 'New payment to review', titleUr: 'نئی ادائیگی برائے منظوری', en: `${me.nameEn || me.nameUr} submitted Rs ${data.amount} (${data.pool}) for ${data.monthLabel}.`, ur: `${me.nameUr || me.nameEn} نے ${data.monthLabel} کے لیے روپے ${data.amount} جمع کیے۔`, type: 'payment-pending' },
-      { title: '🧾 New payment to review', body: `${me.nameEn || me.nameUr} — Rs ${data.amount} ${data.pool}`, data: { type: 'payment-pending' }, channelId: 'payments' },
+      { title: '🧾 New payment to review', body: `${me.nameEn || me.nameUr} · Rs ${data.amount} ${data.pool}`, data: { type: 'payment-pending' }, channelId: 'payments' },
     ).catch(() => {});
     void emailFundApprovers(
       { memberName: me.nameEn || me.nameUr, amount: data.amount, pool: data.pool, monthLabel: data.monthLabel, note: data.note, receiptUrl: data.receiptUrl },

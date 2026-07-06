@@ -14,7 +14,7 @@ export function monthStartFromLabel(label: string): string {
       return `${yyyy}-${mm}-01`;
     }
   }
-  throw new Error(`Invalid month label "${label}" — expected format "Month YYYY" e.g. "May 2026"`);
+  throw new Error(`Invalid month label "${label}" · expected format "Month YYYY" e.g. "May 2026"`);
 }
 
 /** Returns current month label e.g. "May 2026" */

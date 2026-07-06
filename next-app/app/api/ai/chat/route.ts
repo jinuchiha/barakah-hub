@@ -210,7 +210,7 @@ function pickStubReply(question: string): string {
     return 'Zakat is 2.5% of qualifying wealth held for one lunar year (hawl). Open the My Payments tab and filter by the Zakat pool to see your contributions. The fund card on the dashboard shows the running total.';
   }
   if (q.includes('sadaqah') || q.includes('sadqa')) {
-    return 'Sadaqah is voluntary charity, given at any time. Submit yours via My Account → New donation. Sadaqah given in secret is most rewarded — your donor name is hidden from other members in the community feed.';
+    return 'Sadaqah is voluntary charity, given at any time. Submit yours via My Account → New donation. Sadaqah given in secret is most rewarded · your donor name is hidden from other members in the community feed.';
   }
   if (q.includes('qarz') || q.includes('loan')) {
     return 'Qarz-e-Hasana is an interest-free loan from the family fund. Submit a request in the Emergency Cases tab. After community approval, an admin issues the loan; you repay in instalments via the Loans tab.';

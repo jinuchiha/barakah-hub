@@ -21,7 +21,7 @@ const schema = z.object({
 });
 
 /**
- * Onboard a newly authenticated user — creates the linked `members` row OR
+ * Onboard a newly authenticated user · creates the linked `members` row OR
  * updates an imported one (auth_id null) by claiming via username==email.
  *
  * Identity is derived from the cookie session, never the request body, to
@@ -44,7 +44,7 @@ export async function onboardSelf(input: z.infer<typeof schema>) {
   const [byUsername] = await db.select().from(members).where(eq(members.username, username)).limit(1);
   if (byUsername && !byUsername.authId) {
     if (byUsername.role === 'admin') {
-      throw new Error('Admin records cannot be self-claimed — contact existing admin');
+      throw new Error('Admin records cannot be self-claimed · contact existing admin');
     }
     // Security: claiming a pre-imported record links credentials to an
     // already-approved identity purely by email-prefix === username. To stop
@@ -69,14 +69,14 @@ export async function onboardSelf(input: z.infer<typeof schema>) {
     await db.insert(auditLog).values({
       actorId: byUsername.id,
       action: 'account-claimed',
-      detail: `Claimed account ${username} — awaiting admin re-approval`,
+      detail: `Claimed account ${username} · awaiting admin re-approval`,
     });
     await notifyMembers(
       await adminIds(byUsername.id),
       {
         titleEn: 'Account claim to review', titleUr: 'اکاؤنٹ کلیم برائے جائزہ',
-        en: `${data.nameEn} claimed the member record "${username}" — confirm it's really them before approving.`,
-        ur: `${data.nameUr || data.nameEn} نے "${username}" کا ریکارڈ کلیم کیا — منظوری سے پہلے تصدیق کریں۔`,
+        en: `${data.nameEn} claimed the member record "${username}" · confirm it's really them before approving.`,
+        ur: `${data.nameUr || data.nameEn} نے "${username}" کا ریکارڈ کلیم کیا · منظوری سے پہلے تصدیق کریں۔`,
         type: 'member-pending',
       },
       { title: '👤 Account claim to review', body: data.nameEn, data: { type: 'member-pending' }, channelId: 'admin' },
@@ -85,7 +85,7 @@ export async function onboardSelf(input: z.infer<typeof schema>) {
     return;
   }
 
-  // Brand-new user — ensure username is unique (email prefix can collide)
+  // Brand-new user · ensure username is unique (email prefix can collide)
   let finalUsername = username;
   const [existing] = await db.select({ id: members.id }).from(members).where(eq(members.username, username)).limit(1);
   if (existing) {
@@ -99,7 +99,7 @@ export async function onboardSelf(input: z.infer<typeof schema>) {
   const adminCount = await db.$count(members, eq(members.role, 'admin'));
   const isFounder = adminCount === 0;
 
-  // Validate invite token (if provided) — only consume it on successful insert
+  // Validate invite token (if provided) · only consume it on successful insert
   let validInvite: { id: string; maxUses: number; usedCount: number } | null = null;
   if (data.inviteToken) {
     const [inv] = await db.select({ id: memberInvites.id, maxUses: memberInvites.maxUses, usedCount: memberInvites.usedCount, revoked: memberInvites.revoked, expiresAt: memberInvites.expiresAt })
@@ -135,7 +135,7 @@ export async function onboardSelf(input: z.infer<typeof schema>) {
     detail: `Self-registered as ${username}`,
   });
 
-  // Atomically increment the invite usedCount — the usedCount < maxUses
+  // Atomically increment the invite usedCount · the usedCount < maxUses
   // condition makes concurrent signups unable to exceed the cap.
   if (validInvite) {
     await db
@@ -144,7 +144,7 @@ export async function onboardSelf(input: z.infer<typeof schema>) {
       .where(and(eq(memberInvites.id, validInvite.id), lt(memberInvites.usedCount, memberInvites.maxUses)));
   }
 
-  // Welcome email — fire and forget, don't block onboarding on email failure.
+  // Welcome email · fire and forget, don't block onboarding on email failure.
   if (user.email) {
     void sendWelcomeEmail(user.email, data.nameEn).catch(() => {});
   }

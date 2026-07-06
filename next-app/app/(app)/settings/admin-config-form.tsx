@@ -14,6 +14,7 @@ export default function AdminConfigForm({ config }: { config: Config }) {
   const [goalLabelEn, setGoalLabelEn] = useState(config.goalLabelEn || '');
   const [goalLabelUr, setGoalLabelUr] = useState(config.goalLabelUr || '');
   const [goalDeadline, setGoalDeadline] = useState((config.goalDeadline || '').toString());
+  const [fautiAmount, setFautiAmount] = useState(config.fautiAmount || 0);
   const [easyPaiseName, setEasyPaiseName] = useState(config.easyPaiseName || '');
   const [easyPaiseNumber, setEasyPaiseNumber] = useState(config.easyPaiseNumber || '');
 
@@ -25,6 +26,7 @@ export default function AdminConfigForm({ config }: { config: Config }) {
           updateAdminConfig({
             voteThresholdPct: thresh,
             defaultMonthlyPledge: defaultMonthly,
+            fautiAmount,
             easyPaiseName: easyPaiseName.trim() || null,
             easyPaiseNumber: easyPaiseNumber.trim() || null,
           }),
@@ -53,6 +55,16 @@ export default function AdminConfigForm({ config }: { config: Config }) {
           <div><Label>Goal label (English)</Label><Input value={goalLabelEn} onChange={(e) => setGoalLabelEn(e.target.value)} placeholder="e.g. Eid-ul-Fitr Goal" /></div>
           <div><Label>Target amount (Rs.)</Label><Input type="number" value={goalAmount || ''} onChange={(e) => setGoalAmount(parseInt(e.target.value) || 0)} placeholder="0 = no goal" /></div>
           <div><Label>Deadline</Label><Input type="date" value={goalDeadline} onChange={(e) => setGoalDeadline(e.target.value)} /></div>
+        </div>
+      </div>
+      <div className="mt-5 border-t border-dashed border-[var(--border)] pt-4">
+        <div className="mb-2 font-[var(--font-display)] text-[10px] uppercase tracking-[2px] text-[var(--color-gold-4)]">FAUTI FUND · فوتی فنڈ</div>
+        <p className="mb-3 text-[11px] text-[var(--txt-3)]">
+          Kisi member ki wafat par unke ghar walon ko diya jane wala muqarrar payout. 0 = workflow band.
+        </p>
+        <div className="max-w-xs">
+          <Label>Payout amount (Rs.)</Label>
+          <Input type="number" value={fautiAmount || ''} onChange={(e) => setFautiAmount(parseInt(e.target.value) || 0)} placeholder="e.g. 50000" />
         </div>
       </div>
       {/* EasyPaisa Collection Account */}

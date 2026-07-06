@@ -1,6 +1,6 @@
 'use server';
 /**
- * Server actions — every mutation goes through here.
+ * Server actions · every mutation goes through here.
  *
  * SECURITY MODEL
  * ──────────────
@@ -8,7 +8,7 @@
  * Neon Postgres via `lib/db/index.ts` using DATABASE_URL (HTTP driver,
  * authenticated as `neondb_owner`); the RLS policies in 0001 are
  * Supabase-flavoured (`auth.uid()`, `authenticated` role) and were
- * skipped on Neon by the migration runner — they do not enforce
+ * skipped on Neon by the migration runner · they do not enforce
  * anything in production. The session boundary is the Better-Auth
  * cookie, validated server-side via `getSession()` / `meOrThrow()`.
  *
@@ -61,18 +61,18 @@ export async function approveMember(memberId: string) {
     recipientId: memberId,
     titleUr: 'منظوری',
     titleEn: 'Approved',
-    ur: 'آپ کا اکاؤنٹ منظور ہو گیا — اب آپ ایپ استعمال کر سکتے ہیں',
-    en: 'Your account has been approved — you can now use the app',
+    ur: 'آپ کا اکاؤنٹ منظور ہو گیا · اب آپ ایپ استعمال کر سکتے ہیں',
+    en: 'Your account has been approved · you can now use the app',
     type: 'approved',
   });
   // Push notification so they see it on lock screen
   void sendPushToMembers([memberId], {
     title: '🎉 Account approved',
-    body: 'Salaam — your Barakah Hub account has been approved. Welcome!',
+    body: 'Salaam · your Barakah Hub account has been approved. Welcome!',
     data: { type: 'approved' },
     channelId: 'admin',
   }).catch((err) => { console.error('[push] approve member:', err); });
-  // Email approval — fire & forget, never block on email
+  // Email approval · fire & forget, never block on email
   void emailForMember(m.authId).then((email) => {
     if (email) return sendApprovalEmail(email, m.nameEn || m.nameUr);
   }).catch((err) => { console.error('[email] approve member:', err); });
@@ -229,7 +229,7 @@ export async function recordPayment(input: z.infer<typeof recordPaymentSchema>) 
   await audit(
     me.id,
     'payment-record',
-    `Recorded ${data.pool} ${data.amount} for ${data.monthLabel} — awaiting supervisor approval`,
+    `Recorded ${data.pool} ${data.amount} for ${data.monthLabel} · awaiting supervisor approval`,
     data.memberId,
   );
   await notify(
@@ -255,14 +255,14 @@ export async function recordPayment(input: z.infer<typeof recordPaymentSchema>) 
 }
 
 /* ─── self-submit donation (any member)
- * Members may self-submit Sadaqah/Zakat only — the qarz pool is disbursed
+ * Members may self-submit Sadaqah/Zakat only · the qarz pool is disbursed
  * by admins, never self-credited. Matches /api/payments/submit. */
 const submitDonationSchema = z.object({
   amount: z.number().int().positive().max(10_000_000),
   pool: z.enum(['sadaqah', 'zakat']).default('sadaqah'),
   monthLabel: z.string().min(3).max(40),
   note: z.string().max(200).optional(),
-  // https-only — matches /api/payments/submit
+  // https-only · matches /api/payments/submit
   receiptUrl: z.string().url().startsWith('https://').or(z.string().startsWith('/uploads/')).optional(),
 });
 
@@ -293,7 +293,7 @@ export async function submitDonation(input: z.infer<typeof submitDonationSchema>
     },
     {
       title: '🧾 New payment to review',
-      body: `${me.nameEn || me.nameUr} — Rs ${data.amount.toLocaleString('en-PK')} ${data.pool}`,
+      body: `${me.nameEn || me.nameUr} · Rs ${data.amount.toLocaleString('en-PK')} ${data.pool}`,
       data: { type: 'payment-pending' }, channelId: 'payments',
     },
   );
@@ -307,7 +307,7 @@ export async function submitDonation(input: z.infer<typeof submitDonationSchema>
   return created;
 }
 
-/* ─── supervisor approve (intermediate — admin still needs to verify) */
+/* ─── supervisor approve (intermediate · admin still needs to verify) */
 export async function supervisorApprovePayment(paymentId: string) {
   const me = await meOrThrow();
   if (!/^[0-9a-f-]{36}$/i.test(paymentId)) throw new Error('Invalid id');
@@ -334,15 +334,15 @@ export async function supervisorApprovePayment(paymentId: string) {
   await audit(
     me.id,
     'payment-supervisor-approved',
-    `Approved Rs ${updated[0].amount} ${updated[0].pool} — pending admin final verification`,
+    `Approved Rs ${updated[0].amount} ${updated[0].pool} · pending admin final verification`,
     updated[0].memberId,
   );
   await notify(
     await adminIds(me.id),
     {
       titleEn: 'Payment ready to verify', titleUr: 'ادائیگی برائے تصدیق تیار',
-      en: `A ${updated[0].pool} payment of Rs ${updated[0].amount.toLocaleString('en-PK')} was approved by the supervisor — awaiting your final verification.`,
-      ur: `سپروائزر نے روپے ${updated[0].amount.toLocaleString('en-PK')} (${updated[0].pool}) کی منظوری دی — آپ کی حتمی تصدیق درکار ہے۔`,
+      en: `A ${updated[0].pool} payment of Rs ${updated[0].amount.toLocaleString('en-PK')} was approved by the supervisor · awaiting your final verification.`,
+      ur: `سپروائزر نے روپے ${updated[0].amount.toLocaleString('en-PK')} (${updated[0].pool}) کی منظوری دی · آپ کی حتمی تصدیق درکار ہے۔`,
       type: 'payment-awaiting-admin',
     },
     { title: '✅ Payment ready to verify', body: `Rs ${updated[0].amount.toLocaleString('en-PK')} ${updated[0].pool}`, data: { type: 'payment-awaiting-admin' }, channelId: 'payments' },
@@ -377,7 +377,7 @@ export async function supervisorRejectPayment(paymentId: string, note?: string) 
   await audit(
     me.id,
     'payment-supervisor-rejected',
-    `Rejected Rs ${updated[0].amount} ${updated[0].pool}${trimmedNote ? ` — ${trimmedNote}` : ''}`,
+    `Rejected Rs ${updated[0].amount} ${updated[0].pool}${trimmedNote ? ` · ${trimmedNote}` : ''}`,
     updated[0].memberId,
   );
   await notify(
@@ -385,10 +385,10 @@ export async function supervisorRejectPayment(paymentId: string, note?: string) 
     {
       titleEn: 'Payment rejected by supervisor', titleUr: 'سپروائزر نے ادائیگی مسترد کی',
       en: `A ${updated[0].pool} payment of Rs ${updated[0].amount.toLocaleString('en-PK')} was rejected${trimmedNote ? `: ${trimmedNote}` : ''}. Resend or delete it.`,
-      ur: `روپے ${updated[0].amount.toLocaleString('en-PK')} (${updated[0].pool}) مسترد${trimmedNote ? `: ${trimmedNote}` : ''} — دوبارہ بھیجیں یا حذف کریں۔`,
+      ur: `روپے ${updated[0].amount.toLocaleString('en-PK')} (${updated[0].pool}) مسترد${trimmedNote ? `: ${trimmedNote}` : ''} · دوبارہ بھیجیں یا حذف کریں۔`,
       type: 'payment-rejected',
     },
-    { title: '⛔ Payment rejected', body: `Rs ${updated[0].amount.toLocaleString('en-PK')} ${updated[0].pool} — needs your action`, data: { type: 'payment-rejected' }, channelId: 'payments' },
+    { title: '⛔ Payment rejected', body: `Rs ${updated[0].amount.toLocaleString('en-PK')} ${updated[0].pool} · needs your action`, data: { type: 'payment-rejected' }, channelId: 'payments' },
   );
   revalidatePath('/admin/fund');
 }
@@ -444,7 +444,7 @@ export async function adminDeletePayment(paymentId: string) {
  * Per workflow: cash is physically with the supervisor, so final verification
  * requires the supervisor to have approved. If supervisor rejected, admin
  * must either resend (adminResendPaymentToSupervisor) or delete
- * (adminDeletePayment) — they can't override the rejection here.
+ * (adminDeletePayment) · they can't override the rejection here.
  */
 export async function verifyPayment(paymentId: string) {
   const me = await meOrThrow();
@@ -458,7 +458,7 @@ export async function verifyPayment(paymentId: string) {
     throw new Error('Supervisor must approve this payment first before admin can verify.');
   }
   if (existing.supervisorRejectedAt) {
-    throw new Error('Supervisor rejected this payment — resend it for re-approval first, or delete it.');
+    throw new Error('Supervisor rejected this payment · resend it for re-approval first, or delete it.');
   }
 
   await db
@@ -498,7 +498,7 @@ export async function verifyPayment(paymentId: string) {
 /* ─── cast vote on a case
  *
  * Self-vote is normally disallowed (conflict of interest), but admins
- * are permitted to break the tie / unblock a stuck request — they're
+ * are permitted to break the tie / unblock a stuck request · they're
  * already trusted with veto + delete, so a self-vote is strictly less
  * power than the veto path below.
  */
@@ -514,7 +514,7 @@ export async function castVote(caseId: string, yes: boolean) {
     throw new Error('Cannot vote on your own request');
   }
 
-  // Insert (ON CONFLICT — would fail naturally via PK; handle in caller)
+  // Insert (ON CONFLICT · would fail naturally via PK; handle in caller)
   await db.insert(votes).values({ caseId, memberId: me.id, vote: yes }).onConflictDoNothing();
   await audit(me.id, 'vote-cast', `Voted ${yes ? 'YES' : 'NO'} on case ${caseId}`, c.applicantId);
 
@@ -531,7 +531,7 @@ export async function castVote(caseId: string, yes: boolean) {
   const [cfg] = await db.select().from(configTbl).where(eq(configTbl.id, 1)).limit(1);
   // Require at least one vote, and never auto-resolve when there are no other
   // eligible voters (otherwise need=0 would approve a case on its first vote —
-  // even a NO — with zero real consensus).
+  // even a NO · with zero real consensus).
   const need = Math.max(1, Math.ceil(eligible * ((cfg?.voteThresholdPct ?? 50) / 100)));
 
   if (eligible > 0 && yesCount >= need) {
@@ -566,7 +566,7 @@ export async function updateGoal(input: z.infer<typeof goalSchema>) {
 }
 
 /* ─── update profile (self) */
-// Name and father fields are intentionally excluded — only admins can change
+// Name and father fields are intentionally excluded · only admins can change
 // those via editMember to prevent members from spoofing their identity.
 const profileSchema = z.object({
   phone: z.string().max(30).optional().nullable(),
@@ -602,6 +602,8 @@ const adminCfgSchema = z.object({
   goalLabelEn: z.string().max(80).optional().nullable(),
   goalLabelUr: z.string().max(80).optional().nullable(),
   goalDeadline: z.string().nullable().optional(),
+  // Fauti (death-benefit) payout amount. 0 disables the workflow.
+  fautiAmount: z.number().int().min(0).max(100_000_000).optional(),
 });
 
 export async function updateAdminConfig(input: z.infer<typeof adminCfgSchema>) {
@@ -630,7 +632,7 @@ const editMemberSchema = z.object({
   monthlyPledge: z.number().int().min(0).max(1_000_000).optional(),
   role: z.enum(['admin', 'member', 'supervisor']).optional(),
   status: z.enum(['pending', 'approved', 'rejected']).optional(),
-  // Pairing — null clears the marriage, uuid sets it.
+  // Pairing · null clears the marriage, uuid sets it.
   spouseId: z.string().uuid().nullable().optional(),
 });
 
@@ -641,10 +643,10 @@ export async function editMember(input: z.infer<typeof editMemberSchema>) {
 
   // Refuse self-demotion to avoid lockout
   if (id === me.id && rest.role && rest.role !== 'admin') {
-    throw new Error('Cannot demote yourself — promote another admin first');
+    throw new Error('Cannot demote yourself · promote another admin first');
   }
   if (id === me.id && rest.status && rest.status !== 'approved') {
-    throw new Error('Cannot change your own status — contact another admin');
+    throw new Error('Cannot change your own status · contact another admin');
   }
 
   await db.update(members).set(rest).where(eq(members.id, id));
@@ -674,12 +676,12 @@ export async function editMember(input: z.infer<typeof editMemberSchema>) {
         await db.update(members).set({ spouseId }).where(eq(members.id, id));
         await db.update(members).set({ spouseId: id }).where(eq(members.id, spouseId));
       } else {
-        // spouseId === null — explicit divorce; already cleared own side via main update.
+        // spouseId === null · explicit divorce; already cleared own side via main update.
         await db.update(members).set({ spouseId: null }).where(eq(members.id, id));
       }
     }
   } catch (spouseError) {
-    // Log but don't fail the whole edit — spouse link can be retried
+    // Log but don't fail the whole edit · spouse link can be retried
     console.error('[editMember] spouse sync failed:', spouseError instanceof Error ? spouseError.message : spouseError);
   }
 
@@ -688,7 +690,7 @@ export async function editMember(input: z.infer<typeof editMemberSchema>) {
   revalidatePath('/tree');
 }
 
-/* ─── delete member (admin) — soft via deceased=false→true OR hard delete */
+/* ─── delete member (admin) · soft via deceased=false→true OR hard delete */
 export async function softDeleteMember(memberId: string) {
   if (!/^[0-9a-f-]{36}$/i.test(memberId)) throw new Error('Invalid id');
   const me = await meOrThrow();
@@ -709,7 +711,7 @@ export async function hardDeleteMember(memberId: string) {
 
   if (target.role === 'admin') {
     const adminCount = await db.$count(members, and(eq(members.role, 'admin'), eq(members.deceased, false)));
-    if (adminCount <= 1) throw new Error('Cannot delete the last admin — promote another member first');
+    if (adminCount <= 1) throw new Error('Cannot delete the last admin · promote another member first');
   }
 
   // Clear spouse pointer to prevent dangling references in tree
@@ -786,7 +788,7 @@ export async function createCase(input: z.infer<typeof caseSchema>) {
     channelId: 'cases',
   }).catch((err) => { console.error('[push] broadcast case:', err); });
 
-  // Email alert — only for cases flagged emergency (so we don't spam on
+  // Email alert · only for cases flagged emergency (so we don't spam on
   // every routine request). Sends to every approved member except the
   // applicant themselves.
   if (data.emergency) {
@@ -827,6 +829,8 @@ const issueLoanSchema = z.object({
   purpose: z.string().min(2).max(200),
   city: z.string().max(60).optional(),
   expectedReturn: z.string().nullable().optional(),
+  // Agreed monthly repayment plan, e.g. Rs 500/month. Optional.
+  installmentAmount: z.number().int().positive().max(10_000_000).nullable().optional(),
   caseId: z.string().uuid().nullable().optional(),
 });
 
@@ -849,12 +853,18 @@ export async function issueLoan(input: z.infer<typeof issueLoanSchema>) {
       pool: 'qarz',
       city: data.city,
       expectedReturn: data.expectedReturn || null,
+      installmentAmount: data.installmentAmount ?? null,
       caseId: data.caseId || null,
       paid: 0,
       active: true,
     })
     .returning();
-  await audit(me.id, 'loan-issue', `Issued ${data.amount} qarz: ${data.purpose}`, data.memberId);
+  await audit(
+    me.id,
+    'loan-issue',
+    `Issued ${data.amount} qarz: ${data.purpose}${data.installmentAmount ? ` · plan ${data.installmentAmount}/month` : ''}`,
+    data.memberId,
+  );
   revalidatePath('/admin/loans');
   revalidatePath('/dashboard');
   return created;
@@ -876,7 +886,7 @@ export async function recordRepayment(input: z.infer<typeof repaySchema>) {
   // AND the new total paid wouldn't exceed the loan amount. Drizzle's
   // neon-http driver can't wrap multi-statement transactions, so we
   // make the UPDATE itself the race-safe gate. Two concurrent admins
-  // can't both pass — whichever loses the race gets `updated.length === 0`.
+  // can't both pass · whichever loses the race gets `updated.length === 0`.
   const updated = await db
     .update(loans)
     .set({
@@ -930,7 +940,7 @@ export async function disburseCase(caseId: string) {
   if (!/^[0-9a-f-]{36}$/i.test(caseId)) throw new Error('Invalid case id');
   if (me.role !== 'admin') throw new Error('Admin only');
 
-  // Atomic: only updates when status is still 'approved' — prevents TOCTOU double-disburse
+  // Atomic: only updates when status is still 'approved' · prevents TOCTOU double-disburse
   const updated = await db
     .update(cases)
     .set({ status: 'disbursed', resolvedAt: new Date() })
@@ -940,7 +950,7 @@ export async function disburseCase(caseId: string) {
   if (updated.length === 0) {
     const [c] = await db.select().from(cases).where(eq(cases.id, caseId)).limit(1);
     if (!c) throw new Error('Case not found');
-    throw new Error(`Cannot disburse — case is currently "${c.status}"`);
+    throw new Error(`Cannot disburse · case is currently "${c.status}"`);
   }
 
   const c = updated[0];
@@ -1004,7 +1014,7 @@ export async function adminResolveCase(caseId: string, decision: 'approved' | 'r
 
 /* ─── admin: delete a case (and its votes) entirely
  *
- * Use sparingly — disburse history is lost. Intended for duplicates,
+ * Use sparingly · disburse history is lost. Intended for duplicates,
  * test entries, or cases created in error. Disbursed cases that have
  * an associated loan are blocked to keep the loan ledger consistent.
  */
@@ -1016,12 +1026,12 @@ export async function adminDeleteCase(caseId: string) {
   const [c] = await db.select().from(cases).where(eq(cases.id, caseId)).limit(1);
   if (!c) throw new Error('Case not found');
 
-  // If a loan was created from this case, refuse — admin must settle/
+  // If a loan was created from this case, refuse · admin must settle/
   // delete the loan first so the ledger stays consistent.
   if (c.status === 'disbursed') {
     const [linkedLoan] = await db.select({ id: loans.id }).from(loans).where(eq(loans.caseId, caseId)).limit(1);
     if (linkedLoan) {
-      throw new Error('Case already disbursed and linked to an active loan — settle the loan first');
+      throw new Error('Case already disbursed and linked to an active loan · settle the loan first');
     }
   }
 
@@ -1066,7 +1076,7 @@ export async function revokeInvite(inviteId: string) {
 }
 
 function generateInviteToken(): string {
-  // 24 chars from URL-safe alphabet — collision-resistant for our scale.
+  // 24 chars from URL-safe alphabet · collision-resistant for our scale.
   const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
   let out = '';
   const arr = new Uint8Array(24);
@@ -1121,4 +1131,54 @@ export async function sendMessage(input: z.infer<typeof sendMessageSchema>) {
   });
   await audit(me.id, 'message-sent', `Subject: ${data.subject}`);
   revalidatePath('/messages');
+}
+
+/* ─── fauti (death-benefit) case: admin opens a pre-approved payout for a
+ * deceased member's family. No vote — by family convention fauti is a
+ * fixed entitlement, so the case lands directly in 'approved' and the
+ * admin disburses it with the normal disburseCase flow. */
+export async function openFautiCase(memberId: string) {
+  const me = await meOrThrow();
+  if (me.role !== 'admin') throw new Error('Admin only');
+  if (!/^[0-9a-f-]{36}$/i.test(memberId)) throw new Error('Invalid member id');
+
+  const [m] = await db.select().from(members).where(eq(members.id, memberId)).limit(1);
+  if (!m) throw new Error('Member not found');
+  if (!m.deceased) throw new Error('Fauti payout is only for deceased members');
+
+  const [cfg] = await db.select().from(configTbl).where(eq(configTbl.id, 1)).limit(1);
+  const amount = cfg?.fautiAmount ?? 0;
+  if (amount <= 0) throw new Error('Set the fauti amount in Settings first');
+
+  // One fauti case per member, ever.
+  const [existing] = await db
+    .select({ id: cases.id })
+    .from(cases)
+    .where(and(eq(cases.applicantId, memberId), eq(cases.category, 'fauti')))
+    .limit(1);
+  if (existing) throw new Error('A fauti case already exists for this member');
+
+  const name = m.nameEn || m.nameUr;
+  const [created] = await db
+    .insert(cases)
+    .values({
+      applicantId: memberId,
+      caseType: 'gift',
+      pool: 'sadaqah',
+      category: 'fauti',
+      beneficiaryName: `Family of ${name}`,
+      relation: 'family',
+      city: m.city,
+      amount,
+      reasonUr: `فوتی فنڈ · مرحوم ${m.nameUr || m.nameEn} کے اہلِ خانہ کے لیے`,
+      reasonEn: `Fauti fund payout for the family of the late ${name}`,
+      emergency: false,
+      status: 'approved',
+    })
+    .returning();
+
+  await audit(me.id, 'fauti-opened', `Fauti payout ${amount} opened for family of ${name}`, memberId);
+  revalidatePath('/cases');
+  revalidatePath(`/admin/members/${memberId}`);
+  return created;
 }

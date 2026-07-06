@@ -10,18 +10,18 @@ import { Crescent as CrescentMark } from '@/components/icons/crescent';
 const EASE = [0.22, 1, 0.36, 1] as const;
 
 const FEATURES = [
-  { icon: HandHeart, title: 'Sadaqah', ur: 'صدقہ', desc: 'Monthly voluntary giving, pooled for the family. Donor names stay hidden from other members — the sunnah of secret charity, enforced in the database itself.' },
+  { icon: HandHeart, title: 'Sadaqah', ur: 'صدقہ', desc: 'Monthly voluntary giving, pooled for the family. Donor names stay hidden from other members · the sunnah of secret charity, enforced in the database itself.' },
   { icon: Scale, title: 'Zakat', ur: 'زکوٰۃ', desc: 'A dedicated pool for obligatory alms, tracked separately and routed only to eligible recipients.' },
   { icon: HandCoins, title: 'Qarz-e-Hasana', ur: 'قرض حسنہ', desc: 'Interest-free loans from the fund, with repayment schedules the whole ledger can verify.' },
   { icon: Vote, title: 'Emergency Vote', ur: 'ہنگامی رائے', desc: 'A member in hardship opens a case; every approved member casts one vote. The majority decides, not any one person.' },
-  { icon: EyeOff, title: 'Donor Privacy', ur: 'رازداری', desc: 'Community feeds show that sadaqah happened — never who gave it. Only the admin sees names.' },
+  { icon: EyeOff, title: 'Donor Privacy', ur: 'رازداری', desc: 'Community feeds show that sadaqah happened, never who gave it. Only the admin sees names.' },
   { icon: ScrollText, title: 'Append-only Audit', ur: 'آڈٹ', desc: 'Every rupee movement is written to a tamper-evident log the database refuses to edit or delete.' },
 ];
 
 const STEPS = [
   { n: '١', title: 'Register', desc: 'Join with your family invite link. An admin approves every account before it sees anything.' },
   { n: '٢', title: 'Contribute', desc: 'Pledge monthly, send via EasyPaisa, attach the receipt. A supervisor and an admin verify each payment.' },
-  { n: '٣', title: 'Support each other', desc: 'Vote on emergency cases, extend qarz-e-hasana, and watch the fund grow — together.' },
+  { n: '٣', title: 'Support each other', desc: 'Vote on emergency cases, extend qarz-e-hasana, and watch the fund grow, together.' },
 ];
 
 function Reveal({ children, delay = 0, className }: { children: React.ReactNode; delay?: number; className?: string }) {
@@ -52,7 +52,7 @@ export default function LandingContent() {
       <BarakahFieldMount />
 
       {/* ── Hero ── */}
-      <section className="relative z-10 mx-auto flex min-h-[92vh] max-w-4xl flex-col items-center justify-center px-6 text-center">
+      <section className="relative z-10 mx-auto flex min-h-[88svh] max-w-4xl flex-col items-center justify-center px-5 py-16 text-center sm:min-h-[92vh] sm:px-6">
         <motion.span {...fadeUp(0)} className="mb-6 inline-grid size-14 place-items-center rounded-full bg-gradient-to-br from-[var(--color-gold-4)] to-[var(--color-gold)]">
           <CrescentMark className="size-7 text-[var(--color-ink)]" title="" />
         </motion.span>
@@ -61,12 +61,12 @@ export default function LandingContent() {
           وَتَعَاوَنُوا عَلَى الْبِرِّ وَالتَّقْوَىٰ
         </motion.p>
 
-        <motion.h1 {...fadeUp(0.24)} className="mt-4 font-[var(--font-display)] text-6xl leading-[1.02] tracking-[-1px] text-[var(--color-cream)] md:text-7xl">
+        <motion.h1 {...fadeUp(0.24)} className="mt-4 font-[var(--font-display)] text-5xl leading-[1.02] tracking-[-1px] text-[var(--color-cream)] sm:text-6xl md:text-7xl">
           Barakah <em className="text-[var(--color-gold-2)]">Hub</em>
         </motion.h1>
 
         <motion.p {...fadeUp(0.38)} className="mt-6 max-w-xl text-[15px] leading-relaxed text-[var(--txt-3)]">
-          A private treasury for your extended family — pool monthly sadaqah,
+          A private treasury for your extended family: pool monthly sadaqah,
           issue interest-free loans, approve emergencies by majority vote, and
           keep every rupee on a ledger no one can quietly edit.
         </motion.p>
@@ -89,7 +89,7 @@ export default function LandingContent() {
       <section className="relative z-10 mx-auto max-w-5xl px-6 pb-24">
         <Reveal className="mb-12 text-center">
           <p className="text-[10px] font-bold uppercase tracking-[3px] text-[var(--color-gold-4)]">What lives inside</p>
-          <h2 className="mt-2 font-[var(--font-display)] text-4xl text-[var(--color-cream)]">One fund, six disciplines</h2>
+          <h2 className="mt-2 font-[var(--font-display)] text-3xl text-[var(--color-cream)] sm:text-4xl">One fund, six disciplines</h2>
         </Reveal>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {FEATURES.map((f, i) => (
@@ -113,7 +113,7 @@ export default function LandingContent() {
       <section className="relative z-10 border-t border-[var(--border)] bg-[rgba(255,255,255,0.015)]">
         <div className="mx-auto max-w-4xl px-6 py-20">
           <Reveal className="mb-12 text-center">
-            <h2 className="font-[var(--font-display)] text-4xl text-[var(--color-cream)]">How it works</h2>
+            <h2 className="font-[var(--font-display)] text-3xl text-[var(--color-cream)] sm:text-4xl">How it works</h2>
           </Reveal>
           <div className="grid gap-8 md:grid-cols-3">
             {STEPS.map((s, i) => (

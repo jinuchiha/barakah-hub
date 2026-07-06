@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
     await db.insert(auditLog).values({
       actorId: me.id,
       action: 'broadcast-sent',
-      detail: `Subject: ${subject} — to ${approvedMembers.length} members`,
+      detail: `Subject: ${subject} · to ${approvedMembers.length} members`,
     });
 
     return NextResponse.json({ ok: true, count: approvedMembers.length });

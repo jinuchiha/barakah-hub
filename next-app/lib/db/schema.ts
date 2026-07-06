@@ -202,6 +202,8 @@ export const loans = pgTable('loans', {
   city: text('city'),
   issuedOn: date('issued_on').notNull().defaultNow(),
   expectedReturn: date('expected_return'),
+  // Agreed monthly repayment (e.g. Rs 500/month). Null = no fixed plan.
+  installmentAmount: integer('installment_amount'),
   active: boolean('active').notNull().default(true),
   caseId: uuid('case_id').references(() => cases.id),
 });
@@ -292,6 +294,8 @@ export const config = pgTable('config', {
   id: integer('id').primaryKey().default(1),
   voteThresholdPct: integer('vote_threshold_pct').notNull().default(50),
   defaultMonthlyPledge: integer('default_monthly_pledge').notNull().default(1000),
+  // Fauti (death-benefit) payout to a deceased member's family. 0 = disabled.
+  fautiAmount: integer('fauti_amount').notNull().default(0),
   goalAmount: integer('goal_amount').notNull().default(0),
   goalLabelUr: text('goal_label_ur'),
   goalLabelEn: text('goal_label_en'),
