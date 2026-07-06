@@ -205,6 +205,29 @@ export const DICT = {
   'btn.submitVerification': ['تصدیق کے لیے جمع کریں', 'Submit for verification'],
   'btn.back':          ['← واپس', '← Back'],
   'btn.next':          ['اگلا ←', 'Next →'],
+
+  // Toasts
+  'toast.donationSubmitted': ['جمع ہو گیا · ایڈمن تصدیق کرے گا', 'Submitted · admin will verify'],
+  'toast.approved':          ['منظور ہو گیا', 'Approved'],
+  'toast.rejected':          ['مسترد کر دیا گیا', 'Rejected'],
+  'toast.saved':             ['محفوظ ہو گیا', 'Saved'],
+  'toast.messageSent':       ['پیغام بھیج دیا گیا', 'Message sent'],
+  'toast.voteRecorded':      ['ووٹ درج ہو گیا · جزاکم اللہ', 'Vote recorded · جزاکم اللہ'],
+
+  // Empty states
+  'empty.payments':   ['ابھی کوئی ادائیگی نہیں', 'No payments yet'],
+  'empty.inbox':      ['کوئی پیغام نہیں', 'Inbox empty'],
+  'empty.cases':      ['الحمدللہ · اس وقت سب خیریت ہے', 'No emergency cases yet'],
+  'empty.caughtUp':   ['سب دیکھ لیا · کوئی اطلاع نہیں', 'All caught up'],
+
+  // Loans page (admin)
+  'loan.title':       ['قرض حسنہ', 'Qarz-e-Hasana'],
+  'loan.overline':    ['ایڈمن · قرضے', 'Admin · Loans'],
+  'loan.active':      ['فعال قرضے', 'Active Loans'],
+  'loan.settled':     ['ادا شدہ', 'Settled'],
+  'loan.disbursedTotal': ['کل جاری کردہ', 'Total Disbursed'],
+  'loan.issue':       ['قرض جاری کریں', 'Issue Qarz-e-Hasana'],
+  'loan.repay':       ['قسط درج کریں', 'Record Repayment'],
 } as const;
 
 export type Locale = 'ur' | 'en';

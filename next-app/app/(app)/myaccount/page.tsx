@@ -138,18 +138,18 @@ export default async function MyAccountPage() {
         <CardBody className="p-0">
           {myPayments.length === 0 ? (
             <div className="p-10 text-center text-sm italic text-[var(--txt-3)]">
-              No payments yet — submit your first donation to start contributing.
+              {t('empty.payments', locale)}
             </div>
           ) : (
             <table className="w-full text-sm">
               <caption className="sr-only">Payment history</caption>
               <thead>
                 <tr className="border-b border-[var(--border)] bg-[rgba(214,210,199,0.06)] text-left text-[10px] uppercase tracking-[1px] text-[var(--color-gold-4)]">
-                  <th scope="col" className="px-4 py-2.5">Month</th>
-                  <th scope="col" className="px-4 py-2.5">Pool</th>
-                  <th scope="col" className="px-4 py-2.5 text-right">Amount</th>
-                  <th scope="col" className="px-4 py-2.5">Status</th>
-                  <th scope="col" className="px-4 py-2.5">Date</th>
+                  <th scope="col" className="px-4 py-2.5">{t('common.month', locale)}</th>
+                  <th scope="col" className="px-4 py-2.5">{t('don.pool', locale)}</th>
+                  <th scope="col" className="px-4 py-2.5 text-right">{t('common.amount', locale)}</th>
+                  <th scope="col" className="px-4 py-2.5">{t('common.status', locale)}</th>
+                  <th scope="col" className="px-4 py-2.5">{t('common.date', locale)}</th>
                 </tr>
               </thead>
               <tbody>
