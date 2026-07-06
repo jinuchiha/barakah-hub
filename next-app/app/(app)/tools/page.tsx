@@ -20,13 +20,13 @@ export default async function ToolsPage() {
   const verse = getDailyVerse();
 
   return (
-    <div className="mx-auto w-full max-w-4xl">
+    <div className="mx-auto w-full max-w-4xl lg:max-w-6xl">
       <header className="mb-6 border-b border-[var(--border)] pb-4">
         <h1 className="font-[var(--font-arabic)] text-3xl text-[var(--color-gold-2)]">اسلامی ٹولز</h1>
         <p className="mt-1 font-[var(--font-en)] text-sm italic text-[var(--color-gold-4)]">Islamic Tools</p>
       </header>
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {/* Hijri Date */}
         <Card>
           <CardHeader>
@@ -44,7 +44,7 @@ export default async function ToolsPage() {
         </Card>
 
         {/* Prayer Times — computed locally, live next-prayer countdown */}
-        <Card className="sm:col-span-2">
+        <Card className="sm:col-span-2 lg:col-span-3">
           <CardHeader>
             <CardTitle>{t('tools.prayer', locale)} · اوقاتِ نماز</CardTitle>
           </CardHeader>
