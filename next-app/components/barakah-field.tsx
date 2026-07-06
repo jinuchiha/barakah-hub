@@ -3,102 +3,111 @@ import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 
 /**
- * Barakah Field — a physically-lit 3D moon behind the app canvas.
- * A displaced sphere is lit from one grazing side, so the crescent is
- * REAL lighting (exactly how the hilal forms in the sky), not a shape.
- * A sparse starfield drifts behind it. One mesh + one Points draw call,
- * DPR-capped, paused when the tab is hidden, disposed on unmount, and
- * skipped entirely under prefers-reduced-motion.
+ * Barakah Field — an immersive space scene behind the app:
+ *  - three parallax star layers that drift TOWARD the camera and wrap,
+ *    so the page feels like it is gliding through space
+ *  - a crescent made of pure light (canvas radial gradients — light can
+ *    never read as a rock the way lit geometry did)
+ *  - deep indigo nebula wisps for spatial richness
+ *  - the sacred words (بركة، صدقة، رحمة، خير، إحسان) floating at real
+ *    depths among the stars
+ * All textures are generated at runtime (no assets), everything is
+ * disposed on unmount, paused when hidden, skipped on reduced motion.
  */
 
-/** Deterministic pseudo-noise — layered trig, no Math.random at render. */
-function surfaceNoise(x: number, y: number, z: number): number {
-  return (
-    Math.sin(x * 4.1 + y * 2.3) * 0.45 +
-    Math.sin(y * 5.7 + z * 3.1) * 0.3 +
-    Math.sin(z * 6.3 + x * 4.7) * 0.25
-  );
-}
+const WORDS = ['بركة', 'صدقة', 'رحمة', 'خير', 'إحسان'];
 
-function buildMoon(): THREE.Mesh {
-  const geo = new THREE.SphereGeometry(5, 128, 128);
-  const pos = geo.attributes.position;
-  const v = new THREE.Vector3();
-  // Whisper of texture only — anything stronger reads as a grey rock.
-  for (let i = 0; i < pos.count; i++) {
-    v.fromBufferAttribute(pos, i);
-    const n = surfaceNoise(v.x, v.y, v.z) * 0.006;
-    v.multiplyScalar(1 + n);
-    pos.setXYZ(i, v.x, v.y, v.z);
-  }
-  geo.computeVertexNormals();
-
-  // Dark side sits close to the page ink, so only the lit crescent reads.
-  const mat = new THREE.MeshStandardMaterial({
-    color: 0xbfb9a8,
-    roughness: 0.75,
-    metalness: 0.1,
-  });
-  return new THREE.Mesh(geo, mat);
-}
-
-/** Soft radial gold halo behind the moon — canvas-generated, no assets. */
-function buildHalo(): THREE.Sprite {
-  const size = 256;
+function radialSprite(size: number, stops: [number, string][]): THREE.CanvasTexture {
   const canvas = document.createElement('canvas');
   canvas.width = size;
   canvas.height = size;
   const ctx = canvas.getContext('2d')!;
   const g = ctx.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
-  g.addColorStop(0, 'rgba(232,197,99,0.5)');
-  g.addColorStop(0.35, 'rgba(200,155,60,0.18)');
-  g.addColorStop(1, 'rgba(200,155,60,0)');
+  for (const [at, color] of stops) g.addColorStop(at, color);
   ctx.fillStyle = g;
   ctx.fillRect(0, 0, size, size);
-
-  const texture = new THREE.CanvasTexture(canvas);
-  const mat = new THREE.SpriteMaterial({
-    map: texture,
-    transparent: true,
-    blending: THREE.AdditiveBlending,
-    depthWrite: false,
-    opacity: 0.7,
-  });
-  const sprite = new THREE.Sprite(mat);
-  sprite.scale.setScalar(19);
-  return sprite;
+  return new THREE.CanvasTexture(canvas);
 }
 
-function buildStars(): THREE.Points {
-  const positions: number[] = [];
-  const colors: number[] = [];
-  const gold = new THREE.Color('#e8c563');
-  const white = new THREE.Color('#cfd4de');
-  const c = new THREE.Color();
-  for (let i = 0; i < 420; i++) {
-    const r = 22 + Math.random() * 26;
-    const theta = Math.random() * Math.PI * 2;
-    const phi = Math.acos(2 * Math.random() - 1);
-    positions.push(
-      r * Math.sin(phi) * Math.cos(theta),
-      r * Math.sin(phi) * Math.sin(theta),
-      -Math.abs(r * Math.cos(phi)) - 6,
-    );
-    c.lerpColors(white, gold, Math.random() * 0.6);
-    colors.push(c.r, c.g, c.b);
+/** Crescent of light: a glowing disc with a soft offset bite erased out. */
+function crescentTexture(): THREE.CanvasTexture {
+  const s = 512;
+  const canvas = document.createElement('canvas');
+  canvas.width = s;
+  canvas.height = s;
+  const ctx = canvas.getContext('2d')!;
+  const cx = s / 2;
+
+  const disc = ctx.createRadialGradient(cx, cx, s * 0.18, cx, cx, s * 0.42);
+  disc.addColorStop(0, 'rgba(255,240,205,0.95)');
+  disc.addColorStop(0.55, 'rgba(232,197,99,0.55)');
+  disc.addColorStop(1, 'rgba(200,155,60,0)');
+  ctx.fillStyle = disc;
+  ctx.beginPath();
+  ctx.arc(cx, cx, s * 0.42, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Soft-edged bite, offset toward the upper-left → waxing hilal.
+  ctx.globalCompositeOperation = 'destination-out';
+  const bite = ctx.createRadialGradient(cx - s * 0.13, cx - s * 0.08, s * 0.05, cx - s * 0.13, cx - s * 0.08, s * 0.38);
+  bite.addColorStop(0, 'rgba(0,0,0,1)');
+  bite.addColorStop(0.82, 'rgba(0,0,0,1)');
+  bite.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = bite;
+  ctx.beginPath();
+  ctx.arc(cx - s * 0.13, cx - s * 0.08, s * 0.38, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.globalCompositeOperation = 'source-over';
+
+  return new THREE.CanvasTexture(canvas);
+}
+
+function wordTexture(word: string): THREE.CanvasTexture {
+  const w = 512;
+  const h = 256;
+  const canvas = document.createElement('canvas');
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext('2d')!;
+  ctx.font = '110px Amiri, "Noto Nastaliq Urdu", serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.shadowColor = 'rgba(232,197,99,0.85)';
+  ctx.shadowBlur = 26;
+  ctx.fillStyle = 'rgba(232,197,99,0.9)';
+  ctx.fillText(word, w / 2, h / 2);
+  return new THREE.CanvasTexture(canvas);
+}
+
+function sprite(tex: THREE.CanvasTexture, opacity: number): THREE.Sprite {
+  return new THREE.Sprite(
+    new THREE.SpriteMaterial({ map: tex, transparent: true, opacity, blending: THREE.AdditiveBlending, depthWrite: false }),
+  );
+}
+
+interface StarLayer {
+  points: THREE.Points;
+  speed: number;
+}
+
+function buildStarLayer(count: number, size: number, speed: number, spread: number): StarLayer {
+  const positions = new Float32Array(count * 3);
+  for (let i = 0; i < count; i++) {
+    positions[i * 3] = (Math.random() - 0.5) * spread;
+    positions[i * 3 + 1] = (Math.random() - 0.5) * spread * 0.7;
+    positions[i * 3 + 2] = -Math.random() * 90;
   }
   const geo = new THREE.BufferGeometry();
-  geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-  geo.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+  geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
   const mat = new THREE.PointsMaterial({
-    size: 0.09,
-    vertexColors: true,
+    size,
+    color: 0xd8dce8,
     transparent: true,
-    opacity: 0.7,
+    opacity: 0.85,
     depthWrite: false,
     sizeAttenuation: true,
   });
-  return new THREE.Points(geo, mat);
+  return { points: new THREE.Points(geo, mat), speed };
 }
 
 export default function BarakahField() {
@@ -110,30 +119,49 @@ export default function BarakahField() {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 120);
-    camera.position.z = 30;
+    const camera = new THREE.PerspectiveCamera(60, 1, 0.1, 200);
+    camera.position.z = 12;
 
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'low-power' });
+    const renderer = new THREE.WebGLRenderer({ antialias: false, alpha: true, powerPreference: 'low-power' });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setClearColor(0x000000, 0);
     host.appendChild(renderer.domElement);
 
-    const group = new THREE.Group();
-    const moon = buildMoon();
-    const halo = buildHalo();
-    const stars = buildStars();
-    halo.position.set(1.2, 0.4, -3);
-    // Upper-right, out of the content's way.
-    group.position.set(9.5, 5.5, 0);
-    group.add(halo, moon);
-    scene.add(group, stars);
+    // ── Star layers: far/mid/near for parallax, drifting toward camera ──
+    const layers: StarLayer[] = [
+      buildStarLayer(320, 0.06, 0.9, 70),
+      buildStarLayer(220, 0.1, 1.7, 55),
+      buildStarLayer(110, 0.16, 3.0, 45),
+    ];
+    for (const l of layers) scene.add(l.points);
 
-    // The crescent IS this light: warm gold grazing from the upper right.
-    const sun = new THREE.DirectionalLight(0xffe2b0, 4.5);
-    sun.position.set(15, 6, -6);
-    scene.add(sun);
-    // Almost no fill — the dark side should melt into the page ink.
-    scene.add(new THREE.AmbientLight(0x0d1424, 1.4));
+    // ── Nebula wisps: deep indigo + one faint emerald breath ──
+    const nebulaA = sprite(radialSprite(256, [[0, 'rgba(38,52,96,0.5)'], [0.6, 'rgba(24,34,66,0.22)'], [1, 'rgba(0,0,0,0)']]), 0.5);
+    nebulaA.scale.set(70, 42, 1);
+    nebulaA.position.set(-16, -6, -60);
+    const nebulaB = sprite(radialSprite(256, [[0, 'rgba(45,138,95,0.22)'], [1, 'rgba(0,0,0,0)']]), 0.4);
+    nebulaB.scale.set(46, 30, 1);
+    nebulaB.position.set(20, 10, -70);
+    scene.add(nebulaA, nebulaB);
+
+    // ── The hilal: pure light, upper right ──
+    const moon = sprite(crescentTexture(), 0.95);
+    moon.scale.setScalar(11);
+    moon.position.set(10.5, 6, -14);
+    const halo = sprite(radialSprite(256, [[0, 'rgba(232,197,99,0.4)'], [0.4, 'rgba(200,155,60,0.14)'], [1, 'rgba(0,0,0,0)']]), 0.8);
+    halo.scale.setScalar(20);
+    halo.position.copy(moon.position).z -= 1;
+    scene.add(halo, moon);
+
+    // ── Sacred words floating at depth among the stars ──
+    const words = WORDS.map((w, i) => {
+      const sp = sprite(wordTexture(w), 0.16);
+      const depth = -18 - i * 12;
+      sp.position.set(((i % 2 === 0 ? -1 : 1) * (6 + (i * 3.7) % 12)), ((i * 5.3) % 14) - 7, depth);
+      sp.scale.set(10, 5, 1);
+      scene.add(sp);
+      return sp;
+    });
 
     const pointer = { x: 0, y: 0 };
     const onPointer = (e: PointerEvent) => {
@@ -159,14 +187,36 @@ export default function BarakahField() {
     const animate = () => {
       raf = requestAnimationFrame(animate);
       if (hidden) return;
+      const dt = Math.min(clock.getDelta(), 0.05);
       const t = clock.getElapsedTime();
-      // Slow libration — the moon breathes and turns, never flips.
-      moon.rotation.y = t * 0.02;
-      moon.rotation.x = Math.sin(t * 0.05) * 0.04;
-      stars.rotation.z = t * 0.004;
-      // Pointer parallax on the whole scene group.
-      group.position.x += (9.5 + pointer.x * 0.9 - group.position.x) * 0.03;
-      group.position.y += (5.5 - pointer.y * 0.7 - group.position.y) * 0.03;
+
+      // Glide through space: stars stream past and wrap behind.
+      for (const l of layers) {
+        const pos = l.points.geometry.attributes.position;
+        for (let i = 0; i < pos.count; i++) {
+          let z = pos.getZ(i) + l.speed * dt;
+          if (z > camera.position.z + 2) z = -90;
+          pos.setZ(i, z);
+        }
+        pos.needsUpdate = true;
+      }
+
+      // Words drift forward far more slowly — arriving, not rushing.
+      for (const wSp of words) {
+        wSp.position.z += dt * 0.5;
+        if (wSp.position.z > 2) wSp.position.z = -75;
+        const fade = 1 - Math.min(1, Math.abs(wSp.position.z + 30) / 45);
+        wSp.material.opacity = 0.05 + fade * 0.16;
+      }
+
+      // Hilal breathes; halo shimmers gently.
+      moon.material.rotation = Math.sin(t * 0.08) * 0.06;
+      halo.material.opacity = 0.65 + Math.sin(t * 0.6) * 0.15;
+
+      // Pointer parallax — the whole sky leans with the cursor.
+      camera.rotation.y += (-pointer.x * 0.045 - camera.rotation.y) * 0.04;
+      camera.rotation.x += (pointer.y * 0.03 - camera.rotation.x) * 0.04;
+
       renderer.render(scene, camera);
     };
     animate();
@@ -182,12 +232,14 @@ export default function BarakahField() {
       document.removeEventListener('visibilitychange', onVisibility);
       window.removeEventListener('pointermove', onPointer);
       ro.disconnect();
-      moon.geometry.dispose();
-      (moon.material as THREE.Material).dispose();
-      halo.material.map?.dispose();
-      halo.material.dispose();
-      stars.geometry.dispose();
-      (stars.material as THREE.Material).dispose();
+      for (const l of layers) {
+        l.points.geometry.dispose();
+        (l.points.material as THREE.Material).dispose();
+      }
+      for (const s of [nebulaA, nebulaB, moon, halo, ...words]) {
+        s.material.map?.dispose();
+        s.material.dispose();
+      }
       renderer.dispose();
       renderer.domElement.remove();
     };
@@ -197,7 +249,7 @@ export default function BarakahField() {
     <div
       ref={hostRef}
       aria-hidden
-      style={{ position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none', opacity: 0.55 }}
+      style={{ position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none', opacity: 0.8 }}
     />
   );
 }
