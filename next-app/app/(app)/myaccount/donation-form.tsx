@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import { submitDonation } from '@/app/actions';
 import { Input, Label } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { DuaOverlay } from '@/components/dua-overlay';
 
 const MONTHS = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -18,6 +19,7 @@ interface DonationFormProps {
 export default function DonationForm({ easyPaiseName, easyPaiseNumber }: DonationFormProps) {
   const [pending, start] = useTransition();
   const [open, setOpen] = useState(false);
+  const [duaFor, setDuaFor] = useState<'sadaqah' | 'zakat' | null>(null);
   const [amount, setAmount] = useState(0);
   const [pool, setPool] = useState<'sadaqah' | 'zakat'>('sadaqah');
   const [month, setMonth] = useState(`${MONTHS[new Date().getMonth()]} ${new Date().getFullYear()}`);
@@ -40,6 +42,7 @@ export default function DonationForm({ easyPaiseName, easyPaiseNumber }: Donatio
       try {
         await submitDonation({ amount, pool, monthLabel: month, note: note || undefined });
         toast.success('Submitted — admin will verify');
+        setDuaFor(pool);
         reset();
         setOpen(false);
       } catch (e: unknown) {
@@ -50,9 +53,12 @@ export default function DonationForm({ easyPaiseName, easyPaiseNumber }: Donatio
 
   if (!open) {
     return (
-      <Button variant="gold" size="sm" onClick={() => setOpen(true)}>
-        + Submit Donation
-      </Button>
+      <>
+        <Button variant="gold" size="sm" onClick={() => setOpen(true)}>
+          + Submit Donation
+        </Button>
+        <DuaOverlay open={duaFor !== null} pool={duaFor ?? undefined} onClose={() => setDuaFor(null)} />
+      </>
     );
   }
 

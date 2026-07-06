@@ -419,3 +419,48 @@ button:disabled,
 ::-webkit-scrollbar-thumb:hover { background: rgba(214,210,199,0.32); }
 .light ::-webkit-scrollbar-thumb { background: rgba(20,23,28,0.18); }
 .light ::-webkit-scrollbar-thumb:hover { background: rgba(20,23,28,0.32); }
+
+/* ─────────────────────────────────────────
+   AMBIENT DEPTH — two slow-drifting light fields + a vignette behind
+   the app canvas. Opacity is kept whisper-low so the fintech restraint
+   holds; the layers only register as depth, not decoration.
+   ───────────────────────────────────────── */
+.ambient-depth::before,
+.ambient-depth::after {
+  content: '';
+  position: fixed;
+  z-index: 0;
+  pointer-events: none;
+  width: 55vmax;
+  height: 55vmax;
+  border-radius: 50%;
+  filter: blur(80px);
+  will-change: transform;
+}
+.ambient-depth::before {
+  top: -18vmax;
+  right: -12vmax;
+  background: radial-gradient(circle, rgba(200,155,60,0.055), transparent 65%);
+  animation: ambientDriftA 46s ease-in-out infinite alternate;
+}
+.ambient-depth::after {
+  bottom: -22vmax;
+  left: -14vmax;
+  background: radial-gradient(circle, rgba(45,138,95,0.05), transparent 65%);
+  animation: ambientDriftB 58s ease-in-out infinite alternate;
+}
+.ambient-depth > * { position: relative; z-index: 1; }
+
+@keyframes ambientDriftA {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to   { transform: translate3d(-7vmax, 5vmax, 0) scale(1.12); }
+}
+@keyframes ambientDriftB {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to   { transform: translate3d(6vmax, -4vmax, 0) scale(1.08); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ambient-depth::before,
+  .ambient-depth::after { animation: none; }
+}
