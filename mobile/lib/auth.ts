@@ -1,11 +1,26 @@
 import { api } from './api';
-import { saveSessionToken, clearSessionToken, saveUser, clearStoredUser } from './storage';
+import {
+  saveSessionToken, clearSessionToken, saveUser, clearStoredUser,
+  savePendingOnboarding, getPendingOnboarding, clearPendingOnboarding,
+} from './storage';
 import { queryClient } from './query-client';
 import { clearQueryCache } from './query-persist';
+import { getExpoPushToken, unregisterPushToken } from './push';
 import type { Session, MemberWithSession } from '@/types';
 
-export interface SignInInput {
+/** Server enforced email verification — caller must route to the OTP screen. */
+export class EmailNotVerifiedError extends Error {
   email: string;
+  constructor(email: string) {
+    super('Email verification required');
+    this.name = 'EmailNotVerifiedError';
+    this.email = email;
+  }
+}
+
+export interface SignInInput {
+  /** Email address OR username — resolved by the presence of '@'. */
+  identifier: string;
   password: string;
 }
 
@@ -25,10 +40,23 @@ export interface ForgotPasswordInput {
 }
 
 export async function signIn(input: SignInInput): Promise<MemberWithSession> {
-  const { data } = await api.post<Session>('/api/auth/sign-in/email', {
-    email: input.email,
-    password: input.password,
-  });
+  const id = input.identifier.trim();
+  const isEmail = id.includes('@');
+  let data: Session;
+  try {
+    const res = isEmail
+      ? await api.post<Session>('/api/auth/sign-in/email', { email: id.toLowerCase(), password: input.password })
+      : await api.post<Session>('/api/auth/sign-in/username', { username: id.toLowerCase(), password: input.password });
+    data = res.data;
+  } catch (err) {
+    const status = (err as Error & { status?: number }).status;
+    const msg = (err as Error).message?.toLowerCase() ?? '';
+    if (status === 403 && msg.includes('verify') && isEmail) {
+      await sendVerificationOtp(id.toLowerCase()).catch(() => {});
+      throw new EmailNotVerifiedError(id.toLowerCase());
+    }
+    throw err;
+  }
 
   if (data.session?.token) {
     await saveSessionToken(data.session.token);
@@ -38,12 +66,40 @@ export async function signIn(input: SignInInput): Promise<MemberWithSession> {
   try {
     member = await fetchMyMember();
   } catch (err) {
+    // No members row yet? If a registration profile is parked (signup
+    // blocked by email verification), replay onboarding now — this is
+    // what un-orphans verified-then-signed-in accounts.
+    const pending = await getPendingOnboarding<Record<string, unknown>>();
+    if (pending) {
+      try {
+        await api.post('/api/onboarding/mobile', pending);
+        member = await fetchMyMember();
+        await clearPendingOnboarding();
+        await saveUser({ ...member, email: data.user.email });
+        return { ...member, email: data.user.email };
+      } catch {
+        // fall through to rollback
+      }
+    }
     // Roll back saved token — don't leave app in half-auth state
     await clearSessionToken();
     throw err;
   }
   await saveUser({ ...member, email: data.user.email });
   return { ...member, email: data.user.email };
+}
+
+/** Better-Auth emailOTP plugin: send a 6-digit verification code. */
+export async function sendVerificationOtp(email: string): Promise<void> {
+  await api.post('/api/auth/email-otp/send-verification-otp', {
+    email,
+    type: 'email-verification',
+  });
+}
+
+/** Verify the 6-digit code. After success the user signs in normally. */
+export async function verifyEmailOtp(email: string, otp: string): Promise<void> {
+  await api.post('/api/auth/email-otp/verify-email', { email, otp });
 }
 
 /**
@@ -65,21 +121,7 @@ export async function signIn(input: SignInInput): Promise<MemberWithSession> {
  * onboarding screen). A toast in the caller surfaces the error.
  */
 export async function signUp(input: SignUpInput): Promise<void> {
-  const { data } = await api.post<Session>('/api/auth/sign-up/email', {
-    email: input.email,
-    password: input.password,
-    name: input.name,
-  });
-
-  // autoSignIn is enabled server-side — token must be present so the
-  // follow-up onboarding request is authenticated.
-  if (!data?.session?.token) {
-    throw new Error('Account created but session not established. Please sign in to complete setup.');
-  }
-  await saveSessionToken(data.session.token);
-
-  // Create the members row — idempotent server-side, safe to retry.
-  await api.post('/api/onboarding/mobile', {
+  const onboardingPayload = {
     nameEn: input.name,
     nameUr: input.name,
     fatherName: input.fatherName,
@@ -87,10 +129,40 @@ export async function signUp(input: SignUpInput): Promise<void> {
     phone: input.phone,
     monthlyPledge: input.monthlyPledge,
     joinCode: input.joinCode,
+  };
+  // Park the profile FIRST — if verification blocks auto-sign-in below,
+  // the first successful login replays this via signIn().
+  await savePendingOnboarding(onboardingPayload);
+
+  const { data } = await api.post<Session>('/api/auth/sign-up/email', {
+    email: input.email,
+    password: input.password,
+    name: input.name,
   });
+
+  // When the server enforces email verification, sign-up succeeds but no
+  // session comes back (the server has already emailed the OTP). Route
+  // the user to the verify screen instead of dead-ending.
+  if (!data?.session?.token) {
+    throw new EmailNotVerifiedError(input.email.toLowerCase());
+  }
+  await saveSessionToken(data.session.token);
+
+  // Create the members row — idempotent server-side, safe to retry.
+  await api.post('/api/onboarding/mobile', onboardingPayload);
+  await clearPendingOnboarding();
 }
 
 export async function signOut(): Promise<void> {
+  // Stop push notifications for this device before the session dies —
+  // otherwise the next user of the phone could see the previous user's
+  // financial notifications.
+  try {
+    const token = await getExpoPushToken();
+    if (token) await unregisterPushToken(token);
+  } catch {
+    // best-effort
+  }
   try {
     await api.post('/api/auth/sign-out');
   } catch {

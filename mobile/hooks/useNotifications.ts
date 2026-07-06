@@ -13,6 +13,10 @@ async function markAllRead(): Promise<void> {
   await api.post('/api/notifications/read-all');
 }
 
+async function markOneRead(id: string): Promise<void> {
+  await api.post(`/api/notifications/${id}/read`);
+}
+
 export function useNotifications() {
   const { setNotificationCount } = useAppStore();
   const qc = useQueryClient();
@@ -39,9 +43,25 @@ export function useNotifications() {
     },
   });
 
+  // Tap-to-read: flip the row instantly (optimistic) so the badge drops
+  // before the server round-trip; reconcile with a refetch afterwards.
+  const markOneMutation = useMutation({
+    mutationFn: markOneRead,
+    onMutate: async (id: string) => {
+      await qc.cancelQueries({ queryKey: ['notifications'] });
+      qc.setQueryData<Notification[]>(['notifications'], (old) =>
+        old?.map((n) => (n.id === id ? { ...n, read: true } : n)),
+      );
+      const unread = (qc.getQueryData<Notification[]>(['notifications']) ?? []).filter((n) => !n.read).length;
+      setNotificationCount(unread);
+    },
+    onSettled: () => qc.invalidateQueries({ queryKey: ['notifications'] }),
+  });
+
   return {
     ...query,
     markAllRead: markReadMutation.mutate,
     isMarkingRead: markReadMutation.isPending,
+    markOneRead: markOneMutation.mutate,
   };
 }

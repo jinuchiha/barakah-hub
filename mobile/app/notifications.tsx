@@ -12,6 +12,7 @@ import { NotificationItem } from '@/components/NotificationItem';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { BrandedEmptyState } from '@/components/ui/BrandedEmptyState';
 import { useNotifications } from '@/hooks/useNotifications';
+import { resolveRoute } from '@/lib/notifications-handler';
 import { useTheme } from '@/lib/useTheme';
 import { spacing } from '@/lib/theme';
 import type { Notification } from '@/types';
@@ -20,9 +21,16 @@ export default function NotificationsScreen() {
   const router = useRouter();
   const { t } = useTranslation();
   const { colors } = useTheme();
-  const { data, isLoading, refetch, isRefetching, markAllRead, isMarkingRead } = useNotifications();
+  const { data, isLoading, refetch, isRefetching, markAllRead, isMarkingRead, markOneRead } = useNotifications();
 
   const unreadCount = data?.filter((n) => !n.read).length ?? 0;
+
+  // Tap = mark THAT notification read (badge drops) + jump to its screen.
+  const openNotification = (n: Notification) => {
+    if (!n.read) markOneRead(n.id);
+    const route = resolveRoute({ type: n.type });
+    if (route !== '/notifications') router.push(route as never);
+  };
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.bg1 }]} edges={['top']}>
@@ -59,7 +67,7 @@ export default function NotificationsScreen() {
         <FlashList
           data={data ?? []}
           keyExtractor={(item: Notification) => item.id}
-          renderItem={({ item }) => <NotificationItem notification={item} />}
+          renderItem={({ item }) => <NotificationItem notification={item} onPress={() => openNotification(item)} />}
           estimatedItemSize={80}
           contentContainerStyle={{ paddingBottom: spacing.xl }}
           refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={colors.primary} />}

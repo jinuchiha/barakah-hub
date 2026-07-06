@@ -103,6 +103,32 @@ export default function ReportsScreen() {
               <StatCard icon="cash-refund" value={formatPKR(r.loans.repaidAmount)} label="Loans Repaid" style={styles.stat} />
               <StatCard icon="account-group-outline" value={`${r.members.total}`} label={`Members (+${r.members.newThisYear})`} iconColor={colors.primary} style={styles.stat} />
             </View>
+
+            {/* Kis ne kitna diya, kab kab diya — per-member ledger */}
+            <Text style={[styles.section, { color: colors.text4 }]}>MEMBER LEDGER</Text>
+            {(r.memberLedger ?? []).length === 0 ? (
+              <GlassCard style={styles.totalCard}>
+                <Text style={[styles.totalSub, { color: colors.text4 }]}>No verified payments this year</Text>
+              </GlassCard>
+            ) : (
+              <GlassCard style={styles.ledgerCard}>
+                {(r.memberLedger ?? []).map((m, i) => (
+                  <View
+                    key={m.memberId}
+                    style={[styles.ledgerRow, i > 0 && { borderTopWidth: 1, borderTopColor: colors.border1 }]}
+                  >
+                    <Text style={[styles.ledgerRank, { color: colors.text4 }]}>{i + 1}</Text>
+                    <View style={styles.ledgerInfo}>
+                      <Text style={[styles.ledgerName, { color: colors.text1 }]} numberOfLines={1}>{m.nameEn}</Text>
+                      <Text style={[styles.ledgerMonths, { color: colors.text4 }]} numberOfLines={2}>
+                        {m.count}x · {m.months.join(', ')}
+                      </Text>
+                    </View>
+                    <Text style={[styles.ledgerTotal, { color: colors.primary }]}>{formatPKR(m.total)}</Text>
+                  </View>
+                ))}
+              </GlassCard>
+            )}
           </>
         ) : (
           <EmptyState icon="alert-circle-outline" title="Couldn't load report" />
@@ -187,6 +213,16 @@ const styles = StyleSheet.create({
   stat: { flexBasis: '47%', flexGrow: 1 },
   exportRow: { flexDirection: 'row', gap: spacing.sm },
   exportBtn: { flex: 1 },
+  ledgerCard: { padding: 0, overflow: 'hidden' },
+  ledgerRow: {
+    flexDirection: 'row', alignItems: 'center', gap: spacing.sm,
+    paddingVertical: 12, paddingHorizontal: spacing.md,
+  },
+  ledgerRank: { fontSize: 12, fontFamily: 'SpaceMono_400Regular', width: 20, textAlign: 'center' },
+  ledgerInfo: { flex: 1 },
+  ledgerName: { fontSize: 13, fontFamily: 'Inter_600SemiBold' },
+  ledgerMonths: { fontSize: 11, fontFamily: 'Inter_400Regular', marginTop: 2 },
+  ledgerTotal: { fontSize: 13, fontFamily: 'Inter_700Bold' },
   chipScroll: { marginBottom: spacing.sm },
   chipRow: { flexDirection: 'row', gap: spacing.sm, paddingBottom: 2 },
   chip: { paddingHorizontal: 14, paddingVertical: 7, borderRadius: radius.full, borderWidth: 1.5 },

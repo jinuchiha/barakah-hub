@@ -7,19 +7,25 @@ import { useTheme } from '@/lib/useTheme';
 import { useAuthStore } from '@/stores/auth.store';
 import { spacing, radius } from '@/lib/theme';
 
-const TYPE_ICONS: Record<string, keyof typeof MaterialCommunityIcons.glyphMap> = {
-  approved: 'check-circle',
-  rejected: 'close-circle',
-  msg: 'email',
-  payment: 'cash-check',
-  vote: 'vote',
-  default: 'bell',
-};
+// Web emits hyphenated types (payment-pending, member-pending, vote-open…)
+// so match on prefix, not exact keys.
+function getTypeIcon(type: string): keyof typeof MaterialCommunityIcons.glyphMap {
+  if (type.startsWith('payment')) return 'cash-check';
+  if (type.startsWith('loan')) return 'hand-coin';
+  if (type.startsWith('case') || type.startsWith('emergency')) return 'lifebuoy';
+  if (type.startsWith('vote')) return 'vote';
+  if (type.startsWith('member')) return 'account-clock';
+  if (type.startsWith('pledge')) return 'calendar-clock';
+  if (type === 'msg' || type === 'message') return 'email';
+  if (type === 'approved') return 'check-circle';
+  if (type === 'rejected') return 'close-circle';
+  return 'bell';
+}
 
 function getTypeColor(type: string, colors: ReturnType<typeof useTheme>['colors']) {
-  if (type === 'approved' || type === 'payment') return colors.primary;
-  if (type === 'rejected') return colors.danger;
-  if (type === 'vote') return colors.gold;
+  if (type === 'approved' || type.startsWith('payment')) return colors.primary;
+  if (type === 'rejected' || type.startsWith('emergency')) return colors.danger;
+  if (type.startsWith('vote')) return colors.gold;
   return colors.accent;
 }
 
@@ -31,7 +37,7 @@ interface NotificationItemProps {
 export function NotificationItem({ notification: n, onPress }: NotificationItemProps) {
   const { colors } = useTheme();
   const { language } = useAuthStore();
-  const icon = TYPE_ICONS[n.type] ?? TYPE_ICONS.default ?? 'bell';
+  const icon = getTypeIcon(n.type);
   const title = language === 'ur' ? n.titleUr : n.titleEn;
   const body = language === 'ur' ? n.ur : n.en;
   const iconColor = getTypeColor(n.type, colors);

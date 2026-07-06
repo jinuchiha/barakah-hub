@@ -1,9 +1,20 @@
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 
+export interface MemberLedgerEntry {
+  memberId: string;
+  nameEn: string;
+  nameUr: string;
+  total: number;
+  count: number;
+  months: string[];
+  lastPaid: string | null;
+}
+
 export interface AnnualReport {
   year: number;
   collected: { sadaqah: number; zakat: number; qarz: number; total: number; count: number };
+  memberLedger: MemberLedgerEntry[];
   cases: { total: number; approved: number; disbursed: number; disbursedAmount: number };
   loans: { issuedCount: number; issuedAmount: number; repaidAmount: number };
   members: { total: number; newThisYear: number };

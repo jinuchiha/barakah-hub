@@ -33,6 +33,7 @@ export default function IssueLoanScreen() {
   const [amount, setAmount] = useState('');
   const [purpose, setPurpose] = useState('');
   const [expectedReturn, setExpectedReturn] = useState('');
+  const [installment, setInstallment] = useState('');
 
   const candidates = useMemo(() => {
     const list = (members ?? []).filter((m) => m.status === 'approved' && !m.deceased);
@@ -49,6 +50,11 @@ export default function IssueLoanScreen() {
     if (!selected) { Alert.alert('Select a member'); return; }
     if (!amt || amt <= 0) { Alert.alert('Enter a valid amount'); return; }
     if (purpose.trim().length < 2) { Alert.alert('Enter a purpose'); return; }
+    const inst = installment.trim() ? parseInt(installment, 10) : null;
+    if (inst !== null && (!inst || inst <= 0 || inst > amt)) {
+      Alert.alert('Installment must be a positive amount, not more than the loan');
+      return;
+    }
     try {
       await issue.mutateAsync({
         memberId: selected.id,
@@ -56,6 +62,7 @@ export default function IssueLoanScreen() {
         purpose: purpose.trim(),
         city: selected.city ?? undefined,
         expectedReturn: expectedReturn.trim() || null,
+        installmentAmount: inst,
       });
       Alert.alert('Loan Issued', `${formatPKR(amt)} qarz issued to ${selected.nameEn}.`, [
         { text: 'OK', onPress: () => router.back() },
@@ -117,6 +124,12 @@ export default function IssueLoanScreen() {
               <View style={styles.gap} />
               <Input label="Amount (PKR)" value={amount} onChangeText={setAmount} keyboardType="numeric" leftIcon="cash" />
               <Input label="Purpose" value={purpose} onChangeText={setPurpose} leftIcon="text" placeholder="e.g. medical, education" />
+              <Input label="Monthly Installment (optional)" value={installment} onChangeText={setInstallment} keyboardType="numeric" leftIcon="calendar-clock" placeholder="e.g. 5000 per month" />
+              {installment.trim() && parseInt(installment, 10) > 0 && parseInt(amount, 10) > 0 ? (
+                <Text style={[styles.sub, { color: colors.text3, marginBottom: spacing.sm }]}>
+                  Plan: {formatPKR(parseInt(installment, 10))}/month, settles in ~{Math.ceil(parseInt(amount, 10) / parseInt(installment, 10))} months
+                </Text>
+              ) : null}
               <Input label="Expected Return (optional)" value={expectedReturn} onChangeText={setExpectedReturn} leftIcon="calendar" placeholder="e.g. Dec 2026" />
               <Button
                 label={issue.isPending ? 'Issuing…' : 'Issue Qarz Loan'}

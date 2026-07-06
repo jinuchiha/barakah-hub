@@ -11,6 +11,7 @@ import Svg, { Circle, Path, G } from 'react-native-svg';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { useAuth } from '@/hooks/useAuth';
+import { EmailNotVerifiedError } from '@/lib/auth';
 import { useTheme } from '@/lib/useTheme';
 import { useTranslation } from 'react-i18next';
 import { haptic } from '@/lib/haptics';
@@ -41,27 +42,27 @@ export default function LoginScreen() {
   const router = useRouter();
   const { login } = useAuth();
   const { colors } = useTheme();
-  const [email, setEmail] = useState('');
+  const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
-    const emailTrimmed = email.trim().toLowerCase();
-    if (!emailTrimmed || !password) {
+    const id = identifier.trim();
+    if (!id || !password) {
       Alert.alert(t('common.error'), 'Please fill in all fields.');
-      return;
-    }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailTrimmed)) {
-      Alert.alert(t('common.error'), 'Please enter a valid email address.');
       return;
     }
     setLoading(true);
     try {
-      await login({ email: emailTrimmed, password });
+      await login({ identifier: id, password });
       router.replace('/(tabs)' as any);
       void haptic.success();
     } catch (err) {
       void haptic.error();
+      if (err instanceof EmailNotVerifiedError) {
+        router.push({ pathname: '/(auth)/verify-email', params: { email: err.email } } as any);
+        return;
+      }
       Alert.alert(t('common.error'), err instanceof Error ? err.message : 'Sign in failed');
     } finally {
       setLoading(false);
@@ -116,13 +117,13 @@ export default function LoginScreen() {
             {/* ── Form ── */}
             <Animated.View entering={FadeInDown.duration(500).delay(160)} style={styles.form}>
               <Input
-                label={t('auth.email')}
-                value={email}
-                onChangeText={setEmail}
+                label={t('auth.identifier')}
+                value={identifier}
+                onChangeText={setIdentifier}
                 keyboardType="email-address"
                 autoCapitalize="none"
-                leftIcon="email-outline"
-                autoComplete="email"
+                leftIcon="account-outline"
+                autoComplete="username"
               />
               <View style={styles.gap} />
               <Input

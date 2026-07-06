@@ -1,7 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView, RefreshControl, TouchableOpacity,
+  View, Text, StyleSheet, ScrollView, RefreshControl, TouchableOpacity, Alert,
 } from 'react-native';
+import { useQueryClient } from '@tanstack/react-query';
+import { api } from '@/lib/api';
+import { Button } from '@/components/ui/Button';
 import { useLocalSearchParams, Stack, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -50,6 +53,35 @@ export default function MemberDetailScreen() {
   const { user } = useAuthStore();
   const { colors } = useTheme();
   const { data: member, isLoading, error, refetch, isRefetching } = useMember(id ?? '');
+  const qc = useQueryClient();
+  const [fautiPending, setFautiPending] = useState(false);
+
+  const openFauti = () => {
+    if (!member) return;
+    Alert.alert(
+      'Open Fauti Case',
+      `Open the death-benefit collection for ${member.nameEn}? Every approved member will be asked to contribute their fauti amount.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Open Case',
+          style: 'destructive',
+          onPress: async () => {
+            setFautiPending(true);
+            try {
+              await api.post(`/api/members/${member.id}/fauti`);
+              qc.invalidateQueries({ queryKey: ['cases'] });
+              Alert.alert('Fauti Case Opened', 'The case is now visible to all members under Cases.');
+            } catch (err) {
+              Alert.alert('Could not open', err instanceof Error ? err.message : 'Failed');
+            } finally {
+              setFautiPending(false);
+            }
+          },
+        },
+      ],
+    );
+  };
 
   if (isLoading) return <LoadingScreen />;
   if (error || !member) {
@@ -159,12 +191,27 @@ export default function MemberDetailScreen() {
             {member.clan ? <InfoRow icon="account-group" label="Clan" value={member.clan} /> : null}
             {member.relation ? <InfoRow icon="heart" label="Relation" value={member.relation} /> : null}
             {member.parentId ? (
-              <InfoRow icon="account-supervisor" label="Parent" value="View parent" />
+              <TouchableOpacity onPress={() => router.push(`/members/${member.parentId}` as never)}>
+                <InfoRow icon="account-supervisor" label="Parent" value="View parent" />
+              </TouchableOpacity>
             ) : (
               <Text style={[styles.emptyInfo, { color: colors.text4 }]}>No family links recorded</Text>
             )}
           </GlassCard>
         </Animated.View>
+
+        {isAdmin && member.deceased ? (
+          <Animated.View entering={FadeInDown.duration(400).delay(320)}>
+            <SectionLabel title="FAUTI FUND" />
+            <Button
+              label={fautiPending ? 'Opening…' : 'Open Fauti Case'}
+              onPress={openFauti}
+              loading={fautiPending}
+              variant="danger"
+              fullWidth
+            />
+          </Animated.View>
+        ) : null}
       </ScrollView>
     </SafeAreaView>
   );

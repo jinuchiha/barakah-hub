@@ -14,6 +14,7 @@ interface IssueLoanInput {
   purpose: string;
   city?: string;
   expectedReturn?: string | null;
+  installmentAmount?: number | null;
 }
 
 async function issueLoan(input: IssueLoanInput): Promise<Loan> {
