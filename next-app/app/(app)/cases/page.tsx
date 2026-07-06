@@ -1,5 +1,7 @@
 import { eq, desc, inArray } from 'drizzle-orm';
 import { getMeOrRedirect } from '@/lib/auth-server';
+import { t } from '@/lib/i18n/dict';
+import { getLocale } from '@/lib/i18n/server';
 import { db } from '@/lib/db';
 import { members, cases, votes, config as configTbl } from '@/lib/db/schema';
 import { Card, CardHeader, CardTitle, CardBody } from '@/components/ui/card';
@@ -14,6 +16,7 @@ export const metadata = { title: 'Emergency Cases · Barakah Hub' };
 
 export default async function CasesPage() {
   const me = await getMeOrRedirect();
+  const locale = await getLocale();
   const isAdmin = me.role === 'admin';
 
   const [allCases, allMembers, [cfg]] = await Promise.all([
@@ -65,7 +68,7 @@ export default async function CasesPage() {
 
       {me.status === 'approved' && (
         <Card className="mb-6">
-          <CardHeader><CardTitle>Submit New Request</CardTitle></CardHeader>
+          <CardHeader><CardTitle>{t('case.submitNew', locale)}</CardTitle></CardHeader>
           <CardBody><NewCaseForm /></CardBody>
         </Card>
       )}

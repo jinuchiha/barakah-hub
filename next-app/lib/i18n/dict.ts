@@ -133,6 +133,78 @@ export const DICT = {
   'set.profile':      ['میری پروفائل', 'My Profile'],
   'set.theme':        ['تھیم اور ظاہری شکل', 'Theme & Appearance'],
   'set.adminConfig':  ['ایڈمن ترتیبات', 'Admin Configuration'],
+
+  // Dashboard stats
+  'ds.pendingApproval':  ['زیرِ منظوری رقم', 'Pending Approval'],
+  'ds.activeMembers':    ['فعال اراکین', 'Active Members'],
+  'ds.outstandingLoans': ['واجب الادا قرض', 'Outstanding Loans'],
+  'ds.pendingVotes':     ['زیرِ التوا ووٹ', 'Pending Votes'],
+  'ds.myTotalPaid':      ['میری کل ادائیگی', 'My Total Paid'],
+  'ds.myMonthsPaid':     ['میرے ادا شدہ مہینے', 'My Months Paid'],
+  'ds.familyFund':       ['خاندانی فنڈ', 'Family Fund'],
+  'ds.hintApprovedFam':  ['منظور شدہ خاندان', 'Approved family'],
+  'ds.hintActiveQarz':   ['فعال قرض', 'Active qarz'],
+  'ds.hintCollective':   ['اجتماعی امانت', 'Collective trust'],
+
+  // My Account extras
+  'acct.activeLoans':   ['میرے فعال قرض', 'My Active Loans'],
+
+  // Cases page + forms
+  'case.submitNew':    ['نئی درخواست جمع کریں', 'Submit New Request'],
+  'case.reason':       ['وجہ', 'Reason'],
+  'case.beneficiary':  ['مستفید کا نام', 'Beneficiary name'],
+  'case.amountNeeded': ['درکار رقم (روپے)', 'Amount needed (Rs.)'],
+  'case.submit':       ['جمع کریں', 'Submit'],
+  'case.emergencyFlag':['ہنگامی', 'Emergency'],
+  'case.disburse':     ['ادائیگی مکمل کریں', 'Mark Disbursed'],
+
+  // Messages form
+  'msg.toAdminLabel':  ['بنام (ایڈمن)', 'To (Admin)'],
+  'msg.subjectLabel':  ['موضوع *', 'Subject *'],
+  'msg.messageLabel':  ['پیغام *', 'Message *'],
+  'msg.sendBtn':       ['بھیجیں', 'Send'],
+  'msg.sending':       ['بھیجا جا رہا ہے…', 'Sending…'],
+
+  // Goal bar
+  'goal.title':        ['خاندانی ہدف', 'Family Goal'],
+  'goal.of':           ['میں سے', 'of'],
+  'goal.daysLeft':     ['دن باقی', 'days left'],
+  'goal.reached':      ['الحمدللہ! ہدف مکمل', 'Goal reached · Alhamdulillah!'],
+
+  // Topbar
+  'top.search':        ['اراکین، ادائیگیاں، کیسز تلاش کریں…', 'Search members, payments, cases…'],
+
+  // Admin fund
+  'fund.title':          ['خاندانی فنڈ', 'Family Fund'],
+  'fund.overline':       ['ایڈمن · فنڈ رجسٹر', 'Admin · Fund Register'],
+  'fund.sadaqahPool':    ['صدقہ پول', 'Sadaqah Pool'],
+  'fund.zakatPool':      ['زکوٰۃ پول', 'Zakat Pool'],
+  'fund.qarzPool':       ['قرض پول', 'Qarz Pool'],
+  'fund.monthlyInflow':  ['ماہانہ آمد', 'Monthly Inflow'],
+  'fund.thisMonth':      ['اس مہینے', 'This Month'],
+  'fund.contributed':    ['نے دیا', 'contributed'],
+  'fund.recordPayment':  ['ادائیگی درج کریں', 'Record Payment'],
+  'fund.history':        ['حالیہ تصدیق شدہ ادائیگیاں', 'Recent Verified Payments'],
+  'fund.awaitingSup':    ['سپروائزر کی منظوری کے منتظر', 'Awaiting Supervisor'],
+  'fund.awaitingAdmin':  ['سپروائزر سے منظور · آپ کی حتمی تصدیق', 'Supervisor-Approved · Awaiting Your Final'],
+  'fund.export':         ['CSV ڈاؤن لوڈ', 'Export CSV'],
+
+  // Admin members
+  'mem.title':        ['اراکینِ خاندان', 'Family Members'],
+  'mem.overline':     ['ایڈمن · اراکین', 'Admin · Members'],
+  'mem.total':        ['کل اراکین', 'Total Members'],
+  'mem.active':       ['فعال', 'Active'],
+  'mem.pendingRev':   ['زیرِ جائزہ', 'Pending Review'],
+  'mem.rejected':     ['مسترد', 'Rejected'],
+  'mem.pendingReg':   ['نئی رجسٹریشنز', 'Pending Registrations'],
+  'mem.approve':      ['منظور کریں', 'Approve'],
+  'mem.reject':       ['مسترد کریں', 'Reject'],
+  'mem.addMember':    ['نیا رکن', 'Add Member'],
+
+  // Buttons/common extras
+  'btn.submitVerification': ['تصدیق کے لیے جمع کریں', 'Submit for verification'],
+  'btn.back':          ['← واپس', '← Back'],
+  'btn.next':          ['اگلا ←', 'Next →'],
 } as const;
 
 export type Locale = 'ur' | 'en';
