@@ -697,3 +697,17 @@ button:disabled,
   .fund-hero, .fund-hero::after, .fund-hero-number, .fund-hero-dot { animation: none; }
   .fund-hero-number { color: var(--color-cream); background: none; }
 }
+
+/* Fund chart bars grow out of the baseline, one month after another. */
+.chart-bar-grow {
+  transform-box: fill-box;
+  transform-origin: bottom;
+  animation: chartBarGrow 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes chartBarGrow {
+  from { transform: scaleY(0); }
+  to   { transform: scaleY(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .chart-bar-grow { animation: none; }
+}

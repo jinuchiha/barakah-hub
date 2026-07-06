@@ -74,6 +74,15 @@ export function Topbar({ user, unreadCount = 0, isAdmin = false, isSupervisor = 
     router.refresh();
   }
 
+  function setLangAndRefresh(next: 'en' | 'ur') {
+    localStorage.setItem(LANG_KEY, next);
+    // Cookie so Server Components render in the chosen language too.
+    document.cookie = `barakah_lang=${next}; path=/; max-age=31536000; samesite=lax`;
+    window.dispatchEvent(new StorageEvent('storage', { key: LANG_KEY, newValue: next }));
+    setLangOpen(false);
+    router.refresh();
+  }
+
   function onSearchSubmit(e: React.FormEvent) {
     e.preventDefault();
     const term = q.trim();
@@ -141,11 +150,7 @@ export function Topbar({ user, unreadCount = 0, isAdmin = false, isSupervisor = 
               <button
                 type="button"
                 role="menuitem"
-                onClick={() => {
-                  localStorage.setItem(LANG_KEY, 'en');
-                  window.dispatchEvent(new StorageEvent('storage', { key: LANG_KEY, newValue: 'en' }));
-                  setLangOpen(false);
-                }}
+                onClick={() => setLangAndRefresh('en')}
                 className={`flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] transition-colors hover:bg-[var(--surf-3)] ${lang === 'en' ? 'text-[var(--color-gold)]' : 'text-[var(--txt-2)]'}`}
               >
                 English {lang === 'en' && <span className="ml-auto text-[10px]">✓</span>}
@@ -153,18 +158,11 @@ export function Topbar({ user, unreadCount = 0, isAdmin = false, isSupervisor = 
               <button
                 type="button"
                 role="menuitem"
-                onClick={() => {
-                  localStorage.setItem(LANG_KEY, 'ur');
-                  window.dispatchEvent(new StorageEvent('storage', { key: LANG_KEY, newValue: 'ur' }));
-                  setLangOpen(false);
-                }}
+                onClick={() => setLangAndRefresh('ur')}
                 className={`flex w-full items-center gap-2 px-3 py-2 text-left font-[var(--font-arabic)] text-[13px] transition-colors hover:bg-[var(--surf-3)] ${lang === 'ur' ? 'text-[var(--color-gold)]' : 'text-[var(--txt-2)]'}`}
               >
                 اردو {lang === 'ur' && <span className="ml-auto text-[10px]">✓</span>}
               </button>
-              <div className="mt-1 border-t border-[var(--border)] px-3 py-2 text-[10px] text-[var(--txt-4)]">
-                Full Urdu UI available in mobile app
-              </div>
             </div>
           )}
         </div>

@@ -100,10 +100,10 @@ export default async function MemberDetailPage({ params }: { params: Promise<{ i
 
       {/* ── Money at a glance ── */}
       <div className="mb-6 grid grid-cols-2 gap-3 md:grid-cols-4">
-        <StatCard label="Verified Total" value={fmtRs(verifiedTotal)} icon={<Wallet />} tone="gold" hint={`${verified.length} payments`} />
-        <StatCard label="In Approval" value={fmtRs(pendingTotal)} icon={<Clock />} tone="sapphire" hint="Awaiting verification" />
+        <StatCard label="Verified Total" value={verifiedTotal} money icon={<Wallet />} tone="gold" hint={`${verified.length} payments`} />
+        <StatCard label="In Approval" value={pendingTotal} money icon={<Clock />} tone="sapphire" hint="Awaiting verification" />
         <StatCard label="Months Contributed" value={monthsPaid} icon={<CalendarCheck />} tone="emerald" hint={`Pledge ${fmtRs(m.monthlyPledge)}/mo`} />
-        <StatCard label="Loan Outstanding" value={fmtRs(outstanding)} icon={<HandCoins />} tone={outstanding > 0 ? 'ruby' : 'ocean'} hint={`${memberLoans.length} loan(s) total`} />
+        <StatCard label="Loan Outstanding" value={outstanding} money icon={<HandCoins />} tone={outstanding > 0 ? 'ruby' : 'ocean'} hint={`${memberLoans.length} loan(s) total`} />
       </div>
 
       {/* ── Full payment history ── */}

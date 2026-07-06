@@ -48,7 +48,7 @@ export default async function LoansPage() {
       <div className="mb-6 grid grid-cols-3 gap-3">
         <StatCard label="Active Loans"    value={active.length}      icon={<FileText />}    tone="sapphire" hint={`${fmtRs(outstanding)} outstanding`} />
         <StatCard label="Fully Repaid"    value={repaid.length}      icon={<CheckCircle2 />} tone="emerald"  hint="Completed" />
-        <StatCard label="Total Disbursed" value={fmtRs(all.reduce((s,l) => s + l.amount, 0))} icon={<AlertCircle />} tone="gold" hint="All time" />
+        <StatCard label="Total Disbursed" value={all.reduce((s,l) => s + l.amount, 0)} money icon={<AlertCircle />} tone="gold" hint="All time" />
       </div>
 
       <Card className="mb-4">

@@ -58,18 +58,20 @@ export default async function AnnualReportPage({ searchParams }: Props) {
     .from(members)
     .where(and(eq(members.status, 'approved'), eq(members.deceased, false)));
 
-  // Top contributors (anonymous totals — we show count of payments per pool)
+  // Every contributor: total, count, which months, and the last payment
+  // date — "kis ne kitna diya, kab kab diya" in one table.
   const topContributors = await db
     .select({
       memberId: payments.memberId,
       total: sql<number>`SUM(${payments.amount})::int`,
       count: sql<number>`COUNT(*)::int`,
+      months: sql<string[]>`ARRAY_AGG(DISTINCT ${payments.monthLabel})`,
+      lastPaid: sql<string>`MAX(${payments.paidOn})::text`,
     })
     .from(payments)
     .where(and(eq(payments.pendingVerify, false), gte(payments.createdAt, from), lte(payments.createdAt, to)))
     .groupBy(payments.memberId)
-    .orderBy(sql`SUM(${payments.amount}) DESC`)
-    .limit(10);
+    .orderBy(sql`SUM(${payments.amount}) DESC`);
 
   // Resolve names for the top contributors. Guard the empty case —
   // `ANY('{}')` / an empty array param crashes the Neon HTTP driver, which
@@ -164,13 +166,15 @@ export default async function AnnualReportPage({ searchParams }: Props) {
 
       {/* Top contributors — admin-only; hidden when printing to protect donor privacy */}
       <section className="mb-6 rounded-lg border border-[var(--border)] bg-[rgba(200,155,60,0.03)] p-5 print:hidden">
-        <h2 className="mb-4 font-[var(--font-display)] text-sm uppercase tracking-[3px] text-[var(--color-gold-4)] print:text-gray-600">Top contributors (admin view)</h2>
+        <h2 className="mb-4 font-[var(--font-display)] text-sm uppercase tracking-[3px] text-[var(--color-gold-4)] print:text-gray-600">Member contributions · who gave what, and when (admin view)</h2>
         <table className="w-full text-sm">
           <thead className="text-[10px] uppercase tracking-widest text-[var(--color-gold-4)]">
             <tr className="border-b border-[var(--border)]">
               <th className="px-2 py-2 text-left">#</th>
               <th className="px-2 py-2 text-left">Member</th>
+              <th className="px-2 py-2 text-left">Months covered</th>
               <th className="px-2 py-2 text-right">Donations</th>
+              <th className="px-2 py-2 text-right">Last paid</th>
               <th className="px-2 py-2 text-right">Total</th>
             </tr>
           </thead>
@@ -181,12 +185,16 @@ export default async function AnnualReportPage({ searchParams }: Props) {
                 <tr key={t.memberId} className="border-b border-[rgba(200,155,60,0.06)]">
                   <td className="px-2 py-2 font-[var(--font-en)] text-[var(--color-gold-4)]">{i + 1}</td>
                   <td className="px-2 py-2 text-[var(--color-cream)]">{m?.nameEn ?? m?.nameUr ?? 'Member'}</td>
+                  <td className="max-w-[280px] px-2 py-2 text-xs text-[var(--txt-3)]">
+                    {(t.months ?? []).map((mo) => mo.split(' ')[0]?.slice(0, 3)).join(' · ')}
+                  </td>
                   <td className="px-2 py-2 text-right font-[var(--font-en)] text-[var(--txt-2)]">{Number(t.count)}</td>
+                  <td className="tabular px-2 py-2 text-right text-xs text-[var(--txt-3)]">{t.lastPaid ? new Date(t.lastPaid).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : ''}</td>
                   <td className="px-2 py-2 text-right font-bold text-[var(--color-gold-2)]">{fmtRs(Number(t.total))}</td>
                 </tr>
               );
             })}
-            {topContributors.length === 0 && <tr><td colSpan={4} className="py-6 text-center italic text-[var(--txt-3)]">No donations yet</td></tr>}
+            {topContributors.length === 0 && <tr><td colSpan={6} className="py-6 text-center italic text-[var(--txt-3)]">No donations yet</td></tr>}
           </tbody>
         </table>
       </section>
