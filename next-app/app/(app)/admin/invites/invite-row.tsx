@@ -44,7 +44,7 @@ export default function InviteRow({ invite, origin }: { invite: Invite; origin: 
   function copy() {
     navigator.clipboard.writeText(url).then(
       () => toast.success('Invite link copied'),
-      () => toast.error('Could not copy — select the link and copy manually'),
+      () => toast.error('Could not copy · select the link and copy manually'),
     );
   }
 

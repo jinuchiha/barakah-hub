@@ -1,10 +1,12 @@
 import { redirect, notFound } from 'next/navigation';
 import Link from 'next/link';
-import { desc, eq, inArray } from 'drizzle-orm';
+import { and, desc, eq, inArray } from 'drizzle-orm';
 import { Wallet, Clock, CalendarCheck, HandCoins, Phone, MapPin, UserRound } from 'lucide-react';
 import { getMeOrRedirect } from '@/lib/auth-server';
 import { db } from '@/lib/db';
-import { members, payments, loans, repayments, auditLog } from '@/lib/db/schema';
+import { members, payments, loans, repayments, auditLog, cases, config as configTbl } from '@/lib/db/schema';
+import { planStatus } from '@/lib/loan-math';
+import FautiButton from './fauti-button';
 import { Card, CardHeader, CardTitle, CardBody } from '@/components/ui/card';
 import { StatCard } from '@/components/stat-card';
 import { Breadcrumb } from '@/components/breadcrumb';
@@ -31,6 +33,13 @@ export default async function MemberDetailPage({ params }: { params: Promise<{ i
   ]);
   const memberRepayments = memberLoans.length
     ? await db.select().from(repayments).where(inArray(repayments.loanId, memberLoans.map((l) => l.id)))
+    : [];
+  // Fauti workflow context — only queried for deceased members.
+  const [fautiCase] = m.deceased
+    ? await db.select().from(cases).where(and(eq(cases.applicantId, id), eq(cases.category, 'fauti'))).limit(1)
+    : [];
+  const [cfg] = m.deceased
+    ? await db.select({ fautiAmount: configTbl.fautiAmount }).from(configTbl).where(eq(configTbl.id, 1)).limit(1)
     : [];
   const repaysByLoan = new Map<string, typeof memberRepayments>();
   for (const r of memberRepayments) {
@@ -66,6 +75,28 @@ export default async function MemberDetailPage({ params }: { params: Promise<{ i
           {m.deceased ? 'مرحوم · Deceased' : m.role === 'admin' ? 'Admin' : m.role === 'supervisor' ? 'Supervisor' : m.status}
         </span>
       </header>
+
+      {/* ── Fauti workflow (deceased members only) ── */}
+      {m.deceased && (
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[rgba(200,155,60,0.3)] bg-[rgba(200,155,60,0.06)] px-5 py-4">
+          <div>
+            <div className="font-[var(--font-arabic)] text-base leading-[1.9] text-[var(--color-gold-2)]">فوتی فنڈ</div>
+            <div className="text-xs text-[var(--txt-3)]">
+              {fautiCase
+                ? `Fauti case ${fautiCase.status} · ${fmtRs(fautiCase.amount)} for ${fautiCase.beneficiaryName}`
+                : (cfg?.fautiAmount ?? 0) > 0
+                  ? `Family payout of ${fmtRs(cfg?.fautiAmount ?? 0)} can be opened for the family`
+                  : 'Set the fauti amount in Settings to enable the payout workflow'}
+            </div>
+          </div>
+          {!fautiCase && (cfg?.fautiAmount ?? 0) > 0 && <FautiButton memberId={m.id} />}
+          {fautiCase && fautiCase.status === 'approved' && (
+            <Link href="/cases" className="text-[11px] font-semibold text-[var(--color-gold-2)] hover:underline">
+              Disburse from Cases →
+            </Link>
+          )}
+        </div>
+      )}
 
       {/* ── Money at a glance ── */}
       <div className="mb-6 grid grid-cols-2 gap-3 md:grid-cols-4">
@@ -139,6 +170,17 @@ export default async function MemberDetailPage({ params }: { params: Promise<{ i
                     <div className="mt-1 text-xs text-[var(--txt-3)]">
                       Issued {dateFmt(l.issuedOn)} · {fmtRs(l.paid)} repaid of {fmtRs(l.amount)}
                     </div>
+                    {(() => {
+                      const ps = planStatus(l, new Date());
+                      if (!ps.hasPlan || !l.active) return null;
+                      return (
+                        <div className={`mt-1.5 inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[10px] font-semibold ${ps.onTrack ? 'border-[rgba(45,138,95,0.4)] text-[#4ec38d]' : 'border-[rgba(220,82,82,0.4)] text-[#f08585]'}`}>
+                          {ps.onTrack
+                            ? `On plan · ${fmtRs(l.installmentAmount ?? 0)}/month`
+                            : `Behind by ${fmtRs(ps.shortfall)} · plan ${fmtRs(l.installmentAmount ?? 0)}/month`}
+                        </div>
+                      );
+                    })()}
                     <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-[var(--surf-3)]">
                       <div className="h-full rounded-full bg-gradient-to-r from-[var(--color-gold-4)] to-[var(--color-gold)]" style={{ width: `${Math.min(100, Math.round((l.paid / l.amount) * 100))}%` }} />
                     </div>

@@ -7,7 +7,7 @@ import { cases, votes, members, loans, auditLog } from '@/lib/db/schema';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-/** GET /api/cases/[id] — single case with vote counts, used by useRealtimeCase. */
+/** GET /api/cases/[id] · single case with vote counts, used by useRealtimeCase. */
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const me = await meApprovedOrThrow();
@@ -52,7 +52,7 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
       const [linkedLoan] = await db.select({ id: loans.id }).from(loans).where(eq(loans.caseId, caseId)).limit(1);
       if (linkedLoan) {
         return NextResponse.json(
-          { error: 'Case is disbursed and linked to an active loan — settle the loan first' },
+          { error: 'Case is disbursed and linked to an active loan · settle the loan first' },
           { status: 409 },
         );
       }

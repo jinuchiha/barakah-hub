@@ -1,7 +1,7 @@
 /**
  * Branded transactional email helpers.
  *
- * Every function gracefully no-ops when RESEND_API_KEY is unset — that
+ * Every function gracefully no-ops when RESEND_API_KEY is unset · that
  * keeps local dev / CI green without leaking secrets, and lets us turn
  * email on/off via env without code changes.
  *
@@ -14,7 +14,7 @@
 const FROM = process.env.RESEND_FROM ?? 'Barakah Hub <onboarding@resend.dev>';
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://barakah-hub.vercel.app';
 
-/* ─── Shared shell — wraps body in branded HTML chrome ─── */
+/* ─── Shared shell · wraps body in branded HTML chrome ─── */
 function shell(title: string, body: string, ctaLabel?: string, ctaHref?: string): string {
   const cta = ctaLabel && ctaHref
     ? `<tr><td align="center" style="padding:24px 0 8px;">
@@ -68,7 +68,7 @@ async function send(to: string, subject: string, html: string, text: string): Pr
 export async function sendWelcomeEmail(to: string, name: string): Promise<void> {
   const body = `
     <p>السلام علیکم <strong style="color:#f8fafc;">${escape(name)}</strong>،</p>
-    <p>Welcome to Barakah Hub — your family's shared fund for Sadaqah, Zakat, and Qarz-e-Hasana.</p>
+    <p>Welcome to Barakah Hub · your family's shared fund for Sadaqah, Zakat, and Qarz-e-Hasana.</p>
     <p>Your registration is now awaiting admin approval. You'll receive another email once approved (usually within a day).</p>
     <p style="margin-top:20px;color:#94a3b8;font-size:13px;">جزاک اللہ خیرا for joining.</p>
   `;
@@ -80,7 +80,7 @@ export async function sendWelcomeEmail(to: string, name: string): Promise<void> 
 export async function sendApprovalEmail(to: string, name: string): Promise<void> {
   const body = `
     <p>السلام علیکم <strong style="color:#f8fafc;">${escape(name)}</strong>،</p>
-    <p>Mubarak ho — your Barakah Hub account is <strong style="color:#10b981;">approved</strong>! You can now submit donations, vote on emergency cases, and view the family fund.</p>
+    <p>Mubarak ho · your Barakah Hub account is <strong style="color:#10b981;">approved</strong>! You can now submit donations, vote on emergency cases, and view the family fund.</p>
     <p>Sign in any time and open the dashboard to see what's been happening.</p>
   `;
   const text = `Your Barakah Hub account is approved. Sign in at ${APP_URL}/login`;
@@ -208,7 +208,7 @@ export async function sendMonthlyStatementEmail(to: string, s: MonthlySummary): 
       </tr>
     </table>
   `;
-  const text = `Barakah Hub — ${s.monthLabel}\n\nYour contribution: Rs ${fmt(s.myTotal)}\nTotal fund: Rs ${fmt(s.fundTotal)}\nOpen cases: ${s.cases}\nQarz outstanding: Rs ${fmt(s.loansOwed)}\n\n${APP_URL}/dashboard`;
+  const text = `Barakah Hub · ${s.monthLabel}\n\nYour contribution: Rs ${fmt(s.myTotal)}\nTotal fund: Rs ${fmt(s.fundTotal)}\nOpen cases: ${s.cases}\nQarz outstanding: Rs ${fmt(s.loansOwed)}\n\n${APP_URL}/dashboard`;
   await send(to, `📊 Barakah Hub: ${s.monthLabel} summary`, shell(`${s.monthLabel} Summary`, body, 'Open dashboard', `${APP_URL}/dashboard`), text);
 }
 
@@ -239,7 +239,7 @@ export async function sendWeeklyBackupEmail(s: BackupSummary): Promise<void> {
     `<td style="padding:8px 12px;font-size:12px;font-weight:bold;color:#f8fafc;border-bottom:1px solid #1e293b;">${escape(value)}</td></tr>`;
 
   const body = `
-    <p style="color:#94a3b8;font-size:13px;">Weekly snapshot — <strong style="color:#f8fafc;">${escape(s.date)}</strong></p>
+    <p style="color:#94a3b8;font-size:13px;">Weekly snapshot · <strong style="color:#f8fafc;">${escape(s.date)}</strong></p>
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #1e293b;border-radius:10px;overflow:hidden;margin:16px 0;">
       ${row('Total Fund', fmtPKR(s.fundTotal))}
       ${row('Members', `${s.members.approved} approved / ${s.members.total} total`)}
@@ -251,6 +251,6 @@ export async function sendWeeklyBackupEmail(s: BackupSummary): Promise<void> {
     </table>
     <p style="font-size:11px;color:#475569;">This is an automatic weekly backup email from Barakah Hub. Point-in-time recovery is handled by Neon Postgres PITR.</p>
   `;
-  const text = `Barakah Hub Weekly Backup — ${s.date}\nFund: ${fmtPKR(s.fundTotal)}\nMembers: ${s.members.approved}/${s.members.total}\nPayments: ${s.payments.verified} verified, ${s.payments.pending} pending\n${APP_URL}/dashboard`;
-  await send(to, `🗄 Barakah Hub Weekly Backup — ${s.date}`, shell(`Weekly Backup ${s.date}`, body), text);
+  const text = `Barakah Hub Weekly Backup · ${s.date}\nFund: ${fmtPKR(s.fundTotal)}\nMembers: ${s.members.approved}/${s.members.total}\nPayments: ${s.payments.verified} verified, ${s.payments.pending} pending\n${APP_URL}/dashboard`;
+  await send(to, `🗄 Barakah Hub Weekly Backup · ${s.date}`, shell(`Weekly Backup ${s.date}`, body), text);
 }

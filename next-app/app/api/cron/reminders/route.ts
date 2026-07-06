@@ -1,9 +1,12 @@
 import { NextResponse } from 'next/server';
 import { and, eq, sql } from 'drizzle-orm';
 import { db } from '@/lib/db';
-import { members, payments, notifications } from '@/lib/db/schema';
+import { members, payments, loans, notifications } from '@/lib/db/schema';
 import { sendPushToMembers } from '@/lib/push';
 import { currentMonthLabel } from '@/lib/month';
+import { buildPaymentReminder, sendWhatsAppTemplate, sendWhatsAppText } from '@/lib/whatsapp';
+import { planStatus } from '@/lib/loan-math';
+import { fmtRs } from '@/lib/i18n/dict';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -34,7 +37,7 @@ export async function GET(req: Request) {
 
   // Members who SHOULD pay this month (approved + not deceased + pledge > 0)
   const eligible = await db
-    .select({ id: members.id })
+    .select()
     .from(members)
     .where(and(eq(members.status, 'approved'), eq(members.deceased, false), sql`${members.monthlyPledge} > 0`));
 
@@ -54,11 +57,43 @@ export async function GET(req: Request) {
     .where(eq(notifications.type, reminderType));
   const remindedSet = new Set(alreadyReminded.map((n) => n.recipientId));
 
-  const defaulters = eligible
-    .filter((m) => !paidSet.has(m.id) && !remindedSet.has(m.id))
-    .map((m) => m.id);
+  const defaulterMembers = eligible.filter((m) => !paidSet.has(m.id) && !remindedSet.has(m.id));
+  const defaulters = defaulterMembers.map((m) => m.id);
 
-  if (defaulters.length === 0) return NextResponse.json({ reminded: 0, paid: paid.length, skipped: eligible.length - paid.length });
+  // Behind-schedule qarz borrowers get a nudge in the same run.
+  const activeLoans = await db.select().from(loans).where(eq(loans.active, true));
+  const now = new Date();
+  const behind = activeLoans
+    .map((l) => ({ loan: l, ps: planStatus(l, now) }))
+    .filter(({ ps }) => ps.hasPlan && !ps.onTrack);
+  const loanReminderType = `loan-reminder:${monthLabel}`;
+  const loanReminded = new Set(
+    (await db.select({ recipientId: notifications.recipientId }).from(notifications).where(eq(notifications.type, loanReminderType)))
+      .map((n) => n.recipientId),
+  );
+  const behindFresh = behind.filter(({ loan }) => !loanReminded.has(loan.memberId));
+  if (behindFresh.length > 0) {
+    await db.insert(notifications).values(
+      behindFresh.map(({ loan, ps }) => ({
+        recipientId: loan.memberId,
+        titleUr: 'قرض کی قسط',
+        titleEn: 'Qarz installment due',
+        ur: `آپ کے قرض کی قسطیں ${fmtRs(ps.shortfall)} پیچھے ہیں۔ براہِ کرم ادائیگی کریں۔`,
+        en: `Your qarz repayments are ${fmtRs(ps.shortfall)} behind the agreed ${fmtRs(loan.installmentAmount ?? 0)}/month plan.`,
+        type: loanReminderType,
+      })),
+    );
+    void sendPushToMembers(behindFresh.map(({ loan }) => loan.memberId), {
+      title: 'Qarz installment due',
+      body: 'Your repayment plan is behind schedule · open the Loans tab.',
+      data: { type: 'loan-reminder' },
+      channelId: 'payments',
+    }).catch(() => {});
+  }
+
+  if (defaulters.length === 0) {
+    return NextResponse.json({ reminded: 0, paid: paid.length, skipped: eligible.length - paid.length, loanReminders: behindFresh.length });
+  }
 
   // In-app notification (always lands, even if push is unconfigured)
   await db.insert(notifications).values(
@@ -80,11 +115,26 @@ export async function GET(req: Request) {
     channelId: 'payments',
   });
 
+  // WhatsApp — where Pakistani families actually read reminders. Uses an
+  // approved template when configured (required outside a 24h session);
+  // falls back to free-text for any member with an open session window.
+  let waSent = 0;
+  const template = process.env.WHATSAPP_TEMPLATE_REMINDER;
+  for (const m of defaulterMembers) {
+    if (!m.phone) continue;
+    const ok = template
+      ? await sendWhatsAppTemplate(m.phone, template, [m.nameUr || m.nameEn, monthLabel, fmtRs(m.monthlyPledge)])
+      : await sendWhatsAppText(m.phone, buildPaymentReminder(m, monthLabel));
+    if (ok) waSent++;
+  }
+
   return NextResponse.json({
     reminded: defaulters.length,
     paid: paid.length,
     skipped: eligible.length - paid.length - defaulters.length,
     pushSent: pushRes.sent,
     pushInvalid: pushRes.invalid,
+    whatsappSent: waSent,
+    loanReminders: behindFresh.length,
   });
 }

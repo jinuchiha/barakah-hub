@@ -16,7 +16,7 @@ export default function CreateInviteForm() {
     start(async () => {
       try {
         await createInvite({ label: label || undefined, maxUses, expiresInDays });
-        toast.success('Invite created — copy the link below');
+        toast.success('Invite created · copy the link below');
         setLabel('');
         setMaxUses(1);
         setExpiresInDays(14);

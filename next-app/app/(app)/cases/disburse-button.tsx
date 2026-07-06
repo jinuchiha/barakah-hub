@@ -7,7 +7,7 @@ export default function DisburseButton({ caseId }: { caseId: string }) {
   const [pending, start] = useTransition();
   function handle() {
     start(async () => {
-      try { await disburseCase(caseId); toast.success('Disbursed — funds marked as distributed'); }
+      try { await disburseCase(caseId); toast.success('Disbursed · funds marked as distributed'); }
       catch (e: unknown) { toast.error(e instanceof Error ? e.message : 'Failed'); }
     });
   }

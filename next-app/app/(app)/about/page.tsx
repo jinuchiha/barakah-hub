@@ -60,7 +60,7 @@ export default async function AboutPage() {
         <CardBody>
           <p className="text-sm leading-relaxed text-[var(--txt-2)]">
             Barakah Hub aik private, invite-only family fund hai jis mein sadaqah (donation), zakat, aur qarz-e-hasana (interest-free loan) Islam ke usoolon ke mutabiq manage kiye jaate hain.
-            Har contribution mein donor ka naam sirf admin dekh sakta hai — sadqa ki roohaniyat ke mutabiq (giving in secret).
+            Har contribution mein donor ka naam sirf admin dekh sakta hai · sadqa ki roohaniyat ke mutabiq (giving in secret).
           </p>
         </CardBody>
       </Card>
@@ -93,7 +93,7 @@ export default async function AboutPage() {
               ['Sadaqah', 'Monthly voluntary donations. Donor identity is hidden from other members per the principle of giving in secret.'],
               ['Zakat', 'Annual obligatory charity on qualifying wealth. Routed to eligible recipients through the admin.'],
               ['Qarz-e-Hasana', 'Interest-free loan to a family member in need. Community votes on approval; repaid without any extra charge.'],
-              ['Emergency Vote', 'Cases are submitted and voted on by all approved members. Threshold can be set by admin (30–75%).'],
+              ['Emergency Vote', 'Cases are submitted and voted on by all approved members. Threshold can be set by admin (30 to 75%).'],
               ['Privacy', 'Sadaqah donors are never named to other members · only the admin can see who gave what.'],
               ['Audit Trail', 'Every action is logged with actor, timestamp, and detail. The log is append-only and cannot be altered.'],
             ].map(([title, desc]) => (

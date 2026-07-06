@@ -17,12 +17,14 @@ export default function IssueLoanForm({ members }: Props) {
   const [purpose, setPurpose] = useState('');
   const [city, setCity] = useState('');
   const [expectedReturn, setExpectedReturn] = useState('');
+  const [installment, setInstallment] = useState(0);
 
   function reset() {
     setAmount(0);
     setPurpose('');
     setCity('');
     setExpectedReturn('');
+    setInstallment(0);
   }
 
   function submit(e: React.FormEvent) {
@@ -38,6 +40,7 @@ export default function IssueLoanForm({ members }: Props) {
           purpose: purpose.trim(),
           city: city.trim() || undefined,
           expectedReturn: expectedReturn || null,
+          installmentAmount: installment > 0 ? installment : null,
         });
         toast.success('Loan issued');
         reset();
@@ -75,6 +78,21 @@ export default function IssueLoanForm({ members }: Props) {
       <div>
         <Label>Expected return</Label>
         <Input type="date" value={expectedReturn} onChange={(e) => setExpectedReturn(e.target.value)} />
+      </div>
+      <div className="md:col-span-2">
+        <Label>Monthly installment (Rs., optional)</Label>
+        <Input
+          type="number"
+          min={0}
+          value={installment || ''}
+          onChange={(e) => setInstallment(parseInt(e.target.value, 10) || 0)}
+          placeholder="e.g. 500 per month"
+        />
+        {installment > 0 && amount > 0 && (
+          <p className="mt-1 text-[11px] text-[var(--txt-4)]">
+            ≈ {Math.ceil(amount / installment)} months to settle
+          </p>
+        )}
       </div>
       <div className="md:col-span-2">
         <Label>Purpose *</Label>
