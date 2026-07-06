@@ -12,9 +12,11 @@ import * as Haptics from 'expo-haptics';
 import { PaymentCard } from '@/components/PaymentCard';
 import { SuccessOverlay } from '@/components/ui/SuccessOverlay';
 import { PaymentSubmitModal } from '@/components/PaymentSubmitModal';
+import { DuaOverlay } from '@/components/DuaOverlay';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { BrandedEmptyState } from '@/components/ui/BrandedEmptyState';
 import { StatCard } from '@/components/ui/StatCard';
+import { AnimatedNumber, fmtRsWorklet } from '@/components/ui/AnimatedNumber';
 import { useMyPayments, useSubmitDonation } from '@/hooks/usePayments';
 import { useConfig } from '@/hooks/useConfig';
 import { useAuthStore } from '@/stores/auth.store';
@@ -64,6 +66,7 @@ function PaymentsScreen() {
   const { user } = useAuthStore();
   const [showModal, setShowModal] = useState(false);
   const [successToast, setSuccessToast] = useState(false);
+  const [showDua, setShowDua] = useState(false);
   const [achievementMsg, setAchievementMsg] = useState<string | null>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [poolFilter, setPoolFilter] = useState<FundPool | 'all'>('all');
@@ -107,6 +110,8 @@ function PaymentsScreen() {
   const handleSubmit = async (formData: { amount: number; pool: FundPool; monthLabel: string; note?: string; receiptUrl?: string }) => {
     await submitMutation.mutateAsync(formData);
     setShowModal(false);
+    // Same reward moment the web gives: a sourced dua instead of a toast.
+    setShowDua(true);
     setSuccessToast(true);
     if (toastTimer.current) clearTimeout(toastTimer.current);
     toastTimer.current = setTimeout(() => setSuccessToast(false), 2500);
@@ -129,7 +134,7 @@ function PaymentsScreen() {
           style={styles.heroGradient}
         >
           <Text style={[styles.heroLabel, { color: colors.text4 }]}>{t('dashboard.myPayments')}</Text>
-          <Text style={[styles.heroValue, { color: colors.text1 }]}>{formatPKR(totalVerified)}</Text>
+          <AnimatedNumber value={totalVerified} format={fmtRsWorklet} style={[styles.heroValue, { color: colors.text1 }]} />
           <Text style={[styles.heroSub, { color: colors.text3 }]}>{t('payments.totalVerified')} · {pendingCount} {t('dashboard.pending').toLowerCase()}</Text>
         </LinearGradient>
       </Animated.View>
@@ -177,6 +182,8 @@ function PaymentsScreen() {
           <Text style={[styles.toastText, { color: colors.text1 }]}>Submitted! Pending admin review.</Text>
         </Animated.View>
       ) : null}
+
+      <DuaOverlay visible={showDua} onDone={() => setShowDua(false)} />
 
       <SuccessOverlay
         visible={achievementMsg !== null}

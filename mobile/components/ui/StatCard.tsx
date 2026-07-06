@@ -9,6 +9,7 @@ import Animated, {
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTheme } from '@/lib/useTheme';
 import { radius } from '@/lib/theme';
+import { AnimatedNumber } from './AnimatedNumber';
 
 interface StatCardProps {
   icon: keyof typeof MaterialCommunityIcons.glyphMap;
@@ -18,9 +19,13 @@ interface StatCardProps {
   style?: ViewStyle;
   trend?: { direction: 'up' | 'down'; percent: number };
   onPress?: () => void;
+  /** When set, the value counts up live (web-style) instead of static text. */
+  animateValue?: number;
+  /** Worklet formatter for animateValue (e.g. fmtRsWorklet). */
+  format?: (v: number) => string;
 }
 
-export function StatCard({ icon, value, label, iconColor, style, trend, onPress }: StatCardProps) {
+export function StatCard({ icon, value, label, iconColor, style, trend, onPress, animateValue, format }: StatCardProps) {
   const { colors } = useTheme();
   const color = iconColor ?? colors.primary;
   const scale = useSharedValue(1);
@@ -45,7 +50,11 @@ export function StatCard({ icon, value, label, iconColor, style, trend, onPress 
               <MaterialCommunityIcons name={icon} size={13} color={color} />
             </View>
           </View>
-          <Text style={[styles.value, { color: colors.text1 }]} numberOfLines={1}>{String(value)}</Text>
+          {animateValue !== undefined ? (
+            <AnimatedNumber value={animateValue} format={format} style={[styles.value, { color: colors.text1 }]} />
+          ) : (
+            <Text style={[styles.value, { color: colors.text1 }]} numberOfLines={1}>{String(value)}</Text>
+          )}
           {trend ? (
             <View style={[styles.trendPill, { backgroundColor: trend.direction === 'up' ? 'rgba(45,138,95,0.15)' : 'rgba(220,82,82,0.15)', marginTop: 8 }]}>
               <MaterialCommunityIcons name={trend.direction === 'up' ? 'arrow-up' : 'arrow-down'} size={10} color={trend.direction === 'up' ? colors.success : colors.danger} />

@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { useAuth } from '@/hooks/useAuth';
 import { EmailNotVerifiedError } from '@/lib/auth';
+import { BarakahField } from '@/components/BarakahField';
 import { useTheme } from '@/lib/useTheme';
 import { useTranslation } from 'react-i18next';
 import { haptic } from '@/lib/haptics';
@@ -78,6 +79,8 @@ export default function LoginScreen() {
         start={{ x: 0.3, y: 0 }}
         end={{ x: 0.7, y: 1 }}
       />
+      {/* Space field — stars, floating haroof, crescent light (web parity) */}
+      <BarakahField showCrescent />
       {/* Ambient gold glow top-right */}
       <View style={styles.glowTopRight} pointerEvents="none" />
       {/* Ambient gold glow bottom-left */}
