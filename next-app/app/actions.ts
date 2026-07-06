@@ -32,6 +32,7 @@ import { monthStartFromLabel } from '@/lib/month';
 import { broadcastPush, sendPushToMembers } from '@/lib/push';
 import { notifyMembers as notify, fundApproverIds, adminIds, emailFundApprovers } from '@/lib/notify';
 import { sendApprovalEmail, sendPaymentReceiptEmail, sendEmergencyCaseEmail } from '@/lib/email';
+import { sendWhatsAppText } from '@/lib/whatsapp';
 
 /** Lookup the auth email for a member via auth_id → users.email. Null if missing. */
 async function emailForMember(memberAuthId: string | null): Promise<string | null> {
@@ -488,6 +489,23 @@ export async function verifyPayment(paymentId: string) {
           paymentId: p.id,
           verifiedAt: new Date(),
         });
+      }
+      // Receipt on WhatsApp too (user wants both channels). No-ops
+      // without the Cloud API env; text works inside a 24h session.
+      if (donor.phone) {
+        const base = process.env.NEXT_PUBLIC_APP_URL ?? 'https://barakah-hub.vercel.app';
+        await sendWhatsAppText(
+          donor.phone,
+          `✅ *رسید تصدیق شدہ · Barakah Hub*
+
+رقم: *Rs ${p.amount.toLocaleString('en-PK')}* (${p.pool})
+مہینہ: ${p.monthLabel}
+رسید نمبر: #${p.id.slice(0, 8).toUpperCase()}
+
+تصدیق کریں: ${base}/verify-receipt/${p.id}
+
+جزاک اللہ خیر`,
+        );
       }
     })().catch((err) => { console.error('[email] payment receipt:', err); });
   }

@@ -65,12 +65,12 @@ export default async function NotificationsPage() {
               </>
             );
             const rowClass = `flex gap-3 border-b border-[rgba(214,210,199,0.06)] p-3 ${n.read ? '' : 'bg-[rgba(30,42,74,0.05)]'}`;
-            return href ? (
-              <Link key={n.id} href={href as Route} className={`group ${rowClass} transition-colors hover:bg-[var(--surf-3)]`}>
+            // Every row passes through the open route so the click ALSO
+            // marks it read (bell badge drops) before landing on target.
+            return (
+              <Link key={n.id} href={`/notifications/open/${n.id}` as Route} className={`group ${rowClass} transition-colors hover:bg-[var(--surf-3)]`}>
                 {body}
               </Link>
-            ) : (
-              <div key={n.id} className={rowClass}>{body}</div>
             );
           })}
         </CardBody>
