@@ -28,15 +28,23 @@ function WelcomeWipe({ show }: { show: boolean }) {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="fixed inset-0 z-[120] grid place-items-center"
-          style={{ background: 'radial-gradient(circle at 50% 60%, #1a1408 0%, #0a0f1a 70%)' }}
+          className="fixed inset-0 z-[120] grid place-items-center backdrop-blur-md"
+          style={{ background: 'rgba(6,11,19,0.45)' }}
         >
+          {/* Space field stays visible through the veil; light blooms over it. */}
           <motion.div
             initial={{ scale: 0, opacity: 0.9 }}
             animate={{ scale: 26, opacity: 0 }}
             transition={{ duration: 1.05, ease: [0.22, 1, 0.36, 1] }}
             className="absolute size-24 rounded-full"
             style={{ background: 'radial-gradient(circle, rgba(232,197,99,0.55), rgba(200,155,60,0.15) 60%, transparent 75%)' }}
+          />
+          <motion.div
+            initial={{ opacity: 0, scale: 0.7 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+            className="absolute size-[26rem] rounded-full"
+            style={{ background: 'radial-gradient(circle, rgba(200,155,60,0.16), transparent 65%)' }}
           />
           <motion.p
             initial={{ opacity: 0, y: 14, filter: 'blur(8px)' }}
@@ -45,7 +53,7 @@ function WelcomeWipe({ show }: { show: boolean }) {
             dir="rtl"
             lang="ar"
             className="relative font-[var(--font-arabic)] text-3xl leading-[2] text-[var(--color-gold-2)]"
-            style={{ textShadow: '0 0 30px rgba(200,155,60,0.45)' }}
+            style={{ textShadow: '0 0 30px rgba(200,155,60,0.55)' }}
           >
             السلام علیکم
           </motion.p>
