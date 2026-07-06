@@ -42,7 +42,7 @@ export default async function MyAccountPage() {
         <CardBody className="p-6">
           <div className="mb-4 flex items-center gap-4">
             <div
-              className="grid size-14 place-items-center rounded-full text-xl font-bold text-white shadow-[0_0_12px_rgba(214,210,199,0.2)]"
+              className="grid size-14 shrink-0 place-items-center overflow-hidden rounded-full text-xl font-bold text-white shadow-[0_0_12px_rgba(214,210,199,0.2)]"
               style={{ background: me.color }}
               aria-hidden="true"
             >

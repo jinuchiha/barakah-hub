@@ -4,6 +4,7 @@ import { db } from '@/lib/db';
 import { notifications, members, payments } from '@/lib/db/schema';
 import { Sidebar } from '@/components/sidebar';
 import { Topbar } from '@/components/topbar';
+import { CalligraphyBackdrop } from '@/components/calligraphy-backdrop';
 import { VerseBar } from '@/components/verse-bar';
 import { TooltipProvider } from '@/components/ui/tooltip';
 
@@ -60,6 +61,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         <div className="flex flex-1 overflow-hidden">
           <Sidebar isAdmin={isAdmin} isSupervisor={isSupervisor} badges={adminBadges} />
           <main className="ambient-depth relative flex-1 overflow-y-auto p-4 md:p-6">
+            <CalligraphyBackdrop />
             {children}
           </main>
         </div>

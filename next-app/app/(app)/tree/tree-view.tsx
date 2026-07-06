@@ -234,11 +234,11 @@ export default function TreeView({ members, paidBy, viewerId, viewerIsAdmin }: P
       {selectedMember && (
         <div className="mt-6 rounded-lg border border-[var(--border-2)] bg-[var(--surf-2)] p-4">
           <div className="mb-3 flex items-center gap-3">
-            <div className="grid size-12 place-items-center rounded-full text-base font-bold text-white" style={{ background: selectedMember.color }}>
+            <div className="grid size-12 shrink-0 place-items-center overflow-hidden rounded-full text-base font-bold text-white" style={{ background: selectedMember.color }}>
               {selectedMember.photoUrl ? <img src={selectedMember.photoUrl} alt="" className="size-full rounded-full object-cover" /> : ini(selectedMember.nameEn || selectedMember.nameUr)}
             </div>
             <div className="flex-1">
-              <div className="font-[var(--font-arabic)] text-xl text-[var(--color-gold-2)]">{selectedMember.nameUr || selectedMember.nameEn}</div>
+              <div className="font-[var(--font-arabic)] text-xl leading-[1.9] text-[var(--color-gold-2)]">{selectedMember.nameUr || selectedMember.nameEn}</div>
               <div className="text-sm text-[var(--color-gold-4)]">{selectedMember.nameEn}</div>
             </div>
             {selectedSpouse && (
@@ -316,12 +316,16 @@ function NodeCard({
       )}
     >
       <div
-        className="mb-2 grid size-10 place-items-center rounded-full text-xs font-bold text-white shadow-sm"
+        className="mb-1 grid size-10 shrink-0 place-items-center overflow-hidden rounded-full text-xs font-bold text-white shadow-sm"
         style={{ background: m.color, filter: m.deceased ? 'grayscale(0.7)' : 'none' }}
       >
         {m.photoUrl ? <img src={m.photoUrl} alt="" className="size-full rounded-full object-cover" /> : ini(m.nameEn || m.nameUr)}
       </div>
-      <div className="text-[13px] font-semibold leading-tight text-[var(--color-cream)]">{m.nameUr || m.nameEn}</div>
+      {/* Nastaliq ascenders overflow tight line boxes and paint over the
+          avatar above — Urdu names need their script's tall line-height. */}
+      <div className={cn('w-full text-[13px] font-semibold text-[var(--color-cream)]', m.nameUr ? 'font-[var(--font-arabic)] leading-[1.9]' : 'leading-tight')}>
+        {m.nameUr || m.nameEn}
+      </div>
       {m.nameUr && m.nameEn && <div className="mt-0.5 text-[10px] text-[var(--txt-3)]">{m.nameEn}</div>}
       {m.city && <div className="mt-0.5 text-[9px] text-[var(--color-gold-4)]">📍 {m.city}</div>}
       {m.deceased && <div className="mt-0.5 text-[9px] text-[var(--color-gold-4)] italic">مرحوم</div>}

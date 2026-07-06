@@ -488,3 +488,74 @@ button:disabled,
 @media (prefers-reduced-motion: reduce) {
   .btn-shine::after { display: none; }
 }
+
+/* ─────────────────────────────────────────
+   CALLIGRAPHY BACKDROP — ghost haroof drifting far behind the canvas.
+   ───────────────────────────────────────── */
+.calligraphy-word {
+  position: absolute;
+  color: var(--color-gold);
+  opacity: 0.028;
+  line-height: 1;
+  user-select: none;
+  will-change: transform;
+  animation: calligraphyDrift ease-in-out infinite alternate;
+}
+@keyframes calligraphyDrift {
+  from { transform: translateY(-1.5rem); }
+  to   { transform: translateY(1.5rem); }
+}
+
+/* ─────────────────────────────────────────
+   LOGIN SCENE — bismillah write-on, hairline, embers, star geometry.
+   ───────────────────────────────────────── */
+.bismillah-write {
+  clip-path: inset(0 0 0 100%);
+  animation: bismillahWrite 1.7s cubic-bezier(0.4, 0, 0.2, 1) 0.25s both;
+}
+@keyframes bismillahWrite {
+  from { clip-path: inset(0 0 0 100%); opacity: 0.4; }
+  to   { clip-path: inset(0 0 0 0); opacity: 1; }
+}
+
+.hairline-grow {
+  transform: scaleX(0);
+  animation: hairlineGrow 0.9s cubic-bezier(0.22, 1, 0.36, 1) 1.55s both;
+}
+@keyframes hairlineGrow {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+
+.ember {
+  position: absolute;
+  bottom: -2vh;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(232,197,99,0.9), rgba(200,155,60,0.35) 70%, transparent);
+  opacity: 0;
+  animation: emberRise linear infinite;
+}
+@keyframes emberRise {
+  0%   { transform: translateY(0) scale(1); opacity: 0; }
+  10%  { opacity: var(--ember-o, 0.4); }
+  85%  { opacity: calc(var(--ember-o, 0.4) * 0.5); }
+  100% { transform: translateY(-92vh) scale(0.35); opacity: 0; }
+}
+
+.star-spin { animation: starSpin 140s linear infinite; }
+.star-spin-reverse { animation: starSpin 200s linear infinite reverse; }
+@keyframes starSpin { to { transform: rotate(360deg); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .calligraphy-word,
+  .ember,
+  .star-spin,
+  .star-spin-reverse,
+  .bismillah-write,
+  .hairline-grow {
+    animation: none;
+  }
+  .bismillah-write { clip-path: none; }
+  .hairline-grow { transform: scaleX(1); }
+  .ember { display: none; }
+}

@@ -140,7 +140,7 @@ export default function MembersTable({ initial }: Props) {
                   <td className="px-4 py-2 font-[var(--font-en)] text-xs text-[var(--color-gold-4)]">{i + 1}</td>
                   <td className="px-4 py-2">
                     <div className="flex items-center gap-2.5">
-                      <div className="grid size-7 place-items-center rounded-full text-[10px] font-bold text-white" style={{ background: m.color }}>
+                      <div className="grid size-7 shrink-0 place-items-center overflow-hidden rounded-full text-[10px] font-bold text-white" style={{ background: m.color }}>
                         {m.photoUrl ? <img src={m.photoUrl} alt={m.nameEn || m.nameUr || 'Member photo'} className="size-full rounded-full object-cover" /> : ini(m.nameEn || m.nameUr)}
                       </div>
                       <div>
