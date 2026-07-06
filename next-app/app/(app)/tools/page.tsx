@@ -4,6 +4,8 @@ import { getMeOrRedirect } from '@/lib/auth-server';
 import { Card, CardHeader, CardTitle, CardBody } from '@/components/ui/card';
 import { formatHijriDate } from '@/lib/hijri';
 import { getDailyVerse } from '@/lib/quran';
+import { t } from '@/lib/i18n/dict';
+import { getLocale } from '@/lib/i18n/server';
 import ZakatCalc from './zakat-calc';
 import { PrayerTimesCard } from '@/components/prayer-times-card';
 
@@ -11,13 +13,14 @@ export const metadata = { title: 'Islamic Tools · Barakah Hub' };
 
 export default async function ToolsPage() {
   await getMeOrRedirect();
+  const locale = await getLocale();
 
   const today = new Date();
   const hijriDate = formatHijriDate(today);
   const verse = getDailyVerse();
 
   return (
-    <div>
+    <div className="mx-auto w-full max-w-4xl">
       <header className="mb-6 border-b border-[var(--border)] pb-4">
         <h1 className="font-[var(--font-arabic)] text-3xl text-[var(--color-gold-2)]">اسلامی ٹولز</h1>
         <p className="mt-1 font-[var(--font-en)] text-sm italic text-[var(--color-gold-4)]">Islamic Tools</p>
@@ -27,10 +30,10 @@ export default async function ToolsPage() {
         {/* Hijri Date */}
         <Card>
           <CardHeader>
-            <CardTitle>Hijri Date</CardTitle>
+            <CardTitle>{t('tools.hijri', locale)}</CardTitle>
           </CardHeader>
           <CardBody>
-            <div className="text-xs text-[var(--txt-3)]">Today in the Islamic calendar</div>
+            <div className="text-xs text-[var(--txt-3)]">{t('tools.hijriSub', locale)}</div>
             <div className="mt-2 font-[var(--font-display)] text-2xl font-bold text-[var(--color-gold)]">
               {hijriDate}
             </div>
@@ -43,7 +46,7 @@ export default async function ToolsPage() {
         {/* Prayer Times — computed locally, live next-prayer countdown */}
         <Card className="sm:col-span-2">
           <CardHeader>
-            <CardTitle>Prayer Times · اوقاتِ نماز</CardTitle>
+            <CardTitle>{t('tools.prayer', locale)} · اوقاتِ نماز</CardTitle>
           </CardHeader>
           <CardBody>
             <PrayerTimesCard />
@@ -53,7 +56,7 @@ export default async function ToolsPage() {
         {/* Zakat Calculator */}
         <Card>
           <CardHeader>
-            <CardTitle>Zakat Calculator</CardTitle>
+            <CardTitle>{t('tools.zakat', locale)}</CardTitle>
           </CardHeader>
           <CardBody>
             <ZakatCalc />
@@ -63,7 +66,7 @@ export default async function ToolsPage() {
         {/* Daily Verse */}
         <Card>
           <CardHeader>
-            <CardTitle>Daily Verse</CardTitle>
+            <CardTitle>{t('tools.verse', locale)}</CardTitle>
           </CardHeader>
           <CardBody>
             <div

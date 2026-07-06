@@ -4,12 +4,14 @@ import { db } from '@/lib/db';
 import { payments, loans, config as configTbl } from '@/lib/db/schema';
 import { Card, CardHeader, CardTitle, CardBody } from '@/components/ui/card';
 import { Breadcrumb } from '@/components/breadcrumb';
-import { fmtRs } from '@/lib/i18n/dict';
+import { fmtRs, t } from '@/lib/i18n/dict';
+import { getLocale } from '@/lib/i18n/server';
 import { ini } from '@/lib/utils';
 import DonationForm from './donation-form';
 
 export default async function MyAccountPage() {
   const me = await getMeOrRedirect();
+  const locale = await getLocale();
 
   const [myPayments, myLoans, cfgRows] = await Promise.all([
     db.select().from(payments).where(eq(payments.memberId, me.id)).orderBy(desc(payments.paidOn)).limit(50),
@@ -33,8 +35,8 @@ export default async function MyAccountPage() {
     <div className="mx-auto max-w-[1400px]">
       <Breadcrumb crumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'My Account' }]} />
       <header className="mb-8 border-b border-[var(--border)] pb-6">
-        <div className="mb-2 text-[10px] font-bold uppercase tracking-[2px] text-[var(--txt-3)]">Member · Account</div>
-        <h1 className="text-[28px] font-semibold leading-tight tracking-[-0.5px] text-[var(--color-cream)]">My Account</h1>
+        <div className="mb-2 text-[10px] font-bold uppercase tracking-[2px] text-[var(--txt-3)]">{t('acct.overline', locale)}</div>
+        <h1 className="text-[28px] font-semibold leading-tight tracking-[-0.5px] text-[var(--color-cream)]">{t('acct.title', locale)}</h1>
         <p className="font-[var(--font-arabic)] mt-1 text-sm text-[var(--color-gold-2)]">میرا کھاتہ</p>
       </header>
 
@@ -76,7 +78,7 @@ export default async function MyAccountPage() {
       </Card>
 
       <Card className="mb-4">
-        <CardHeader><CardTitle>Submit a Donation</CardTitle></CardHeader>
+        <CardHeader><CardTitle>{t('acct.submitDonation', locale)}</CardTitle></CardHeader>
         <CardBody>
           <DonationForm easyPaiseName={cfg?.easyPaiseName ?? null} easyPaiseNumber={cfg?.easyPaiseNumber ?? null} />
         </CardBody>
@@ -125,12 +127,12 @@ export default async function MyAccountPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>My Payment History</CardTitle>
+          <CardTitle>{t('acct.paymentHistory', locale)}</CardTitle>
           <a
             href="/api/exports/my-statement"
             className="text-[11px] font-semibold tracking-wide text-[var(--color-gold-4)] transition-colors hover:text-[var(--color-gold-2)]"
           >
-            ↓ Download my statement (CSV)
+            {t('acct.downloadStatement', locale)}
           </a>
         </CardHeader>
         <CardBody className="p-0">

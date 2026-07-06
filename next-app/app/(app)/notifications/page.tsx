@@ -4,11 +4,14 @@ import { db } from '@/lib/db';
 import { notifications } from '@/lib/db/schema';
 import { Card, CardHeader, CardTitle, CardBody } from '@/components/ui/card';
 import MarkAllReadButton from './mark-all-read';
+import { t } from '@/lib/i18n/dict';
+import { getLocale } from '@/lib/i18n/server';
 
 export const metadata = { title: 'Notifications · Barakah Hub' };
 
 export default async function NotificationsPage() {
   const me = await getMeOrRedirect();
+  const locale = await getLocale();
 
   const list = await db
     .select()
@@ -19,7 +22,7 @@ export default async function NotificationsPage() {
   const unread = list.filter((n) => !n.read).length;
 
   return (
-    <div className="max-w-2xl">
+    <div className="mx-auto w-full max-w-2xl">
       <header className="mb-6 flex flex-wrap items-start justify-between gap-3 border-b border-[var(--border)] pb-4">
         <div>
           <h1 className="font-[var(--font-arabic)] text-3xl text-[var(--color-gold-2)]">اطلاعات</h1>
@@ -29,7 +32,7 @@ export default async function NotificationsPage() {
       </header>
 
       <Card>
-        <CardHeader><CardTitle>Inbox</CardTitle></CardHeader>
+        <CardHeader><CardTitle>{t('msg.inbox', locale)}</CardTitle></CardHeader>
         <CardBody className="p-0">
           {list.length === 0 && (
             <div className="py-12 text-center text-sm italic text-[var(--txt-3)]">All caught up · کوئی اطلاع نہیں</div>

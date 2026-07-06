@@ -50,7 +50,7 @@ const TOPIC_COLORS: Record<string, string> = {
 export default async function AboutPage() {
   await getMeOrRedirect();
   return (
-    <div>
+    <div className="mx-auto w-full max-w-3xl">
       <header className="mb-6 border-b border-[var(--border)] pb-4">
         <h1 className="font-[var(--font-arabic)] text-3xl text-[var(--color-gold-2)]">اس فنڈ کے بارے میں</h1>
         <p className="mt-1 font-[var(--font-en)] text-sm italic text-[var(--color-gold-4)]">Islamic basis of this family fund</p>

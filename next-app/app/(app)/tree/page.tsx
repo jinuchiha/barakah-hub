@@ -42,7 +42,7 @@ export default async function TreePage() {
   );
 
   return (
-    <div>
+    <div className="mx-auto w-full max-w-[1400px]">
       <header className="mb-6 border-b border-[var(--border)] pb-4">
         <h1 className="font-[var(--font-arabic)] text-3xl text-[var(--color-gold-2)]">خاندانی درخت</h1>
         <p className="mt-1 font-[var(--font-en)] text-sm italic text-[var(--color-gold-4)]">Family tree · click any node to expand. Father names + sibling counters auto-detected.</p>

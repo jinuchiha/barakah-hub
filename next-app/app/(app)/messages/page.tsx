@@ -5,11 +5,14 @@ import { members, messages } from '@/lib/db/schema';
 import { Card, CardHeader, CardTitle, CardBody } from '@/components/ui/card';
 import MessageForm from './message-form';
 import MarkAllRead from './mark-all-read';
+import { t } from '@/lib/i18n/dict';
+import { getLocale } from '@/lib/i18n/server';
 
 export const metadata = { title: 'Messages · Barakah Hub' };
 
 export default async function MessagesPage() {
   const me = await getMeOrRedirect();
+  const locale = await getLocale();
 
   const [inboxRows, sentRows, allMembers] = await Promise.all([
     db.select().from(messages).where(eq(messages.toId, me.id)).orderBy(desc(messages.createdAt)).limit(50),
@@ -27,9 +30,9 @@ export default async function MessagesPage() {
   const unread = inbox.filter((m) => !m.read).length;
 
   return (
-    <div className="grid max-w-5xl gap-4 lg:grid-cols-2">
+    <div className="mx-auto grid w-full max-w-5xl gap-4 lg:grid-cols-2">
       <Card>
-        <CardHeader><CardTitle>Send Message</CardTitle></CardHeader>
+        <CardHeader><CardTitle>{t('msg.send', locale)} · پیغام بھیجیں</CardTitle></CardHeader>
         <CardBody><MessageForm recipients={recipients} /></CardBody>
       </Card>
 
