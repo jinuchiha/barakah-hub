@@ -1,11 +1,20 @@
 import { describe, it, expect } from 'vitest';
 import { prayerTimesFor } from '@/lib/prayer-times';
 
-// Islamabad, a fixed summer date. We assert ordering and plausible local
-// windows rather than exact minutes — the algorithm is ±2 min by design.
+/**
+ * Islamabad, a fixed summer date. Times come back in the RUNTIME's local
+ * timezone (CI runs UTC, dev machines run PKT), so every assertion here
+ * is timezone-independent: ordering, spacing, and solar-noon derived
+ * from the runtime offset — never wall-clock constants.
+ */
 const DATE = new Date(2026, 6, 6); // 6 July 2026 (local)
 const LAT = 33.6844;
 const LNG = 73.0479;
+
+const hoursSinceLocalMidnight = (d: Date, day: Date) => {
+  const midnight = new Date(day.getFullYear(), day.getMonth(), day.getDate());
+  return (d.getTime() - midnight.getTime()) / 3_600_000;
+};
 
 describe('prayerTimesFor', () => {
   const t = prayerTimesFor(DATE, LAT, LNG);
@@ -18,21 +27,21 @@ describe('prayerTimesFor', () => {
     expect(t.maghrib.getTime()).toBeLessThan(t.isha.getTime());
   });
 
-  it('keeps every time on the requested calendar day', () => {
-    for (const d of [t.fajr, t.sunrise, t.dhuhr, t.asr, t.maghrib, t.isha]) {
-      expect(d.getDate()).toBe(DATE.getDate());
-      expect(d.getMonth()).toBe(DATE.getMonth());
-    }
+  it('solar noon matches longitude + runtime timezone (±30 min for eqt)', () => {
+    const tzHours = -DATE.getTimezoneOffset() / 60;
+    const expectedNoon = 12 + tzHours - LNG / 15;
+    expect(Math.abs(hoursSinceLocalMidnight(t.dhuhr, DATE) - expectedNoon)).toBeLessThan(0.5);
   });
 
-  it('puts solar noon in a plausible midday window', () => {
-    expect(t.dhuhr.getHours()).toBeGreaterThanOrEqual(11);
-    expect(t.dhuhr.getHours()).toBeLessThanOrEqual(13);
-  });
-
-  it('summer daylight in Islamabad is long — maghrib well after asr', () => {
+  it('summer daylight in Islamabad is long', () => {
     const daylightHours = (t.maghrib.getTime() - t.sunrise.getTime()) / 3_600_000;
     expect(daylightHours).toBeGreaterThan(12);
     expect(daylightHours).toBeLessThan(16);
+  });
+
+  it('consecutive days shift by ~24h', () => {
+    const next = prayerTimesFor(new Date(2026, 6, 7), LAT, LNG);
+    const deltaMin = (next.dhuhr.getTime() - t.dhuhr.getTime()) / 60_000;
+    expect(Math.abs(deltaMin - 24 * 60)).toBeLessThan(3);
   });
 });
