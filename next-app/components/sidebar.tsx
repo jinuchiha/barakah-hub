@@ -1,4 +1,5 @@
 'use client';
+import { useSyncExternalStore } from 'react';
 import Link from 'next/link';
 import type { Route } from 'next';
 import { usePathname } from 'next/navigation';
@@ -7,6 +8,7 @@ import { cn } from '@/lib/utils';
 import {
   LayoutDashboard, User, Users, GitBranch, Bell, Mail, Settings, Wallet,
   AlertTriangle, FileText, Megaphone, ScrollText, UserPlus, BookOpen, Bot, Wrench,
+  ChevronsLeft,
 } from 'lucide-react';
 
 const NAV: { href: string; label: string; labelUr: string; icon: React.ComponentType<{ className?: string }>; admin?: boolean; supervisor?: boolean }[] = [
@@ -37,9 +39,10 @@ interface NavProps {
   onNavigate?: () => void;
   layoutIdSuffix?: string;
   badges?: Record<string, number>;
+  collapsed?: boolean;
 }
 
-export function SidebarNav({ isAdmin = false, isSupervisor = false, locale = 'en', onNavigate, layoutIdSuffix = 'desktop', badges = {} }: NavProps) {
+export function SidebarNav({ isAdmin = false, isSupervisor = false, locale = 'en', onNavigate, layoutIdSuffix = 'desktop', badges = {}, collapsed = false }: NavProps) {
   const pathname = usePathname();
   const items = NAV.filter((n) => {
     if (n.admin) return isAdmin;
@@ -50,41 +53,83 @@ export function SidebarNav({ isAdmin = false, isSupervisor = false, locale = 'en
 
   return (
     <nav className="flex-1 overflow-y-auto px-3 py-2" aria-label="Main">
-      <SectionLabel label={locale === 'ur' ? 'مینو' : 'MAIN'} />
+      {!collapsed && <SectionLabel label={locale === 'ur' ? 'مینو' : 'MAIN'} />}
       {items.map((n, i) => {
         const itemKey = `${n.href}-${n.admin ? 'admin' : n.supervisor ? 'supervisor' : 'member'}`;
         const isActive = pathname === n.href || pathname.startsWith(n.href + '/');
         if (n.admin && i === adminStart) {
           return (
             <div key={itemKey}>
-              <SectionLabel label={locale === 'ur' ? 'ایڈمن' : 'ADMIN'} />
-              <NavItem n={n} isActive={isActive} locale={locale} onNavigate={onNavigate} badge={badges[n.href]} layoutId={`nav-pill-${layoutIdSuffix}`} />
+              {collapsed ? <div aria-hidden className="mx-2 my-2 h-px bg-[rgba(200,155,60,0.18)]" /> : <SectionLabel label={locale === 'ur' ? 'ایڈمن' : 'ADMIN'} />}
+              <NavItem n={n} isActive={isActive} locale={locale} onNavigate={onNavigate} badge={badges[n.href]} layoutId={`nav-pill-${layoutIdSuffix}`} collapsed={collapsed} />
             </div>
           );
         }
-        return <NavItem key={itemKey} n={n} isActive={isActive} locale={locale} onNavigate={onNavigate} badge={badges[n.href]} layoutId={`nav-pill-${layoutIdSuffix}`} />;
+        return <NavItem key={itemKey} n={n} isActive={isActive} locale={locale} onNavigate={onNavigate} badge={badges[n.href]} layoutId={`nav-pill-${layoutIdSuffix}`} collapsed={collapsed} />;
       })}
     </nav>
   );
 }
 
+const COLLAPSE_KEY = 'barakah_sidebar_collapsed';
+
+// External-store read so SSR renders expanded and the client corrects
+// itself without a setState-in-effect cascade (same pattern as topbar).
+const collapseStore = {
+  subscribe: (cb: () => void) => {
+    if (typeof window === 'undefined') return () => {};
+    window.addEventListener('storage', cb);
+    return () => window.removeEventListener('storage', cb);
+  },
+  getSnapshot: () => typeof window !== 'undefined' && localStorage.getItem(COLLAPSE_KEY) === '1',
+  getServerSnapshot: () => false,
+};
+
 export function Sidebar({ isAdmin = false, isSupervisor = false, locale = 'en', badges = {} }: {
   isAdmin?: boolean; isSupervisor?: boolean; locale?: 'ur' | 'en'; badges?: Record<string, number>;
 }) {
+  const collapsed = useSyncExternalStore(collapseStore.subscribe, collapseStore.getSnapshot, collapseStore.getServerSnapshot);
+  const toggle = () => {
+    localStorage.setItem(COLLAPSE_KEY, collapsed ? '0' : '1');
+    window.dispatchEvent(new StorageEvent('storage', { key: COLLAPSE_KEY }));
+  };
+
   return (
     <aside
-      className="hidden w-[220px] shrink-0 flex-col md:flex"
-      style={{ background: 'linear-gradient(180deg,#060b13 0%,#080e18 100%)', borderRight: '1px solid rgba(200,155,60,0.14)' }}
+      className="hidden shrink-0 flex-col transition-[width] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] md:flex"
+      style={{
+        width: collapsed ? 64 : 220,
+        background: 'linear-gradient(180deg,#060b13 0%,#080e18 100%)',
+        borderRight: '1px solid rgba(200,155,60,0.14)',
+      }}
     >
       {/* Gold top accent line */}
       <div aria-hidden className="h-px w-full" style={{ background: 'linear-gradient(90deg, transparent, rgba(200,155,60,0.35), transparent)' }} />
 
-      <SidebarNav isAdmin={isAdmin} isSupervisor={isSupervisor} locale={locale} layoutIdSuffix="desktop" badges={badges} />
+      <SidebarNav isAdmin={isAdmin} isSupervisor={isSupervisor} locale={locale} layoutIdSuffix="desktop" badges={badges} collapsed={collapsed} />
 
-      {/* ── FOOTER ── */}
-      <div className="px-4 py-3 text-[9px] uppercase tracking-[2px]"
-        style={{ borderTop: '1px solid rgba(200,155,60,0.08)', color: 'rgba(236,235,230,0.22)' }}>
-        v3.0 · Barakah Hub
+      {/* ── FOOTER: collapse toggle + version ── */}
+      <div
+        className="flex items-center justify-between gap-2 px-3 py-2.5"
+        style={{ borderTop: '1px solid rgba(200,155,60,0.08)' }}
+      >
+        {!collapsed && (
+          <span className="text-[9px] uppercase tracking-[2px]" style={{ color: 'rgba(236,235,230,0.22)' }}>
+            v3.0 · Barakah Hub
+          </span>
+        )}
+        <button
+          type="button"
+          onClick={toggle}
+          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          aria-expanded={!collapsed}
+          className="grid size-7 place-items-center rounded-lg text-[rgba(236,235,230,0.4)] transition-colors hover:bg-white/[0.05] hover:text-[var(--color-gold-2)]"
+        >
+          <ChevronsLeft
+            className="size-4 transition-transform duration-300"
+            style={{ transform: collapsed ? 'rotate(180deg)' : 'none' }}
+          />
+        </button>
       </div>
     </aside>
   );
@@ -98,8 +143,8 @@ function SectionLabel({ label }: { label: string }) {
   );
 }
 
-function NavItem({ n, isActive, locale, onNavigate, badge, layoutId }: {
-  n: typeof NAV[number]; isActive: boolean; locale: 'ur' | 'en'; onNavigate?: () => void; badge?: number; layoutId: string;
+function NavItem({ n, isActive, locale, onNavigate, badge, layoutId, collapsed = false }: {
+  n: typeof NAV[number]; isActive: boolean; locale: 'ur' | 'en'; onNavigate?: () => void; badge?: number; layoutId: string; collapsed?: boolean;
 }) {
   const Icon = n.icon;
   return (
@@ -107,8 +152,10 @@ function NavItem({ n, isActive, locale, onNavigate, badge, layoutId }: {
       href={n.href as Route}
       onClick={onNavigate}
       aria-current={isActive ? 'page' : undefined}
+      title={collapsed ? (locale === 'ur' ? n.labelUr : n.label) : undefined}
       className={cn(
-        'group relative my-0.5 flex items-center gap-2.5 rounded-xl px-3 py-2 text-[13px] transition-colors duration-150',
+        'group relative my-0.5 flex items-center gap-2.5 rounded-xl py-2 text-[13px] transition-colors duration-150',
+        collapsed ? 'justify-center px-0' : 'px-3',
         isActive ? 'font-medium' : 'hover:bg-white/[0.04]',
       )}
       style={{ color: isActive ? '#ecebe6' : 'rgba(236,235,230,0.50)' }}
@@ -127,8 +174,11 @@ function NavItem({ n, isActive, locale, onNavigate, badge, layoutId }: {
         />
       )}
       <Icon className={cn('relative size-[15px] shrink-0', isActive ? 'text-[#c89b3c]' : 'text-[rgba(236,235,230,0.35)]')} />
-      <span className="relative flex-1 truncate">{locale === 'ur' ? n.labelUr : n.label}</span>
-      {!!badge && badge > 0 && (
+      {!collapsed && <span className="relative flex-1 truncate">{locale === 'ur' ? n.labelUr : n.label}</span>}
+      {collapsed && !!badge && badge > 0 && (
+        <span aria-hidden className="absolute right-1.5 top-1.5 size-1.5 rounded-full" style={{ background: '#c89b3c' }} />
+      )}
+      {!collapsed && !!badge && badge > 0 && (
         <span className="num relative ml-auto grid min-w-[20px] place-items-center rounded-full px-1.5 text-[10px] font-bold"
           style={{ background: '#c89b3c', color: '#0a0f1a' }}>
           {badge > 99 ? '99+' : badge}

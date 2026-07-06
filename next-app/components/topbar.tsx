@@ -175,9 +175,12 @@ export function Topbar({ user, unreadCount = 0, isAdmin = false, isSupervisor = 
         >
           <Bell className="size-[17px]" />
           {unreadCount > 0 && (
-            <span className="num absolute right-1.5 top-1.5 grid h-3.5 min-w-[14px] place-items-center rounded-full bg-[#dc5252] px-1 text-[8px] font-bold text-white shadow-[0_0_6px_rgba(220,82,82,0.5)]">
-              {unreadCount > 99 ? '99+' : unreadCount}
-            </span>
+            <>
+              <span aria-hidden className="badge-pulse absolute right-1.5 top-1.5 h-3.5 min-w-[14px] rounded-full" />
+              <span className="num absolute right-1.5 top-1.5 grid h-3.5 min-w-[14px] place-items-center rounded-full bg-[#dc5252] px-1 text-[8px] font-bold text-white shadow-[0_0_6px_rgba(220,82,82,0.5)]">
+                {unreadCount > 99 ? '99+' : unreadCount}
+              </span>
+            </>
           )}
         </Link>
         <DropdownMenu>

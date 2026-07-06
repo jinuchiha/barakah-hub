@@ -10,10 +10,11 @@ describe('StatCard', () => {
     expect(screen.getByText('👥 5 members')).toBeInTheDocument();
   });
 
-  it('renders sublabel when provided', () => {
+  it('renders sublabel when provided', async () => {
     render(<StatCard label="Members" sublabel="Active family" value={42} />);
     expect(screen.getByText('Active family')).toBeInTheDocument();
-    expect(screen.getByText('42')).toBeInTheDocument();
+    // Numeric values count up via requestAnimationFrame — wait for settle.
+    expect(await screen.findByText('42', undefined, { timeout: 2000 })).toBeInTheDocument();
   });
 
   it('renders sparkline svg when values provided', () => {

@@ -7,7 +7,7 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        gold: 'btn-shine bg-gradient-to-br from-[var(--color-gold-4)] to-[var(--color-gold)] text-[var(--color-ink)] hover:shadow-[0_8px_24px_rgba(214,210,199,0.35)] hover:-translate-y-0.5',
+        gold: 'btn-shine bg-gradient-to-br from-[var(--color-gold-4)] to-[var(--color-gold)] text-[var(--color-ink)] hover:shadow-[0_8px_24px_rgba(200,155,60,0.35),0_0_20px_rgba(200,155,60,0.2)] hover:-translate-y-0.5',
         emerald: 'bg-[rgba(30,42,74,0.12)] text-[var(--color-emerald-2)] border border-[rgba(30,42,74,0.3)] hover:bg-[rgba(30,42,74,0.2)]',
         red: 'bg-[rgba(220,50,50,0.12)] text-[#f87171] border border-[rgba(220,50,50,0.3)] hover:bg-[rgba(220,50,50,0.2)]',
         ghost: 'bg-transparent text-[var(--txt-2)] border border-[var(--border)] hover:bg-[rgba(214,210,199,0.06)] hover:text-[var(--txt-1)]',
