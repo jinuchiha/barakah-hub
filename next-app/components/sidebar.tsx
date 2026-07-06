@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useSyncExternalStore } from 'react';
 import Link from 'next/link';
 import type { Route } from 'next';
 import { usePathname } from 'next/navigation';
@@ -73,17 +73,25 @@ export function SidebarNav({ isAdmin = false, isSupervisor = false, locale = 'en
 
 const COLLAPSE_KEY = 'barakah_sidebar_collapsed';
 
+// External-store read so SSR renders expanded and the client corrects
+// itself without a setState-in-effect cascade (same pattern as topbar).
+const collapseStore = {
+  subscribe: (cb: () => void) => {
+    if (typeof window === 'undefined') return () => {};
+    window.addEventListener('storage', cb);
+    return () => window.removeEventListener('storage', cb);
+  },
+  getSnapshot: () => typeof window !== 'undefined' && localStorage.getItem(COLLAPSE_KEY) === '1',
+  getServerSnapshot: () => false,
+};
+
 export function Sidebar({ isAdmin = false, isSupervisor = false, locale = 'en', badges = {} }: {
   isAdmin?: boolean; isSupervisor?: boolean; locale?: 'ur' | 'en'; badges?: Record<string, number>;
 }) {
-  const [collapsed, setCollapsed] = useState(false);
-  useEffect(() => {
-    setCollapsed(localStorage.getItem(COLLAPSE_KEY) === '1');
-  }, []);
+  const collapsed = useSyncExternalStore(collapseStore.subscribe, collapseStore.getSnapshot, collapseStore.getServerSnapshot);
   const toggle = () => {
-    const next = !collapsed;
-    setCollapsed(next);
-    localStorage.setItem(COLLAPSE_KEY, next ? '1' : '0');
+    localStorage.setItem(COLLAPSE_KEY, collapsed ? '0' : '1');
+    window.dispatchEvent(new StorageEvent('storage', { key: COLLAPSE_KEY }));
   };
 
   return (
