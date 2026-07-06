@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation';
+import Link from 'next/link';
 import type { Route } from 'next';
 import { eq, desc, sql, and, isNull, isNotNull } from 'drizzle-orm';
 import { getMeOrRedirect, canManageFunds } from '@/lib/auth-server';
@@ -254,10 +255,11 @@ export default async function FundPage() {
               const st = monthStatus.get(m.id);
               const name = m.nameEn || m.nameUr || m.username;
               return (
-                <span
+                <Link
                   key={m.id}
+                  href={`/admin/members/${m.id}` as Route}
                   title={st === 'paid' ? 'Verified this month' : st === 'pending' ? 'Awaiting verification' : 'No contribution yet'}
-                  className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[11.5px] transition-colors duration-200"
+                  className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[11.5px] transition-colors duration-200 hover:border-[var(--color-gold)]"
                   style={
                     st === 'paid'
                       ? { borderColor: 'rgba(45,138,95,0.45)', background: 'rgba(45,138,95,0.10)', color: '#4ec38d' }
@@ -272,7 +274,7 @@ export default async function FundPage() {
                     style={{ background: st === 'paid' ? '#4ec38d' : st === 'pending' ? 'var(--color-gold-2)' : 'var(--txt-4)' }}
                   />
                   {name}
-                </span>
+                </Link>
               );
             })}
             {boardMembers.length === 0 && (

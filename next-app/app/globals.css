@@ -495,12 +495,14 @@ button:disabled,
 .calligraphy-word {
   position: absolute;
   color: var(--color-gold);
-  opacity: 0.028;
+  opacity: 0.024;
   line-height: 1;
   user-select: none;
   will-change: transform;
   animation: calligraphyDrift ease-in-out infinite alternate;
 }
+/* Light surfaces make gold glyphs read like stains — near-invisible there. */
+.light .calligraphy-word { opacity: 0.008; }
 @keyframes calligraphyDrift {
   from { transform: translateY(-1.5rem); }
   to   { transform: translateY(1.5rem); }

@@ -109,6 +109,13 @@ const TOLERABLE: RegExp[] = [
   /function auth\.uid\(\) does not exist/i,
   /relation "storage\.(buckets|objects)" does not exist/i,
   /role "(authenticated|anon|service_role|supabase_admin)" does not exist/i,
+  // Re-running 0001 on a Neon branch copied from prod: members.auth_id
+  // is TEXT there (0004 swapped it), so the legacy Supabase RLS helpers
+  // comparing it to auth.uid() fail at CREATE with a type error. Exact
+  // messages only — a loose "operator does not exist" would mask real
+  // type bugs in new migrations.
+  /operator does not exist: text = uuid/i,
+  /function (is_admin|my_member_id)\(\) does not exist/i,
 ];
 
 function isTolerable(err: unknown): boolean {
