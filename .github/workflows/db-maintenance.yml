@@ -1,0 +1,64 @@
+name: DB maintenance
+
+# Manually dispatched admin tool. Uses the same NEON_API_KEY /
+# NEON_PROJECT_ID secrets as the PR-branch workflow, but targets the
+# PRODUCTION (main) branch: apply pending migrations, verify schema, or
+# manage the throwaway *@barakah-test.dev E2E account.
+on:
+  workflow_dispatch:
+    inputs:
+      task:
+        description: migrate | verify | e2e-approve | e2e-promote | e2e-cleanup
+        required: true
+        type: choice
+        options: [migrate, verify, e2e-approve, e2e-promote, e2e-cleanup]
+      email:
+        description: e2e test account email (@barakah-test.dev only)
+        required: false
+        default: ''
+
+defaults:
+  run:
+    working-directory: next-app
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch production connection string
+        id: conn
+        working-directory: .
+        run: |
+          uri=$(curl -sf "https://console.neon.tech/api/v2/projects/${{ secrets.NEON_PROJECT_ID }}/connection_uri?branch_name=main&database_name=neondb&role_name=neondb_owner" \
+            -H "Authorization: Bearer ${{ secrets.NEON_API_KEY }}" | jq -r .uri)
+          if [ -z "$uri" ] || [ "$uri" = "null" ]; then echo "no uri" >&2; exit 1; fi
+          echo "::add-mask::$uri"
+          echo "uri=$uri" >> "$GITHUB_OUTPUT"
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with: { version: 9, run_install: false }
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: next-app/pnpm-lock.yaml
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Run task
+        env:
+          DATABASE_URL_DIRECT: ${{ steps.conn.outputs.uri }}
+          TASK: ${{ inputs.task }}
+          E2E_EMAIL: ${{ inputs.email }}
+        run: |
+          if [ "$TASK" = "migrate" ]; then
+            pnpm db:migrate
+          else
+            pnpm exec tsx scripts/db-maintenance.ts "$TASK" "$E2E_EMAIL"
+          fi
