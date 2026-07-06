@@ -128,33 +128,46 @@ export default async function DashboardPage() {
       </header>
 
       {isAdmin && (
-        <div
-          className="animate-enter relative mb-6 overflow-hidden rounded-2xl p-7 shadow-[0_10px_40px_rgba(200,155,60,0.18)]"
-          style={{ background: 'linear-gradient(135deg, #c89b3c 0%, #d9b04c 42%, #18223a 100%)' }}
-        >
+        <div className="animate-enter fund-hero relative mb-6 overflow-hidden rounded-2xl p-7">
           <div className="relative z-10">
-            <div className="text-[11px] font-bold uppercase tracking-[2.5px] text-black/60">Total Family Fund</div>
-            <AnimatedNumber value={totalFund} prefix="Rs. " className="tabular mt-2 text-[44px] font-bold leading-none text-[#0a0f1a]" />
-            <div className="mt-3 h-px w-14 bg-black/25" />
-            <div className="mt-3 text-[12.5px] font-semibold text-black/60">
+            <div className="flex items-center gap-2">
+              <span aria-hidden className="fund-hero-dot" />
+              <span className="text-[11px] font-bold uppercase tracking-[2.5px] text-[var(--color-gold-4)]">Total Family Fund · Live</span>
+            </div>
+            <AnimatedNumber value={totalFund} prefix="Rs. " className="fund-hero-number tabular mt-2 text-[44px] font-bold leading-none" />
+            <div className="mt-3 h-px w-14 bg-[rgba(200,155,60,0.35)]" />
+            <div className="mt-3 text-[12.5px] font-medium text-[var(--txt-3)]">
               {memberCount} members · {fmtRs(pendingAmount)} awaiting approval
             </div>
             {sparkValues.length > 1 && (
-              <svg viewBox="0 0 100 26" preserveAspectRatio="none" className="mt-4 h-8 w-full max-w-[260px]">
-                <polyline
-                  points={sparkValues
-                    .map((v, i) => `${(i / (sparkValues.length - 1)) * 100},${26 - (v / Math.max(...sparkValues, 1)) * 24}`)
-                    .join(' ')}
-                  fill="none"
-                  stroke="rgba(0,0,0,0.45)"
-                  strokeWidth="2.5"
-                  strokeLinejoin="round"
-                  strokeLinecap="round"
-                />
+              <svg viewBox="0 0 100 26" preserveAspectRatio="none" className="mt-4 h-9 w-full max-w-[300px]">
+                <defs>
+                  <linearGradient id="fund-spark-fill" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="rgba(232,197,99,0.35)" />
+                    <stop offset="100%" stopColor="rgba(232,197,99,0)" />
+                  </linearGradient>
+                </defs>
+                {(() => {
+                  const pts = sparkValues.map((v, i) => `${(i / (sparkValues.length - 1)) * 100},${26 - (v / Math.max(...sparkValues, 1)) * 22 - 2}`);
+                  return (
+                    <>
+                      <polygon points={`0,26 ${pts.join(' ')} 100,26`} fill="url(#fund-spark-fill)" />
+                      <polyline
+                        points={pts.join(' ')}
+                        fill="none"
+                        stroke="#e8c563"
+                        strokeWidth="1.8"
+                        strokeLinejoin="round"
+                        strokeLinecap="round"
+                        style={{ filter: 'drop-shadow(0 0 4px rgba(232,197,99,0.6))' }}
+                      />
+                    </>
+                  );
+                })()}
               </svg>
             )}
           </div>
-          <div aria-hidden="true" className="pointer-events-none absolute -right-6 -bottom-8 text-[140px] leading-none text-black/[0.06]">☾</div>
+          <div aria-hidden="true" className="pointer-events-none absolute -right-6 -bottom-8 text-[140px] leading-none text-[rgba(200,155,60,0.07)]">☾</div>
         </div>
       )}
 

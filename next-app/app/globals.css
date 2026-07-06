@@ -626,3 +626,74 @@ button:disabled,
 @media (prefers-reduced-motion: reduce) {
   .badge-pulse { animation: none; opacity: 0; }
 }
+
+/* ─────────────────────────────────────────
+   FUND HERO — the headline number lives: aurora drifts inside the
+   glass, a sheen crosses every few seconds, the LIVE dot breathes,
+   and the figure itself carries a slow gold gradient.
+   ───────────────────────────────────────── */
+.fund-hero {
+  background:
+    linear-gradient(120deg, rgba(200,155,60,0.16), rgba(24,34,58,0.5) 45%, rgba(200,155,60,0.1) 80%, rgba(24,34,58,0.55)),
+    rgba(10,16,28,0.72);
+  background-size: 220% 220%;
+  animation: fundAurora 14s ease-in-out infinite alternate;
+  backdrop-filter: blur(14px) saturate(1.15);
+  -webkit-backdrop-filter: blur(14px) saturate(1.15);
+  border: 1px solid rgba(200,155,60,0.3);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.06) inset,
+    0 12px 44px rgba(0,0,0,0.4),
+    0 0 60px rgba(200,155,60,0.08);
+}
+.fund-hero::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -70%;
+  width: 45%;
+  height: 100%;
+  background: linear-gradient(105deg, transparent, rgba(232,197,99,0.08), transparent);
+  transform: skewX(-18deg);
+  animation: fundSheen 7s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes fundAurora {
+  from { background-position: 0% 0%; }
+  to   { background-position: 100% 100%; }
+}
+@keyframes fundSheen {
+  0%, 55%  { left: -70%; }
+  85%, 100% { left: 140%; }
+}
+
+.fund-hero-number {
+  background: linear-gradient(100deg, #ecebe6 20%, #e8c563 50%, #ecebe6 80%);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: fundNumberSheen 6s ease-in-out infinite;
+}
+@keyframes fundNumberSheen {
+  0%, 100% { background-position: 0% 0; }
+  50%      { background-position: 100% 0; }
+}
+
+.fund-hero-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #4ec38d;
+  box-shadow: 0 0 8px rgba(78,195,141,0.8);
+  animation: fundDot 2.2s ease-in-out infinite;
+}
+@keyframes fundDot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.45; transform: scale(0.8); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fund-hero, .fund-hero::after, .fund-hero-number, .fund-hero-dot { animation: none; }
+  .fund-hero-number { color: var(--color-cream); background: none; }
+}
