@@ -10,7 +10,7 @@ export default async function RegisterPage() {
   if (user) redirect('/dashboard');
 
   return (
-    <main className="grid min-h-screen place-items-center p-5">
+    <main className="grid min-h-svh place-items-center px-4 py-10">
       <div className="w-[480px] max-w-full">
         <Card className="overflow-hidden">
           <div className="absolute left-0 right-0 top-0 h-0.5 bg-gradient-to-r from-transparent via-[var(--color-gold)] to-transparent" />

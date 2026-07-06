@@ -78,7 +78,7 @@ export default function LoginScene({ children }: { children: React.ReactNode }) 
   const reduce = useReducedMotion();
 
   return (
-    <div className="relative z-10 grid min-h-screen place-items-center p-5">
+    <div className="relative z-10 grid min-h-svh place-items-center px-4 py-10">
       {/* Depth layers */}
       <BarakahFieldMount />
       <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
