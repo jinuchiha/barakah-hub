@@ -126,6 +126,12 @@ export default async function MyAccountPage() {
       <Card>
         <CardHeader>
           <CardTitle>My Payment History</CardTitle>
+          <a
+            href="/api/exports/my-statement"
+            className="text-[11px] font-semibold tracking-wide text-[var(--color-gold-4)] transition-colors hover:text-[var(--color-gold-2)]"
+          >
+            ↓ Download my statement (CSV)
+          </a>
         </CardHeader>
         <CardBody className="p-0">
           {myPayments.length === 0 ? (

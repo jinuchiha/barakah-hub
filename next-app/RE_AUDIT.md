@@ -351,13 +351,13 @@ Since you said you've disconnected from Cloudflare and haven't picked a new targ
 ## Deployment checklist (target-agnostic)
 
 Pre-merge:
-- [ ] Address P0-RA-1 (auth secret fallback) — non-negotiable before any prod deploy
-- [ ] Address P1-RA-2 (open-redirect) — quick fix, ship it
-- [ ] Address P1-RA-3 (DATABASE_URL throw) — quick fix, ship it
-- [ ] Decide on P1-RA-4 (recordRepayment race) — accept or fix
-- [ ] Tighten migration-runner regex (P1-RA-5)
-- [ ] Add Better-Auth rate-limit plugin (P1-RA-6) — recommended before prod
-- [ ] Strip stale Supabase refs from `wrangler.toml`, `next.config.mjs`, `.env.example` (P2 cluster)
+- [x] Address P0-RA-1 (auth secret fallback) — fixed: `lib/auth.ts` throws at boot on missing/weak secret
+- [x] Address P1-RA-2 (open-redirect) — fixed: `safeNext()` in `app/login/login-form.tsx`
+- [x] Address P1-RA-3 (DATABASE_URL throw) — fixed: `lib/db/index.ts` fails at module load
+- [x] Decide on P1-RA-4 (recordRepayment race) — fixed: conditional UPDATE + weekly ledger reconcile in `/api/cron/weekly-backup` (writes `ledger-reconcile-mismatch` audit rows)
+- [x] Tighten migration-runner regex (P1-RA-5) — fixed: dollar-quote-aware splitter in `scripts/migrate.ts`
+- [x] Add Better-Auth rate-limit plugin (P1-RA-6) — enabled in `lib/auth.ts` (5/min sign-in, 3/5min forget-password; in-memory, per-instance on Vercel)
+- [x] Strip stale Supabase refs — `wrangler.toml` deleted in the Vercel migration (`d4e0d7d`)
 
 Per deploy target — see options above.
 
@@ -366,7 +366,7 @@ Post-merge:
 - [ ] Monitor `wrangler tail` (CF) or Vercel logs for 30 minutes after deploy
 - [ ] Verify the first user registration creates rows in `users` + `members`
 - [ ] Verify password-reset email delivery (if Resend configured)
-- [ ] Set up uptime monitoring (Better Uptime free tier, UptimeRobot, or Cloudflare's built-in)
+- [ ] Set up uptime monitoring — point it at `/api/health` (returns 200 + DB ping; added for this purpose)
 - [ ] Schedule the password rotation that's been outstanding from earlier in the conversation (Neon DB password + Better-Auth secret were briefly in chat)
 
 ---

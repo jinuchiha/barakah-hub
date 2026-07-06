@@ -891,9 +891,9 @@ export async function recordRepayment(input: z.infer<typeof repaySchema>) {
   const settledLoan = updated[0];
   const fullySettled = !settledLoan.active;
 
-  // Now-safe insert + audit; if either fails, a nightly reconcile job
-  // (TODO: not yet implemented) would notice loan.paid disagreeing with
-  // SUM(repayments.amount).
+  // Now-safe insert + audit; if either fails, the weekly reconcile in
+  // /api/cron/weekly-backup notices loans.paid disagreeing with
+  // SUM(repayments.amount) and writes a ledger-reconcile-mismatch audit row.
   await db.insert(repayments).values({
     loanId: data.loanId,
     amount: data.amount,
