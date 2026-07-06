@@ -78,7 +78,7 @@ export default function IssueLoanForm({ members }: Props) {
       </div>
       <div className="md:col-span-2">
         <Label>Purpose *</Label>
-        <Input value={purpose} onChange={(e) => setPurpose(e.target.value)} placeholder="e.g. Hospital bill — son's surgery" required />
+        <Input value={purpose} onChange={(e) => setPurpose(e.target.value)} placeholder="e.g. Hospital bill · son's surgery" required />
       </div>
       <div className="md:col-span-2">
         <Label>City</Label>

@@ -7,7 +7,7 @@ export default function VoteButtons({ caseId, alreadyVoted }: { caseId: string; 
   const [pending, start] = useTransition();
   function vote(yes: boolean) {
     start(async () => {
-      try { await castVote(caseId, yes); toast.success(yes ? '✓ Vote recorded — جزاکم اللہ' : '✗ No vote recorded'); }
+      try { await castVote(caseId, yes); toast.success(yes ? '✓ Vote recorded · جزاکم اللہ' : '✗ No vote recorded'); }
       catch (e: unknown) { toast.error(e instanceof Error ? e.message : 'Vote failed'); }
     });
   }

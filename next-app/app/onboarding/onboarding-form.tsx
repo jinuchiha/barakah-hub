@@ -44,7 +44,7 @@ export default function OnboardingForm({ existing }: Props) {
     start(async () => {
       try {
         await onboardSelf(form);
-        toast.success('Welcome — setup complete ✨');
+        toast.success('Welcome · setup complete ✨');
         router.replace('/dashboard');
       } catch (e: unknown) { toast.error(e instanceof Error ? e.message : 'Setup failed'); }
     });
@@ -84,7 +84,7 @@ export default function OnboardingForm({ existing }: Props) {
             <div className="md:col-span-2">
               <Label>Province *</Label>
               <select value={form.province} onChange={(e) => set('province', e.target.value)} className="w-full rounded-md border border-[var(--border)] bg-[var(--surf-3)] px-3 py-2.5 text-sm text-[var(--color-cream)]">
-                <option value="">— Select —</option>
+                <option value="">Select</option>
                 {PROVINCES.slice(1).map((p) => <option key={p} value={p}>{p}</option>)}
               </select>
             </div>

@@ -506,7 +506,7 @@ async function CommunityActivity({ meId, isAdmin }: { meId: string; isAdmin: boo
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="text-[12.5px] text-[var(--color-cream)]">Anonymous donation</div>
-                  <div className="text-[10.5px] italic text-[var(--txt-4)]">سدقہ — given in secret</div>
+                  <div className="text-[10.5px] italic text-[var(--txt-4)]">صدقہ · given in secret</div>
                 </div>
                 <div className="num shrink-0 font-semibold text-[var(--color-cream)]">{fmtRs(item.amount)}</div>
               </div>
@@ -575,7 +575,7 @@ async function MemberRecentActivity({ memberId }: { memberId: string }) {
     .limit(5);
 
   if (myPayments.length === 0) {
-    return <div className="py-10 text-center text-[12.5px] text-[var(--txt-3)]">No contributions yet — submit your first donation</div>;
+    return <div className="py-10 text-center text-[12.5px] text-[var(--txt-3)]">No contributions yet · submit your first donation</div>;
   }
   return (
     <>

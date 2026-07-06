@@ -35,7 +35,7 @@ export default function NewCaseForm() {
     start(async () => {
       try {
         await createCase({ ...form, returnDate: form.returnDate || null });
-        toast.success('Submitted — voting open');
+        toast.success('Submitted · voting open');
         setForm({ ...form, beneficiaryName: '', relation: '', city: '', amount: 0, reason: '', emergency: false, returnDate: '' });
         setOpen(false);
       } catch (e: unknown) { toast.error(e instanceof Error ? e.message : 'Submission failed'); }
@@ -93,7 +93,7 @@ export default function NewCaseForm() {
           onChange={(e) => set('reason', e.target.value)}
           rows={3}
           required
-          placeholder="Describe the need — in any language"
+          placeholder="Describe the need · in any language"
         />
       </div>
       <label className="flex cursor-pointer items-center gap-2 text-sm md:col-span-2">

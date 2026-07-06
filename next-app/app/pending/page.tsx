@@ -37,7 +37,7 @@ export default async function PendingPage() {
         <p className="font-semibold uppercase tracking-widest text-[10px] text-[var(--color-gold-4)]">Awaiting Admin Approval</p>
         <div className="mt-5 rounded-xl border border-[var(--border)] bg-[rgba(255,255,255,0.02)] p-4 text-left">
           <p className="text-sm leading-6 text-[var(--txt-2)]">
-            Salaam <strong className="text-[var(--color-cream)]">{me.nameEn || me.nameUr}</strong> — your account has been registered. An admin will review and approve it shortly.
+            Salaam <strong className="text-[var(--color-cream)]">{me.nameEn || me.nameUr}</strong> · your account has been registered. An admin will review and approve it shortly.
           </p>
           <p dir="rtl" className="mt-2 font-[var(--font-arabic)] text-sm leading-7 text-[var(--txt-3)]">
             آپ کی درخواست موصول ہو گئی ہے۔ منظوری ملنے پر آپ کو اطلاع بھیجی جائے گی۔

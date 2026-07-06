@@ -19,7 +19,7 @@ export default function RegisterForm() {
     start(async () => {
       const { error } = await signUp.email({ email, password, name });
       if (error) { toast.error(error.message ?? 'Registration failed'); return; }
-      toast.success('Account created — completing your profile next');
+      toast.success('Account created · completing your profile next');
       router.replace('/onboarding');
       router.refresh();
     });

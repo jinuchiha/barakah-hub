@@ -23,28 +23,28 @@ const ICONS: Record<string, string> = {
 
 const ACTION_GROUPS = [
   { label: 'All actions', value: '' },
-  { label: '— Members —', value: '', disabled: true },
+  { label: '▸ Members', value: '', disabled: true },
   { label: 'Member approved', value: 'member-approved' },
   { label: 'Member rejected', value: 'member-rejected' },
   { label: 'Member added', value: 'member-added' },
   { label: 'Member edited', value: 'member-edited' },
   { label: 'Member deleted', value: 'member-deleted' },
   { label: 'Member deceased', value: 'member-deceased' },
-  { label: '— Payments —', value: '', disabled: true },
+  { label: '▸ Payments', value: '', disabled: true },
   { label: 'Payment recorded', value: 'payment-record' },
   { label: 'Self-submitted', value: 'payment-self-submit' },
   { label: 'Payment verified', value: 'payment-verified' },
   { label: 'Payment rejected', value: 'payment-rejected' },
-  { label: '— Cases —', value: '', disabled: true },
+  { label: '▸ Cases', value: '', disabled: true },
   { label: 'Case created', value: 'emergency-create' },
   { label: 'Vote cast', value: 'vote-cast' },
   { label: 'Case approved', value: 'emergency-approved' },
   { label: 'Case rejected', value: 'emergency-rejected' },
   { label: 'Case disbursed', value: 'case-disbursed' },
-  { label: '— Loans —', value: '', disabled: true },
+  { label: '▸ Loans', value: '', disabled: true },
   { label: 'Loan issued', value: 'loan-issue' },
   { label: 'Loan repayment', value: 'loan-repay' },
-  { label: '— Admin —', value: '', disabled: true },
+  { label: '▸ Admin', value: '', disabled: true },
   { label: 'Config changed', value: 'config-changed' },
   { label: 'Broadcast sent', value: 'broadcast' },
 ];
@@ -141,7 +141,7 @@ export default async function AuditPage({ searchParams }: PageProps) {
             <label className="block">
               <span className="mb-1 block font-[var(--font-display)] text-[10px] uppercase tracking-widest text-[var(--color-gold-4)]">Member</span>
               <select name="member" defaultValue={filterMemberId} className="w-full rounded-md border border-[var(--border)] bg-[var(--surf-3)] px-2 py-1.5 text-sm text-[var(--color-cream)]">
-                <option value="">— Any member —</option>
+                <option value="">Any member</option>
                 {allMembers.map((m) => (
                   <option key={m.id} value={m.id}>{m.nameEn || m.nameUr}</option>
                 ))}
@@ -174,7 +174,7 @@ export default async function AuditPage({ searchParams }: PageProps) {
         <CardBody className="p-0">
           {entries.length === 0 && (
             <div className="py-10 text-center italic text-[var(--txt-3)]">
-              {filtersActive ? 'No entries match your filters.' : 'No audit entries yet — every action will be logged here automatically.'}
+              {filtersActive ? 'No entries match your filters.' : 'No audit entries yet · every action will be logged here automatically.'}
             </div>
           )}
           {entries.map((e) => {

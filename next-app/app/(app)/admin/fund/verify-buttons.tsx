@@ -55,7 +55,7 @@ export default function VerifyButtons({
         <div className="flex gap-1.5">
           <button
             type="button"
-            onClick={() => call(() => supervisorApprovePayment(paymentId), 'Approved — pending admin final')}
+            onClick={() => call(() => supervisorApprovePayment(paymentId), 'Approved · pending admin final')}
             disabled={pending}
             className="rounded-md bg-[rgba(45,138,95,0.15)] px-3 py-1.5 text-xs font-bold text-[#4ec38d] disabled:opacity-50 hover:bg-[rgba(45,138,95,0.25)]"
           >

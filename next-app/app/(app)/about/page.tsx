@@ -21,7 +21,7 @@ const REFS = [
   {
     arabic: 'وَأَقِيمُوا الصَّلَاةَ وَآتُوا الزَّكَاةَ وَأَطِيعُوا الرَّسُولَ لَعَلَّكُمْ تُرْحَمُونَ',
     english: 'Establish prayer and give zakah and obey the Messenger that you may receive mercy.',
-    urdu: 'نماز قائم کرو، زکوٰة دو، اور رسول کی اطاعت کرو — تاکہ تم پر رحم کیا جائے۔',
+    urdu: 'نماز قائم کرو، زکوٰة دو، اور رسول کی اطاعت کرو، تاکہ تم پر رحم کیا جائے۔',
     ref: 'An-Nur 24:56',
     topic: 'Zakat',
   },
@@ -94,7 +94,7 @@ export default async function AboutPage() {
               ['⭐ Zakat', 'Annual obligatory charity on qualifying wealth. Routed to eligible recipients through the admin.'],
               ['🤝 Qarz-e-Hasana', 'Interest-free loan to a family member in need. Community votes on approval; repaid without any extra charge.'],
               ['🗳️ Emergency Vote', 'Cases are submitted and voted on by all approved members. Threshold can be set by admin (30–75%).'],
-              ['🔒 Privacy', 'Sadaqah donors are never named to other members — only the admin can see who gave what.'],
+              ['🔒 Privacy', 'Sadaqah donors are never named to other members · only the admin can see who gave what.'],
               ['📜 Audit Trail', 'Every action is logged with actor, timestamp, and detail. The log is append-only and cannot be altered.'],
             ].map(([title, desc]) => (
               <div key={String(title)} className="rounded-lg border border-[var(--border)] p-3">
