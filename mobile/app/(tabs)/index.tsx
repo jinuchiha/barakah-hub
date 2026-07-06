@@ -19,6 +19,8 @@ import { useDashboard } from '@/hooks/useDashboard';
 import { useCommunity } from '@/hooks/useCommunity';
 import { ActivityFeed } from '@/components/ActivityFeed';
 import { StatCard } from '@/components/ui/StatCard';
+import { AnimatedNumber, fmtRsWorklet } from '@/components/ui/AnimatedNumber';
+import { BarakahField } from '@/components/BarakahField';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { Badge } from '@/components/ui/Badge';
 import { Avatar } from '@/components/ui/Avatar';
@@ -71,6 +73,46 @@ function TopBar({ displayName, notifCount, onBell, onSearch }: {
   );
 }
 
+/** Diagonal light sweep drifting across the hero — the web's aurora. */
+function AuroraSweep() {
+  const x = useSharedValue(-1);
+  useEffect(() => {
+    x.value = withRepeat(withTiming(1, { duration: 5200 }), -1, false);
+    return () => { cancelAnimation(x); };
+  }, [x]);
+  const style = useAnimatedStyle(() => ({
+    transform: [{ translateX: x.value * 420 }, { rotate: '18deg' }],
+  }));
+  return (
+    <Animated.View style={[styles.aurora, style]} pointerEvents="none">
+      <LinearGradient
+        colors={['transparent', 'rgba(217,176,76,0.16)', 'rgba(139,110,201,0.10)', 'transparent']}
+        start={{ x: 0, y: 0.5 }}
+        end={{ x: 1, y: 0.5 }}
+        style={StyleSheet.absoluteFillObject}
+      />
+    </Animated.View>
+  );
+}
+
+function LiveDot() {
+  const pulse = useSharedValue(0);
+  useEffect(() => {
+    pulse.value = withRepeat(
+      withSequence(withTiming(1, { duration: 800 }), withTiming(0, { duration: 800 })),
+      -1, false,
+    );
+    return () => { cancelAnimation(pulse); };
+  }, [pulse]);
+  const style = useAnimatedStyle(() => ({ opacity: 0.45 + pulse.value * 0.55 }));
+  return (
+    <View style={styles.liveWrap}>
+      <Animated.View style={[styles.liveDot, style]} />
+      <Text style={styles.liveText}>LIVE</Text>
+    </View>
+  );
+}
+
 function FundHero({ fund, pendingCount }: {
   fund?: { sadaqah: number; zakat: number; qarz: number };
   pendingCount?: number;
@@ -90,16 +132,20 @@ function FundHero({ fund, pendingCount }: {
   return (
     <Animated.View entering={FadeInDown.duration(450)}>
       <LinearGradient
-        colors={['#c89b3c', '#d9b04c', '#1e2d4a']}
+        colors={['#0d1525', '#131e35', '#1e2d4a']}
         start={{ x: 0, y: 0 }}
         end={{ x: 0.9, y: 1 }}
-        style={styles.heroCard}
+        style={[styles.heroCard, { borderWidth: 1, borderColor: 'rgba(217,176,76,0.28)' }]}
       >
+        <AuroraSweep />
         {/* Decorative motif */}
         <Text style={styles.heroMotif} accessibilityElementsHidden>☽</Text>
 
-        <Text style={styles.heroLabel}>{t('dashboard.totalFamilyFund')}</Text>
-        <Text style={styles.heroAmount}>{formatPKR(total)}</Text>
+        <View style={styles.heroLabelRow}>
+          <Text style={styles.heroLabel}>{t('dashboard.totalFamilyFund')}</Text>
+          <LiveDot />
+        </View>
+        <AnimatedNumber value={total} format={fmtRsWorklet} style={styles.heroAmount} />
 
         {/* Pool breakdown bar */}
         {total > 0 && (
@@ -185,6 +231,8 @@ function StatsGrid({ pledge, pendingCount, isPaid }: {
       <StatCard
         icon="hand-coin-outline"
         value={formatPKRFull(pledge ?? 0)}
+        animateValue={pledge ?? 0}
+        format={fmtRsWorklet}
         label="My Pledge"
         style={styles.statHalf}
       />
@@ -198,6 +246,7 @@ function StatsGrid({ pledge, pendingCount, isPaid }: {
       <StatCard
         icon="clock-outline"
         value={`${pendingCount ?? 0}`}
+        animateValue={pendingCount ?? 0}
         label={t('dashboard.pending')}
         iconColor={colors.gold}
         style={styles.statHalf}
@@ -383,6 +432,7 @@ function DashboardScreen() {
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.bg0 }]} edges={['top']}>
+      <BarakahField dimmed />
       <GlobalSearch visible={searchVisible} onClose={() => setSearchVisible(false)} />
       <AIFab />
 
@@ -487,6 +537,7 @@ const styles = StyleSheet.create({
     position: 'absolute', right: 16, bottom: 12,
     fontSize: 100, color: 'rgba(0,0,0,0.08)', lineHeight: 110,
   },
+  heroLabelRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   heroLabel: {
     fontSize: 10, fontFamily: 'Inter_700Bold',
     color: 'rgba(255,255,255,0.70)', letterSpacing: 2, textTransform: 'uppercase',
@@ -495,6 +546,12 @@ const styles = StyleSheet.create({
     fontSize: 38, fontFamily: 'Inter_700Bold', color: '#ffffff',
     letterSpacing: -1.2, marginTop: 4, marginBottom: 14,
   },
+  aurora: {
+    position: 'absolute', top: -40, bottom: -40, left: -220, width: 200,
+  },
+  liveWrap: { flexDirection: 'row', alignItems: 'center', gap: 5 },
+  liveDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: '#4ec38d' },
+  liveText: { fontSize: 9, fontFamily: 'Inter_700Bold', color: 'rgba(78,195,141,0.9)', letterSpacing: 1.5 },
   poolBar: { flexDirection: 'row', height: 6, borderRadius: 3, overflow: 'hidden', marginBottom: 10 },
   poolSegment: { height: 6 },
   poolLegend: { flexDirection: 'row', gap: 16, marginBottom: 12 },
