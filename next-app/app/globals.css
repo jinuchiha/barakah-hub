@@ -464,3 +464,27 @@ button:disabled,
   .ambient-depth::before,
   .ambient-depth::after { animation: none; }
 }
+
+/* ─────────────────────────────────────────
+   BUTTON SHINE — one light sweep across gold CTAs on hover.
+   ───────────────────────────────────────── */
+.btn-shine {
+  position: relative;
+  overflow: hidden;
+}
+.btn-shine::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -80%;
+  width: 55%;
+  height: 100%;
+  background: linear-gradient(105deg, transparent, rgba(255,255,255,0.34), transparent);
+  transform: skewX(-20deg);
+  transition: left 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+  pointer-events: none;
+}
+.btn-shine:hover::after { left: 130%; }
+@media (prefers-reduced-motion: reduce) {
+  .btn-shine::after { display: none; }
+}
