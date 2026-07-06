@@ -44,7 +44,6 @@ const langStore = {
 export function Topbar({ user, unreadCount = 0, isAdmin = false, isSupervisor = false, badges = {} }: TopbarProps) {
   const [q, setQ] = useState('');
   const lang = useSyncExternalStore(langStore.subscribe, langStore.getSnapshot, langStore.getServerSnapshot);
-  const [langOpen, setLangOpen] = useState(false);
   const router = useRouter();
 
   // The design system is dark-only luxury — a half-implemented light
@@ -55,14 +54,6 @@ export function Topbar({ user, unreadCount = 0, isAdmin = false, isSupervisor = 
     document.documentElement.classList.remove('light');
     document.documentElement.classList.add('dark');
   }, []);
-
-  // Close language dropdown on outside click.
-  useEffect(() => {
-    if (!langOpen) return;
-    function handleClick() { setLangOpen(false); }
-    document.addEventListener('click', handleClick, { capture: true, once: true });
-    return () => document.removeEventListener('click', handleClick, true);
-  }, [langOpen]);
 
   async function logout() {
     try {
@@ -79,7 +70,6 @@ export function Topbar({ user, unreadCount = 0, isAdmin = false, isSupervisor = 
     // Cookie so Server Components render in the chosen language too.
     document.cookie = `barakah_lang=${next}; path=/; max-age=31536000; samesite=lax`;
     window.dispatchEvent(new StorageEvent('storage', { key: LANG_KEY, newValue: next }));
-    setLangOpen(false);
     router.refresh();
   }
 
@@ -130,42 +120,34 @@ export function Topbar({ user, unreadCount = 0, isAdmin = false, isSupervisor = 
         >
           <Search className="size-[18px]" />
         </Link>
-        {/* Language picker */}
-        <div className="relative hidden sm:block">
-          <button
-            type="button"
-            onClick={() => setLangOpen((v) => !v)}
-            aria-label="Language settings"
-            aria-expanded={langOpen}
-            className="flex h-9 items-center gap-1 rounded-lg px-2 text-[var(--txt-2)] transition-colors hover:bg-[var(--surf-3)] hover:text-[var(--color-cream)]"
-          >
-            <Globe className="size-[16px]" />
-            <span className="text-[11px] font-medium">{lang === 'ur' ? 'اردو' : 'EN'}</span>
-          </button>
-          {langOpen && (
-            <div
-              className="absolute right-0 top-full z-50 mt-1 min-w-[160px] rounded-xl border border-[var(--border)] bg-[var(--surf-1)] py-1 shadow-[0_8px_24px_rgba(0,0,0,0.4)]"
-              role="menu"
+        {/* Language picker — Radix dropdown (the hand-rolled menu's
+            outside-click capture handler raced its own item clicks) */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              type="button"
+              aria-label="Language settings"
+              className="hidden h-9 items-center gap-1 rounded-lg px-2 text-[var(--txt-2)] transition-colors hover:bg-[var(--surf-3)] hover:text-[var(--color-cream)] sm:flex"
             >
-              <button
-                type="button"
-                role="menuitem"
-                onClick={() => setLangAndRefresh('en')}
-                className={`flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] transition-colors hover:bg-[var(--surf-3)] ${lang === 'en' ? 'text-[var(--color-gold)]' : 'text-[var(--txt-2)]'}`}
-              >
-                English {lang === 'en' && <span className="ml-auto text-[10px]">✓</span>}
-              </button>
-              <button
-                type="button"
-                role="menuitem"
-                onClick={() => setLangAndRefresh('ur')}
-                className={`flex w-full items-center gap-2 px-3 py-2 text-left font-[var(--font-arabic)] text-[13px] transition-colors hover:bg-[var(--surf-3)] ${lang === 'ur' ? 'text-[var(--color-gold)]' : 'text-[var(--txt-2)]'}`}
-              >
-                اردو {lang === 'ur' && <span className="ml-auto text-[10px]">✓</span>}
-              </button>
-            </div>
-          )}
-        </div>
+              <Globe className="size-[16px]" />
+              <span className="text-[11px] font-medium">{lang === 'ur' ? 'اردو' : 'EN'}</span>
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="min-w-[160px]">
+            <DropdownMenuItem
+              onSelect={() => setLangAndRefresh('en')}
+              className={lang === 'en' ? 'text-[var(--color-gold)]' : ''}
+            >
+              English {lang === 'en' && <span className="ml-auto text-[10px]">✓</span>}
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onSelect={() => setLangAndRefresh('ur')}
+              className={`font-[var(--font-arabic)] ${lang === 'ur' ? 'text-[var(--color-gold)]' : ''}`}
+            >
+              اردو {lang === 'ur' && <span className="ml-auto text-[10px]">✓</span>}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
         <Link
           href="/notifications"
           aria-label={unreadCount > 0 ? `Notifications, ${unreadCount} unread` : 'Notifications'}
