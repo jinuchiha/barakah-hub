@@ -12,6 +12,7 @@ import type { Loan } from '@/types';
 import { Badge } from './ui/Badge';
 import { GlassCard } from './ui/GlassCard';
 import { formatPKR, formatDate } from '@/lib/format';
+import { planStatus, monthsRemaining } from '@/lib/loan-math';
 import { useTheme } from '@/lib/useTheme';
 import { spacing, radius } from '@/lib/theme';
 import { useLoanRepayments } from '@/hooks/useLoans';
@@ -76,7 +77,10 @@ export function LoanCard({ loan }: LoanCardProps) {
   const remaining = loan.amount - loan.paid;
   const progress = loan.amount > 0 ? loan.paid / loan.amount : 0;
   const isOverdue = loan.active && !!loan.expectedReturn && new Date(loan.expectedReturn) < new Date();
-  const ringColor = isOverdue ? colors.danger : loan.active ? colors.accent : colors.primary;
+  const plan = planStatus({ ...loan, installmentAmount: loan.installmentAmount ?? null }, new Date());
+  const monthsLeft = monthsRemaining({ ...loan, installmentAmount: loan.installmentAmount ?? null });
+  const behindSchedule = loan.active && plan.hasPlan && !plan.onTrack;
+  const ringColor = isOverdue || behindSchedule ? colors.danger : loan.active ? colors.accent : colors.primary;
 
   const { data: repayments } = useLoanRepayments(expanded ? loan.id : '');
 
@@ -103,6 +107,7 @@ export function LoanCard({ loan }: LoanCardProps) {
               style={styles.badge}
             />
             {isOverdue ? <Badge label="Overdue" variant="danger" style={styles.badge} /> : null}
+            {behindSchedule ? <Badge label={`Behind ${formatPKR(plan.shortfall)}`} variant="danger" style={styles.badge} /> : null}
           </View>
         </View>
       </View>
@@ -114,6 +119,19 @@ export function LoanCard({ loan }: LoanCardProps) {
         <LoanStat label="Paid" value={formatPKR(loan.paid)} color={colors.primary} />
         <LoanStat label="Remaining" value={formatPKR(remaining)} color={colors.danger} />
       </View>
+
+      {plan.hasPlan ? (
+        <View style={styles.datesRow}>
+          <Text style={[styles.dateText, { color: colors.text3 }]}>
+            Plan: {formatPKR(loan.installmentAmount ?? 0)}/month
+          </Text>
+          {loan.active && monthsLeft !== null ? (
+            <Text style={[styles.dateText, { color: colors.text3 }]}>
+              ~{monthsLeft} month{monthsLeft === 1 ? '' : 's'} left
+            </Text>
+          ) : null}
+        </View>
+      ) : null}
 
       <View style={styles.datesRow}>
         <Text style={[styles.dateText, { color: colors.text4 }]}>

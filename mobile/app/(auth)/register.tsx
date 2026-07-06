@@ -16,6 +16,7 @@ import { Button } from '@/components/ui/Button';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/hooks/useAuth';
+import { EmailNotVerifiedError } from '@/lib/auth';
 import { useTheme } from '@/lib/useTheme';
 import { spacing, radius } from '@/lib/theme';
 
@@ -108,6 +109,11 @@ export default function RegisterScreen() {
         { text: 'OK', onPress: () => router.replace('/(auth)/login') },
       ]);
     } catch (err) {
+      if (err instanceof EmailNotVerifiedError) {
+        // Account created; server emailed a 6-digit code. Finish there.
+        router.replace({ pathname: '/(auth)/verify-email', params: { email: err.email } } as any);
+        return;
+      }
       Alert.alert('Error', err instanceof Error ? err.message : 'Registration failed');
     } finally {
       setLoading(false);

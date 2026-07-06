@@ -21,6 +21,7 @@ export async function GET() {
         amount: loans.amount,
         paid: loans.paid,
         purpose: loans.purpose,
+        installmentAmount: loans.installmentAmount,
         pool: loans.pool,
         city: loans.city,
         issuedOn: loans.issuedOn,

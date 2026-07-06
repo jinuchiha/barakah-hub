@@ -7,7 +7,7 @@ export type NotificationPayload = {
   screen?: string;
 };
 
-function resolveRoute(data: NotificationPayload): string {
+export function resolveRoute(data: NotificationPayload): string {
   const type = data.type ?? '';
   // Match the type strings the web actually emits (lib/notify.ts + actions.ts):
   // payment-pending / payment-awaiting-admin / payment-rejected / payment-verified,

@@ -56,7 +56,14 @@
     "lockedOut": "آپ کو لاک کر دیا گیا ہے۔ براہ کرم دوبارہ سائن ان کریں۔",
     "useBiometricInstead": "{{label}} استعمال کریں",
     "usePinInstead": "پن استعمال کریں",
-    "incorrectPin": "غلط پن۔ {{count}} کوشش{{plural}} باقی ہیں۔"
+    "incorrectPin": "غلط پن۔ {{count}} کوشش{{plural}} باقی ہیں۔",
+    "identifier": "ای میل یا صارف نام",
+    "verifyEmail": "اپنی ای میل کی تصدیق کریں",
+    "otpSent": "ہم نے 6 ہندسوں کا کوڈ بھیجا ہے",
+    "otpCode": "تصدیقی کوڈ",
+    "verify": "تصدیق کریں",
+    "resendCode": "کوڈ دوبارہ بھیجیں",
+    "verified": "ای میل کی تصدیق ہو گئی۔ اب سائن ان کریں۔"
   },
   "nav": {
     "dashboard": "ڈیش بورڈ",

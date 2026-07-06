@@ -56,7 +56,14 @@
     "lockedOut": "You have been locked out. Please sign in again.",
     "useBiometricInstead": "Use {{label}} instead",
     "usePinInstead": "Use PIN instead",
-    "incorrectPin": "Incorrect PIN. {{count}} attempt{{plural}} remaining."
+    "incorrectPin": "Incorrect PIN. {{count}} attempt{{plural}} remaining.",
+    "identifier": "Email or Username",
+    "verifyEmail": "Verify your email",
+    "otpSent": "We sent a 6-digit code to",
+    "otpCode": "Verification code",
+    "verify": "Verify",
+    "resendCode": "Resend code",
+    "verified": "Email verified. Please sign in."
   },
   "nav": {
     "dashboard": "Home",

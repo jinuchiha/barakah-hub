@@ -71,6 +71,19 @@ export function PaymentCard({ payment }: PaymentCardProps) {
           <MaterialCommunityIcons name="open-in-new" size={12} color={colors.text4} />
         </Pressable>
       ) : null}
+      {payment.verifiedAt ? (
+        <Pressable
+          style={[styles.receiptStrip, { borderTopColor: colors.border1 }]}
+          onPress={() => {
+            const base = process.env.EXPO_PUBLIC_API_URL ?? 'https://barakah-hub.vercel.app';
+            void Linking.openURL(`${base}/verify-receipt/${payment.id}`);
+          }}
+        >
+          <MaterialCommunityIcons name="qrcode-scan" size={14} color={colors.primary} />
+          <Text style={[styles.receiptLabel, { color: colors.primary }]}>Digital receipt (verified)</Text>
+          <MaterialCommunityIcons name="open-in-new" size={12} color={colors.text4} />
+        </Pressable>
+      ) : null}
     </View>
   );
 }

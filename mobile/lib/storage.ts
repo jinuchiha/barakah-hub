@@ -34,6 +34,31 @@ export async function clearStoredUser(): Promise<void> {
   await SecureStore.deleteItemAsync(USER_KEY);
 }
 
+const PENDING_ONBOARDING_KEY = 'bh_pending_onboarding';
+
+/**
+ * Registration profile parked until the members row exists. Needed when
+ * email verification blocks auto-sign-in: sign-up succeeds but the
+ * onboarding call can't run yet, so we replay it on the first real login.
+ */
+export async function savePendingOnboarding(payload: object): Promise<void> {
+  await SecureStore.setItemAsync(PENDING_ONBOARDING_KEY, JSON.stringify(payload));
+}
+
+export async function getPendingOnboarding<T>(): Promise<T | null> {
+  const raw = await SecureStore.getItemAsync(PENDING_ONBOARDING_KEY);
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw) as T;
+  } catch {
+    return null;
+  }
+}
+
+export async function clearPendingOnboarding(): Promise<void> {
+  await SecureStore.deleteItemAsync(PENDING_ONBOARDING_KEY);
+}
+
 export async function getLanguage(): Promise<string> {
   const lang = await SecureStore.getItemAsync(LANG_KEY);
   return lang ?? 'en';

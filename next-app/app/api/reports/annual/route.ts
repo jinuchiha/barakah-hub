@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { and, gte, lt, eq } from 'drizzle-orm';
+import { and, gte, lt, eq, inArray } from 'drizzle-orm';
 import { meOrThrow } from '@/lib/auth-server';
 import { db } from '@/lib/db';
 import { payments, cases, loans, members } from '@/lib/db/schema';
@@ -38,9 +38,44 @@ export async function GET(req: NextRequest) {
     const loanRepaid = loanRows.reduce((s, l) => s + l.paid, 0);
     const newMembers = memberRows.filter((m) => m.createdAt >= start && m.createdAt < end).length;
 
+    // Per-member ledger — "kis ne kitna diya, kab kab diya", same table the
+    // web annual report shows. Grouped from the rows already fetched above.
+    const byMember = new Map<string, { total: number; count: number; months: Set<string>; lastPaid: string }>();
+    for (const p of pays) {
+      const row = byMember.get(p.memberId) ?? { total: 0, count: 0, months: new Set<string>(), lastPaid: '' };
+      row.total += p.amount;
+      row.count += 1;
+      row.months.add(p.monthLabel);
+      if (p.paidOn && p.paidOn > row.lastPaid) row.lastPaid = p.paidOn;
+      byMember.set(p.memberId, row);
+    }
+    const ledgerIds = [...byMember.keys()];
+    // Empty-array inArray crashes the neon-http driver — guard it.
+    const nameMap = new Map(
+      ledgerIds.length
+        ? (await db
+            .select({ id: members.id, nameEn: members.nameEn, nameUr: members.nameUr })
+            .from(members)
+            .where(inArray(members.id, ledgerIds))
+          ).map((m) => [m.id, m])
+        : [],
+    );
+    const memberLedger = [...byMember.entries()]
+      .map(([memberId, l]) => ({
+        memberId,
+        nameEn: nameMap.get(memberId)?.nameEn ?? 'Unknown',
+        nameUr: nameMap.get(memberId)?.nameUr ?? '',
+        total: l.total,
+        count: l.count,
+        months: [...l.months].sort(),
+        lastPaid: l.lastPaid || null,
+      }))
+      .sort((a, b) => b.total - a.total);
+
     return NextResponse.json({
       year,
       collected: { ...pool, total: pool.sadaqah + pool.zakat + pool.qarz, count: pays.length },
+      memberLedger,
       cases: {
         total: caseRows.length,
         approved: caseRows.filter((c) => c.status === 'approved').length,

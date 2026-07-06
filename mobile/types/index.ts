@@ -103,6 +103,7 @@ export interface Loan {
   amount: number;
   paid: number;
   purpose: string;
+  installmentAmount?: number | null;
   pool: FundPool;
   city: string | null;
   issuedOn: string;
