@@ -2,6 +2,8 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import type { Route } from 'next';
 import { eq, desc, sql, and, isNull, isNotNull } from 'drizzle-orm';
+import { t } from '@/lib/i18n/dict';
+import { getLocale } from '@/lib/i18n/server';
 import { getMeOrRedirect, canManageFunds } from '@/lib/auth-server';
 import { currentMonthLabel } from '@/lib/month';
 import { db } from '@/lib/db';
@@ -33,6 +35,7 @@ export const metadata = { title: 'Fund Register · Barakah Hub' };
  */
 export default async function FundPage() {
   const me = await getMeOrRedirect();
+  const locale = await getLocale();
   if (!canManageFunds(me.role)) redirect('/dashboard');
 
   const isSupervisor = me.role === 'supervisor';
@@ -218,10 +221,10 @@ export default async function FundPage() {
       <header className="mb-8 flex flex-wrap items-end justify-between gap-4 border-b border-[var(--border)] pb-6">
         <div>
           <div className="mb-2 text-[10px] font-bold uppercase tracking-[2px] text-[var(--txt-3)]">
-            Admin · Fund Register
+            {t('fund.overline', locale)}
           </div>
           <h1 className="text-[28px] font-semibold leading-tight tracking-[-0.5px] text-[var(--color-cream)]">
-            Family Fund
+            {t('fund.title', locale)}
           </h1>
           <p className="font-[var(--font-arabic)] mt-1 text-sm text-[var(--color-gold-2)]">فنڈ رجسٹر · صدقہ / زکوٰة / قرض</p>
         </div>
@@ -229,13 +232,13 @@ export default async function FundPage() {
       </header>
 
       <div className="mb-6 grid gap-3 grid-cols-3">
-        <StatCard label="Sadaqah Pool" value={Number(poolTotals.sadaqah)} money tone="gold"     hint="Voluntary charity" />
-        <StatCard label="Zakat Pool"   value={Number(poolTotals.zakat)} money  tone="emerald"  hint="Obligatory alms" />
-        <StatCard label="Qarz Pool"    value={Number(poolTotals.qarz)} money   tone="sapphire" hint="Interest-free loans" />
+        <StatCard label={t('fund.sadaqahPool', locale)} value={Number(poolTotals.sadaqah)} money tone="gold"     hint="Voluntary charity" />
+        <StatCard label={t('fund.zakatPool', locale)}   value={Number(poolTotals.zakat)} money  tone="emerald"  hint="Obligatory alms" />
+        <StatCard label={t('fund.qarzPool', locale)}    value={Number(poolTotals.qarz)} money   tone="sapphire" hint="Interest-free loans" />
       </div>
 
       <Card className="mb-4">
-        <CardHeader><CardTitle>Monthly Inflow · Last {chartBuckets.length} Months</CardTitle></CardHeader>
+        <CardHeader><CardTitle>{t('fund.monthlyInflow', locale)} · {chartBuckets.length}</CardTitle></CardHeader>
         <CardBody>
           <MonthlyFundChart buckets={chartBuckets} />
         </CardBody>
@@ -243,10 +246,10 @@ export default async function FundPage() {
 
       <Card className="mb-4">
         <CardHeader>
-          <CardTitle>This Month · {nowLabel}</CardTitle>
+          <CardTitle>{t('fund.thisMonth', locale)} · {nowLabel}</CardTitle>
           <span className="text-[11px] text-[var(--color-gold-4)]">
             <span className="tabular font-semibold text-[var(--color-gold-2)]">{paidCount}</span>
-            /{boardMembers.length} contributed
+            /{boardMembers.length} {t('fund.contributed', locale)}
           </span>
         </CardHeader>
         <CardBody>

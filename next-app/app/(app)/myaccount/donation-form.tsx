@@ -1,4 +1,6 @@
 'use client';
+import { useLocale } from '@/lib/i18n/use-locale';
+import { t as tr } from '@/lib/i18n/dict';
 import { useRef, useState, useTransition } from 'react';
 import { toast } from 'sonner';
 import { ImagePlus, X } from 'lucide-react';
@@ -53,6 +55,7 @@ function ReceiptPicker({ url, uploading, onPick, onClear }: {
   url: string | null; uploading: boolean; onPick: (f: File) => void; onClear: () => void;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const locale = useLocale();
   return (
     <div>
       <input
@@ -82,7 +85,7 @@ function ReceiptPicker({ url, uploading, onPick, onClear }: {
           className="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-[var(--border)] px-3 py-3 text-[12.5px] text-[var(--txt-3)] transition-colors hover:border-[rgba(200,155,60,0.4)] hover:text-[var(--color-gold-2)]"
         >
           <ImagePlus className="size-4" aria-hidden />
-          {uploading ? 'Uploading…' : 'Attach receipt screenshot (optional)'}
+          {uploading ? tr('don.uploading', locale) : tr('don.attachReceipt', locale)}
         </button>
       )}
     </div>
@@ -90,6 +93,7 @@ function ReceiptPicker({ url, uploading, onPick, onClear }: {
 }
 
 export default function DonationForm({ easyPaiseName, easyPaiseNumber }: DonationFormProps) {
+  const locale = useLocale();
   const [pending, start] = useTransition();
   const [open, setOpen] = useState(false);
   const [duaFor, setDuaFor] = useState<'sadaqah' | 'zakat' | null>(null);
@@ -147,7 +151,7 @@ export default function DonationForm({ easyPaiseName, easyPaiseNumber }: Donatio
     return (
       <>
         <Button variant="gold" size="sm" onClick={() => setOpen(true)}>
-          + Submit Donation
+          {tr('don.button', locale)}
         </Button>
         <DuaOverlay open={duaFor !== null} pool={duaFor ?? undefined} onClose={() => setDuaFor(null)} />
       </>
@@ -172,7 +176,7 @@ export default function DonationForm({ easyPaiseName, easyPaiseNumber }: Donatio
       )}
 
       <div>
-        <Label htmlFor="don-amount">Amount (Rs.) *</Label>
+        <Label htmlFor="don-amount">{tr('don.amount', locale)}</Label>
         <Input
           id="don-amount"
           type="number"
@@ -201,17 +205,17 @@ export default function DonationForm({ easyPaiseName, easyPaiseNumber }: Donatio
       </div>
 
       <div>
-        <Label>Pool</Label>
+        <Label>{tr('don.pool', locale)}</Label>
         <PoolToggle pool={pool} onChange={setPool} />
       </div>
 
       <div>
-        <Label htmlFor="don-month">Month</Label>
+        <Label htmlFor="don-month">{tr('don.month', locale)}</Label>
         <Input id="don-month" value={month} onChange={(e) => setMonth(e.target.value)} placeholder="e.g. May 2026" />
       </div>
 
       <div>
-        <Label htmlFor="don-note">Note (optional)</Label>
+        <Label htmlFor="don-note">{tr('don.noteOptional', locale)}</Label>
         <Input id="don-note" value={note} onChange={(e) => setNote(e.target.value)} placeholder="e.g. JazzCash transfer ref #" />
       </div>
 
@@ -221,7 +225,7 @@ export default function DonationForm({ easyPaiseName, easyPaiseNumber }: Donatio
 
       <div className="flex gap-2 md:col-span-2">
         <Button type="submit" variant="gold" disabled={pending || uploading}>
-          {pending ? 'Submitting…' : 'Submit for verification'}
+          {pending ? tr('don.submitting', locale) : tr('btn.submitVerification', locale)}
         </Button>
         <Button type="button" variant="ghost" onClick={() => { reset(); setOpen(false); }}>
           Cancel

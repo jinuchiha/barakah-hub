@@ -178,10 +178,10 @@ export default async function DashboardPage() {
       <div className="animate-enter-delay-1 mb-6 grid gap-3" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
         {isAdmin ? (
           <>
-            <StatCard label="Pending Approval"   icon={<Hourglass />} value={pendingAmount} money                                   hint={pendingAmount > 0 ? 'In supervisor/admin flow' : 'Nothing pending'} tone="gold" />
-            <StatCard label="Active Members"     icon={<Users />}     value={memberCount}                                          hint="Approved family" tone="violet" />
-            <StatCard label="Outstanding Loans"  icon={<FileText />}  value={Number(outstandingLoans[0]?.owed ?? 0)} money          hint="Active qarz" tone="ruby" />
-            <StatCard label="Pending Votes"      icon={<Vote />}      value={pendingVotes}                                           hint={pendingVotes ? 'Needs review' : 'All resolved'} tone="sapphire" />
+            <StatCard label={t('ds.pendingApproval', locale)}   icon={<Hourglass />} value={pendingAmount} money                                   hint={pendingAmount > 0 ? 'In supervisor/admin flow' : 'Nothing pending'} tone="gold" />
+            <StatCard label={t('ds.activeMembers', locale)}     icon={<Users />}     value={memberCount}                                          hint={t('ds.hintApprovedFam', locale)} tone="violet" />
+            <StatCard label={t('ds.outstandingLoans', locale)}  icon={<FileText />}  value={Number(outstandingLoans[0]?.owed ?? 0)} money          hint={t('ds.hintActiveQarz', locale)} tone="ruby" />
+            <StatCard label={t('ds.pendingVotes', locale)}      icon={<Vote />}      value={pendingVotes}                                           hint={pendingVotes ? 'Needs review' : 'All resolved'} tone="sapphire" />
           </>
         ) : (
           <MemberStats memberId={me.id} totalFund={totalFund} />
@@ -335,6 +335,7 @@ function computeDaysRemaining(deadline: string | null): number | null {
 }
 
 async function MemberStats({ memberId, totalFund }: { memberId: string; totalFund: number }) {
+  const locale = await getLocale();
   const yearStart = `${new Date().getUTCFullYear()}-01-01`;
   const monthsThisYearSoFar = new Date().getUTCMonth() + 1;
 
@@ -353,9 +354,9 @@ async function MemberStats({ memberId, totalFund }: { memberId: string; totalFun
 
   return (
     <>
-      <StatCard label="My Total Paid"   icon={<HandCoins />}    value={fmtRs(my)}                                       hint="جزاک اللہ خیر" tone="emerald" />
-      <StatCard label="My Months Paid"  icon={<CheckCircle2 />} value={`${months.length}/${monthsThisYearSoFar}`}     hint={`${pct}% of year so far`} tone="gold" />
-      <StatCard label="Family Fund"     icon={<Wallet />}       value={fmtRs(totalFund)}                                hint="Collective trust" tone="sapphire" />
+      <StatCard label={t('ds.myTotalPaid', locale)}   icon={<HandCoins />}    value={fmtRs(my)}                                       hint="جزاک اللہ خیر" tone="emerald" />
+      <StatCard label={t('ds.myMonthsPaid', locale)}  icon={<CheckCircle2 />} value={`${months.length}/${monthsThisYearSoFar}`}     hint={`${pct}% of year so far`} tone="gold" />
+      <StatCard label={t('ds.familyFund', locale)}     icon={<Wallet />}       value={fmtRs(totalFund)}                                hint={t('ds.hintCollective', locale)} tone="sapphire" />
     </>
   );
 }

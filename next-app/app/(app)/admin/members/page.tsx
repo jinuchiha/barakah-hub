@@ -2,6 +2,8 @@ import { redirect } from 'next/navigation';
 import type { Route } from 'next';
 import { asc, eq, ne } from 'drizzle-orm';
 import { Users, UserCheck, UserX, Clock } from 'lucide-react';
+import { t } from '@/lib/i18n/dict';
+import { getLocale } from '@/lib/i18n/server';
 import { getMeOrRedirect } from '@/lib/auth-server';
 import { db } from '@/lib/db';
 import { members } from '@/lib/db/schema';
@@ -23,6 +25,7 @@ export default async function MembersPage({
   searchParams: Promise<{ showRejected?: string }>;
 }) {
   const me = await getMeOrRedirect();
+  const locale = await getLocale();
   if (me.role !== 'admin') redirect('/dashboard');
 
   const { showRejected } = await searchParams;
@@ -69,10 +72,10 @@ export default async function MembersPage({
       <header className="mb-8 flex flex-wrap items-end justify-between gap-4 border-b border-[var(--border)] pb-6">
         <div>
           <div className="mb-2 text-[10px] font-bold uppercase tracking-[2px] text-[var(--txt-3)]">
-            Admin · Members
+            {t('mem.overline', locale)}
           </div>
           <h1 className="text-[28px] font-semibold leading-tight tracking-[-0.5px] text-[var(--color-cream)]">
-            Family Members
+            {t('mem.title', locale)}
           </h1>
           <p className="font-[var(--font-arabic)] mt-1 text-sm text-[var(--color-gold-2)]">اراکین خاندان</p>
         </div>
@@ -90,10 +93,10 @@ export default async function MembersPage({
 
       {/* ── Stats row ── */}
       <div className="mb-6 grid grid-cols-2 gap-3 md:grid-cols-4">
-        <StatCard label="Total Members"  value={total.length}    icon={<Users />}     tone="sapphire" />
-        <StatCard label="Active"         value={approved.length} icon={<UserCheck />} tone="emerald"  />
-        <StatCard label="Pending Review" value={pending.length}  icon={<Clock />}     tone="gold"     hint={pending.length > 0 ? 'Requires approval' : 'All clear'} />
-        <StatCard label="Rejected"       value={rejectedCount} icon={<UserX />} tone="ruby" />
+        <StatCard label={t('mem.total', locale)}  value={total.length}    icon={<Users />}     tone="sapphire" />
+        <StatCard label={t('mem.active', locale)}         value={approved.length} icon={<UserCheck />} tone="emerald"  />
+        <StatCard label={t('mem.pendingRev', locale)} value={pending.length}  icon={<Clock />}     tone="gold"     hint={pending.length > 0 ? 'Requires approval' : 'All clear'} />
+        <StatCard label={t('mem.rejected', locale)}       value={rejectedCount} icon={<UserX />} tone="ruby" />
       </div>
 
       {/* ── Pending approvals queue ── */}
@@ -107,7 +110,7 @@ export default async function MembersPage({
               >
                 <Clock />
               </div>
-              <CardTitle>Pending Registrations</CardTitle>
+              <CardTitle>{t('mem.pendingReg', locale)}</CardTitle>
             </div>
             <span
               className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider"

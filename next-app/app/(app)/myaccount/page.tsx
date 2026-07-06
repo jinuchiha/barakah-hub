@@ -86,7 +86,7 @@ export default async function MyAccountPage() {
 
       {myLoans.length > 0 && (
         <Card className="mb-4">
-          <CardHeader><CardTitle>My Active Loans</CardTitle></CardHeader>
+          <CardHeader><CardTitle>{t('acct.activeLoans', locale)}</CardTitle></CardHeader>
           <CardBody className="p-0">
             <div className="border-b border-[rgba(214,210,199,0.06)] bg-[rgba(200,155,60,0.04)] px-4 py-2.5 text-xs text-[var(--txt-3)]">
               To report a repayment, send a message to the admin with the loan amount and transfer reference. The admin will record it.

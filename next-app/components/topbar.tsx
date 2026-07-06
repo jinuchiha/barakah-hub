@@ -103,7 +103,7 @@ export function Topbar({ user, unreadCount = 0, isAdmin = false, isSupervisor = 
           type="search"
           value={q}
           onChange={(e) => setQ(e.target.value)}
-          placeholder="Search members, payments, cases…"
+          placeholder={lang === 'ur' ? 'اراکین، ادائیگیاں، کیسز تلاش کریں…' : 'Search members, payments, cases…'}
           className="w-full rounded-xl border border-[var(--border)] bg-[rgba(255,255,255,0.03)] py-1.5 pl-9 pr-12 text-[13px] text-[var(--color-cream)] outline-none ring-0 transition-all placeholder:text-[var(--txt-4)] focus:border-[rgba(200,155,60,0.35)] focus:bg-[rgba(200,155,60,0.04)] focus:shadow-[0_0_0_3px_rgba(200,155,60,0.08)]"
           aria-label="Global search"
         />
