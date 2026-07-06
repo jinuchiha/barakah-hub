@@ -577,24 +577,51 @@ async function MemberRecentActivity({ memberId }: { memberId: string }) {
   if (myPayments.length === 0) {
     return <div className="py-10 text-center text-[12.5px] text-[var(--txt-3)]">No contributions yet · submit your first donation</div>;
   }
+  const maxAmount = Math.max(...myPayments.map((p) => p.amount), 1);
   return (
     <>
-      {myPayments.map((p) => (
-        <div key={p.id} className="flex items-center justify-between border-b border-[var(--border)] px-5 py-2.5 last:border-b-0 hover:bg-[var(--surf-3)]">
-          <div>
-            <div className="text-[12.5px] text-[var(--color-cream)]">
-              <span className="font-medium">{p.monthLabel}</span> · <span className="capitalize text-[var(--txt-2)]">{p.pool}</span>
+      {myPayments.map((p, i) => {
+        const tone = p.pool === 'zakat'
+          ? { accent: '#2d8a5f', bg: 'rgba(45,138,95,0.1)', glyph: 'ز' }
+          : { accent: '#c89b3c', bg: 'rgba(200,155,60,0.1)', glyph: 'ص' };
+        return (
+          <div
+            key={p.id}
+            className={`group relative overflow-hidden border-b border-[var(--border)] px-5 py-3 transition-all duration-200 last:border-b-0 hover:translate-x-1 hover:bg-[var(--surf-3)] animate-enter-delay-${Math.min(i, 3)}`}
+          >
+            <div className="flex items-center gap-3.5">
+              <div
+                className="grid size-9 shrink-0 place-items-center rounded-xl font-[var(--font-arabic)] text-[15px] leading-none"
+                style={{ background: tone.bg, color: tone.accent, border: `1px solid ${tone.accent}33` }}
+                aria-hidden
+              >
+                {tone.glyph}
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="text-[12.5px] text-[var(--color-cream)]">
+                  <span className="font-medium">{p.monthLabel}</span> · <span className="capitalize text-[var(--txt-2)]">{p.pool}</span>
+                </div>
+                <div className="tabular text-[10.5px] text-[var(--txt-3)]">{new Date(p.paidOn).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</div>
+              </div>
+              <div className="flex items-center gap-2.5">
+                <div className="num text-right font-semibold text-[var(--color-cream)]">{fmtRs(p.amount)}</div>
+                {p.pendingVerify
+                  ? <span className="pill pill-warn">Pending</span>
+                  : <span className="pill pill-success">Verified</span>}
+              </div>
             </div>
-            <div className="tabular text-[10.5px] text-[var(--txt-3)]">{new Date(p.paidOn).toLocaleDateString('en-GB')}</div>
+            {/* Amount scale: quiet gradient baseline, proportional to the largest of the five */}
+            <div
+              aria-hidden
+              className="absolute bottom-0 left-5 h-[2px] rounded-full opacity-40 transition-opacity duration-200 group-hover:opacity-80"
+              style={{
+                width: `calc((100% - 40px) * ${(p.amount / maxAmount).toFixed(3)})`,
+                background: `linear-gradient(90deg, ${tone.accent}, transparent)`,
+              }}
+            />
           </div>
-          <div className="flex items-center gap-2.5">
-            <div className="num text-right font-semibold text-[var(--color-cream)]">{fmtRs(p.amount)}</div>
-            {p.pendingVerify
-              ? <span className="pill pill-warn">Pending</span>
-              : <span className="pill pill-success">Verified</span>}
-          </div>
-        </div>
-      ))}
+        );
+      })}
       <div className="px-5 py-2.5 text-center">
         <Link href="/myaccount" className="text-[11px] font-medium text-[var(--color-gold)] hover:underline">
           Full history →
