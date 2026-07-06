@@ -24,21 +24,49 @@ function buildMoon(): THREE.Mesh {
   const geo = new THREE.SphereGeometry(5, 128, 128);
   const pos = geo.attributes.position;
   const v = new THREE.Vector3();
-  // Crater-ish displacement: small, so the terminator line looks organic.
+  // Whisper of texture only — anything stronger reads as a grey rock.
   for (let i = 0; i < pos.count; i++) {
     v.fromBufferAttribute(pos, i);
-    const n = surfaceNoise(v.x, v.y, v.z) * 0.045;
+    const n = surfaceNoise(v.x, v.y, v.z) * 0.006;
     v.multiplyScalar(1 + n);
     pos.setXYZ(i, v.x, v.y, v.z);
   }
   geo.computeVertexNormals();
 
+  // Dark side sits close to the page ink, so only the lit crescent reads.
   const mat = new THREE.MeshStandardMaterial({
-    color: 0x8f8a80,
-    roughness: 0.95,
-    metalness: 0,
+    color: 0xbfb9a8,
+    roughness: 0.75,
+    metalness: 0.1,
   });
   return new THREE.Mesh(geo, mat);
+}
+
+/** Soft radial gold halo behind the moon — canvas-generated, no assets. */
+function buildHalo(): THREE.Sprite {
+  const size = 256;
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d')!;
+  const g = ctx.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
+  g.addColorStop(0, 'rgba(232,197,99,0.5)');
+  g.addColorStop(0.35, 'rgba(200,155,60,0.18)');
+  g.addColorStop(1, 'rgba(200,155,60,0)');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, size, size);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  const mat = new THREE.SpriteMaterial({
+    map: texture,
+    transparent: true,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+    opacity: 0.7,
+  });
+  const sprite = new THREE.Sprite(mat);
+  sprite.scale.setScalar(19);
+  return sprite;
 }
 
 function buildStars(): THREE.Points {
@@ -92,21 +120,20 @@ export default function BarakahField() {
 
     const group = new THREE.Group();
     const moon = buildMoon();
+    const halo = buildHalo();
     const stars = buildStars();
+    halo.position.set(1.2, 0.4, -3);
     // Upper-right, out of the content's way.
     group.position.set(9.5, 5.5, 0);
-    group.add(moon);
+    group.add(halo, moon);
     scene.add(group, stars);
 
-    // The crescent IS this light: warm sun grazing from the far right.
-    const sun = new THREE.DirectionalLight(0xffe9c4, 3.2);
-    sun.position.set(14, 2, -9);
+    // The crescent IS this light: warm gold grazing from the upper right.
+    const sun = new THREE.DirectionalLight(0xffe2b0, 4.5);
+    sun.position.set(15, 6, -6);
     scene.add(sun);
-    // Earthshine — the faint blue-grey glow on the dark side.
-    scene.add(new THREE.AmbientLight(0x1a2438, 2.2));
-    const rim = new THREE.PointLight(0xc89b3c, 8, 40);
-    rim.position.set(16, 8, 4);
-    scene.add(rim);
+    // Almost no fill — the dark side should melt into the page ink.
+    scene.add(new THREE.AmbientLight(0x0d1424, 1.4));
 
     const pointer = { x: 0, y: 0 };
     const onPointer = (e: PointerEvent) => {
@@ -157,6 +184,8 @@ export default function BarakahField() {
       ro.disconnect();
       moon.geometry.dispose();
       (moon.material as THREE.Material).dispose();
+      halo.material.map?.dispose();
+      halo.material.dispose();
       stars.geometry.dispose();
       (stars.material as THREE.Material).dispose();
       renderer.dispose();
