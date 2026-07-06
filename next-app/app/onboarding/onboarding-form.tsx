@@ -44,7 +44,7 @@ export default function OnboardingForm({ existing }: Props) {
     start(async () => {
       try {
         await onboardSelf(form);
-        toast.success('Welcome · setup complete ✨');
+        toast.success('Welcome · setup complete');
         router.replace('/dashboard');
       } catch (e: unknown) { toast.error(e instanceof Error ? e.message : 'Setup failed'); }
     });

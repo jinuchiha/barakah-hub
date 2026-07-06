@@ -26,7 +26,7 @@ export default async function JoinPage({ params }: Props) {
       <div className="w-full max-w-md rounded-2xl border border-[var(--border)] bg-[rgba(214,210,199,0.04)] p-8 text-center shadow-xl">
         {status.ok ? (
           <>
-            <div className="mb-4 text-4xl">🌙</div>
+            <div className="mb-4 text-4xl text-[var(--color-gold-2)]">☾</div>
             <h1 className="mb-2 font-[var(--font-arabic)] text-2xl text-[var(--color-gold-2)]">السلام علیکم</h1>
             <p className="mb-1 font-[var(--font-display)] text-sm uppercase tracking-widest text-[var(--color-gold-4)]">You&apos;re invited to Barakah Hub</p>
             {invite?.label && (
@@ -48,7 +48,7 @@ export default async function JoinPage({ params }: Props) {
           </>
         ) : (
           <>
-            <div className="mb-4 text-4xl">⛔</div>
+            <div className="mb-4 text-4xl text-[#f08585]">✕</div>
             <h1 className="mb-2 font-[var(--font-display)] text-xl text-[var(--color-gold-2)]">Invite unavailable</h1>
             <p className="mt-2 text-sm text-[var(--txt-2)]">{status.message}</p>
             <Link

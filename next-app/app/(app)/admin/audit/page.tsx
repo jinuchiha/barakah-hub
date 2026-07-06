@@ -11,14 +11,14 @@ import { ExportLink } from '@/components/export-link';
 export const metadata = { title: 'Audit Log · Barakah Hub' };
 
 const ICONS: Record<string, string> = {
-  login: '🔓', logout: '🔒',
-  'member-approved': '✅', 'member-rejected': '❌', 'member-added': '➕', 'member-deleted': '✕', 'member-edited': '✎', 'member-deceased': '✟',
-  'payment-record': '💰', 'payment-verified': '✓', 'payment-rejected': '✗', 'payment-self-submit': '🤲',
-  'vote-cast': '🗳️', 'emergency-create': '🚨', 'emergency-approved': '✓', 'emergency-rejected': '✗', 'case-disbursed': '💸',
-  'loan-issue': '📤', 'loan-repay': '↩',
-  'password-reset': '🔑', 'forgot-password-failed': '⚠',
-  'profile-updated': '👤', 'config-changed': '⚙️',
-  'message-sent': '✉️', 'broadcast': '📢', 'setup-complete': '🎉',
+  login: '→', logout: '←',
+  'member-approved': '✓', 'member-rejected': '✗', 'member-added': '+', 'member-deleted': '✕', 'member-edited': '✎', 'member-deceased': '✟',
+  'payment-record': '₨', 'payment-verified': '✓', 'payment-rejected': '✗', 'payment-self-submit': '₨',
+  'vote-cast': '✓', 'emergency-create': '!', 'emergency-approved': '✓', 'emergency-rejected': '✗', 'case-disbursed': '₨',
+  'loan-issue': '↗', 'loan-repay': '↩',
+  'password-reset': '✎', 'forgot-password-failed': '⚠',
+  'profile-updated': '✎', 'config-changed': '⚙',
+  'message-sent': '✉', 'broadcast': '⟫', 'setup-complete': '✓',
 };
 
 const ACTION_GROUPS = [
@@ -127,7 +127,7 @@ export default async function AuditPage({ searchParams }: PageProps) {
       </header>
 
       <Card className="mb-4">
-        <CardHeader><CardTitle>🔍 Filters</CardTitle></CardHeader>
+        <CardHeader><CardTitle>Filters</CardTitle></CardHeader>
         <CardBody>
           <form method="get" className="grid gap-3 md:grid-cols-5">
             <label className="block">

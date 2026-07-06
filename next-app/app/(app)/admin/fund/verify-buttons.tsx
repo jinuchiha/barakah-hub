@@ -94,7 +94,7 @@ export default function VerifyButtons({
             ✓ Verify
           </button>
           <button type="button" onClick={() => setDialog({ kind: 'delete-confirm' })} disabled={pending} className="rounded-md border border-[var(--border-2)] bg-transparent px-2.5 py-1 text-xs text-[var(--txt-3)] hover:border-[#dc5252]/40 hover:bg-red-500/10 hover:text-[#f08585] disabled:opacity-50">
-            🗑 Delete
+            Delete
           </button>
         </div>
         <DeleteConfirm open={dialog.kind === 'delete-confirm'} onClose={() => setDialog({ kind: 'none' })} onConfirm={() => call(() => adminDeletePayment(paymentId), 'Deleted')} />
@@ -110,7 +110,7 @@ export default function VerifyButtons({
             ↩ Resend
           </button>
           <button type="button" onClick={() => setDialog({ kind: 'delete-confirm' })} disabled={pending} className="rounded-md border border-[var(--border-2)] bg-transparent px-2.5 py-1 text-xs text-[var(--txt-3)] hover:border-[#dc5252]/40 hover:bg-red-500/10 hover:text-[#f08585] disabled:opacity-50">
-            🗑 Delete
+            Delete
           </button>
         </div>
         <ConfirmDialog
@@ -130,7 +130,7 @@ export default function VerifyButtons({
     return (
       <>
         <button type="button" onClick={() => setDialog({ kind: 'delete-confirm' })} disabled={pending} title="Delete verified payment" className="rounded-md border border-[var(--border-2)] bg-transparent px-2 py-1 text-[11px] text-[var(--txt-4)] hover:border-[#dc5252]/40 hover:bg-red-500/10 hover:text-[#f08585] disabled:opacity-50">
-          🗑
+          ✕
         </button>
         <DeleteConfirm open={dialog.kind === 'delete-confirm'} onClose={() => setDialog({ kind: 'none' })} onConfirm={() => call(() => adminDeletePayment(paymentId), 'Deleted')} />
       </>
@@ -142,7 +142,7 @@ export default function VerifyButtons({
     <>
       <div className="flex gap-1.5">
         <button type="button" onClick={() => setDialog({ kind: 'delete-confirm' })} disabled={pending} className="rounded-md border border-[var(--border-2)] bg-transparent px-2.5 py-1 text-xs text-[var(--txt-3)] hover:border-[#dc5252]/40 hover:bg-red-500/10 hover:text-[#f08585] disabled:opacity-50">
-          🗑 Delete
+          Delete
         </button>
       </div>
       <DeleteConfirm open={dialog.kind === 'delete-confirm'} onClose={() => setDialog({ kind: 'none' })} onConfirm={() => call(() => adminDeletePayment(paymentId), 'Deleted')} />

@@ -159,7 +159,7 @@ export default function DonationForm({ easyPaiseName, easyPaiseNumber }: Donatio
       {easyPaiseNumber && (
         <div className="md:col-span-2 rounded-xl border border-[rgba(200,155,60,0.30)] bg-[rgba(200,155,60,0.08)] p-4">
           <div className="mb-1 text-[11px] font-bold uppercase tracking-[1.5px] text-[var(--color-gold-4)]">
-            📱 Send Payment Via EasyPaisa
+            Send Payment Via EasyPaisa
           </div>
           <div className="text-sm font-semibold text-[var(--color-cream)]">
             {easyPaiseName && <span>{easyPaiseName} · </span>}

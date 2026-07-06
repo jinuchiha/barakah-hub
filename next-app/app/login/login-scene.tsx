@@ -26,12 +26,17 @@ const HAROOF = [
   { text: 'ة', top: '12%', left: '72%', size: '10rem', duration: '62s', delay: '-12s' },
 ] as const;
 
-function EightPointStar({ className, style }: { className?: string; style?: React.CSSProperties }) {
+/** Astrolabe-style rosette — concentric rings + hour ticks, unambiguous. */
+function Astrolabe({ className, style }: { className?: string; style?: React.CSSProperties }) {
+  const ticks = Array.from({ length: 24 }, (_, i) => (i * 360) / 24);
   return (
     <svg viewBox="0 0 100 100" className={className} style={style} aria-hidden>
-      <rect x="18" y="18" width="64" height="64" fill="none" stroke="currentColor" strokeWidth="0.45" />
-      <rect x="18" y="18" width="64" height="64" fill="none" stroke="currentColor" strokeWidth="0.45" transform="rotate(45 50 50)" />
-      <circle cx="50" cy="50" r="21" fill="none" stroke="currentColor" strokeWidth="0.3" />
+      <circle cx="50" cy="50" r="46" fill="none" stroke="currentColor" strokeWidth="0.4" />
+      <circle cx="50" cy="50" r="34" fill="none" stroke="currentColor" strokeWidth="0.3" />
+      <circle cx="50" cy="50" r="20" fill="none" stroke="currentColor" strokeWidth="0.25" />
+      {ticks.map((a) => (
+        <line key={a} x1="50" y1="4" x2="50" y2="9" stroke="currentColor" strokeWidth="0.35" transform={`rotate(${a} 50 50)`} />
+      ))}
     </svg>
   );
 }
@@ -77,11 +82,11 @@ export default function LoginScene({ children }: { children: React.ReactNode }) 
       {/* Depth layers */}
       <BarakahFieldMount />
       <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
-        <EightPointStar
+        <Astrolabe
           className="star-spin absolute text-[var(--color-gold)]"
           style={{ width: '52rem', height: '52rem', top: '-20rem', right: '-18rem', opacity: 0.05 }}
         />
-        <EightPointStar
+        <Astrolabe
           className="star-spin-reverse absolute text-[var(--color-gold)]"
           style={{ width: '36rem', height: '36rem', bottom: '-14rem', left: '-12rem', opacity: 0.04 }}
         />

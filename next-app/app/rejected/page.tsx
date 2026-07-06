@@ -19,7 +19,7 @@ export default async function RejectedPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-[var(--color-ink)] px-4">
       <div className="w-full max-w-md rounded-2xl border border-[var(--border)] bg-[rgba(214,210,199,0.04)] p-8 text-center shadow-xl">
-        <div className="mb-4 text-4xl">🚫</div>
+        <div className="mb-4 text-4xl text-[#f08585]">✕</div>
         <h1 className="mb-2 font-[var(--font-arabic)] text-2xl text-[var(--color-gold-2)]">درخواست مسترد</h1>
         <p className="mb-1 font-[var(--font-display)] text-sm uppercase tracking-widest text-[var(--color-gold-4)]">Account Not Approved</p>
         <p className="mt-4 text-sm text-[var(--txt-2)]">

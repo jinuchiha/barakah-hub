@@ -42,7 +42,7 @@ export default function CreateInviteForm() {
       </div>
       <div className="flex items-end">
         <Button type="submit" variant="gold" className="w-full" disabled={pending}>
-          {pending ? 'Creating…' : '➕ Generate Invite'}
+          {pending ? 'Creating…' : 'Generate Invite'}
         </Button>
       </div>
     </form>

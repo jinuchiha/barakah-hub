@@ -102,7 +102,7 @@ export default function BulkImportDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="sm">📥 Bulk Import CSV</Button>
+        <Button variant="ghost" size="sm">Bulk Import CSV</Button>
       </DialogTrigger>
       <DialogContent className="max-w-2xl">
         <DialogHeader>

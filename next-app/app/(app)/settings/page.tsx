@@ -22,18 +22,18 @@ export default async function SettingsPage() {
       </header>
 
       <Card className="mb-4">
-        <CardHeader><CardTitle>👤 My Profile</CardTitle></CardHeader>
+        <CardHeader><CardTitle>My Profile</CardTitle></CardHeader>
         <CardBody><ProfileForm member={me} /></CardBody>
       </Card>
 
       <Card className="mb-4">
-        <CardHeader><CardTitle>🎨 Theme & Appearance</CardTitle></CardHeader>
+        <CardHeader><CardTitle>Theme & Appearance</CardTitle></CardHeader>
         <CardBody><ThemePicker initial={cfg?.themePalette ?? 'gold'} canSave={isAdmin} /></CardBody>
       </Card>
 
       {isAdmin && (
         <Card className="mb-4">
-          <CardHeader><CardTitle>⚙️ Admin Configuration</CardTitle></CardHeader>
+          <CardHeader><CardTitle>Admin Configuration</CardTitle></CardHeader>
           <CardBody><AdminConfigForm config={cfg ?? { id: 1, voteThresholdPct: 50, defaultMonthlyPledge: 1000, goalAmount: 0, goalLabelUr: null, goalLabelEn: null, goalDeadline: null, themePalette: 'gold', orgNameUr: 'بَرَكَة ہب', orgNameEn: 'Barakah Hub', easyPaiseName: null, easyPaiseNumber: null, updatedAt: new Date() }} /></CardBody>
         </Card>
       )}

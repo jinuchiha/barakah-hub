@@ -47,7 +47,7 @@ export default function AdminConfigForm({ config }: { config: Config }) {
         <Input type="number" value={defaultMonthly} onChange={(e) => setDefaultMonthly(parseInt(e.target.value) || 0)} />
       </div>
       <div className="mt-5 border-t border-dashed border-[var(--border)] pt-4">
-        <div className="mb-2 font-[var(--font-display)] text-[10px] uppercase tracking-[2px] text-[var(--color-gold-4)]">🎯 FAMILY GOAL</div>
+        <div className="mb-2 font-[var(--font-display)] text-[10px] uppercase tracking-[2px] text-[var(--color-gold-4)]">FAMILY GOAL</div>
         <div className="grid gap-3 md:grid-cols-2">
           <div><Label>Goal label (Urdu)</Label><Input value={goalLabelUr} onChange={(e) => setGoalLabelUr(e.target.value)} placeholder="مثلاً: عید الفطر تک" dir="rtl" /></div>
           <div><Label>Goal label (English)</Label><Input value={goalLabelEn} onChange={(e) => setGoalLabelEn(e.target.value)} placeholder="e.g. Eid-ul-Fitr Goal" /></div>
@@ -57,7 +57,7 @@ export default function AdminConfigForm({ config }: { config: Config }) {
       </div>
       {/* EasyPaisa Collection Account */}
       <div className="mt-5 border-t border-dashed border-[var(--border)] pt-4">
-        <div className="mb-2 font-[var(--font-display)] text-[10px] uppercase tracking-[2px] text-[var(--color-gold-4)]">📱 EASYPAISE COLLECTION ACCOUNT</div>
+        <div className="mb-2 font-[var(--font-display)] text-[10px] uppercase tracking-[2px] text-[var(--color-gold-4)]">EASYPAISE COLLECTION ACCOUNT</div>
         <p className="mb-3 text-[11px] text-[var(--txt-3)]">
           Supervisor ka personal EasyPaisa number yahan set karo. Members ko payment karte waqt yeh details dikhengi taaki woh seedha bhej sakein phir receipt upload karein.
         </p>
