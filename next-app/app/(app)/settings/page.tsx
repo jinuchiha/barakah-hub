@@ -15,17 +15,19 @@ export default async function SettingsPage() {
   const isAdmin = me.role === 'admin';
 
   return (
-    <div className="mx-auto w-full max-w-2xl">
+    <div className="mx-auto w-full max-w-2xl lg:max-w-6xl">
       <header className="mb-6 border-b border-[var(--border)] pb-4">
         <h1 className="font-[var(--font-arabic)] text-3xl text-[var(--color-gold-2)]">ترتیبات</h1>
         <p className="mt-1 font-[var(--font-en)] text-sm italic text-[var(--color-gold-4)]">Settings & Preferences</p>
       </header>
 
-      <Card className="mb-4">
+      <div className="lg:grid lg:grid-cols-2 lg:items-start lg:gap-6">
+      <Card className="mb-4 lg:mb-0">
         <CardHeader><CardTitle>My Profile</CardTitle></CardHeader>
         <CardBody><ProfileForm member={me} /></CardBody>
       </Card>
 
+      <div>
       <Card className="mb-4">
         <CardHeader><CardTitle>Theme & Appearance</CardTitle></CardHeader>
         <CardBody><ThemePicker initial={cfg?.themePalette ?? 'gold'} canSave={isAdmin} /></CardBody>
@@ -37,6 +39,8 @@ export default async function SettingsPage() {
           <CardBody><AdminConfigForm config={cfg ?? { id: 1, voteThresholdPct: 50, defaultMonthlyPledge: 1000, goalAmount: 0, goalLabelUr: null, goalLabelEn: null, goalDeadline: null, themePalette: 'gold', orgNameUr: 'بَرَكَة ہب', orgNameEn: 'Barakah Hub', easyPaiseName: null, easyPaiseNumber: null, updatedAt: new Date() }} /></CardBody>
         </Card>
       )}
+      </div>
+      </div>
     </div>
   );
 }
