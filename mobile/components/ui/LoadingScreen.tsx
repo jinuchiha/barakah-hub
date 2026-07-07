@@ -8,9 +8,12 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { darkColors } from '@/lib/theme';
+import { useTheme } from '@/lib/useTheme';
 
 export function LoadingScreen() {
+  // Falls back to dark before ThemeProvider mounts (root gate) — matches
+  // the splash; inside the app it follows the active theme.
+  const { colors } = useTheme();
   const opacity = useSharedValue(0.4);
   const scale = useSharedValue(0.9);
 
@@ -32,11 +35,11 @@ export function LoadingScreen() {
   }));
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.bg0 }]}>
       <Animated.View style={animStyle}>
-        <MaterialCommunityIcons name="star-crescent" size={56} color={darkColors.primary} />
+        <MaterialCommunityIcons name="star-crescent" size={56} color={colors.primary} />
       </Animated.View>
-      <Text style={styles.text}>Barakah Hub</Text>
+      <Text style={[styles.text, { color: colors.text2 }]}>Barakah Hub</Text>
     </View>
   );
 }
@@ -44,13 +47,13 @@ export function LoadingScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: darkColors.bg0,
+    
     alignItems: 'center',
     justifyContent: 'center',
     gap: 16,
   },
   text: {
-    color: darkColors.text2,
+    
     fontSize: 16,
     fontFamily: 'Inter_600SemiBold',
     letterSpacing: 2,

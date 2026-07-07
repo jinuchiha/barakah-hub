@@ -93,7 +93,16 @@
     "paymentDue": "ادائیگی باقی ہے",
     "thisMontPaid": "اس مہینے: ادا شدہ",
     "seeAll": "سب دیکھیں",
-    "communityActivity": "برادری کی سرگرمی"
+    "communityActivity": "برادری کی سرگرمی",
+    "donated": "نے عطیہ دیا",
+    "goBack": "واپس جائیں",
+    "myPledge": "میرا عہد",
+    "verified": "تصدیق شدہ",
+    "perMonth": "/ماہ",
+    "fundOverview": "فنڈ کا جائزہ",
+    "fundComposition": "فنڈ کی ترکیب",
+    "fundDistribution": "فنڈ کی تقسیم",
+    "sadaqahZakatQarz": "صدقہ · زکات · قرض"
   },
   "analytics": {
     "title": "تجزیات",
@@ -505,5 +514,18 @@
     "votingCases": "ووٹنگ کیسز",
     "membersPendingApproval": "{{count}} رکن{{plural}} منظوری کے انتظار میں",
     "paymentsToReview": "{{count}} ادائیگی{{plural}} جائزے کے لیے"
+  },
+  "pay": {
+    "title": "ادائیگی جمع کریں",
+    "processing": "عمل جاری ہے…",
+    "easyPaisaFirst": "پہلے ایزی پیسہ سے بھیجیں",
+    "amountPkr": "رقم (روپے)",
+    "fundPool": "فنڈ پول",
+    "month": "مہینہ",
+    "noteOptional": "نوٹ (اختیاری)",
+    "submit": "جمع کریں",
+    "submitting": "جمع ہو رہی ہے…",
+    "failed": "جمع نہیں ہو سکی",
+    "incomplete": "فارم نامکمل ہے"
   }
 }

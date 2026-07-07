@@ -22,7 +22,7 @@ import i18n, { initI18n } from '@/lib/i18n';
 import { useAuth } from '@/hooks/useAuth';
 import { LoadingScreen } from '@/components/ui/LoadingScreen';
 import { ALL_THEMES, type ThemeName } from '@/lib/theme';
-import { ThemeContext, themeNameToMode } from '@/lib/useTheme';
+import { ThemeContext, themeNameToMode, useTheme } from '@/lib/useTheme';
 import { OfflineBanner } from '@/components/OfflineBanner';
 import { PushManager } from '@/components/PushManager';
 import { startNetworkListener } from '@/lib/offline';
@@ -118,6 +118,13 @@ export function ErrorBoundary({ error, retry }: { error: Error; retry: () => Pro
   );
 }
 
+/** Status-bar icons must invert with the theme — white icons vanish on
+ * the Light theme's paper background. */
+function ThemedStatusBar() {
+  const { mode } = useTheme();
+  return <StatusBar style={mode === 'light' ? 'dark' : 'light'} translucent />;
+}
+
 export default function RootLayout() {
   // fontError: if any font fails, proceed with system fallbacks — a
   // missing typeface must never hold the whole app on a blank screen.
@@ -186,7 +193,7 @@ export default function RootLayout() {
                 </Stack>
                 <OfflineBanner />
               </AuthInitializer>
-              <StatusBar style="light" translucent />
+              <ThemedStatusBar />
             </ThemeProvider>
           </I18nextProvider>
         </PersistQueryClientProvider>

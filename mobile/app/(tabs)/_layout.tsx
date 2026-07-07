@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { Tabs, Redirect } from 'expo-router';
 import { useAuthStore } from '@/stores/auth.store';
 import { useAppStore } from '@/stores/app.store';
@@ -48,13 +48,36 @@ function CustomTabBar() {
 
 const renderTabBar = () => <CustomTabBar />;
 
+/** Honest waiting room — a pending/rejected member must never land on an
+ * empty dashboard wondering what broke. */
+function PendingGate({ status }: { status: string }) {
+  const { colors } = useTheme();
+  const { user } = useAuthStore();
+  const rejected = status === 'rejected';
+  return (
+    <View style={[styles.container, { backgroundColor: colors.bg0, alignItems: 'center', justifyContent: 'center', padding: 32 }]}>
+      <Text style={{ fontSize: 44, marginBottom: 14 }}>{rejected ? '🚫' : '⏳'}</Text>
+      <Text style={{ color: colors.text1, fontSize: 19, fontFamily: 'Inter_700Bold', textAlign: 'center' }}>
+        {rejected ? 'Application not approved' : 'Approval pending'}
+      </Text>
+      <Text style={{ color: colors.text3, fontSize: 14, fontFamily: 'NotoNastaliqUrdu_400Regular', lineHeight: 32, textAlign: 'center', marginTop: 10 }}>
+        {rejected ? 'آپ کی درخواست منظور نہیں ہوئی · ایڈمن سے رابطہ کریں' : 'ایڈمن کی منظوری کا انتظار ہے · منظوری پر اطلاع ملے گی'}
+      </Text>
+      {user?.nameEn ? (
+        <Text style={{ color: colors.text4, fontSize: 12, fontFamily: 'Inter_400Regular', marginTop: 14 }}>{user.nameEn}</Text>
+      ) : null}
+    </View>
+  );
+}
+
 export default function TabsLayout() {
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, user } = useAuthStore();
   const { colors } = useTheme();
   const { ready } = useAppLock(isAuthenticated);
 
   if (!ready) return <LoadingScreen />;
   if (!isAuthenticated) return <Redirect href={'/(auth)/login' as any} />;
+  if (user && user.status !== 'approved') return <PendingGate status={user.status} />;
 
   return (
     <View style={[styles.container, { backgroundColor: colors.bg1 }]}>

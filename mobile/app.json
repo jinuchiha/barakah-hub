@@ -22,7 +22,6 @@
         "NSPhotoLibraryUsageDescription": "Select payment proof from gallery",
         "NSFaceIDUsageDescription": "Use Face ID to unlock Barakah Hub",
         "NSPhotoLibraryAddUsageDescription": "Save receipts to your photo library",
-        "NSMicrophoneUsageDescription": "Record voice notes for cases and use voice input in the AI assistant",
         "NSLocationWhenInUseUsageDescription": "Calculate Qibla direction for your current location"
       }
     },
@@ -43,8 +42,6 @@
         "android.permission.RECEIVE_BOOT_COMPLETED",
         "android.permission.VIBRATE",
         "android.permission.POST_NOTIFICATIONS",
-        "android.permission.RECORD_AUDIO",
-        "android.permission.ACCESS_FINE_LOCATION",
         "android.permission.ACCESS_COARSE_LOCATION"
       ],
       "softwareKeyboardLayoutMode": "pan",
@@ -55,17 +52,17 @@
           "data": [
             {
               "scheme": "https",
-              "host": "barakah.app",
+              "host": "barakah-hub.vercel.app",
               "pathPrefix": "/case"
             },
             {
               "scheme": "https",
-              "host": "barakah.app",
+              "host": "barakah-hub.vercel.app",
               "pathPrefix": "/payment"
             },
             {
               "scheme": "https",
-              "host": "barakah.app",
+              "host": "barakah-hub.vercel.app",
               "pathPrefix": "/notifications"
             }
           ],
@@ -101,7 +98,7 @@
         "expo-notifications",
         {
           "icon": "./assets/images/icon.png",
-          "color": "#00e676",
+          "color": "#d9b04c",
           "sounds": [],
           "mode": "production"
         }
