@@ -162,8 +162,7 @@ function LoansScreen() {
         <FlashList
           data={loans}
           keyExtractor={(item: Loan) => item.id}
-          renderItem={({ item, index }) => (
-            <Animated.View entering={FadeInDown.duration(320).delay(Math.min(index, 6) * 50)}>
+          renderItem={({ item }) => (
             <SwipeableRow
               rightAction={isAdmin && item.active ? {
                 icon: 'cash-plus',
@@ -174,7 +173,6 @@ function LoansScreen() {
             >
               <LoanCard loan={item} />
             </SwipeableRow>
-            </Animated.View>
           )}
           estimatedItemSize={180}
           contentContainerStyle={styles.list}

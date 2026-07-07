@@ -57,7 +57,7 @@ function FilterTabs({ active, onChange, activeCaseCount }: {
   const { colors } = useTheme();
   const { t } = useTranslation();
 
-  const FILTERS: Array<{ value: StatusFilter; label: string }> = [
+  const FILTERS: { value: StatusFilter; label: string }[] = [
     { value: 'voting', label: t('cases.active') },
     { value: 'approved', label: t('cases.approved') },
     { value: 'rejected', label: t('cases.rejected') },
@@ -378,8 +378,7 @@ function CasesScreen() {
         <FlashList
           data={data ?? []}
           keyExtractor={(item: EmergencyCase) => item.id}
-          renderItem={({ item, index }) => (
-            <Animated.View entering={FadeInDown.duration(320).delay(Math.min(index, 6) * 50)}>
+          renderItem={({ item }) => (
             <CaseCard
               emergencyCase={item}
               isOwn={item.applicantId === user?.id}
@@ -391,7 +390,6 @@ function CasesScreen() {
               onAdminDelete={isAdmin ? () => confirmDelete(item.id, item.beneficiaryName) : undefined}
               onAdminDisburse={isAdmin && item.status === 'approved' ? () => confirmDisburse(item.id, item.beneficiaryName, item.amount) : undefined}
             />
-            </Animated.View>
           )}
           estimatedItemSize={280}
           contentContainerStyle={styles.list}

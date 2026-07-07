@@ -86,7 +86,7 @@ function PaymentsScreen() {
     };
   }, []);
 
-  const POOLS: Array<{ value: FundPool | 'all'; label: string }> = [
+  const POOLS: { value: FundPool | 'all'; label: string }[] = [
     { value: 'all', label: t('payments.all') },
     { value: 'sadaqah', label: t('payments.sadaqah') },
     { value: 'zakat', label: t('payments.zakat') },
@@ -158,11 +158,7 @@ function PaymentsScreen() {
         <FlashList
           data={filtered}
           keyExtractor={(item: Payment) => item.id}
-          renderItem={({ item, index }) => (
-            <Animated.View entering={FadeInDown.duration(320).delay(Math.min(index, 8) * 45)}>
-              <PaymentCard payment={item} />
-            </Animated.View>
-          )}
+          renderItem={({ item }) => <PaymentCard payment={item} />}
           estimatedItemSize={88}
           contentContainerStyle={styles.list}
           refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={colors.primary} />}
