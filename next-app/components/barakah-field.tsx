@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 
 /**
@@ -17,6 +17,40 @@ import * as THREE from 'three';
 
 const WORDS = ['بركة', 'صدقة', 'رحمة', 'خير', 'إحسان'];
 
+/**
+ * Night flies through a star field; day glides through warm bronze dust
+ * over paper. Same sky, two times of day — the scene re-composes itself
+ * whenever the user flips the theme (no reload needed).
+ * Additive blending only works against dark; day uses normal blending
+ * with ink-gold pigments, or everything would white-out.
+ */
+const PALETTES = {
+  dark: {
+    hostOpacity: 0.8,
+    blending: THREE.AdditiveBlending,
+    star: { color: 0xd8dce8, opacity: 0.85 },
+    nebulaA: [[0, 'rgba(38,52,96,0.5)'], [0.6, 'rgba(24,34,66,0.22)'], [1, 'rgba(0,0,0,0)']] as [number, string][],
+    nebulaB: [[0, 'rgba(45,138,95,0.22)'], [1, 'rgba(0,0,0,0)']] as [number, string][],
+    disc: [[0, 'rgba(255,240,205,0.95)'], [0.55, 'rgba(232,197,99,0.55)'], [1, 'rgba(200,155,60,0)']] as [number, string][],
+    halo: [[0, 'rgba(232,197,99,0.4)'], [0.4, 'rgba(200,155,60,0.14)'], [1, 'rgba(0,0,0,0)']] as [number, string][],
+    wordFill: 'rgba(232,197,99,0.9)',
+    wordShadow: 'rgba(232,197,99,0.85)',
+  },
+  light: {
+    hostOpacity: 0.55,
+    blending: THREE.NormalBlending,
+    star: { color: 0x8a6d2f, opacity: 0.5 },
+    nebulaA: [[0, 'rgba(156,122,46,0.14)'], [0.6, 'rgba(156,122,46,0.06)'], [1, 'rgba(156,122,46,0)']] as [number, string][],
+    nebulaB: [[0, 'rgba(45,138,95,0.10)'], [1, 'rgba(45,138,95,0)']] as [number, string][],
+    disc: [[0, 'rgba(150,108,30,0.92)'], [0.55, 'rgba(156,122,46,0.5)'], [1, 'rgba(156,122,46,0)']] as [number, string][],
+    halo: [[0, 'rgba(156,122,46,0.26)'], [0.4, 'rgba(156,122,46,0.10)'], [1, 'rgba(156,122,46,0)']] as [number, string][],
+    wordFill: 'rgba(112,86,30,0.95)',
+    wordShadow: 'rgba(112,86,30,0.45)',
+  },
+} as const;
+
+type Mode = keyof typeof PALETTES;
+
 function radialSprite(size: number, stops: [number, string][]): THREE.CanvasTexture {
   const canvas = document.createElement('canvas');
   canvas.width = size;
@@ -30,7 +64,7 @@ function radialSprite(size: number, stops: [number, string][]): THREE.CanvasText
 }
 
 /** Crescent of light: a glowing disc with a soft offset bite erased out. */
-function crescentTexture(): THREE.CanvasTexture {
+function crescentTexture(disc: readonly (readonly [number, string])[]): THREE.CanvasTexture {
   const s = 512;
   const canvas = document.createElement('canvas');
   canvas.width = s;
@@ -38,11 +72,9 @@ function crescentTexture(): THREE.CanvasTexture {
   const ctx = canvas.getContext('2d')!;
   const cx = s / 2;
 
-  const disc = ctx.createRadialGradient(cx, cx, s * 0.18, cx, cx, s * 0.42);
-  disc.addColorStop(0, 'rgba(255,240,205,0.95)');
-  disc.addColorStop(0.55, 'rgba(232,197,99,0.55)');
-  disc.addColorStop(1, 'rgba(200,155,60,0)');
-  ctx.fillStyle = disc;
+  const g = ctx.createRadialGradient(cx, cx, s * 0.18, cx, cx, s * 0.42);
+  for (const [at, color] of disc) g.addColorStop(at, color);
+  ctx.fillStyle = g;
   ctx.beginPath();
   ctx.arc(cx, cx, s * 0.42, 0, Math.PI * 2);
   ctx.fill();
@@ -62,7 +94,7 @@ function crescentTexture(): THREE.CanvasTexture {
   return new THREE.CanvasTexture(canvas);
 }
 
-function wordTexture(word: string): THREE.CanvasTexture {
+function wordTexture(word: string, fill: string, shadow: string): THREE.CanvasTexture {
   const w = 512;
   const h = 256;
   const canvas = document.createElement('canvas');
@@ -72,16 +104,16 @@ function wordTexture(word: string): THREE.CanvasTexture {
   ctx.font = '110px Amiri, "Noto Nastaliq Urdu", serif';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.shadowColor = 'rgba(232,197,99,0.85)';
-  ctx.shadowBlur = 26;
-  ctx.fillStyle = 'rgba(232,197,99,0.9)';
+  ctx.shadowColor = shadow;
+  ctx.shadowBlur = 22;
+  ctx.fillStyle = fill;
   ctx.fillText(word, w / 2, h / 2);
   return new THREE.CanvasTexture(canvas);
 }
 
-function sprite(tex: THREE.CanvasTexture, opacity: number): THREE.Sprite {
+function sprite(tex: THREE.CanvasTexture, opacity: number, blending: THREE.Blending): THREE.Sprite {
   return new THREE.Sprite(
-    new THREE.SpriteMaterial({ map: tex, transparent: true, opacity, blending: THREE.AdditiveBlending, depthWrite: false }),
+    new THREE.SpriteMaterial({ map: tex, transparent: true, opacity, blending, depthWrite: false }),
   );
 }
 
@@ -90,7 +122,7 @@ interface StarLayer {
   speed: number;
 }
 
-function buildStarLayer(count: number, size: number, speed: number, spread: number): StarLayer {
+function buildStarLayer(count: number, size: number, speed: number, spread: number, star: { color: number; opacity: number }): StarLayer {
   const positions = new Float32Array(count * 3);
   for (let i = 0; i < count; i++) {
     positions[i * 3] = (Math.random() - 0.5) * spread;
@@ -101,9 +133,9 @@ function buildStarLayer(count: number, size: number, speed: number, spread: numb
   geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
   const mat = new THREE.PointsMaterial({
     size,
-    color: 0xd8dce8,
+    color: star.color,
     transparent: true,
-    opacity: 0.85,
+    opacity: star.opacity,
     depthWrite: false,
     sizeAttenuation: true,
   });
@@ -112,11 +144,24 @@ function buildStarLayer(count: number, size: number, speed: number, spread: numb
 
 export default function BarakahField() {
   const hostRef = useRef<HTMLDivElement>(null);
+  const [mode, setMode] = useState<Mode>(() =>
+    typeof document !== 'undefined' && document.documentElement.classList.contains('light') ? 'light' : 'dark',
+  );
+
+  // Recompose the sky live when the user flips dark/light in settings.
+  useEffect(() => {
+    const mo = new MutationObserver(() => {
+      setMode(document.documentElement.classList.contains('light') ? 'light' : 'dark');
+    });
+    mo.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    return () => mo.disconnect();
+  }, []);
 
   useEffect(() => {
     const host = hostRef.current;
     if (!host) return;
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const P = PALETTES[mode];
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(60, 1, 0.1, 200);
@@ -129,33 +174,33 @@ export default function BarakahField() {
 
     // ── Star layers: far/mid/near for parallax, drifting toward camera ──
     const layers: StarLayer[] = [
-      buildStarLayer(320, 0.06, 0.9, 70),
-      buildStarLayer(220, 0.1, 1.7, 55),
-      buildStarLayer(110, 0.16, 3.0, 45),
+      buildStarLayer(320, 0.06, 0.9, 70, P.star),
+      buildStarLayer(220, 0.1, 1.7, 55, P.star),
+      buildStarLayer(110, 0.16, 3.0, 45, P.star),
     ];
     for (const l of layers) scene.add(l.points);
 
     // ── Nebula wisps: deep indigo + one faint emerald breath ──
-    const nebulaA = sprite(radialSprite(256, [[0, 'rgba(38,52,96,0.5)'], [0.6, 'rgba(24,34,66,0.22)'], [1, 'rgba(0,0,0,0)']]), 0.5);
+    const nebulaA = sprite(radialSprite(256, [...P.nebulaA]), 0.5, P.blending);
     nebulaA.scale.set(70, 42, 1);
     nebulaA.position.set(-16, -6, -60);
-    const nebulaB = sprite(radialSprite(256, [[0, 'rgba(45,138,95,0.22)'], [1, 'rgba(0,0,0,0)']]), 0.4);
+    const nebulaB = sprite(radialSprite(256, [...P.nebulaB]), 0.4, P.blending);
     nebulaB.scale.set(46, 30, 1);
     nebulaB.position.set(20, 10, -70);
     scene.add(nebulaA, nebulaB);
 
     // ── The hilal: pure light, upper right ──
-    const moon = sprite(crescentTexture(), 0.95);
+    const moon = sprite(crescentTexture(P.disc), 0.95, P.blending);
     moon.scale.setScalar(11);
     moon.position.set(10.5, 6, -14);
-    const halo = sprite(radialSprite(256, [[0, 'rgba(232,197,99,0.4)'], [0.4, 'rgba(200,155,60,0.14)'], [1, 'rgba(0,0,0,0)']]), 0.8);
+    const halo = sprite(radialSprite(256, [...P.halo]), 0.8, P.blending);
     halo.scale.setScalar(20);
     halo.position.copy(moon.position).z -= 1;
     scene.add(halo, moon);
 
     // ── Sacred words floating at depth among the stars ──
     const words = WORDS.map((w, i) => {
-      const sp = sprite(wordTexture(w), 0.16);
+      const sp = sprite(wordTexture(w, P.wordFill, P.wordShadow), 0.16, P.blending);
       const depth = -18 - i * 12;
       sp.position.set(((i % 2 === 0 ? -1 : 1) * (6 + (i * 3.7) % 12)), ((i * 5.3) % 14) - 7, depth);
       sp.scale.set(10, 5, 1);
@@ -243,14 +288,14 @@ export default function BarakahField() {
       renderer.dispose();
       renderer.domElement.remove();
     };
-  }, []);
+  }, [mode]);
 
   return (
     <div
       ref={hostRef}
       aria-hidden
       className="barakah-field-host"
-      style={{ position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none', opacity: 0.8 }}
+      style={{ position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none', opacity: PALETTES[mode].hostOpacity, transition: 'opacity 0.3s ease' }}
     />
   );
 }

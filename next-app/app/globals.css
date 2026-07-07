@@ -729,7 +729,6 @@ button:disabled,
    The space field, star layers and gold ambient glows are composed for
    the dark ink sky; on a light page they read as smudges. Hide them and
    let light mode be clean paper. */
-html.light .barakah-field-host { display: none; }
 html.light .ambient-depth::before,
 html.light .ambient-depth::after { display: none; }
 html.light .fund-hero { box-shadow: 0 8px 28px rgba(15,22,38,0.14); }
