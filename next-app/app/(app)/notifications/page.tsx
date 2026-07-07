@@ -68,7 +68,7 @@ export default async function NotificationsPage() {
             // Every row passes through the open route so the click ALSO
             // marks it read (bell badge drops) before landing on target.
             return (
-              <Link key={n.id} href={`/notifications/open/${n.id}` as Route} className={`group ${rowClass} transition-colors hover:bg-[var(--surf-3)]`}>
+              <Link key={n.id} prefetch={false} href={`/notifications/open/${n.id}` as Route} className={`group ${rowClass} transition-colors hover:bg-[var(--surf-3)]`}>
                 {body}
               </Link>
             );

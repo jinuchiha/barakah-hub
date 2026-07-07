@@ -26,6 +26,9 @@ export async function GET() {
     })
     .from(payments)
     .leftJoin(members, eq(payments.memberId, members.id))
+    // Verified only, so summing amount_pkr reconciles with every in-app
+    // total (dashboard, statements, annual report all filter the same way).
+    .where(eq(payments.pendingVerify, false))
     .orderBy(desc(payments.paidOn));
 
   const csv = toCsv(

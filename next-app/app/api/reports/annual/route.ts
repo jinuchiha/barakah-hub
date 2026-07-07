@@ -3,22 +3,42 @@ import { and, gte, lt, eq, inArray } from 'drizzle-orm';
 import { meOrThrow } from '@/lib/auth-server';
 import { db } from '@/lib/db';
 import { payments, cases, loans, members } from '@/lib/db/schema';
+import { gregorianToHijriYear, hijriYearRange } from '@/lib/hijri';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-/** Annual summary (admin) for a given ?year=YYYY (defaults to current year). */
+/**
+ * Annual summary (admin). Accepts either calendar:
+ *   ?year=1447  (1300–1600)  → Hijri year, same window as the web report
+ *   ?year=2026  (2000–2100)  → Gregorian calendar year
+ * Defaults to the CURRENT HIJRI year so API/mobile totals match the web
+ * annual report out of the box. Response carries `calendar` + `maxYear`
+ * so clients can build a correct year picker without local Hijri math.
+ */
 export async function GET(req: NextRequest) {
   try {
     const me = await meOrThrow();
     if (me.role !== 'admin') return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
-    const year = parseInt(new URL(req.url).searchParams.get('year') ?? '', 10) || new Date().getFullYear();
-    if (isNaN(year) || year < 2000 || year > 2100) {
+    const currentHijri = gregorianToHijriYear(new Date());
+    const year = parseInt(new URL(req.url).searchParams.get('year') ?? '', 10) || currentHijri;
+    const isHijri = year >= 1300 && year <= 1600;
+    if (isNaN(year) || (!isHijri && (year < 2000 || year > 2100))) {
       return NextResponse.json({ error: 'Invalid year' }, { status: 400 });
     }
-    const start = new Date(year, 0, 1);
-    const end = new Date(year + 1, 0, 1);
+    let start: Date;
+    let end: Date;
+    if (isHijri) {
+      const range = hijriYearRange(year);
+      start = range.from;
+      // range.to is the INCLUSIVE last day; queries below use lt(end), so
+      // push the bound to the first day of the next Hijri year.
+      end = new Date(range.to.getTime() + 86_400_000);
+    } else {
+      start = new Date(year, 0, 1);
+      end = new Date(year + 1, 0, 1);
+    }
     // loans.issuedOn is a DATE (string) column; payments/cases.createdAt are timestamps.
     const startDate = start.toISOString().slice(0, 10);
     const endDate = end.toISOString().slice(0, 10);
@@ -74,6 +94,8 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({
       year,
+      calendar: isHijri ? 'hijri' : 'gregorian',
+      maxYear: isHijri ? currentHijri : new Date().getFullYear(),
       collected: { ...pool, total: pool.sadaqah + pool.zakat + pool.qarz, count: pays.length },
       memberLedger,
       cases: {

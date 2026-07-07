@@ -3,6 +3,7 @@ import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useIsFocused } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Animated, {
@@ -113,9 +114,10 @@ function LiveDot() {
   );
 }
 
-function FundHero({ fund, pendingCount }: {
+function FundHero({ fund, pendingCount, live = true }: {
   fund?: { sadaqah: number; zakat: number; qarz: number };
   pendingCount?: number;
+  live?: boolean;
 }) {
   const { t } = useTranslation();
   const sadaqah = fund?.sadaqah ?? 0;
@@ -137,13 +139,13 @@ function FundHero({ fund, pendingCount }: {
         end={{ x: 0.9, y: 1 }}
         style={[styles.heroCard, { borderWidth: 1, borderColor: 'rgba(217,176,76,0.28)' }]}
       >
-        <AuroraSweep />
+        {live ? <AuroraSweep /> : null}
         {/* Decorative motif */}
         <Text style={styles.heroMotif} accessibilityElementsHidden>☽</Text>
 
         <View style={styles.heroLabelRow}>
           <Text style={styles.heroLabel}>{t('dashboard.totalFamilyFund')}</Text>
-          <LiveDot />
+          {live ? <LiveDot /> : null}
         </View>
         <AnimatedNumber value={total} format={fmtRsWorklet} style={styles.heroAmount} />
 
@@ -389,6 +391,10 @@ function DashboardScreen() {
   const qc = useQueryClient();
   const { data, isLoading, error, refetch, isRefetching } = useDashboard();
   const [searchVisible, setSearchVisible] = useState(false);
+  // Tabs keep visited screens mounted — without this gate the star field,
+  // aurora, LIVE dot and FAB pulse (30+ infinite UI-thread loops) keep
+  // burning battery while the user is on another tab.
+  const isFocused = useIsFocused();
 
   const handleRefresh = () => {
     void refetch();
@@ -432,9 +438,9 @@ function DashboardScreen() {
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.bg0 }]} edges={['top']}>
-      <BarakahField dimmed />
+      {isFocused ? <BarakahField dimmed /> : null}
       <GlobalSearch visible={searchVisible} onClose={() => setSearchVisible(false)} />
-      <AIFab />
+      {isFocused ? <AIFab /> : null}
 
       <ScrollView
         contentContainerStyle={styles.scroll}
@@ -460,6 +466,7 @@ function DashboardScreen() {
         <FundHero
           fund={data?.fund}
           pendingCount={data?.fund?.pendingCount}
+          live={isFocused}
         />
 
         {/* Payment status banner */}

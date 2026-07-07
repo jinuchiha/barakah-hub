@@ -461,15 +461,35 @@ export async function verifyPayment(paymentId: string) {
   if (existing.supervisorRejectedAt) {
     throw new Error('Supervisor rejected this payment · resend it for re-approval first, or delete it.');
   }
+  // Two-person rule, enforced in role logic (not just UI): the person who
+  // supervisor-approved the cash cannot also be the one who verifies it.
+  if (existing.supervisorApprovedById === me.id) {
+    throw new Error('Two-person rule: you approved this payment as supervisor, so a different admin must verify it.');
+  }
 
-  await db
+  const verifiedAt = new Date();
+  // Conditional UPDATE so two admins clicking Verify at once can't both
+  // "win" and double-send receipts — only the row that actually flips
+  // triggers notifications.
+  const flipped = await db
     .update(payments)
-    .set({ pendingVerify: false, verifiedById: me.id, verifiedAt: new Date() })
-    .where(eq(payments.id, paymentId));
+    .set({ pendingVerify: false, verifiedById: me.id, verifiedAt })
+    .where(and(eq(payments.id, paymentId), eq(payments.pendingVerify, true)))
+    .returning({ id: payments.id });
+  if (flipped.length === 0) throw new Error('Already verified');
   await audit(me.id, 'payment-verified', `Verified payment ${paymentId}`);
   // Notify the donor that their payment was approved (push + email receipt)
   const [p] = await db.select().from(payments).where(eq(payments.id, paymentId)).limit(1);
   if (p) {
+    // In-app row too, so the verification shows in the bell list (push is
+    // transient, email can be missed).
+    void notify([p.memberId], {
+      titleEn: 'Donation verified',
+      titleUr: 'عطیہ کی تصدیق ہو گئی',
+      en: `Your ${p.pool} contribution of Rs ${p.amount.toLocaleString('en-PK')} for ${p.monthLabel} has been verified.`,
+      ur: `${p.monthLabel} کا آپ کا عطیہ Rs ${p.amount.toLocaleString('en-PK')} تصدیق ہو گیا۔`,
+      type: 'payment-verified',
+    }).catch((err) => { console.error('[notify] payment verified:', err); });
     void sendPushToMembers([p.memberId], {
       title: '✅ Donation verified',
       body: `Your ${p.pool} contribution of Rs ${p.amount.toLocaleString('en-PK')} for ${p.monthLabel} has been verified.`,
@@ -487,18 +507,19 @@ export async function verifyPayment(paymentId: string) {
           pool: p.pool,
           monthLabel: p.monthLabel,
           paymentId: p.id,
-          verifiedAt: new Date(),
+          verifiedAt,
         });
       }
       // Receipt on WhatsApp too (user wants both channels). No-ops
       // without the Cloud API env; text works inside a 24h session.
       if (donor.phone) {
         const base = process.env.NEXT_PUBLIC_APP_URL ?? 'https://barakah-hub.vercel.app';
+        const poolLabel = p.pool === 'sadaqah' ? 'صدقہ' : p.pool === 'zakat' ? 'زکوٰۃ' : 'قرض';
         await sendWhatsAppText(
           donor.phone,
           `✅ *رسید تصدیق شدہ · Barakah Hub*
 
-رقم: *Rs ${p.amount.toLocaleString('en-PK')}* (${p.pool})
+رقم: *Rs ${p.amount.toLocaleString('en-PK')}* (${poolLabel})
 مہینہ: ${p.monthLabel}
 رسید نمبر: #${p.id.slice(0, 8).toUpperCase()}
 
@@ -990,6 +1011,7 @@ export async function disburseCase(caseId: string) {
         paid: 0,
         active: true,
       });
+      await audit(me.id, 'loan-issue', `Auto-issued ${c.amount} qarz loan from disbursed case ${c.id}`, c.applicantId);
     }
     revalidatePath('/admin/loans');
   }
@@ -1011,14 +1033,20 @@ export async function adminResolveCase(caseId: string, decision: 'approved' | 'r
   if (decision !== 'approved' && decision !== 'rejected') throw new Error('Invalid decision');
   if (me.role !== 'admin') throw new Error('Admin only');
 
-  const [c] = await db.select().from(cases).where(eq(cases.id, caseId)).limit(1);
-  if (!c) throw new Error('Case not found');
-  if (c.status !== 'voting') throw new Error(`Case already ${c.status}`);
-
-  await db
+  // Atomic like disburseCase: only flips a case that is still voting, so a
+  // concurrent vote-tally auto-resolve (or a second admin) can't be
+  // silently overwritten by this veto.
+  const resolved = await db
     .update(cases)
     .set({ status: decision, resolvedAt: new Date() })
-    .where(eq(cases.id, caseId));
+    .where(and(eq(cases.id, caseId), eq(cases.status, 'voting')))
+    .returning();
+  if (resolved.length === 0) {
+    const [current] = await db.select().from(cases).where(eq(cases.id, caseId)).limit(1);
+    if (!current) throw new Error('Case not found');
+    throw new Error(`Case already ${current.status}`);
+  }
+  const c = resolved[0];
   await audit(
     me.id,
     decision === 'approved' ? 'emergency-approved' : 'emergency-rejected',

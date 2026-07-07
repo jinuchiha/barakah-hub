@@ -14,10 +14,22 @@ export const dynamic = 'force-dynamic';
  * badge drops immediately), then land on the screen it is about.
  * Recipient-scoped — nobody can mark someone else's notification.
  */
-export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const me = await meOrThrow();
   const { id } = await params;
   if (!/^[0-9a-f-]{36}$/i.test(id)) redirect('/notifications');
+
+  // A GET with a write side-effect must ignore speculative fetches — Next
+  // Link prefetch, browser prerender, and mail scanners would otherwise
+  // mark rows read without a real click.
+  const h = req.headers;
+  if (
+    h.get('next-router-prefetch') === '1' ||
+    (h.get('purpose') ?? h.get('sec-purpose') ?? '').includes('prefetch') ||
+    (h.get('sec-purpose') ?? '').includes('prerender')
+  ) {
+    redirect('/notifications');
+  }
 
   const [n] = await db
     .update(notifications)

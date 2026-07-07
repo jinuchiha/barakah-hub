@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { eq } from 'drizzle-orm';
 import { writeFile, mkdir } from 'fs/promises';
 import path from 'path';
-import { meOrThrow } from '@/lib/auth-server';
+import { meApprovedOrThrow } from '@/lib/auth-server';
 import { db } from '@/lib/db';
 import { members, auditLog } from '@/lib/db/schema';
 import { isStorageConfigured, uploadToStorage } from '@/lib/storage';
@@ -15,7 +15,7 @@ const MAX_SIZE_BYTES = 2 * 1024 * 1024; // 2 MB
 
 export async function POST(req: Request) {
   try {
-    const me = await meOrThrow();
+    const me = await meApprovedOrThrow();
 
     const formData = await req.formData();
     const file = formData.get('avatar');

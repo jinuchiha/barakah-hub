@@ -26,11 +26,35 @@ const bodySchema = z.object({
     .default([]),
 });
 
+// Per-member throttle so one account can't loop the org's paid LLM keys.
+// In-memory = per-lambda on Vercel; a determined abuser gets a few times
+// this across instances, which is still an order of magnitude below "loop
+// it in a script" — same tradeoff as the auth rate limiter.
+const AI_WINDOW_MS = 60 * 60 * 1000;
+const AI_MAX_PER_WINDOW = 40;
+const aiUsage = new Map<string, { windowStart: number; count: number }>();
+
+function aiRateLimited(memberId: string): boolean {
+  const now = Date.now();
+  const u = aiUsage.get(memberId);
+  if (!u || now - u.windowStart > AI_WINDOW_MS) {
+    aiUsage.set(memberId, { windowStart: now, count: 1 });
+    return false;
+  }
+  u.count += 1;
+  return u.count > AI_MAX_PER_WINDOW;
+}
+
 export async function POST(req: Request) {
+  let memberId: string;
   try {
-    await meApprovedOrThrow();
+    const me = await meApprovedOrThrow();
+    memberId = me.id;
   } catch {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+  if (aiRateLimited(memberId)) {
+    return NextResponse.json({ error: 'Rate limit reached · try again in an hour' }, { status: 429 });
   }
 
   let messages: { role: 'user' | 'assistant'; content: string }[];
