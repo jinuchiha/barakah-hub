@@ -35,6 +35,8 @@ const PALETTES = {
     halo: [[0, 'rgba(232,197,99,0.4)'], [0.4, 'rgba(200,155,60,0.14)'], [1, 'rgba(0,0,0,0)']] as [number, string][],
     wordFill: 'rgba(232,197,99,0.9)',
     wordShadow: 'rgba(232,197,99,0.85)',
+    wordMin: 0.05,
+    wordRange: 0.16,
   },
   light: {
     hostOpacity: 0.55,
@@ -44,8 +46,10 @@ const PALETTES = {
     nebulaB: [[0, 'rgba(45,138,95,0.10)'], [1, 'rgba(45,138,95,0)']] as [number, string][],
     disc: [[0, 'rgba(150,108,30,0.92)'], [0.55, 'rgba(156,122,46,0.5)'], [1, 'rgba(156,122,46,0)']] as [number, string][],
     halo: [[0, 'rgba(156,122,46,0.26)'], [0.4, 'rgba(156,122,46,0.10)'], [1, 'rgba(156,122,46,0)']] as [number, string][],
-    wordFill: 'rgba(112,86,30,0.95)',
-    wordShadow: 'rgba(112,86,30,0.45)',
+    wordFill: 'rgba(92,70,24,1)',
+    wordShadow: 'rgba(122,95,35,0.35)',
+    wordMin: 0.16,
+    wordRange: 0.38,
   },
 } as const;
 
@@ -200,7 +204,7 @@ export default function BarakahField() {
 
     // ── Sacred words floating at depth among the stars ──
     const words = WORDS.map((w, i) => {
-      const sp = sprite(wordTexture(w, P.wordFill, P.wordShadow), 0.16, P.blending);
+      const sp = sprite(wordTexture(w, P.wordFill, P.wordShadow), P.wordMin + P.wordRange, P.blending);
       const depth = -18 - i * 12;
       sp.position.set(((i % 2 === 0 ? -1 : 1) * (6 + (i * 3.7) % 12)), ((i * 5.3) % 14) - 7, depth);
       sp.scale.set(10, 5, 1);
@@ -251,7 +255,7 @@ export default function BarakahField() {
         wSp.position.z += dt * 0.5;
         if (wSp.position.z > 2) wSp.position.z = -75;
         const fade = 1 - Math.min(1, Math.abs(wSp.position.z + 30) / 45);
-        wSp.material.opacity = 0.05 + fade * 0.16;
+        wSp.material.opacity = P.wordMin + fade * P.wordRange;
       }
 
       // Hilal breathes; halo shimmers gently.
