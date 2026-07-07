@@ -64,6 +64,15 @@ function TabItem({ tab, active, badge, onPress }: TabItemProps) {
 
   const scaleStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
 
+  // Active icon floats up ~2px with a spring — the whole bar feels alive
+  // without anything protruding out of it.
+  const floatStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: interpolate(progress.value, [0, 1], [0, -2.5]) }],
+  }));
+  const glowStyle = useAnimatedStyle(() => ({
+    shadowOpacity: 0.2 + progress.value * 0.35,
+  }));
+
   const handlePress = () => {
     scale.value = withSpring(0.85, { damping: 10, stiffness: 500 }, () => {
       scale.value = withSpring(1, { damping: 12, stiffness: 400 });
@@ -83,14 +92,16 @@ function TabItem({ tab, active, badge, onPress }: TabItemProps) {
         accessibilityState={{ selected: active }}
         accessibilityLabel={t(tab.labelKey)}
       >
-        <Animated.View style={[styles.centerBtn, scaleStyle]}>
-          <LinearGradient
-            colors={active ? ['#e8c563', '#b8893a'] : ['#d9b04c', '#a87d33']}
-            start={{ x: 0.2, y: 0 }}
-            end={{ x: 0.8, y: 1 }}
-            style={StyleSheet.absoluteFillObject}
-          />
-          <MaterialCommunityIcons name={iconName} size={26} color="#0a0f1a" />
+        <Animated.View style={[styles.iconArea, scaleStyle, floatStyle]}>
+          <Animated.View style={[styles.centerBtn, glowStyle]}>
+            <LinearGradient
+              colors={active ? ['#e8c563', '#b8893a'] : ['#d9b04c', '#a87d33']}
+              start={{ x: 0.2, y: 0 }}
+              end={{ x: 0.8, y: 1 }}
+              style={StyleSheet.absoluteFillObject}
+            />
+            <MaterialCommunityIcons name={iconName} size={20} color="#0a0f1a" />
+          </Animated.View>
         </Animated.View>
         <Text style={[styles.tabLabel, { color: active ? colors.primary : colors.text4 }]} numberOfLines={1}>
           {t(tab.labelKey)}
@@ -108,7 +119,7 @@ function TabItem({ tab, active, badge, onPress }: TabItemProps) {
       accessibilityLabel={t(tab.labelKey)}
     >
       {/* Icon area with animated pill indicator */}
-      <Animated.View style={[styles.iconArea, scaleStyle]}>
+      <Animated.View style={[styles.iconArea, scaleStyle, floatStyle]}>
         <Animated.View style={[styles.activePill, pillStyle]}>
           <LinearGradient
             colors={[`${colors.primary}22`, `${colors.primary}10`]}
@@ -192,11 +203,10 @@ const styles = StyleSheet.create({
   topBorder: { height: 0.5 },
   row: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 6, paddingTop: 8 },
   centerBtn: {
-    width: 54, height: 54, borderRadius: 27, marginTop: -22,
+    width: 34, height: 34, borderRadius: 17,
     alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
-    borderWidth: 3, borderColor: 'rgba(10,15,26,0.9)',
-    shadowColor: '#d9b04c', shadowOpacity: 0.45, shadowRadius: 10,
-    shadowOffset: { width: 0, height: 4 }, elevation: 8,
+    shadowColor: '#d9b04c', shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 }, elevation: 4,
   },
   tabItem: { flex: 1, alignItems: 'center', paddingVertical: 5, paddingHorizontal: 2 },
   iconArea: { alignItems: 'center', justifyContent: 'center', width: 46, height: 32, marginBottom: 3 },
