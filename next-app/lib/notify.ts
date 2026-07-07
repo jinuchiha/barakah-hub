@@ -3,6 +3,10 @@ import { db } from '@/lib/db';
 import { members, notifications, users } from '@/lib/db/schema';
 import { sendPushToMembers, type PushPayload } from '@/lib/push';
 import { sendPaymentReviewEmail, type ReviewInput } from '@/lib/email';
+import { sendWhatsAppText } from '@/lib/whatsapp';
+import { signApproveToken } from '@/lib/approve-token';
+
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://barakah-hub.vercel.app';
 
 export interface NotifContent {
   titleEn: string;
@@ -49,7 +53,7 @@ export async function fundApproverIds(excludeId?: string): Promise<string[]> {
  */
 export async function emailFundApprovers(review: ReviewInput, excludeId?: string): Promise<void> {
   const rows = await db
-    .select({ id: members.id, email: users.email })
+    .select({ id: members.id, email: users.email, phone: members.phone })
     .from(members)
     .innerJoin(users, eq(users.id, members.authId))
     .where(and(
@@ -58,10 +62,23 @@ export async function emailFundApprovers(review: ReviewInput, excludeId?: string
       inArray(members.role, ['admin', 'supervisor']),
       isNotNull(users.email),
     ));
+  const recipients = rows.filter((r) => r.id !== excludeId && r.email);
   await Promise.allSettled(
-    rows
-      .filter((r) => r.id !== excludeId && r.email)
-      .map((r) => sendPaymentReviewEmail(r.email, review)),
+    recipients.map((r) => {
+      // Per-recipient one-tap link — the token IS the login, so the
+      // supervisor can approve straight from the email on their phone.
+      const approveUrl = review.paymentId
+        ? `${APP_URL}/approve/${signApproveToken(review.paymentId, r.id)}`
+        : undefined;
+      const jobs: Promise<unknown>[] = [sendPaymentReviewEmail(r.email, { ...review, approveUrl })];
+      if (r.phone && approveUrl) {
+        jobs.push(sendWhatsAppText(
+          r.phone,
+          `🧾 *نئی ادائیگی برائے منظوری*\n\n${review.memberName} · Rs ${review.amount.toLocaleString('en-PK')} (${review.pool})\nمہینہ: ${review.monthLabel}\n\nایک ٹیپ سے منظور کریں:\n${approveUrl}`,
+        ));
+      }
+      return Promise.allSettled(jobs);
+    }),
   );
 }
 

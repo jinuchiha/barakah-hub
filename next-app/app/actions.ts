@@ -246,7 +246,7 @@ export async function recordPayment(input: z.infer<typeof recordPaymentSchema>) 
   void (async () => {
     const [m] = await db.select().from(members).where(eq(members.id, data.memberId)).limit(1);
     await emailFundApprovers(
-      { memberName: m?.nameEn || m?.nameUr || 'A member', amount: data.amount, pool: data.pool, monthLabel: data.monthLabel, note: data.note },
+      { memberName: m?.nameEn || m?.nameUr || 'A member', amount: data.amount, pool: data.pool, monthLabel: data.monthLabel, note: data.note, paymentId: created.id },
       me.id,
     );
   })().catch((err) => { console.error('[email] payment review:', err); });
@@ -299,7 +299,7 @@ export async function submitDonation(input: z.infer<typeof submitDonationSchema>
     },
   );
   void emailFundApprovers(
-    { memberName: me.nameEn || me.nameUr, amount: data.amount, pool: data.pool, monthLabel: data.monthLabel, note: data.note, receiptUrl: data.receiptUrl },
+    { memberName: me.nameEn || me.nameUr, amount: data.amount, pool: data.pool, monthLabel: data.monthLabel, note: data.note, receiptUrl: data.receiptUrl, paymentId: created.id },
     me.id,
   ).catch((err) => { console.error('[email] payment review:', err); });
   revalidatePath('/myaccount');
