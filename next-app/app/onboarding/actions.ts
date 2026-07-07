@@ -6,7 +6,7 @@ import { getSession } from '@/lib/auth-server';
 import { db } from '@/lib/db';
 import { members, memberInvites, auditLog, users } from '@/lib/db/schema';
 import { sendWelcomeEmail } from '@/lib/email';
-import { notifyMembers, adminIds } from '@/lib/notify';
+import { notifyMembers, adminIds, alertAdminsNewMember } from '@/lib/notify';
 
 const schema = z.object({
   nameEn: z.string().min(2).max(80),
@@ -83,6 +83,7 @@ export async function onboardSelf(input: z.infer<typeof schema>) {
       },
       { title: '👤 Account claim to review', body: data.nameEn, data: { type: 'member-pending' }, channelId: 'admin' },
     );
+    void alertAdminsNewMember(data.nameEn).catch((err) => { console.error('[notify] new member alert:', err); });
     revalidatePath('/dashboard');
     return;
   }
@@ -165,6 +166,7 @@ export async function onboardSelf(input: z.infer<typeof schema>) {
       },
       { title: '👤 New member to approve', body: data.nameEn, data: { type: 'member-pending' }, channelId: 'admin' },
     );
+    void alertAdminsNewMember(data.nameEn).catch((err) => { console.error('[notify] new member alert:', err); });
   }
 
   revalidatePath('/dashboard');

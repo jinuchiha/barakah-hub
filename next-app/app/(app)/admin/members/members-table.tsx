@@ -138,7 +138,7 @@ export default function MembersTable({ initial }: Props) {
             </thead>
             <tbody>
               {filtered.map((m, i) => (
-                <tr key={m.id} className="table-row-hover border-b border-[rgba(214,210,199,0.06)]">
+                <tr key={m.id} className="table-row-hover border-b border-[var(--border)]">
                   <td className="px-4 py-2 font-[var(--font-en)] text-xs text-[var(--color-gold-4)]">{i + 1}</td>
                   <td className="px-4 py-2">
                     <Link href={`/admin/members/${m.id}` as Route} className="group/name flex items-center gap-2.5">

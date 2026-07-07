@@ -2,7 +2,7 @@ import { and, eq, inArray, isNotNull } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { members, notifications, users } from '@/lib/db/schema';
 import { sendPushToMembers, type PushPayload } from '@/lib/push';
-import { sendPaymentReviewEmail, type ReviewInput } from '@/lib/email';
+import { sendPaymentReviewEmail, sendNewMemberEmail, type ReviewInput } from '@/lib/email';
 import { sendWhatsAppText } from '@/lib/whatsapp';
 import { signApproveToken } from '@/lib/approve-token';
 
@@ -93,4 +93,39 @@ export async function adminIds(excludeId?: string): Promise<string[]> {
       eq(members.role, 'admin'),
     ));
   return rows.filter((r) => r.id !== excludeId).map((r) => r.id);
+}
+
+/**
+ * New-registration alert: every admin gets an email and (env-gated) a
+ * WhatsApp text, on top of the in-app/push row the caller already sends.
+ * Fire-and-forget — a mail failure must never block a signup.
+ */
+export async function alertAdminsNewMember(memberName: string): Promise<void> {
+  const rows = await db
+    .select({ email: users.email, phone: members.phone })
+    .from(members)
+    .innerJoin(users, eq(users.id, members.authId))
+    .where(and(
+      eq(members.deceased, false),
+      eq(members.status, 'approved'),
+      eq(members.role, 'admin'),
+      isNotNull(users.email),
+    ));
+  await Promise.allSettled(
+    rows.flatMap((r) => {
+      const jobs: Promise<unknown>[] = [];
+      if (r.email) jobs.push(sendNewMemberEmail(r.email, memberName));
+      if (r.phone) {
+        jobs.push(sendWhatsAppText(
+          r.phone,
+          `👤 *نیا رکن · منظوری درکار*
+
+${memberName} نے رجسٹریشن کی ہے اور آپ کی منظوری کا منتظر ہے۔
+
+${APP_URL}/admin/members`,
+        ));
+      }
+      return jobs;
+    }),
+  );
 }

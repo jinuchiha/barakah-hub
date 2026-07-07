@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { getUser } from '@/lib/auth-server';
 import { db } from '@/lib/db';
 import { members, auditLog, memberInvites } from '@/lib/db/schema';
-import { notifyMembers, adminIds } from '@/lib/notify';
+import { notifyMembers, adminIds, alertAdminsNewMember } from '@/lib/notify';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -128,6 +128,7 @@ export async function POST(req: NextRequest) {
       },
       { title: '👤 New member to approve', body: data.nameEn, data: { type: 'member-pending' }, channelId: 'admin' },
     );
+    void alertAdminsNewMember(data.nameEn).catch((err) => { console.error('[notify] new member alert:', err); });
 
     return NextResponse.json(created, { status: 201 });
   } catch (err) {

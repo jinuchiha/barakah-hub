@@ -188,6 +188,21 @@ export async function sendPaymentReviewEmail(to: string, r: ReviewInput): Promis
   await send(to, `🧾 Review: ${r.memberName} · Rs ${formatted} ${r.pool}`, shell('Payment awaiting review', body, cta, ctaUrl), text);
 }
 
+/* ─── 3c. New member registration alert (to admins) ─── */
+export async function sendNewMemberEmail(to: string, memberName: string): Promise<void> {
+  const body = `
+    <p>السلام علیکم،</p>
+    <p><strong style="color:#f8fafc;">${escape(memberName)}</strong> has registered on Barakah Hub and is <strong style="color:#f59e0b;">waiting for your approval</strong>.</p>
+    <p style="color:#94a3b8;font-size:13px;">Until approved they cannot see the fund or submit anything.</p>
+  `;
+  const text = `NEW MEMBER REGISTRATION
+
+${memberName} is waiting for approval.
+
+Approve at: ${APP_URL}/admin/members`;
+  await send(to, `👤 New member: ${memberName} · approval needed`, shell('New member awaiting approval', body, 'Review · منظور کریں', `${APP_URL}/admin/members`), text);
+}
+
 /* ─── 4. Emergency case alert ─── */
 export interface CaseAlertInput { name: string; beneficiary: string; category: string; amount: number; reasonEn: string; caseId: string }
 export async function sendEmergencyCaseEmail(to: string, c: CaseAlertInput): Promise<void> {

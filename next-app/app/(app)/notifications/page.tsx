@@ -64,7 +64,7 @@ export default async function NotificationsPage() {
                 {href && <ArrowRight aria-hidden className="mt-2 size-3.5 shrink-0 text-[var(--txt-4)] transition-all group-hover:translate-x-0.5 group-hover:text-[var(--color-gold-2)]" />}
               </>
             );
-            const rowClass = `flex gap-3 border-b border-[rgba(214,210,199,0.06)] p-3 ${n.read ? '' : 'bg-[rgba(30,42,74,0.05)]'}`;
+            const rowClass = `flex gap-3 border-b border-[var(--border)] p-3 ${n.read ? '' : 'bg-[rgba(30,42,74,0.05)]'}`;
             // Every row passes through the open route so the click ALSO
             // marks it read (bell badge drops) before landing on target.
             return (

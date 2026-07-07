@@ -15,7 +15,7 @@ Card.displayName = 'Card';
 export const CardHeader = ({ className, ...p }: React.HTMLAttributes<HTMLDivElement>) => (
   <div
     className={cn('flex items-center justify-between gap-3 px-5 py-4', className)}
-    style={{ borderBottom: '1px solid rgba(255,255,255,0.055)' }}
+    style={{ borderBottom: '1px solid var(--border)' }}
     {...p}
   />
 );
