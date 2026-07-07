@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { and, eq, sql } from 'drizzle-orm';
+import { and, eq, isNull, sql } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { members, payments, loans, notifications } from '@/lib/db/schema';
 import { sendPushToMembers } from '@/lib/push';
@@ -44,10 +44,12 @@ export async function GET(req: Request) {
   if (eligible.length === 0) return NextResponse.json({ reminded: 0, paid: 0, skipped: 0 });
 
   // Members who already have a payment for this month
+  // A payment counts as "paid" while pending review, but NOT once the
+  // supervisor rejected it — a rejected slip must not suppress the nudge.
   const paid = await db
     .select({ memberId: payments.memberId })
     .from(payments)
-    .where(eq(payments.monthLabel, monthLabel));
+    .where(and(eq(payments.monthLabel, monthLabel), isNull(payments.supervisorRejectedAt)));
   const paidSet = new Set(paid.map((p) => p.memberId));
 
   // Members who already got reminded this month (idempotency)

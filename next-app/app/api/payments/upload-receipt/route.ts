@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { writeFile, mkdir } from 'fs/promises';
 import path from 'path';
-import { meOrThrow } from '@/lib/auth-server';
+import { meApprovedOrThrow } from '@/lib/auth-server';
 import { isStorageConfigured, uploadToStorage } from '@/lib/storage';
 
 export const runtime = 'nodejs';
@@ -19,7 +19,7 @@ const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
  */
 export async function POST(req: Request) {
   try {
-    await meOrThrow();
+    await meApprovedOrThrow();
 
     const formData = await req.formData();
     const file = formData.get('receipt');

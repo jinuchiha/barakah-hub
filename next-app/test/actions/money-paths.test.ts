@@ -172,6 +172,52 @@ describe('verifyPayment — two-person rule', () => {
     const { verifyPayment } = await import('@/app/actions');
     await expect(verifyPayment(UUID)).rejects.toThrow(/rejected/i);
   });
+
+  it('the supervisor approver cannot also be the verifier (same-actor bypass)', async () => {
+    asAdmin();
+    dbMock.instance = makeDbMock({
+      selectQueue: [[admin], [{
+        id: UUID, pendingVerify: true,
+        supervisorApprovedAt: new Date(), supervisorRejectedAt: null,
+        supervisorApprovedById: 'admin-1',
+      }]],
+    });
+    const { verifyPayment } = await import('@/app/actions');
+    await expect(verifyPayment(UUID)).rejects.toThrow(/two-person/i);
+  });
+
+  it('a concurrent verify that loses the conditional UPDATE throws instead of double-sending receipts', async () => {
+    asAdmin();
+    dbMock.instance = makeDbMock({
+      selectQueue: [[admin], [{
+        id: UUID, pendingVerify: true,
+        supervisorApprovedAt: new Date(), supervisorRejectedAt: null,
+        supervisorApprovedById: 'someone-else',
+      }]],
+      updateResult: [],
+    });
+    const { verifyPayment } = await import('@/app/actions');
+    await expect(verifyPayment(UUID)).rejects.toThrow(/already verified/i);
+  });
+});
+
+describe('adminResolveCase — veto race guard', () => {
+  it('refuses when the case left voting before the UPDATE landed', async () => {
+    asAdmin();
+    dbMock.instance = makeDbMock({
+      selectQueue: [[admin], [{ id: UUID, status: 'approved' }]],
+      updateResult: [],
+    });
+    const { adminResolveCase } = await import('@/app/actions');
+    await expect(adminResolveCase(UUID, 'rejected')).rejects.toThrow(/already approved/i);
+  });
+
+  it('refuses non-admin callers', async () => {
+    asMember();
+    dbMock.instance = makeDbMock({ selectQueue: [[member]] });
+    const { adminResolveCase } = await import('@/app/actions');
+    await expect(adminResolveCase(UUID, 'approved')).rejects.toThrow(/admin only/i);
+  });
 });
 
 describe('issueLoan — borrower eligibility', () => {

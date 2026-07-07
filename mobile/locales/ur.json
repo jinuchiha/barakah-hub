@@ -87,7 +87,13 @@
     "pending": "زیر التواء",
     "thisMonth": "اس ماہ",
     "totalMembers": "اراکین",
-    "pendingPayments": "زیر التواء"
+    "pendingPayments": "زیر التواء",
+    "totalFamilyFund": "کل خاندانی فنڈ",
+    "myPayments": "میری ادائیگیاں",
+    "paymentDue": "ادائیگی باقی ہے",
+    "thisMontPaid": "اس مہینے: ادا شدہ",
+    "seeAll": "سب دیکھیں",
+    "communityActivity": "برادری کی سرگرمی"
   },
   "analytics": {
     "title": "تجزیات",
@@ -123,7 +129,9 @@
     "sadaqah": "صدقہ",
     "zakat": "زکات",
     "qarz": "قرض",
-    "submit": "ادائیگی جمع کریں"
+    "submit": "ادائیگی جمع کریں",
+    "all": "تمام",
+    "totalVerified": "کل تصدیق شدہ"
   },
   "cases": {
     "title": "ہنگامی کیسز",

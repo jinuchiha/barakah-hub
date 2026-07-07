@@ -99,14 +99,18 @@ function FloatingWord({ word, index }: { word: string; index: number }) {
  * Pure Reanimated views (UI-thread), disabled under reduced motion.
  */
 export function BarakahField({ dimmed = false, showCrescent = false }: { dimmed?: boolean; showCrescent?: boolean }) {
-  const [reduced, setReduced] = React.useState(false);
+  // null = unknown; render nothing until resolved so 31 loops never flash
+  // on for a reduce-motion user.
+  const [reduced, setReduced] = React.useState<boolean | null>(null);
   useEffect(() => {
-    AccessibilityInfo.isReduceMotionEnabled().then(setReduced).catch(() => {});
+    AccessibilityInfo.isReduceMotionEnabled().then(setReduced).catch(() => setReduced(false));
+    const sub = AccessibilityInfo.addEventListener('reduceMotionChanged', setReduced);
+    return () => sub.remove();
   }, []);
 
   const stars = useMemo(() => Array.from({ length: STAR_COUNT }, (_, i) => i), []);
 
-  if (reduced) return null;
+  if (reduced !== false) return null;
 
   return (
     <View style={[StyleSheet.absoluteFillObject, dimmed && { opacity: 0.55 }]} pointerEvents="none">

@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { TextInput, type TextStyle, type StyleProp } from 'react-native';
 import Animated, {
-  useSharedValue, useAnimatedProps, withTiming, Easing,
+  useSharedValue, useAnimatedProps, withTiming, Easing, cancelAnimation,
 } from 'react-native-reanimated';
 
 const AnimatedTextInput = Animated.createAnimatedComponent(TextInput);
@@ -36,8 +36,11 @@ export function AnimatedNumber({ value, format, duration = 1100, style }: Animat
   const fmt = format ?? defaultFormat;
 
   useEffect(() => {
-    progress.value = 0;
-    progress.value = withTiming(value, { duration, easing: Easing.out(Easing.cubic) });
+    const safe = Number.isFinite(value) ? value : 0;
+    // First mount counts up from 0; later changes tick from the CURRENT
+    // shown value — a live figure must never snap back to zero.
+    progress.value = withTiming(safe, { duration, easing: Easing.out(Easing.cubic) });
+    return () => { cancelAnimation(progress); };
   }, [value, duration, progress]);
 
   const animatedProps = useAnimatedProps(() => ({

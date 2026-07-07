@@ -13,6 +13,9 @@ export interface MemberLedgerEntry {
 
 export interface AnnualReport {
   year: number;
+  /** 'hijri' (default, matches the web annual report) or 'gregorian'. */
+  calendar: 'hijri' | 'gregorian';
+  maxYear: number;
   collected: { sadaqah: number; zakat: number; qarz: number; total: number; count: number };
   memberLedger: MemberLedgerEntry[];
   cases: { total: number; approved: number; disbursed: number; disbursedAmount: number };
@@ -29,8 +32,12 @@ export interface AuditEntry {
   createdAt: string;
 }
 
-async function fetchAnnual(year: number): Promise<AnnualReport> {
-  const { data } = await api.get<AnnualReport>('/api/reports/annual', { params: { year } });
+async function fetchAnnual(year: number | null): Promise<AnnualReport> {
+  // No year → server defaults to the CURRENT HIJRI year, so mobile totals
+  // match the web annual report; the client never needs Hijri math.
+  const { data } = await api.get<AnnualReport>('/api/reports/annual', {
+    params: year ? { year } : undefined,
+  });
   return data;
 }
 
@@ -48,7 +55,7 @@ export async function fetchExportCsv(kind: 'members' | 'fund' | 'loans' | 'audit
   return data;
 }
 
-export function useAnnualReport(year: number) {
+export function useAnnualReport(year: number | null) {
   return useQuery({ queryKey: ['report', 'annual', year], queryFn: () => fetchAnnual(year), staleTime: 60_000 });
 }
 

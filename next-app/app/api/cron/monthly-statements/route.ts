@@ -39,7 +39,7 @@ export async function GET(req: Request) {
 
   // Pull aggregates in one shot — cheaper than per-member queries.
   const [fundRow] = await db
-    .select({ total: sql<number>`COALESCE(SUM(${payments.amount}),0)::int` })
+    .select({ total: sql<number>`COALESCE(SUM(${payments.amount}),0)::bigint` })
     .from(payments)
     .where(eq(payments.pendingVerify, false));
   const fundTotal = Number(fundRow?.total ?? 0);
@@ -48,14 +48,14 @@ export async function GET(req: Request) {
 
   const memberIds = approved.map((m) => m.id);
   const myPayments = await db
-    .select({ memberId: payments.memberId, total: sql<number>`COALESCE(SUM(${payments.amount}),0)::int` })
+    .select({ memberId: payments.memberId, total: sql<number>`COALESCE(SUM(${payments.amount}),0)::bigint` })
     .from(payments)
     .where(and(eq(payments.monthLabel, monthLabel), eq(payments.pendingVerify, false), inArray(payments.memberId, memberIds)))
     .groupBy(payments.memberId);
   const myTotalMap = new Map(myPayments.map((p) => [p.memberId, Number(p.total)]));
 
   const myLoans = await db
-    .select({ memberId: loans.memberId, owed: sql<number>`COALESCE(SUM(${loans.amount} - ${loans.paid}),0)::int` })
+    .select({ memberId: loans.memberId, owed: sql<number>`COALESCE(SUM(${loans.amount} - ${loans.paid}),0)::bigint` })
     .from(loans)
     .where(and(eq(loans.active, true), inArray(loans.memberId, memberIds)))
     .groupBy(loans.memberId);

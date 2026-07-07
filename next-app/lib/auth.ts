@@ -87,7 +87,11 @@ export const auth = betterAuth({
     max: 30,
     customRules: {
       '/sign-in/email': { window: 60, max: 5 },
+      '/sign-in/username': { window: 60, max: 5 },
       '/forget-password': { window: 300, max: 3 },
+      // Unauthenticated + sends a real email — the tightest cap, or an
+      // attacker can inbox-bomb any address and burn the Resend quota.
+      '/email-otp/send-verification-otp': { window: 300, max: 3 },
     },
   },
 

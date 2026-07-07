@@ -71,6 +71,7 @@ export default function MemberDetailScreen() {
             try {
               await api.post(`/api/members/${member.id}/fauti`);
               qc.invalidateQueries({ queryKey: ['cases'] });
+              qc.invalidateQueries({ queryKey: ['dashboard'] });
               Alert.alert('Fauti Case Opened', 'The case is now visible to all members under Cases.');
             } catch (err) {
               Alert.alert('Could not open', err instanceof Error ? err.message : 'Failed');

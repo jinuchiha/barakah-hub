@@ -53,6 +53,39 @@ export async function GET(req: Request) {
     );
   }
 
+  // Disburse reconcile — disburseCase marks the case first, then inserts
+  // the qarz loan (no transaction on neon-http). A crash in between leaves
+  // a disbursed qarz case with NO loan row, i.e. untracked debt. Heal it:
+  // the loan is fully derivable from the case and keyed on caseId, so this
+  // insert is idempotent across double-fired crons.
+  const loanCaseIds = new Set(loanRows.map((l) => l.caseId).filter(Boolean));
+  const orphanQarzCases = caseRows.filter(
+    (c) => c.caseType === 'qarz' && c.status === 'disbursed' && !loanCaseIds.has(c.id),
+  );
+  for (const c of orphanQarzCases) {
+    await db.insert(loans).values({
+      memberId: c.applicantId,
+      amount: c.amount,
+      purpose: c.reasonEn,
+      pool: 'qarz',
+      city: c.city,
+      caseId: c.id,
+      paid: 0,
+      active: true,
+    });
+    await db.insert(auditLog).values({
+      action: 'ledger-reconcile-healed',
+      detail: `Disbursed qarz case ${c.id} had no loan row · auto-created ${c.amount} loan for ${c.beneficiaryName}`,
+      targetId: c.applicantId,
+    });
+  }
+
+  // Outflow picture — the fund total everywhere is gross verified income;
+  // surface the disbursed/outstanding side in the weekly summary so an
+  // over-commitment is visible to a human even without a debit ledger.
+  const disbursedTotal = caseRows.filter((c) => c.status === 'disbursed').reduce((s, c) => s + c.amount, 0);
+  const qarzOutstanding = loanRows.filter((l) => l.active).reduce((s, l) => s + (l.amount - l.paid), 0);
+
   const date = new Date().toISOString().slice(0, 10);
   const summary = {
     date,
@@ -62,7 +95,8 @@ export async function GET(req: Request) {
     cases: { total: caseRows.length, approved: caseRows.filter((c) => c.status === 'approved').length },
     auditEntries: auditRows.length,
     fundTotal: paymentRows.filter((p) => !p.pendingVerify).reduce((s, p) => s + p.amount, 0),
-    ledgerReconcile: { loansChecked: loanRows.length, mismatches },
+    outflows: { disbursedTotal, qarzOutstanding, netAfterDisbursed: paymentRows.filter((p) => !p.pendingVerify).reduce((s, p) => s + p.amount, 0) - disbursedTotal },
+    ledgerReconcile: { loansChecked: loanRows.length, mismatches, healedQarzCases: orphanQarzCases.length },
     config: cfg ? { voteThreshold: cfg.voteThresholdPct, easyPaise: cfg.easyPaiseNumber ?? 'not set' } : null,
   };
 

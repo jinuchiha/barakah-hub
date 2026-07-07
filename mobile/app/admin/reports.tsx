@@ -30,7 +30,8 @@ const EXPORTS: Array<{ kind: 'members' | 'fund' | 'loans' | 'audit'; label: stri
 export default function ReportsScreen() {
   const { colors } = useTheme();
   const { user, isLoading: authLoading } = useAuthStore();
-  const [year, setYear] = useState(new Date().getFullYear());
+  // null = "current Hijri year" (server decides); buttons step from there.
+  const [year, setYear] = useState<number | null>(null);
   const [actionFilter, setActionFilter] = useState('');
   const annual = useAnnualReport(year);
   const audit = useAuditLog();
@@ -39,13 +40,16 @@ export default function ReportsScreen() {
   if (authLoading) return <LoadingScreen />;
   if (!isAdminOnly(user?.role)) return <Redirect href="/admin" />;
 
-  const currentYear = new Date().getFullYear();
+  const shownYear = year ?? annual.data?.year ?? null;
+  const maxYear = annual.data?.maxYear ?? shownYear ?? 9999;
+  const isHijri = annual.data?.calendar !== 'gregorian';
+  const minYear = isHijri ? 1400 : MIN_YEAR;
 
   const doExport = async (kind: 'members' | 'fund' | 'loans' | 'audit') => {
     setExporting(kind);
     try {
-      const csv = await fetchExportCsv(kind, year);
-      await shareCsv(`barakah-${kind}-${year}.csv`, csv);
+      const csv = await fetchExportCsv(kind, shownYear ?? undefined);
+      await shareCsv(`barakah-${kind}-${shownYear ?? 'current'}.csv`, csv);
     } catch (err) {
       Alert.alert('Export failed', err instanceof Error ? err.message : 'Could not export');
     } finally {
@@ -69,23 +73,25 @@ export default function ReportsScreen() {
         {/* Year selector */}
         <View style={styles.yearRow}>
           <TouchableOpacity
-            onPress={() => setYear((y) => Math.max(MIN_YEAR, y - 1))}
+            onPress={() => shownYear && setYear(Math.max(minYear, shownYear - 1))}
             style={[styles.yearBtn, { backgroundColor: colors.glass2, borderColor: colors.border1 }]}
-            disabled={year <= MIN_YEAR}
+            disabled={!shownYear || shownYear <= minYear}
           >
-            <Text style={[styles.yearBtnText, { color: year <= MIN_YEAR ? colors.text4 : colors.text1 }]}>◀ prev</Text>
+            <Text style={[styles.yearBtnText, { color: !shownYear || shownYear <= minYear ? colors.text4 : colors.text1 }]}>◀ prev</Text>
           </TouchableOpacity>
-          <Text style={[styles.yearLabel, { color: colors.text1 }]}>{year}</Text>
+          <Text style={[styles.yearLabel, { color: colors.text1 }]}>
+            {shownYear ?? '…'}{isHijri && shownYear ? ' AH' : ''}
+          </Text>
           <TouchableOpacity
-            onPress={() => setYear((y) => Math.min(currentYear, y + 1))}
+            onPress={() => shownYear && setYear(Math.min(maxYear, shownYear + 1))}
             style={[styles.yearBtn, { backgroundColor: colors.glass2, borderColor: colors.border1 }]}
-            disabled={year >= currentYear}
+            disabled={!shownYear || shownYear >= maxYear}
           >
-            <Text style={[styles.yearBtnText, { color: year >= currentYear ? colors.text4 : colors.text1 }]}>next ▶</Text>
+            <Text style={[styles.yearBtnText, { color: !shownYear || shownYear >= maxYear ? colors.text4 : colors.text1 }]}>next ▶</Text>
           </TouchableOpacity>
         </View>
 
-        <Text style={[styles.section, { color: colors.text4 }]}>{year} ANNUAL SUMMARY</Text>
+        <Text style={[styles.section, { color: colors.text4 }]}>{shownYear ?? ''}{isHijri && shownYear ? ' AH' : ''} ANNUAL SUMMARY</Text>
         {annual.isLoading ? (
           <EmptyState icon="loading" title="Loading…" />
         ) : r ? (
