@@ -46,9 +46,14 @@ export const auth = betterAuth({
 
   emailAndPassword: {
     enabled: true,
-    // First-login email verification via OTP — but only when Resend can
-    // actually deliver codes; without it the gate would lock users out.
-    requireEmailVerification: Boolean(process.env.RESEND_API_KEY),
+    // Email-OTP verification is OPT-IN via env. Without a verified
+    // sender domain, Resend only delivers to the account owner, so a
+    // mandatory gate locks every other family member out at signup.
+    // Admin approval of the member row is the real admission gate; flip
+    // this on (REQUIRE_EMAIL_VERIFICATION=true) only once a dedicated
+    // sender domain is verified in Resend.
+    requireEmailVerification:
+      process.env.REQUIRE_EMAIL_VERIFICATION === 'true' && Boolean(process.env.RESEND_API_KEY),
     minPasswordLength: 8,
     autoSignIn: true,
     sendResetPassword: async ({ user, url }) => {
