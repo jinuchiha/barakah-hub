@@ -1,6 +1,6 @@
 'use client';
 import { Search, Bell, LogOut, User as UserIcon, Settings as SettingsIcon, Globe } from 'lucide-react';
-import { useEffect, useState, useSyncExternalStore } from 'react';
+import { useState, useSyncExternalStore } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import type { Route } from 'next';
@@ -25,7 +25,6 @@ interface TopbarProps {
   badges?: Record<string, number>;
 }
 
-const THEME_KEY = 'barakah_theme';
 const LANG_KEY = 'barakah_lang';
 
 const langStore = {
@@ -46,14 +45,10 @@ export function Topbar({ user, unreadCount = 0, isAdmin = false, isSupervisor = 
   const lang = useSyncExternalStore(langStore.subscribe, langStore.getSnapshot, langStore.getServerSnapshot);
   const router = useRouter();
 
-  // The design system is dark-only luxury — a half-implemented light
-  // theme shipped once and broke every hardcoded surface. Clear any
-  // persisted 'light' preference so those users land back on dark.
-  useEffect(() => {
-    localStorage.removeItem(THEME_KEY);
-    document.documentElement.classList.remove('light');
-    document.documentElement.classList.add('dark');
-  }, []);
+  // NOTE: an old effect here force-removed .light on every mount ("the
+  // design system is dark-only") — it silently defeated the theme picker
+  // and the boot script. Light mode is a first-class citizen now; the
+  // only theme writers are the boot script and the settings picker.
 
   async function logout() {
     try {

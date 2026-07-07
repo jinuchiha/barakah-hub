@@ -98,12 +98,8 @@ export function Sidebar({ isAdmin = false, isSupervisor = false, locale = 'en', 
 
   return (
     <aside
-      className="hidden shrink-0 flex-col transition-[width] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] md:flex"
-      style={{
-        width: collapsed ? 64 : 220,
-        background: 'linear-gradient(180deg,#060b13 0%,#080e18 100%)',
-        borderRight: '1px solid rgba(200,155,60,0.14)',
-      }}
+      className="app-sidebar hidden shrink-0 flex-col transition-[width] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] md:flex"
+      style={{ width: collapsed ? 64 : 220 }}
     >
       {/* Gold top accent line */}
       <div aria-hidden className="h-px w-full" style={{ background: 'linear-gradient(90deg, transparent, rgba(200,155,60,0.35), transparent)' }} />

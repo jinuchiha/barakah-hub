@@ -70,36 +70,41 @@ export async function GET(req: Request) {
 
   let sent = 0;
   const failed: string[] = [];
-  for (const m of approved) {
-    if (!m.authId) continue;
-    const email = emailByAuthId.get(m.authId);
-    if (!email) continue;
-    if (m.phone) {
-      await sendWhatsAppText(
-        m.phone,
-        `🌙 *ماہانہ گوشوارہ · ${monthLabel}*
+  const targets = approved.filter((m) => m.authId && emailByAuthId.get(m.authId));
+  // 5 members at a time — serial sends brush the function timeout on a
+  // large family; email failures are tracked, WhatsApp never throws.
+  for (let i = 0; i < targets.length; i += 5) {
+    await Promise.allSettled(
+      targets.slice(i, i + 5).map(async (m) => {
+        const email = emailByAuthId.get(m.authId!)!;
+        if (m.phone) {
+          await sendWhatsAppText(
+            m.phone,
+            `🌙 *ماہانہ گوشوارہ · ${monthLabel}*
 
 آپ کا عطیہ: Rs ${(myTotalMap.get(m.id) ?? 0).toLocaleString('en-PK')}
 کل خاندانی فنڈ: Rs ${fundTotal.toLocaleString('en-PK')}${(owedMap.get(m.id) ?? 0) > 0 ? `
 باقی قرض: Rs ${(owedMap.get(m.id) ?? 0).toLocaleString('en-PK')}` : ''}
 
 جزاک اللہ خیر · Barakah Hub`,
-      );
-    }
-    try {
-      await sendMonthlyStatementEmail(email, {
-        name: m.nameEn || m.nameUr,
-        monthLabel,
-        myTotal: myTotalMap.get(m.id) ?? 0,
-        fundTotal,
-        cases: openCases,
-        loansOwed: owedMap.get(m.id) ?? 0,
-      });
-      sent++;
-    } catch (err) {
-      console.error(`[cron] monthly-statement failed for ${email}:`, err);
-      failed.push(email);
-    }
+          );
+        }
+        try {
+          await sendMonthlyStatementEmail(email, {
+            name: m.nameEn || m.nameUr,
+            monthLabel,
+            myTotal: myTotalMap.get(m.id) ?? 0,
+            fundTotal,
+            cases: openCases,
+            loansOwed: owedMap.get(m.id) ?? 0,
+          });
+          sent++;
+        } catch (err) {
+          console.error(`[cron] monthly-statement failed for ${email}:`, err);
+          failed.push(email);
+        }
+      }),
+    );
   }
 
   return NextResponse.json({ sent, failed: failed.length, monthLabel, fundTotal });

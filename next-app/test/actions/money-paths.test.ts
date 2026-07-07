@@ -288,3 +288,26 @@ describe('submitDonation — donor gate', () => {
     await expect(submitDonation({ amount: 20_000_000, pool: 'sadaqah', monthLabel: 'May 2026' })).rejects.toThrow();
   });
 });
+
+describe('adminVerifyEmailByAddress — the OTP escape hatch stays admin-only', () => {
+  it('refuses non-admin callers', async () => {
+    asMember();
+    dbMock.instance = makeDbMock({ selectQueue: [[member]] });
+    const { adminVerifyEmailByAddress } = await import('@/app/actions');
+    await expect(adminVerifyEmailByAddress('mata@example.com')).rejects.toThrow(/admin only/i);
+  });
+
+  it('rejects malformed email before touching the db', async () => {
+    asAdmin();
+    dbMock.instance = makeDbMock({ selectQueue: [[admin]] });
+    const { adminVerifyEmailByAddress } = await import('@/app/actions');
+    await expect(adminVerifyEmailByAddress('not-an-email')).rejects.toThrow(/invalid email/i);
+  });
+
+  it('throws when no account matches (conditional update returns empty)', async () => {
+    asAdmin();
+    dbMock.instance = makeDbMock({ selectQueue: [[admin]], updateResult: [] });
+    const { adminVerifyEmailByAddress } = await import('@/app/actions');
+    await expect(adminVerifyEmailByAddress('ghost@example.com')).rejects.toThrow(/no account/i);
+  });
+});

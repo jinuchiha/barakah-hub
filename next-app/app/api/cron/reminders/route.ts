@@ -120,14 +120,21 @@ export async function GET(req: Request) {
   // WhatsApp — where Pakistani families actually read reminders. Uses an
   // approved template when configured (required outside a 24h session);
   // falls back to free-text for any member with an open session window.
+  // Chunked parallel sends — a big family serially would brush the
+  // function timeout; 5-at-a-time keeps latency flat without hammering
+  // the Graph API.
   let waSent = 0;
   const template = process.env.WHATSAPP_TEMPLATE_REMINDER;
-  for (const m of defaulterMembers) {
-    if (!m.phone) continue;
-    const ok = template
-      ? await sendWhatsAppTemplate(m.phone, template, [m.nameUr || m.nameEn, monthLabel, fmtRs(m.monthlyPledge)])
-      : await sendWhatsAppText(m.phone, buildPaymentReminder(m, monthLabel));
-    if (ok) waSent++;
+  const withPhone = defaulterMembers.filter((m) => m.phone);
+  for (let i = 0; i < withPhone.length; i += 5) {
+    const results = await Promise.allSettled(
+      withPhone.slice(i, i + 5).map((m) =>
+        template
+          ? sendWhatsAppTemplate(m.phone!, template, [m.nameUr || m.nameEn, monthLabel, fmtRs(m.monthlyPledge)])
+          : sendWhatsAppText(m.phone!, buildPaymentReminder(m, monthLabel)),
+      ),
+    );
+    waSent += results.filter((r) => r.status === 'fulfilled' && r.value).length;
   }
 
   return NextResponse.json({
