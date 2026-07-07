@@ -19,7 +19,7 @@ import { spacing, radius } from '@/lib/theme';
 import type { Member } from '@/types';
 
 type FilterMode = 'all' | 'admin' | 'member' | 'pending';
-const FILTERS: Array<{ value: FilterMode; label: string }> = [
+const FILTERS: { value: FilterMode; label: string }[] = [
   { value: 'all', label: 'All' },
   { value: 'admin', label: 'Admin' },
   { value: 'member', label: 'Members' },
@@ -136,14 +136,12 @@ export default function MembersScreen() {
         <FlashList
           data={filtered}
           keyExtractor={(item: Member) => item.id}
-          renderItem={({ item, index }) => (
-            <Animated.View entering={FadeInDown.duration(300).delay(Math.min(index, 10) * 35)}>
-              <MemberCard
-                member={item}
-                isAdmin={user?.role === 'admin'}
-                onPress={() => router.push(`/members/${item.id}`)}
-              />
-            </Animated.View>
+          renderItem={({ item }) => (
+            <MemberCard
+              member={item}
+              isAdmin={user?.role === 'admin'}
+              onPress={() => router.push(`/members/${item.id}`)}
+            />
           )}
           estimatedItemSize={76}
           contentContainerStyle={styles.list}

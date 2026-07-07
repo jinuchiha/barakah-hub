@@ -523,7 +523,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start',
     paddingTop: spacing.md, paddingBottom: spacing.sm,
   },
-  topGreeting: { fontSize: 14, fontFamily: 'NotoNastaliqUrdu_600SemiBold', lineHeight: 30 },
+  topGreeting: { fontSize: 14, fontFamily: 'NotoNastaliqUrdu_600SemiBold', lineHeight: 40, paddingTop: 4, includeFontPadding: true },
   topName: { fontSize: 24, fontFamily: 'Inter_700Bold', letterSpacing: -0.5, marginTop: 2 },
   topDate: { fontSize: 12, fontFamily: 'Inter_400Regular', marginTop: 2 },
   topActions: { flexDirection: 'row', gap: 8, marginTop: 4 },
