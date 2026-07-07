@@ -441,7 +441,7 @@
       "zakat": "Annual obligatory charity on qualifying wealth. Routed to eligible recipients through the admin.",
       "qarz": "Interest-free loan to a family member in need. Community votes on approval; repaid without any extra charge.",
       "emergencyVote": "Cases are submitted and voted on by all approved members. Threshold can be set by admin (30–75%).",
-      "privacy": "Sadaqah donors are never named to other members — only the admin can see who gave what.",
+      "privacy": "Sadaqah donors are never named to other members · only the admin can see who gave what.",
       "auditTrail": "Every action is logged with actor, timestamp, and detail. The log is append-only and cannot be altered."
     }
   },
@@ -477,7 +477,7 @@
         "a": "New payments are visible to admins for verification. Once an admin reviews the screenshot or confirms the deposit, the status changes to Verified and the amount counts toward your monthly pledge."
       },
       {
-        "q": "My account says \"Pending approval\" — what do I do?",
+        "q": "My account says \"Pending approval\" · what do I do?",
         "a": "After registering, an admin needs to approve your account before you can submit payments or vote. This usually happens within a day. You can speed it up by using \"Contact Admin\" below."
       },
       {
@@ -486,15 +486,15 @@
       },
       {
         "q": "What is Sadaqah / Zakat / Qarz?",
-        "a": "Sadaqah is voluntary charity (anonymized). Zakat is the obligatory 2.5% (also anonymized). Qarz is interest-free loans that the community can lend and receive — repayments are tracked openly."
+        "a": "Sadaqah is voluntary charity (anonymized). Zakat is the obligatory 2.5% (also anonymized). Qarz is interest-free loans that the community can lend and receive · repayments are tracked openly."
       },
       {
         "q": "How is my privacy protected?",
-        "a": "Sadaqah and Zakat donations are anonymized in the community feed — only the admin sees the donor. Qarz loans and emergency cases ARE public so the community can verify and help. Set screenshot protection in Profile → Security if you want extra privacy."
+        "a": "Sadaqah and Zakat donations are anonymized in the community feed · only the admin sees the donor. Qarz loans and emergency cases ARE public so the community can verify and help. Set screenshot protection in Profile → Security if you want extra privacy."
       },
       {
-        "q": "I changed my password — what happens to my other devices?",
-        "a": "By default, changing your password signs out all your other devices. This is a security best practice — anyone who knew the old password loses access. You can disable this in the Change Password screen if needed."
+        "q": "I changed my password · what happens to my other devices?",
+        "a": "By default, changing your password signs out all your other devices. This is a security best practice · anyone who knew the old password loses access. You can disable this in the Change Password screen if needed."
       },
       {
         "q": "How is the Qibla direction calculated?",

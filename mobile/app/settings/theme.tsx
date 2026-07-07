@@ -37,7 +37,7 @@ const THEME_PREVIEWS: ThemePreview[] = [
   {
     name: 'amoled',
     label: 'AMOLED',
-    description: 'True black — saves battery',
+    description: 'True black · saves battery',
     swatches: ['#000000', '#0a0a0a', '#00e676', '#ffd740'],
     icon: 'cellphone',
   },

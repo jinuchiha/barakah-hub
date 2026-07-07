@@ -89,8 +89,9 @@ const styles = StyleSheet.create({
     marginBottom: 14, writingDirection: 'rtl',
   },
   urdu: {
-    fontSize: 15, color: 'rgba(236,235,230,0.75)', textAlign: 'center',
-    lineHeight: 28, marginBottom: 14, writingDirection: 'rtl',
+    fontSize: 14, color: 'rgba(236,235,230,0.78)', textAlign: 'center',
+    lineHeight: 32, marginBottom: 14, writingDirection: 'rtl',
+    fontFamily: 'NotoNastaliqUrdu_400Regular',
   },
   source: {
     fontSize: 11, color: 'rgba(200,155,60,0.7)', letterSpacing: 1,

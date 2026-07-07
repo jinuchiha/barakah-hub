@@ -35,7 +35,7 @@ const REFS: ScriptureRef[] = [
   {
     arabic: 'وَأَقِيمُوا الصَّلَاةَ وَآتُوا الزَّكَاةَ وَأَطِيعُوا الرَّسُولَ لَعَلَّكُمْ تُرْحَمُونَ',
     english: 'Establish prayer and give zakah and obey the Messenger that you may receive mercy.',
-    urdu: 'نماز قائم کرو، زکوٰة دو، اور رسول کی اطاعت کرو — تاکہ تم پر رحم کیا جائے۔',
+    urdu: 'نماز قائم کرو، زکوٰة دو، اور رسول کی اطاعت کرو · تاکہ تم پر رحم کیا جائے۔',
     ref: 'An-Nur 24:56',
     topic: 'Zakat',
   },
@@ -125,7 +125,7 @@ export default function AboutScreen() {
           <Text style={[styles.introBody, { color: colors.text2 }]}>
             Barakah Hub aik private, invite-only family fund hai jis mein sadaqah (donation), zakat,
             aur qarz-e-hasana (interest-free loan) Islam ke usoolon ke mutabiq manage kiye jaate hain.
-            Har contribution mein donor ka naam sirf admin dekh sakta hai — sadqa ki roohaniyat ke mutabiq.
+            Har contribution mein donor ka naam sirf admin dekh sakta hai · sadqa ki roohaniyat ke mutabiq.
           </Text>
         </GlassCard>
 

@@ -9,7 +9,7 @@ import ps from '@/locales/ps.json';
 import { getLanguage } from './storage';
 
 // Supported languages — Hindi (hi) and Sindhi (sd) removed at user
-// request. The translation files are kept in /locales for now in case
+// request. hi/sd locale files were removed with the language options;
 // they're re-enabled later, but they are not imported / wired here.
 export type SupportedLanguage = 'en' | 'ur' | 'ar' | 'ps';
 

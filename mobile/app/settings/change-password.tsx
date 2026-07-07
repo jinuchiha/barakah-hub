@@ -101,7 +101,7 @@ export default function ChangePasswordScreen() {
           <View style={[styles.notice, { backgroundColor: colors.glass1, borderColor: colors.border1 }]}>
             <MaterialCommunityIcons name="shield-key-outline" size={18} color={colors.gold} />
             <Text style={[styles.noticeText, { color: colors.text2 }]}>
-              Use a strong password — at least 8 characters with a mix of letters and numbers.
+              Use a strong password · at least 8 characters with a mix of letters and numbers.
             </Text>
           </View>
 
@@ -157,7 +157,7 @@ export default function ChangePasswordScreen() {
             <View style={styles.toggleText}>
               <Text style={[styles.toggleLabel, { color: colors.text1 }]}>Sign out other devices</Text>
               <Text style={[styles.toggleHint, { color: colors.text3 }]}>
-                Recommended — kicks out anyone using your old password elsewhere
+                Recommended · kicks out anyone using your old password elsewhere
               </Text>
             </View>
             <Switch

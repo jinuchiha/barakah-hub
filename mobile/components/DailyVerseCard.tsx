@@ -1,15 +1,53 @@
-import React, { memo } from 'react';
+import React, { memo, useEffect, useState, useRef } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import Animated, { FadeInDown } from 'react-native-reanimated';
+import Animated, {
+  FadeInDown, useSharedValue, useAnimatedStyle, withTiming, runOnJS, cancelAnimation,
+} from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTheme } from '@/lib/useTheme';
-import { getDailyVerse } from '@/lib/quran';
+import { getDailyVerse, getVerseAt, verseCount } from '@/lib/quran';
 import { spacing, radius } from '@/lib/theme';
 
+const CYCLE_MS = 24_000;
+
+/**
+ * Living verse card: starts on today's verse, then gently cross-fades to
+ * the next one every ~24s — the content breathes instead of sitting
+ * static. A slim gold progress hairline shows the cycle.
+ */
 export const DailyVerseCard = memo(function DailyVerseCard() {
   const { colors } = useTheme();
-  const verse = getDailyVerse();
+  const [index, setIndex] = useState(() => getDailyVerse.index?.() ?? 0);
+  const fade = useSharedValue(1);
+  const progress = useSharedValue(0);
+  const indexRef = useRef(index);
+  indexRef.current = index;
+
+  useEffect(() => {
+    progress.value = 0;
+    progress.value = withTiming(1, { duration: CYCLE_MS });
+    const id = setInterval(() => {
+      // fade out → swap verse → fade in
+      fade.value = withTiming(0, { duration: 450 }, (done) => {
+        if (done) runOnJS(setIndex)((indexRef.current + 1) % verseCount());
+      });
+    }, CYCLE_MS);
+    return () => { clearInterval(id); cancelAnimation(fade); cancelAnimation(progress); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    fade.value = withTiming(1, { duration: 500 });
+    progress.value = 0;
+    progress.value = withTiming(1, { duration: CYCLE_MS });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [index]);
+
+  const fadeStyle = useAnimatedStyle(() => ({ opacity: fade.value }));
+  const barStyle = useAnimatedStyle(() => ({ width: `${progress.value * 100}%` }));
+
+  const verse = getVerseAt(index);
   if (!verse) return null;
 
   return (
@@ -22,25 +60,32 @@ export const DailyVerseCard = memo(function DailyVerseCard() {
       />
       <View style={[styles.border, { borderColor: colors.goldMuted }]} />
 
-      <View style={styles.header}>
-        <MaterialCommunityIcons
-          name={verse.type === 'hadith' ? 'book-open-variant' : 'star-crescent'}
-          size={14}
-          color={colors.goldMuted}
-        />
-        <Text style={[styles.typeLabel, { color: colors.goldMuted }]}>
-          {verse.type === 'hadith' ? 'Hadith' : 'Quran Verse'}
-        </Text>
-        <Text style={[styles.reference, { color: colors.text4 }]}>{verse.reference}</Text>
+      <Animated.View style={fadeStyle}>
+        <View style={styles.header}>
+          <MaterialCommunityIcons
+            name={verse.type === 'hadith' ? 'book-open-variant' : 'star-crescent'}
+            size={14}
+            color={colors.goldMuted}
+          />
+          <Text style={[styles.typeLabel, { color: colors.goldMuted }]}>
+            {verse.type === 'hadith' ? 'Hadith' : 'Quran Verse'}
+          </Text>
+          <Text style={[styles.reference, { color: colors.text4 }]}>{verse.reference}</Text>
+        </View>
+
+        <Text style={[styles.arabic, { color: colors.gold }]}>{verse.arabic}</Text>
+
+        <Text style={[styles.english, { color: colors.text2 }]}>{verse.english}</Text>
+
+        {verse.urdu ? (
+          <Text style={[styles.urdu, { color: colors.text3 }]}>{verse.urdu}</Text>
+        ) : null}
+      </Animated.View>
+
+      {/* cycle hairline */}
+      <View style={[styles.track, { backgroundColor: 'rgba(217,176,76,0.12)' }]}>
+        <Animated.View style={[styles.bar, { backgroundColor: colors.goldMuted }, barStyle]} />
       </View>
-
-      <Text style={[styles.arabic, { color: colors.gold }]}>{verse.arabic}</Text>
-
-      <Text style={[styles.english, { color: colors.text2 }]}>{verse.english}</Text>
-
-      {verse.urdu ? (
-        <Text style={[styles.urdu, { color: colors.text3 }]}>{verse.urdu}</Text>
-      ) : null}
     </Animated.View>
   );
 });
@@ -79,8 +124,8 @@ const styles = StyleSheet.create({
   arabic: {
     fontSize: 20,
     textAlign: 'right',
-    lineHeight: 36,
-    fontFamily: 'Inter_400Regular',
+    lineHeight: 38,
+    writingDirection: 'rtl',
     marginBottom: spacing.sm,
   },
   english: {
@@ -92,8 +137,11 @@ const styles = StyleSheet.create({
   },
   urdu: {
     fontSize: 13,
-    lineHeight: 22,
-    fontFamily: 'Inter_400Regular',
+    lineHeight: 30,
+    fontFamily: 'NotoNastaliqUrdu_400Regular',
+    writingDirection: 'rtl',
     textAlign: 'right',
   },
+  track: { position: 'absolute', bottom: 0, left: 0, right: 0, height: 2 },
+  bar: { height: 2 },
 });

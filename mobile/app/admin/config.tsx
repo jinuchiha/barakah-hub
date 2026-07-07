@@ -131,7 +131,7 @@ export default function AdminConfigScreen() {
         <Text style={[styles.section, { color: colors.text4 }]}>EASYPAISE COLLECTION ACCOUNT</Text>
         <GlassCard style={styles.card}>
           <Text style={{ color: colors.text3, fontSize: 12, marginBottom: spacing.md }}>
-            Supervisor ka personal EasyPaisa number — members ko payment submit karte waqt dikhe ga.
+            Supervisor ka personal EasyPaisa number · members ko payment submit karte waqt dikhe ga.
           </Text>
           <Input label="Account Holder Name" value={easyPaiseName} onChangeText={setEasyPaiseName} placeholder="e.g. Muhammad Ali" autoCapitalize="words" />
           <Input label="EasyPaisa Number" value={easyPaiseNumber} onChangeText={setEasyPaiseNumber} placeholder="e.g. 0300-1234567" keyboardType="phone-pad" />
