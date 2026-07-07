@@ -153,6 +153,10 @@ export interface ReviewInput {
   monthLabel: string;
   note?: string | null;
   receiptUrl?: string | null;
+  /** enables per-recipient one-tap approve links */
+  paymentId?: string;
+  /** set per recipient by emailFundApprovers */
+  approveUrl?: string;
 }
 export async function sendPaymentReviewEmail(to: string, r: ReviewInput): Promise<void> {
   const formatted = r.amount.toLocaleString('en-PK');
@@ -174,10 +178,14 @@ export async function sendPaymentReviewEmail(to: string, r: ReviewInput): Promis
         ${r.receiptUrl ? `<br><strong style="color:#f8fafc;">Receipt:</strong> <a href="${r.receiptUrl}" style="color:#10b981;">view screenshot</a>` : ''}
       </td></tr>
     </table>
-    <p>Approve or reject it from the Fund Approvals queue.</p>
+    ${r.approveUrl
+      ? '<p style="margin:22px 0 6px;">ایک ٹیپ سے منظور کریں · opens a confirmation page, no login needed:</p>'
+      : '<p>Approve or reject it from the Fund Approvals queue.</p>'}
   `;
-  const text = `PAYMENT FOR REVIEW\n\nFrom: ${r.memberName}\nAmount: Rs ${formatted}\nPool: ${poolLabel}\nFor: ${r.monthLabel}${r.note ? `\nNote: ${r.note}` : ''}\n\nReview at: ${APP_URL}/admin/fund`;
-  await send(to, `🧾 Review: ${r.memberName} · Rs ${formatted} ${r.pool}`, shell('Payment awaiting review', body, 'Open approval queue', `${APP_URL}/admin/fund`), text);
+  const cta = r.approveUrl ? '✓ Approve · منظور کریں' : 'Open approval queue';
+  const ctaUrl = r.approveUrl ?? `${APP_URL}/admin/fund`;
+  const text = `PAYMENT FOR REVIEW\n\nFrom: ${r.memberName}\nAmount: Rs ${formatted}\nPool: ${poolLabel}\nFor: ${r.monthLabel}${r.note ? `\nNote: ${r.note}` : ''}\n\n${r.approveUrl ? `Approve (one tap): ${r.approveUrl}\n` : ''}Review at: ${APP_URL}/admin/fund`;
+  await send(to, `🧾 Review: ${r.memberName} · Rs ${formatted} ${r.pool}`, shell('Payment awaiting review', body, cta, ctaUrl), text);
 }
 
 /* ─── 4. Emergency case alert ─── */
