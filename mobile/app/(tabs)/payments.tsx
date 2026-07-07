@@ -158,7 +158,11 @@ function PaymentsScreen() {
         <FlashList
           data={filtered}
           keyExtractor={(item: Payment) => item.id}
-          renderItem={({ item }) => <PaymentCard payment={item} />}
+          renderItem={({ item, index }) => (
+            <Animated.View entering={FadeInDown.duration(320).delay(Math.min(index, 8) * 45)}>
+              <PaymentCard payment={item} />
+            </Animated.View>
+          )}
           estimatedItemSize={88}
           contentContainerStyle={styles.list}
           refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={colors.primary} />}

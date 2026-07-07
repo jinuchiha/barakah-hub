@@ -15,6 +15,7 @@ import MembersTable from './members-table';
 import ApproveButton from './approve-button';
 import RejectButton from './reject-button';
 import BulkImportDialog from './bulk-import-dialog';
+import VerifyEmailTool from './verify-email-tool';
 import { ExportLink } from '@/components/export-link';
 
 export const metadata = { title: 'Members · Barakah Hub' };
@@ -86,6 +87,7 @@ export default async function MembersPage({
           >
             {includeRejected ? 'Hide rejected' : 'Show rejected'}
           </a>
+          <VerifyEmailTool />
           <BulkImportDialog />
           <ExportLink href={'/api/exports/members' as Route}>Export CSV</ExportLink>
         </div>

@@ -35,6 +35,11 @@ export default function NewCaseForm() {
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
+    // Explicit validation with feedback — a silently-disabled submit
+    // button reads as "the app is broken".
+    if (!form.beneficiaryName.trim()) { toast.error(tr('case.beneficiary', locale)); return; }
+    if (!form.amount || form.amount <= 0) { toast.error(tr('case.amountNeeded', locale)); return; }
+    if (form.reason.trim().length < 3) { toast.error(tr('case.reasonPh', locale)); return; }
     start(async () => {
       try {
         await createCase({ ...form, returnDate: form.returnDate || null });
@@ -104,7 +109,7 @@ export default function NewCaseForm() {
         {tr('case.markUrgent', locale)}
       </label>
       <div className="flex gap-2 md:col-span-2">
-        <Button type="submit" variant="gold" disabled={pending || !form.beneficiaryName || !form.amount || form.reason.trim().length < 3}>
+        <Button type="submit" variant="gold" disabled={pending}>
           {pending ? tr('case.submitting', locale) : tr('case.submitReq', locale)}
         </Button>
         <Button type="button" variant="ghost" onClick={() => setOpen(false)}>{tr('case.cancel', locale)}</Button>
