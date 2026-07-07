@@ -21,6 +21,8 @@ import { Button } from '@/components/ui/Button';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { Badge } from '@/components/ui/Badge';
 import { useCases, useCastVote, useCreateCase, useAdminResolveCase, useDeleteCase, useDisburseCase } from '@/hooks/useCases';
+import { AnimatedNumber } from '@/components/ui/AnimatedNumber';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useAuthStore } from '@/stores/auth.store';
 import { unlockAchievement } from '@/lib/achievements';
 import { useTheme } from '@/lib/useTheme';
@@ -338,15 +340,32 @@ function CasesScreen() {
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.bg1 }]} edges={['top']}>
-      <Animated.View entering={FadeInDown.duration(400)} style={styles.header}>
-        <Text style={[styles.title, { color: colors.text1 }]}>{t('cases.title')}</Text>
-        <TouchableOpacity
-          style={[styles.createBtn, { backgroundColor: colors.primaryDim, borderColor: colors.primary }]}
-          onPress={() => setShowCreate(true)}
+      <Animated.View entering={FadeInDown.duration(400)}>
+        <LinearGradient
+          colors={['rgba(30,45,74,0.55)', 'transparent']}
+          start={{ x: 0, y: 0 }} end={{ x: 0.9, y: 1 }}
+          style={styles.heroBand}
         >
-          <MaterialCommunityIcons name="plus" size={18} color={colors.primary} />
-          <Text style={[styles.createBtnText, { color: colors.primary }]}>{t('cases.createCase')}</Text>
-        </TouchableOpacity>
+          <View style={styles.header}>
+            <View>
+              <Text style={[styles.titleUr, { color: colors.gold }]}>ایمرجنسی کیسز</Text>
+              <View style={styles.titleRow}>
+                <Text style={[styles.title, { color: colors.text1 }]}>{t('cases.title')}</Text>
+                <View style={[styles.liveCountPill, { borderColor: colors.goldMuted }]}>
+                  <AnimatedNumber value={activeCaseCount} style={[styles.liveCount, { color: colors.gold }]} />
+                  <Text style={[styles.liveCountLabel, { color: colors.text4 }]}>{t('cases.active').toLowerCase()}</Text>
+                </View>
+              </View>
+            </View>
+            <TouchableOpacity
+              style={[styles.createBtn, { backgroundColor: colors.primaryDim, borderColor: colors.primary }]}
+              onPress={() => setShowCreate(true)}
+            >
+              <MaterialCommunityIcons name="plus" size={18} color={colors.primary} />
+              <Text style={[styles.createBtnText, { color: colors.primary }]}>{t('cases.createCase')}</Text>
+            </TouchableOpacity>
+          </View>
+        </LinearGradient>
       </Animated.View>
 
       <FilterTabs active={statusFilter} onChange={setStatusFilter} activeCaseCount={activeCaseCount} />
@@ -398,6 +417,15 @@ function CasesScreen() {
 export default CasesScreen;
 
 const styles = StyleSheet.create({
+  heroBand: { borderRadius: 18, marginHorizontal: 12, marginTop: 6, paddingBottom: 4 },
+  titleUr: { fontSize: 13, fontFamily: 'NotoNastaliqUrdu_600SemiBold', lineHeight: 28 },
+  titleRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  liveCountPill: {
+    flexDirection: 'row', alignItems: 'baseline', gap: 4,
+    borderWidth: 1, borderRadius: 14, paddingHorizontal: 9, paddingVertical: 2,
+  },
+  liveCount: { fontSize: 14, fontFamily: 'Inter_700Bold' },
+  liveCountLabel: { fontSize: 10, fontFamily: 'Inter_600SemiBold' },
   safe: { flex: 1 },
   header: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',

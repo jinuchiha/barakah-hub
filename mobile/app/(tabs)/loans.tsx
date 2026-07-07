@@ -24,6 +24,7 @@ import { useAuthStore } from '@/stores/auth.store';
 import { unlockAchievement } from '@/lib/achievements';
 import { useTheme } from '@/lib/useTheme';
 import { formatPKR } from '@/lib/format';
+import { AnimatedNumber, fmtRsWorklet } from '@/components/ui/AnimatedNumber';
 import { spacing, radius } from '@/lib/theme';
 import type { Loan } from '@/types';
 
@@ -130,7 +131,7 @@ function LoansScreen() {
           <View style={styles.heroRow}>
             <View>
               <Text style={[styles.heroLabel, { color: colors.text4 }]}>{t('islamic.qarzHasana').toUpperCase()}</Text>
-              <Text style={[styles.heroValue, { color: colors.text1 }]}>{formatPKR(totalOutstanding)}</Text>
+              <AnimatedNumber value={totalOutstanding} format={fmtRsWorklet} style={[styles.heroValue, { color: colors.text1 }]} />
               <Text style={[styles.heroSub, { color: colors.text3 }]}>{t('loans.remaining').toLowerCase()} · {formatPKR(totalPaid)} {t('loans.paid').toLowerCase()}</Text>
             </View>
             {isAdmin ? (
@@ -148,9 +149,9 @@ function LoansScreen() {
       </Animated.View>
 
       <Animated.View entering={FadeInDown.duration(400).delay(60)} style={styles.statsRow}>
-        <StatCard icon="handshake-outline" value={`${loans.filter((l) => l.active).length}`} label={t('loans.active')} style={styles.stat} />
-        <StatCard icon="cash-check" value={formatPKR(totalPaid)} label={t('loans.paid')} style={styles.stat} />
-        <StatCard icon="cash-remove" value={formatPKR(totalOutstanding)} label={t('loans.remaining')} iconColor={colors.danger} style={styles.stat} />
+        <StatCard icon="handshake-outline" value={`${loans.filter((l) => l.active).length}`} animateValue={loans.filter((l) => l.active).length} label={t('loans.active')} style={styles.stat} />
+        <StatCard icon="cash-check" value={formatPKR(totalPaid)} animateValue={totalPaid} format={fmtRsWorklet} label={t('loans.paid')} style={styles.stat} />
+        <StatCard icon="cash-remove" value={formatPKR(totalOutstanding)} animateValue={totalOutstanding} format={fmtRsWorklet} label={t('loans.remaining')} iconColor={colors.danger} style={styles.stat} />
       </Animated.View>
 
       {activeQuery.isError ? (
