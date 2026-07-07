@@ -22,6 +22,8 @@ import { ActivityFeed } from '@/components/ActivityFeed';
 import { StatCard } from '@/components/ui/StatCard';
 import { AnimatedNumber, fmtRsWorklet } from '@/components/ui/AnimatedNumber';
 import { BarakahField } from '@/components/BarakahField';
+import { WelcomeWipe } from '@/components/WelcomeWipe';
+import { consumePendingWelcome } from '@/lib/welcome-flag';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { Badge } from '@/components/ui/Badge';
 import { Avatar } from '@/components/ui/Avatar';
@@ -395,6 +397,7 @@ function DashboardScreen() {
   // aurora, LIVE dot and FAB pulse (30+ infinite UI-thread loops) keep
   // burning battery while the user is on another tab.
   const isFocused = useIsFocused();
+  const [welcome, setWelcome] = useState<string | null>(() => consumePendingWelcome());
 
   const handleRefresh = () => {
     void refetch();
@@ -439,6 +442,7 @@ function DashboardScreen() {
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.bg0 }]} edges={['top']}>
       {isFocused ? <BarakahField dimmed /> : null}
+      {welcome !== null ? <WelcomeWipe name={welcome} onDone={() => setWelcome(null)} /> : null}
       <GlobalSearch visible={searchVisible} onClose={() => setSearchVisible(false)} />
       {isFocused ? <AIFab /> : null}
 
@@ -519,7 +523,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start',
     paddingTop: spacing.md, paddingBottom: spacing.sm,
   },
-  topGreeting: { fontSize: 13, fontFamily: 'Inter_600SemiBold' },
+  topGreeting: { fontSize: 14, fontFamily: 'NotoNastaliqUrdu_600SemiBold', lineHeight: 30 },
   topName: { fontSize: 24, fontFamily: 'Inter_700Bold', letterSpacing: -0.5, marginTop: 2 },
   topDate: { fontSize: 12, fontFamily: 'Inter_400Regular', marginTop: 2 },
   topActions: { flexDirection: 'row', gap: 8, marginTop: 4 },

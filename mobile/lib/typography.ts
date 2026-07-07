@@ -58,6 +58,22 @@ export const textStyles = {
     lineHeight: 20,
     fontFamily: 'SpaceMono_400Regular',
   } as TextStyle,
+  // Nastaliq needs generous line-height — glyphs stack diagonally.
+  urduLG: {
+    fontSize: 18,
+    lineHeight: 40,
+    fontFamily: 'NotoNastaliqUrdu_600SemiBold',
+  } as TextStyle,
+  urduMD: {
+    fontSize: 15,
+    lineHeight: 34,
+    fontFamily: 'NotoNastaliqUrdu_400Regular',
+  } as TextStyle,
+  urduSM: {
+    fontSize: 13,
+    lineHeight: 28,
+    fontFamily: 'NotoNastaliqUrdu_400Regular',
+  } as TextStyle,
   label: {
     fontSize: 11,
     lineHeight: 16,

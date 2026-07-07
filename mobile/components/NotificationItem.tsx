@@ -56,8 +56,8 @@ export function NotificationItem({ notification: n, onPress }: NotificationItemP
         <MaterialCommunityIcons name={icon} size={20} color={iconColor} />
       </View>
       <View style={styles.content}>
-        {title ? <Text style={[styles.title, { color: colors.text1 }]}>{title}</Text> : null}
-        <Text style={[styles.body, { color: colors.text3 }]} numberOfLines={2}>{body}</Text>
+        {title ? <Text style={[styles.title, { color: colors.text1 }, language === 'ur' && styles.urduTitle]}>{title}</Text> : null}
+        <Text style={[styles.body, { color: colors.text3 }, language === 'ur' && styles.urduBody]} numberOfLines={2}>{body}</Text>
         <Text style={[styles.time, { color: colors.text4 }]}>{formatRelativeTime(n.createdAt)}</Text>
       </View>
       {!n.read ? <View style={[styles.dot, { backgroundColor: colors.primary }]} /> : null}
@@ -104,6 +104,8 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter_400Regular',
     lineHeight: 18,
   },
+  urduTitle: { fontFamily: 'NotoNastaliqUrdu_600SemiBold', fontSize: 13, lineHeight: 28 },
+  urduBody: { fontFamily: 'NotoNastaliqUrdu_400Regular', fontSize: 12, lineHeight: 26 },
   time: {
     fontSize: 11,
     fontFamily: 'Inter_400Regular',

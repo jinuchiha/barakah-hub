@@ -10,9 +10,10 @@ export function useAuth() {
   const { user, isAuthenticated, isLoading, language, setUser, setLoading, setLanguage, logout } =
     useAuthStore();
 
-  const login = useCallback(async (input: SignInInput): Promise<void> => {
+  const login = useCallback(async (input: SignInInput) => {
     const member = await signIn(input);
     setUser(member);
+    return member;
   }, [setUser]);
 
   const register = useCallback(async (input: SignUpInput): Promise<void> => {

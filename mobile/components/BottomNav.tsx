@@ -14,7 +14,6 @@ import * as Haptics from 'expo-haptics';
 import { useTranslation } from 'react-i18next';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '@/lib/useTheme';
-import { radius } from '@/lib/theme';
 
 export type TabRoute = 'index' | 'payments' | 'cases' | 'loans' | 'analytics' | 'profile';
 
@@ -24,12 +23,14 @@ interface TabDef {
   activeIcon?: keyof typeof MaterialCommunityIcons.glyphMap;
   labelKey: string;
   adminOnly?: boolean;
+  center?: boolean;
 }
 
 const TABS: TabDef[] = [
   { name: 'index', icon: 'view-dashboard-outline', activeIcon: 'view-dashboard', labelKey: 'nav.dashboard' },
-  { name: 'payments', icon: 'cash-multiple', labelKey: 'nav.payments' },
   { name: 'cases', icon: 'alert-circle-outline', activeIcon: 'alert-circle', labelKey: 'nav.cases' },
+  // The most important action lives in the middle, raised and gold.
+  { name: 'payments', icon: 'cash-plus', labelKey: 'nav.payments', center: true },
   { name: 'loans', icon: 'handshake-outline', activeIcon: 'handshake', labelKey: 'nav.loans' },
   { name: 'analytics', icon: 'chart-line', labelKey: 'nav.analytics', adminOnly: true },
   { name: 'profile', icon: 'account-circle-outline', activeIcon: 'account-circle', labelKey: 'nav.profile' },
@@ -72,6 +73,31 @@ function TabItem({ tab, active, badge, onPress }: TabItemProps) {
   };
 
   const iconName = (active ? (tab.activeIcon ?? tab.icon) : tab.icon) as keyof typeof MaterialCommunityIcons.glyphMap;
+
+  if (tab.center) {
+    return (
+      <Pressable
+        style={styles.tabItem}
+        onPress={handlePress}
+        accessibilityRole="tab"
+        accessibilityState={{ selected: active }}
+        accessibilityLabel={t(tab.labelKey)}
+      >
+        <Animated.View style={[styles.centerBtn, scaleStyle]}>
+          <LinearGradient
+            colors={active ? ['#e8c563', '#b8893a'] : ['#d9b04c', '#a87d33']}
+            start={{ x: 0.2, y: 0 }}
+            end={{ x: 0.8, y: 1 }}
+            style={StyleSheet.absoluteFillObject}
+          />
+          <MaterialCommunityIcons name={iconName} size={26} color="#0a0f1a" />
+        </Animated.View>
+        <Text style={[styles.tabLabel, { color: active ? colors.primary : colors.text4 }]} numberOfLines={1}>
+          {t(tab.labelKey)}
+        </Text>
+      </Pressable>
+    );
+  }
 
   return (
     <Pressable
@@ -127,21 +153,24 @@ export function BottomNav({ activeTab, onTabPress, notificationCount = 0, isAdmi
   const visibleTabs = TABS.filter((t) => !t.adminOnly || isAdmin);
 
   return (
+    // Outer container stays overflow-visible so the raised center button
+    // (and its gold glow) can float above the bar; the blur/gradient
+    // chrome is clipped inside its own absolute layer instead.
     <View style={[styles.container, { paddingBottom: Math.max(insets.bottom, 6) }]}>
-      {Platform.OS === 'ios' ? (
-        <BlurView intensity={60} tint="dark" style={StyleSheet.absoluteFillObject} />
-      ) : (
-        <View style={[StyleSheet.absoluteFillObject, { backgroundColor: `${colors.bg2}F5` }]} />
-      )}
-      {/* Top border with gold tint */}
-      <View style={[styles.topBorder, { backgroundColor: colors.glassBorder }]} />
-      <LinearGradient
-        colors={['rgba(200,155,60,0.06)', 'transparent']}
-        start={{ x: 0.5, y: 0 }}
-        end={{ x: 0.5, y: 1 }}
-        style={[StyleSheet.absoluteFillObject]}
-        pointerEvents="none"
-      />
+      <View style={styles.chrome} pointerEvents="none">
+        {Platform.OS === 'ios' ? (
+          <BlurView intensity={60} tint="dark" style={StyleSheet.absoluteFillObject} />
+        ) : (
+          <View style={[StyleSheet.absoluteFillObject, { backgroundColor: `${colors.bg2}F5` }]} />
+        )}
+        <View style={[styles.topBorder, { backgroundColor: colors.glassBorder }]} />
+        <LinearGradient
+          colors={['rgba(200,155,60,0.06)', 'transparent']}
+          start={{ x: 0.5, y: 0 }}
+          end={{ x: 0.5, y: 1 }}
+          style={StyleSheet.absoluteFillObject}
+        />
+      </View>
       <View style={styles.row}>
         {visibleTabs.map((tab) => (
           <TabItem
@@ -158,9 +187,17 @@ export function BottomNav({ activeTab, onTabPress, notificationCount = 0, isAdmi
 }
 
 const styles = StyleSheet.create({
-  container: { position: 'absolute', bottom: 0, left: 0, right: 0, overflow: 'hidden' },
+  container: { position: 'absolute', bottom: 0, left: 0, right: 0 },
+  chrome: { ...StyleSheet.absoluteFillObject, overflow: 'hidden' },
   topBorder: { height: 0.5 },
   row: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 6, paddingTop: 8 },
+  centerBtn: {
+    width: 54, height: 54, borderRadius: 27, marginTop: -22,
+    alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
+    borderWidth: 3, borderColor: 'rgba(10,15,26,0.9)',
+    shadowColor: '#d9b04c', shadowOpacity: 0.45, shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 }, elevation: 8,
+  },
   tabItem: { flex: 1, alignItems: 'center', paddingVertical: 5, paddingHorizontal: 2 },
   iconArea: { alignItems: 'center', justifyContent: 'center', width: 46, height: 32, marginBottom: 3 },
   activePill: { ...StyleSheet.absoluteFillObject, borderRadius: 14, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(200,155,60,0.15)' },

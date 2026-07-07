@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, Pressable, Linking } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import type { Payment } from '@/types';
+import { ReceiptSlipModal } from './ReceiptSlipModal';
 import { Badge } from './ui/Badge';
 import { formatPKR, formatDate } from '@/lib/format';
 import { useTheme } from '@/lib/useTheme';
@@ -28,6 +29,7 @@ function getStatusInfo(payment: Payment) {
 }
 
 export function PaymentCard({ payment }: PaymentCardProps) {
+  const [showSlip, setShowSlip] = useState(false);
   const { colors } = useTheme();
   const status = getStatusInfo(payment);
   const accentColor = poolColor(payment.pool, colors);
@@ -74,16 +76,14 @@ export function PaymentCard({ payment }: PaymentCardProps) {
       {payment.verifiedAt ? (
         <Pressable
           style={[styles.receiptStrip, { borderTopColor: colors.border1 }]}
-          onPress={() => {
-            const base = process.env.EXPO_PUBLIC_API_URL ?? 'https://barakah-hub.vercel.app';
-            void Linking.openURL(`${base}/verify-receipt/${payment.id}`);
-          }}
+          onPress={() => setShowSlip(true)}
         >
           <MaterialCommunityIcons name="qrcode-scan" size={14} color={colors.primary} />
           <Text style={[styles.receiptLabel, { color: colors.primary }]}>Digital receipt (verified)</Text>
-          <MaterialCommunityIcons name="open-in-new" size={12} color={colors.text4} />
+          <MaterialCommunityIcons name="chevron-right" size={14} color={colors.text4} />
         </Pressable>
       ) : null}
+      {showSlip ? <ReceiptSlipModal payment={payment} onClose={() => setShowSlip(false)} /> : null}
     </View>
   );
 }

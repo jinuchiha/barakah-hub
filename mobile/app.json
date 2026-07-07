@@ -11,9 +11,9 @@
     "splash": {
       "image": "./assets/images/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#0a0a0f"
+      "backgroundColor": "#06090f"
     },
-    "backgroundColor": "#0a0a0f",
+    "backgroundColor": "#06090f",
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.barakah.hub",
@@ -29,7 +29,7 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#0a0a0f"
+        "backgroundColor": "#06090f"
       },
       "package": "com.barakah.hub",
       "permissions": [

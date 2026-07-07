@@ -5,7 +5,10 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
+import Animated, {
+  FadeInDown, FadeInUp, useSharedValue, useAnimatedStyle,
+  withRepeat, withTiming, withSpring, withDelay, Easing, cancelAnimation,
+} from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Circle, Path, G } from 'react-native-svg';
 import { Input } from '@/components/ui/Input';
@@ -13,6 +16,7 @@ import { Button } from '@/components/ui/Button';
 import { useAuth } from '@/hooks/useAuth';
 import { EmailNotVerifiedError } from '@/lib/auth';
 import { BarakahField } from '@/components/BarakahField';
+import { setPendingWelcome } from '@/lib/welcome-flag';
 import { useTheme } from '@/lib/useTheme';
 import { useTranslation } from 'react-i18next';
 import { haptic } from '@/lib/haptics';
@@ -38,6 +42,77 @@ function BrandMark({ size = 72 }: { size?: number }) {
   );
 }
 
+/**
+ * Living brand mark: springs in, a faint gold ring breathes around it,
+ * and a tiny star orbits the whole mark — the login's centre of gravity.
+ */
+function AnimatedBrand() {
+  const enter = useSharedValue(0);
+  const orbit = useSharedValue(0);
+  const breathe = useSharedValue(0);
+
+  React.useEffect(() => {
+    enter.value = withDelay(120, withSpring(1, { damping: 12, stiffness: 130 }));
+    orbit.value = withRepeat(withTiming(1, { duration: 9000, easing: Easing.linear }), -1, false);
+    breathe.value = withRepeat(withTiming(1, { duration: 2400, easing: Easing.inOut(Easing.sin) }), -1, true);
+    return () => { cancelAnimation(orbit); cancelAnimation(breathe); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const wrapStyle = useAnimatedStyle(() => ({
+    opacity: enter.value,
+    transform: [{ scale: 0.6 + enter.value * 0.4 }],
+  }));
+  const ringStyle = useAnimatedStyle(() => ({
+    opacity: 0.25 + breathe.value * 0.35,
+    transform: [{ scale: 1 + breathe.value * 0.06 }],
+  }));
+  const orbitStyle = useAnimatedStyle(() => ({
+    transform: [{ rotate: `${orbit.value * 360}deg` }],
+  }));
+
+  return (
+    <Animated.View style={[styles.brandStage, wrapStyle]}>
+      <Animated.View style={[styles.breatheRing, ringStyle]} pointerEvents="none" />
+      <Animated.View style={[styles.orbit, orbitStyle]} pointerEvents="none">
+        <View style={styles.orbitStar} />
+      </Animated.View>
+      <View style={styles.logoWrap}>
+        <LinearGradient
+          colors={['rgba(200,155,60,0.22)', 'rgba(200,155,60,0.06)']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={[StyleSheet.absoluteFillObject, { borderRadius: 24 }]}
+        />
+        <BrandMark size={72} />
+      </View>
+    </Animated.View>
+  );
+}
+
+/** Slow light sweep across the sign-in button — the web's btn-shine. */
+function ButtonShine() {
+  const x = useSharedValue(-1);
+  React.useEffect(() => {
+    x.value = withRepeat(withDelay(1200, withTiming(1.6, { duration: 1600, easing: Easing.inOut(Easing.cubic) })), -1, false);
+    return () => { cancelAnimation(x); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const style = useAnimatedStyle(() => ({
+    transform: [{ translateX: x.value * 320 }, { rotate: '18deg' }],
+  }));
+  return (
+    <Animated.View style={[styles.shine, style]} pointerEvents="none">
+      <LinearGradient
+        colors={['transparent', 'rgba(255,255,255,0.28)', 'transparent']}
+        start={{ x: 0, y: 0.5 }}
+        end={{ x: 1, y: 0.5 }}
+        style={StyleSheet.absoluteFillObject}
+      />
+    </Animated.View>
+  );
+}
+
 export default function LoginScreen() {
   const { t } = useTranslation();
   const router = useRouter();
@@ -55,9 +130,12 @@ export default function LoginScreen() {
     }
     setLoading(true);
     try {
-      await login({ identifier: id, password });
-      router.replace('/(tabs)' as any);
+      const member = await login({ identifier: id, password });
       void haptic.success();
+      // The auth layout redirects on auth-flip; the dashboard plays the
+      // welcome moment on its first mount via this one-shot flag.
+      setPendingWelcome(member?.nameUr || member?.nameEn || '');
+      router.replace('/(tabs)' as any);
     } catch (err) {
       void haptic.error();
       if (err instanceof EmailNotVerifiedError) {
@@ -92,15 +170,7 @@ export default function LoginScreen() {
 
             {/* ── Brand section ── */}
             <Animated.View entering={FadeInDown.duration(500)} style={styles.brandSection}>
-              <View style={styles.logoWrap}>
-                <LinearGradient
-                  colors={['rgba(200,155,60,0.22)', 'rgba(200,155,60,0.06)']}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                  style={[StyleSheet.absoluteFillObject, { borderRadius: 24 }]}
-                />
-                <BrandMark size={72} />
-              </View>
+              <AnimatedBrand />
               <Text style={styles.appName}>Barakah Hub</Text>
               <Text style={styles.appNameAr}>بَرَكَة ہب</Text>
               <View style={styles.taglinePill}>
@@ -148,14 +218,17 @@ export default function LoginScreen() {
 
             {/* ── Sign in button ── */}
             <Animated.View entering={FadeInDown.duration(500).delay(240)} style={styles.btnSection}>
-              <Button
-                label={loading ? 'Signing in…' : t('auth.signIn')}
-                onPress={handleLogin}
-                variant="solid"
-                size="lg"
-                loading={loading}
-                fullWidth
-              />
+              <View style={styles.btnShineWrap}>
+                <Button
+                  label={loading ? 'Signing in…' : t('auth.signIn')}
+                  onPress={handleLogin}
+                  variant="solid"
+                  size="lg"
+                  loading={loading}
+                  fullWidth
+                />
+                {!loading ? <ButtonShine /> : null}
+              </View>
             </Animated.View>
 
             {/* ── Register link ── */}
@@ -193,6 +266,18 @@ const styles = StyleSheet.create({
   },
   // Brand
   brandSection: { alignItems: 'center', paddingTop: 52, paddingBottom: 20 },
+  brandStage: { width: 128, height: 128, alignItems: 'center', justifyContent: 'center' },
+  breatheRing: {
+    position: 'absolute', width: 116, height: 116, borderRadius: 58,
+    borderWidth: 1, borderColor: 'rgba(217,176,76,0.55)',
+  },
+  orbit: { position: 'absolute', width: 128, height: 128, alignItems: 'center' },
+  orbitStar: {
+    width: 5, height: 5, borderRadius: 3, backgroundColor: '#e8c563',
+    shadowColor: '#e8c563', shadowOpacity: 0.9, shadowRadius: 6, shadowOffset: { width: 0, height: 0 },
+  },
+  btnShineWrap: { borderRadius: 16, overflow: 'hidden' },
+  shine: { position: 'absolute', top: -20, bottom: -20, left: -120, width: 90 },
   logoWrap: {
     width: 88, height: 88, borderRadius: 24,
     borderWidth: 1.5, borderColor: 'rgba(200,155,60,0.35)',
@@ -201,7 +286,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   appName: { fontSize: 22, fontFamily: 'Inter_700Bold', color: '#ecebe6', letterSpacing: -0.4 },
-  appNameAr: { fontSize: 14, fontFamily: 'Inter_400Regular', color: '#c89b3c', marginTop: 3 },
+  appNameAr: { fontSize: 14, fontFamily: 'NotoNastaliqUrdu_400Regular', color: '#c89b3c', marginTop: 3, lineHeight: 30 },
   taglinePill: {
     marginTop: 8, paddingHorizontal: 12, paddingVertical: 4,
     borderRadius: 20, backgroundColor: 'rgba(200,155,60,0.10)',
@@ -210,7 +295,7 @@ const styles = StyleSheet.create({
   taglineText: { fontSize: 11, fontFamily: 'Inter_600SemiBold', color: 'rgba(200,155,60,0.80)', letterSpacing: 1.2, textTransform: 'uppercase' },
   // Heading
   headingBlock: { paddingBottom: 28 },
-  greeting: { fontSize: 15, fontFamily: 'Inter_600SemiBold', marginBottom: 6 },
+  greeting: { fontSize: 16, fontFamily: 'NotoNastaliqUrdu_600SemiBold', marginBottom: 6, lineHeight: 36 },
   heading: { fontSize: 30, fontFamily: 'Inter_700Bold', color: '#ecebe6', letterSpacing: -0.8, lineHeight: 36 },
   subheading: { fontSize: 15, fontFamily: 'Inter_400Regular', marginTop: 6 },
   // Form

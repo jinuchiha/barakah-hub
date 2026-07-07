@@ -14,6 +14,7 @@ import {
   Inter_700Bold,
 } from '@expo-google-fonts/inter';
 import { SpaceMono_400Regular } from '@expo-google-fonts/space-mono';
+import { NotoNastaliqUrdu_400Regular, NotoNastaliqUrdu_600SemiBold } from '@expo-google-fonts/noto-nastaliq-urdu';
 import * as SplashScreen from 'expo-splash-screen';
 import * as SecureStore from 'expo-secure-store';
 import i18n, { initI18n } from '@/lib/i18n';
@@ -100,6 +101,8 @@ export default function RootLayout() {
     Inter_600SemiBold,
     Inter_700Bold,
     SpaceMono_400Regular,
+    NotoNastaliqUrdu_400Regular,
+    NotoNastaliqUrdu_600SemiBold,
   });
   const [persister, setPersister] = useState<Persister | null>(null);
 

@@ -19,6 +19,7 @@ import { PaymentBarChart } from '@/components/charts/PaymentBarChart';
 import { spacing } from '@/lib/theme';
 import { format } from 'date-fns';
 import { formatPKR } from '@/lib/format';
+import { AnimatedNumber, fmtRsWorklet } from '@/components/ui/AnimatedNumber';
 
 function SectionTitle({ label }: { label: string }) {
   const { colors } = useTheme();
@@ -156,9 +157,11 @@ export default function AnalyticsScreen() {
           <GlassCard style={styles.summaryCard}>
             <View style={styles.summaryRow}>
               <Text style={[styles.summaryLabel, { color: colors.text3 }]}>{t('analytics.totalFund')}</Text>
-              <Text style={[styles.summaryValue, { color: colors.primary }]}>
-                {formatPKR((data?.fund?.sadaqah ?? 0) + (data?.fund?.zakat ?? 0) + (data?.fund?.qarz ?? 0))}
-              </Text>
+              <AnimatedNumber
+                value={(data?.fund?.sadaqah ?? 0) + (data?.fund?.zakat ?? 0) + (data?.fund?.qarz ?? 0)}
+                format={fmtRsWorklet}
+                style={[styles.summaryValue, { color: colors.primary }]}
+              />
             </View>
             <View style={styles.summaryRow}>
               <Text style={[styles.summaryLabel, { color: colors.text3 }]}>{t('analytics.pendingPayments')}</Text>
