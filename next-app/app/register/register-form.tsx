@@ -58,6 +58,12 @@ export default function RegisterForm() {
       <Button type="submit" variant="gold" className="mt-2 w-full" disabled={pending}>
         {pending ? 'Creating…' : 'Register'}
       </Button>
+      <p className="mt-3 text-center text-[11px] text-[var(--txt-4)]">
+        By registering you agree to the{' '}
+        <a href="/terms" className="underline hover:text-[var(--color-gold)]">Terms</a>
+        {' · '}
+        <a href="/privacy" className="underline hover:text-[var(--color-gold)]">Privacy Policy</a>
+      </p>
     </form>
   );
 }
