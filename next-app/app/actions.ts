@@ -46,6 +46,14 @@ async function audit(actorId: string, action: string, detail: string, targetId?:
   await db.insert(auditLog).values({ actorId, targetId, action, detail });
 }
 
+/** WhatsApp one member (env-gated no-op) — never blocks the caller. */
+function waToMember(memberId: string, body: string): void {
+  void (async () => {
+    const [m] = await db.select({ phone: members.phone }).from(members).where(eq(members.id, memberId)).limit(1);
+    if (m?.phone) await sendWhatsAppText(m.phone, body);
+  })().catch((err) => { console.error('[whatsapp] member send:', err); });
+}
+
 /* ─── approve pending member (admin) */
 export async function approveMember(memberId: string) {
   const me = await meOrThrow();
@@ -77,6 +85,11 @@ export async function approveMember(memberId: string) {
   void emailForMember(m.authId).then((email) => {
     if (email) return sendApprovalEmail(email, m.nameEn || m.nameUr);
   }).catch((err) => { console.error('[email] approve member:', err); });
+  waToMember(memberId, `🎉 *مبارک ہو!*
+
+${m.nameUr || m.nameEn} · آپ کا Barakah Hub اکاؤنٹ منظور ہو گیا۔ اب آپ ایپ استعمال کر سکتے ہیں۔
+
+جزاک اللہ خیر`);
   revalidatePath('/admin/members');
 }
 
@@ -391,6 +404,12 @@ export async function supervisorRejectPayment(paymentId: string, note?: string) 
     },
     { title: '⛔ Payment rejected', body: `Rs ${updated[0].amount.toLocaleString('en-PK')} ${updated[0].pool} · needs your action`, data: { type: 'payment-rejected' }, channelId: 'payments' },
   );
+  waToMember(updated[0].memberId, `⛔ *ادائیگی مسترد*
+
+آپ کی Rs ${updated[0].amount.toLocaleString('en-PK')} (${updated[0].pool}) کی ادائیگی سپروائزر نے مسترد کی${trimmedNote ? `
+وجہ: ${trimmedNote}` : ''}۔
+
+ایڈمن سے رابطہ کریں یا دوبارہ جمع کریں۔`);
   revalidatePath('/admin/fund');
 }
 
@@ -819,6 +838,24 @@ export async function createCase(input: z.infer<typeof caseSchema>) {
     .values({ ...data, applicantId: me.id, status: 'voting' })
     .returning();
   await audit(me.id, 'emergency-create', `${data.caseType} ${data.amount} for ${data.beneficiaryName}`, me.id);
+  // Emergency cases go out on WhatsApp too — the vote is time-critical.
+  if (data.emergency) {
+    void (async () => {
+      const voters = await db
+        .select({ id: members.id, phone: members.phone })
+        .from(members)
+        .where(and(eq(members.status, 'approved'), eq(members.deceased, false), sql`${members.id} != ${me.id}`));
+      for (const v of voters) {
+        if (!v.phone) continue;
+        await sendWhatsAppText(v.phone, `🚨 *ہنگامی کیس · ووٹ درکار*
+
+${data.beneficiaryName} کے لیے Rs ${data.amount.toLocaleString('en-PK')} کی درخواست
+وجہ: ${data.reasonUr || data.reasonEn}
+
+ووٹ دیں: ${process.env.NEXT_PUBLIC_APP_URL ?? 'https://barakah-hub.vercel.app'}/cases`);
+      }
+    })().catch((err) => { console.error('[whatsapp] emergency broadcast:', err); });
+  }
   // Broadcast push so every approved member sees the new case in time to vote
   void broadcastPush(me.id, {
     title: data.emergency ? '🚨 Emergency case opened' : '🆘 New case to vote on',
@@ -994,6 +1031,11 @@ export async function disburseCase(caseId: string) {
 
   const c = updated[0];
   await audit(me.id, 'case-disbursed', `Disbursed ${c.amount} for ${c.beneficiaryName}`, c.applicantId);
+  waToMember(c.applicantId, `💸 *رقم ادا کر دی گئی*
+
+${c.beneficiaryName} کے لیے Rs ${c.amount.toLocaleString('en-PK')} ادا کر دیے گئے ہیں۔
+
+اللہ قبول فرمائے · جزاک اللہ خیر`);
 
   // For qarz cases, auto-create the loan record so repayments can be tracked.
   // Guard against a duplicate loan if disburse is somehow retried (no DB

@@ -3,6 +3,7 @@ import {
   View, Text, StyleSheet, ScrollView, KeyboardAvoidingView, Platform, Alert, TouchableOpacity, Linking,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useMembers } from '@/hooks/useMembers';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useForm, Controller, type FieldErrors } from 'react-hook-form';
@@ -30,6 +31,17 @@ type FormData = z.infer<typeof schema>;
  */
 export default function ContactAdminScreen() {
   const router = useRouter();
+  const { data: allMembers } = useMembers();
+  // Caretaker numbers come through /api/members for everyone by design.
+  const waAdmin = (allMembers ?? []).find(
+    (mm) => (mm.role === 'admin' || mm.role === 'supervisor') && mm.phone,
+  );
+  const openWhatsApp = () => {
+    if (!waAdmin?.phone) return;
+    const num = waAdmin.phone.replace(/[^0-9]/g, '').replace(/^0/, '92');
+    void Linking.openURL(`whatsapp://send?phone=${num}&text=${encodeURIComponent('السلام علیکم · Barakah Hub')}`)
+      .catch(() => Linking.openURL(`https://wa.me/${num}`));
+  };
   const { colors } = useTheme();
   const { t } = useTranslation();
   const user = useAuthStore((s) => s.user);
@@ -134,6 +146,14 @@ export default function ContactAdminScreen() {
           />
 
           <View style={styles.btnRow}>
+            {waAdmin?.phone ? (
+              <Button
+                label={`WhatsApp · ${waAdmin.nameUr || waAdmin.nameEn}`}
+                onPress={openWhatsApp}
+                variant="gold"
+                style={styles.btn}
+              />
+            ) : null}
             <Button label={t('common.cancel')} onPress={() => router.back()} variant="ghost" style={styles.btn} />
             <Button
               label={sending ? t('common.sending') : t('support.sendToAdmin')}

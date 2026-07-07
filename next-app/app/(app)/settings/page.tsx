@@ -1,3 +1,4 @@
+import WhatsAppTestButton from './whatsapp-test-button';
 import { eq } from 'drizzle-orm';
 import { getMeOrRedirect } from '@/lib/auth-server';
 import { db } from '@/lib/db';
@@ -35,7 +36,10 @@ export default async function SettingsPage() {
 
       {isAdmin && (
         <Card className="mb-4">
-          <CardHeader><CardTitle>Admin Configuration</CardTitle></CardHeader>
+          <CardHeader>
+            <CardTitle>Admin Configuration</CardTitle>
+            <WhatsAppTestButton />
+          </CardHeader>
           <CardBody><AdminConfigForm config={cfg ?? { id: 1, voteThresholdPct: 50, defaultMonthlyPledge: 1000, goalAmount: 0, goalLabelUr: null, goalLabelEn: null, goalDeadline: null, themePalette: 'gold', orgNameUr: 'بَرَكَة ہب', orgNameEn: 'Barakah Hub', easyPaiseName: null, easyPaiseNumber: null, updatedAt: new Date() }} /></CardBody>
         </Card>
       )}

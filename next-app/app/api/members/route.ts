@@ -42,8 +42,13 @@ export async function GET(req: NextRequest) {
           .orderBy(asc(members.nameEn));
 
     if (me.role !== 'admin') {
+      // Members' personal numbers stay private, but admin/supervisor
+      // numbers are contact points — members need them to reach the
+      // fund's caretakers (WhatsApp/call from the app).
       return NextResponse.json(
-        rows.map(({ monthlyPledge: _mp, phone: _ph, ...rest }) => rest),
+        rows.map(({ monthlyPledge: _mp, phone, ...rest }) =>
+          rest.role === 'admin' || rest.role === 'supervisor' ? { ...rest, phone } : rest,
+        ),
       );
     }
 
