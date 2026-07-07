@@ -9,6 +9,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { AvatarUpload } from '@/components/AvatarUpload';
+import { LinearGradient } from 'expo-linear-gradient';
+import { AnimatedNumber, fmtRsWorklet } from '@/components/ui/AnimatedNumber';
 import { Badge } from '@/components/ui/Badge';
 import { StatCard } from '@/components/ui/StatCard';
 import { Button } from '@/components/ui/Button';
@@ -151,7 +153,13 @@ function ProfileScreen() {
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.bg1 }]} edges={['top']}>
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-        <Animated.View entering={FadeInDown.duration(400)} style={styles.profileHeader}>
+        <Animated.View entering={FadeInDown.duration(400)}>
+        <LinearGradient
+          colors={['rgba(30,45,74,0.5)', 'rgba(200,155,60,0.06)', 'transparent']}
+          start={{ x: 0.1, y: 0 }} end={{ x: 0.9, y: 1 }}
+          style={styles.identityBand}
+        >
+        <View style={styles.profileHeader}>
           <AvatarUpload
             name={user.nameEn || user.nameUr}
             color={user.color}
@@ -166,14 +174,16 @@ function ProfileScreen() {
           <Text style={[styles.joinDate, { color: colors.text4 }]}>
             {t('profile.memberSince')} {user.joinedAt ? formatDate(user.joinedAt) : ''} · #{user.id.slice(0, 8).toUpperCase()}
           </Text>
+        </View>
+        </LinearGradient>
         </Animated.View>
 
         <Animated.View entering={FadeInDown.duration(400).delay(80)} style={styles.statsOuter}>
           <View style={styles.statsRow}>
-            <StatCard icon="cash-check" value={formatPKR(totalDonated)} label={t('profile.totalDonated')} style={styles.statHalf} />
-            <StatCard icon="hand-heart-outline" value={formatPKR(user.monthlyPledge)} label={t('profile.monthlyPledge')} iconColor={colors.gold} style={styles.statHalf} />
+            <StatCard icon="cash-check" value={formatPKR(totalDonated)} animateValue={totalDonated} format={fmtRsWorklet} label={t('profile.totalDonated')} style={styles.statHalf} />
+            <StatCard icon="hand-heart-outline" value={formatPKR(user.monthlyPledge)} animateValue={user.monthlyPledge} format={fmtRsWorklet} label={t('profile.monthlyPledge')} iconColor={colors.gold} style={styles.statHalf} />
           </View>
-          <StatCard icon="handshake-outline" value={`${activeLoans}`} label={t('profile.activeLoans')} iconColor={colors.accent} />
+          <StatCard icon="handshake-outline" value={`${activeLoans}`} animateValue={activeLoans} label={t('profile.activeLoans')} iconColor={colors.accent} />
         </Animated.View>
 
         <SettingsGroup title={t('profile.account')}>
@@ -279,6 +289,7 @@ function ProfileScreen() {
 export default ProfileScreen;
 
 const styles = StyleSheet.create({
+  identityBand: { borderRadius: 22, marginBottom: 4, borderWidth: 1, borderColor: 'rgba(200,155,60,0.14)' },
   safe: { flex: 1 },
   scroll: { padding: spacing.md, paddingBottom: 120 },
   profileHeader: {
@@ -290,11 +301,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter_700Bold',
     marginTop: spacing.md,
   },
-  profileNameUr: {
-    fontSize: 16,
-    fontFamily: 'Inter_400Regular',
-    marginTop: 4,
-  },
+  profileNameUr: { fontSize: 15, fontFamily: 'NotoNastaliqUrdu_400Regular', lineHeight: 32, marginTop: 2 },
   badgeRow: {
     flexDirection: 'row',
     gap: spacing.sm,
