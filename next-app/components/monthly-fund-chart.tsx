@@ -28,7 +28,7 @@ export function MonthlyFundChart({ buckets }: { buckets: MonthBucket[] }) {
   if (buckets.length === 0) {
     return (
       <div className="py-10 text-center text-sm italic text-[var(--txt-3)]">
-        No payments yet — chart will appear once verified payments are recorded.
+        No payments yet · chart will appear once verified payments are recorded.
       </div>
     );
   }

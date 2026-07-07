@@ -1,4 +1,4 @@
-import { eq, desc, asc } from 'drizzle-orm';
+import { and, eq, desc, asc } from 'drizzle-orm';
 import { getMeOrRedirect } from '@/lib/auth-server';
 import { db } from '@/lib/db';
 import { members, messages } from '@/lib/db/schema';
@@ -14,19 +14,29 @@ export default async function MessagesPage() {
   const me = await getMeOrRedirect();
   const locale = await getLocale();
 
-  const [inboxRows, sentRows, allMembers] = await Promise.all([
+  const isAdmin = me.role === 'admin';
+  const [inboxRows, sentRows, allMembers, everyMember, allRecent] = await Promise.all([
     db.select().from(messages).where(eq(messages.toId, me.id)).orderBy(desc(messages.createdAt)).limit(50),
     db.select().from(messages).where(eq(messages.fromId, me.id)).orderBy(desc(messages.createdAt)).limit(50),
     db
       .select({ id: members.id, nameEn: members.nameEn, nameUr: members.nameUr, role: members.role })
       .from(members)
-      .where(eq(members.deceased, false))
+      // Approved + living only — rejected rows (incl. old test accounts
+      // that audit FKs keep alive) must never appear as recipients.
+      .where(and(eq(members.deceased, false), eq(members.status, 'approved')))
       .orderBy(asc(members.nameEn)),
+    // Name resolution for oversight can't be status-filtered — an old
+    // sender may since have been rejected, but their message still shows.
+    db.select({ id: members.id, nameEn: members.nameEn, nameUr: members.nameUr }).from(members),
+    isAdmin
+      ? db.select().from(messages).orderBy(desc(messages.createdAt)).limit(60)
+      : Promise.resolve([]),
   ]);
   const inbox = inboxRows;
   const sent = sentRows;
   const recipients = allMembers.filter((m) => m.role === 'admin' || m.role === 'supervisor');
   const memById = new Map(allMembers.map((m) => [m.id, m]));
+  const nameById = new Map(everyMember.map((m) => [m.id, m.nameEn || m.nameUr || '?']));
   const unread = inbox.filter((m) => !m.read).length;
 
   return (
@@ -87,6 +97,33 @@ export default async function MessagesPage() {
                   </div>
                 );
               })}
+            </CardBody>
+          </Card>
+        )}
+
+        {isAdmin && allRecent.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle>
+                <span className="text-[10px] font-bold uppercase tracking-widest text-[var(--color-gold-4)]">ALL MESSAGES · نگرانی</span>
+                {' '}({allRecent.length})
+              </CardTitle>
+            </CardHeader>
+            <CardBody className="max-h-[420px] overflow-y-auto p-0">
+              {allRecent.map((m) => (
+                <div key={`all-${m.id}`} className="border-b border-[rgba(214,210,199,0.06)] p-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="min-w-0 truncate text-[12.5px] text-[var(--color-cream)]">
+                      <span className="font-semibold">{nameById.get(m.fromId) ?? '?'}</span>
+                      <span className="text-[var(--txt-4)]"> to </span>
+                      <span className="text-[var(--txt-2)]">{nameById.get(m.toId) ?? '?'}</span>
+                    </span>
+                    <span className="shrink-0 text-[10px] text-[var(--color-gold-4)]">{new Date(m.createdAt).toLocaleDateString('en-GB')}</span>
+                  </div>
+                  <div className="text-xs text-[var(--color-gold)]">{m.subject}</div>
+                  <p className="mt-0.5 line-clamp-2 text-xs text-[var(--txt-3)]">{m.body}</p>
+                </div>
+              ))}
             </CardBody>
           </Card>
         )}

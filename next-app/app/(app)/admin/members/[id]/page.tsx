@@ -10,6 +10,7 @@ import FautiButton from './fauti-button';
 import { Card, CardHeader, CardTitle, CardBody } from '@/components/ui/card';
 import { StatCard } from '@/components/stat-card';
 import { Breadcrumb } from '@/components/breadcrumb';
+import { PhotoLightbox } from '@/components/photo-lightbox';
 import { fmtRs } from '@/lib/i18n/dict';
 import { ini } from '@/lib/utils';
 
@@ -59,9 +60,11 @@ export default async function MemberDetailPage({ params }: { params: Promise<{ i
 
       {/* ── Identity header ── */}
       <header className="mb-8 flex flex-wrap items-center gap-5 border-b border-[var(--border)] pb-6">
-        <div className="grid size-20 shrink-0 place-items-center overflow-hidden rounded-full text-2xl font-bold text-white shadow-[0_0_0_4px_rgba(200,155,60,0.15)]" style={{ background: m.color }}>
-          {m.photoUrl ? <img src={m.photoUrl} alt="" className="size-full rounded-full object-cover" /> : ini(name)}
-        </div>
+        <PhotoLightbox src={m.photoUrl} alt={name}>
+          <div className="grid size-20 shrink-0 place-items-center overflow-hidden rounded-full text-2xl font-bold text-white shadow-[0_0_0_4px_rgba(200,155,60,0.15)]" style={{ background: m.color }}>
+            {m.photoUrl ? <img src={m.photoUrl} alt="" className="size-full rounded-full object-cover" /> : ini(name)}
+          </div>
+        </PhotoLightbox>
         <div className="min-w-0 flex-1">
           {m.nameUr && <div className="font-[var(--font-arabic)] text-2xl leading-[1.9] text-[var(--color-gold-2)]">{m.nameUr}</div>}
           <h1 className="text-[24px] font-semibold leading-tight tracking-[-0.5px] text-[var(--color-cream)]">{m.nameEn}</h1>

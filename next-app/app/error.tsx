@@ -8,7 +8,7 @@ export default function RootError({ reset }: { error: Error & { digest?: string 
       </p>
       <h1 className="mt-3 font-[var(--font-display)] text-4xl text-[var(--color-cream)]">Something went wrong</h1>
       <p className="mt-3 max-w-sm text-sm leading-relaxed text-[var(--txt-3)]">
-        An unexpected error occurred. Your data is safe — try again, and if it
+        An unexpected error occurred. Your data is safe · try again, and if it
         keeps happening let the admin know.
       </p>
       <button

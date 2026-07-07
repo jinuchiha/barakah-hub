@@ -100,7 +100,7 @@ export function PrayerTimesCard() {
       </div>
 
       <p className="mt-3 text-[10px] italic text-[var(--txt-4)]">
-        Calculated locally (±2 min) — confirm with your local masjid timetable.
+        Calculated locally (±2 min) · confirm with your local masjid timetable.
       </p>
     </div>
   );

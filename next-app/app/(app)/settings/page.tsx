@@ -30,7 +30,7 @@ export default async function SettingsPage() {
       <div>
       <Card className="mb-4">
         <CardHeader><CardTitle>Theme & Appearance</CardTitle></CardHeader>
-        <CardBody><ThemePicker initial={cfg?.themePalette ?? 'gold'} canSave={isAdmin} /></CardBody>
+        <CardBody><ThemePicker /></CardBody>
       </Card>
 
       {isAdmin && (

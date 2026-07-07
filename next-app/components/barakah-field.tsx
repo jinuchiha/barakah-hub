@@ -249,6 +249,7 @@ export default function BarakahField() {
     <div
       ref={hostRef}
       aria-hidden
+      className="barakah-field-host"
       style={{ position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none', opacity: 0.8 }}
     />
   );

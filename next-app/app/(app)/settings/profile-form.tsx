@@ -68,7 +68,7 @@ export default function ProfileForm({ member }: { member: Member }) {
       )}
 
       <div className="mb-3 rounded-md border border-[var(--border)] bg-[rgba(214,210,199,0.03)] px-3 py-2.5 text-xs text-[var(--txt-3)]">
-        Name changes require admin approval — contact your administrator.
+        Name changes require admin approval · contact your administrator.
       </div>
       <div className="grid gap-3 md:grid-cols-2">
         <div><Label htmlFor="prof-phone">Phone</Label><Input id="prof-phone" value={form.phone} onChange={(e) => set('phone', e.target.value)} placeholder="03xx-xxxxxxx" /></div>

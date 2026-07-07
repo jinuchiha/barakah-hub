@@ -231,10 +231,10 @@ export default async function DashboardPage() {
             </div>
             <div>
               <div className="font-[var(--font-arabic)] text-[13px] text-[var(--color-cream)]">
-                خاندانی سرگرمی — صدقہ گمنام
+                خاندانی سرگرمی · صدقہ گمنام
               </div>
               <p className="mt-1 text-[12.5px] leading-relaxed text-[var(--txt-2)]">
-                Total family contributions are visible. Individual donor names and amounts remain private — true spirit of sadqa.
+                Total family contributions are visible. Individual donor names and amounts remain private · true spirit of sadqa.
               </p>
             </div>
           </CardBody>
