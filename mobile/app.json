@@ -48,7 +48,6 @@
         "android.permission.ACCESS_COARSE_LOCATION"
       ],
       "softwareKeyboardLayoutMode": "pan",
-      "edgeToEdgeEnabled": true,
       "intentFilters": [
         {
           "action": "VIEW",

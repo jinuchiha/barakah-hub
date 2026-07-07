@@ -1,4 +1,4 @@
-import React, { memo, useEffect, useState, useRef } from 'react';
+import React, { memo, useEffect, useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import Animated, {
   FadeInDown, useSharedValue, useAnimatedStyle, withTiming, runOnJS, cancelAnimation,
@@ -21,8 +21,10 @@ export const DailyVerseCard = memo(function DailyVerseCard() {
   const [index, setIndex] = useState(() => getDailyVerse.index?.() ?? 0);
   const fade = useSharedValue(1);
   const progress = useSharedValue(0);
-  const indexRef = useRef(index);
-  indexRef.current = index;
+  // The withTiming completion callback runs as a WORKLET on the UI
+  // thread — calling plain JS (verseCount, ref reads) in there crashes
+  // release builds. Advance through an argument-less JS closure instead.
+  const advance = () => setIndex((i) => (i + 1) % verseCount());
 
   useEffect(() => {
     progress.value = 0;
@@ -30,7 +32,8 @@ export const DailyVerseCard = memo(function DailyVerseCard() {
     const id = setInterval(() => {
       // fade out → swap verse → fade in
       fade.value = withTiming(0, { duration: 450 }, (done) => {
-        if (done) runOnJS(setIndex)((indexRef.current + 1) % verseCount());
+        'worklet';
+        if (done) runOnJS(advance)();
       });
     }, CYCLE_MS);
     return () => { clearInterval(id); cancelAnimation(fade); cancelAnimation(progress); };

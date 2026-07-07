@@ -1,6 +1,7 @@
 import '../global.css';
 import React, { useEffect, useState, useCallback } from 'react';
 import { Stack } from 'expo-router';
+import { View, Text } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import type { Persister } from '@tanstack/react-query-persist-client';
@@ -95,8 +96,32 @@ function ThemeProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
+/**
+ * Root error screen — a JS crash must surface as a readable message with
+ * a retry, never a blank window. expo-router picks this export up
+ * automatically for errors anywhere in the tree.
+ */
+export function ErrorBoundary({ error, retry }: { error: Error; retry: () => Promise<void> }) {
+  return (
+    <View style={{ flex: 1, backgroundColor: '#06090f', alignItems: 'center', justifyContent: 'center', padding: 32 }}>
+      <Text style={{ color: '#e8c563', fontSize: 20, fontWeight: '700', marginBottom: 10 }}>Kuch ghalat ho gaya</Text>
+      <Text style={{ color: 'rgba(236,235,230,0.7)', fontSize: 13, textAlign: 'center', marginBottom: 20 }} numberOfLines={4}>
+        {error.message}
+      </Text>
+      <Text
+        onPress={() => { void retry(); }}
+        style={{ color: '#0a0f1a', backgroundColor: '#d9b04c', paddingHorizontal: 26, paddingVertical: 11, borderRadius: 22, fontWeight: '700', overflow: 'hidden' }}
+      >
+        Dobara koshish karein
+      </Text>
+    </View>
+  );
+}
+
 export default function RootLayout() {
-  const [fontsLoaded] = useFonts({
+  // fontError: if any font fails, proceed with system fallbacks — a
+  // missing typeface must never hold the whole app on a blank screen.
+  const [fontsLoaded, fontError] = useFonts({
     Inter_400Regular,
     Inter_600SemiBold,
     Inter_700Bold,
@@ -110,11 +135,13 @@ export default function RootLayout() {
     initQueryPersister().then(setPersister).catch(() => setPersister(null));
   }, []);
 
-  useEffect(() => {
-    if (fontsLoaded) SplashScreen.hideAsync().catch(() => undefined);
-  }, [fontsLoaded]);
+  const fontsReady = fontsLoaded || !!fontError;
 
-  if (!fontsLoaded || !persister) return <LoadingScreen />;
+  useEffect(() => {
+    if (fontsReady) SplashScreen.hideAsync().catch(() => undefined);
+  }, [fontsReady]);
+
+  if (!fontsReady || !persister) return <LoadingScreen />;
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
