@@ -10,7 +10,7 @@ communities to pool monthly donations, issue interest-free loans
 *sadqa* principle of donor-name privacy enforced at the data layer.
 
 Stack: **Next.js 16 · React 19 · TypeScript · Drizzle ORM · Neon Postgres ·
-Better-Auth · Tailwind v4 · Vitest · Cloudflare Workers (OpenNext)**.
+Better-Auth · Tailwind v4 · Vitest · Vercel**.
 
 ---
 
@@ -22,11 +22,11 @@ Better-Auth · Tailwind v4 · Vitest · Cloudflare Workers (OpenNext)**.
 | **Legacy predecessor** | [`index.html`](index.html) — single-HTML PWA (frozen, kept for data-import reference) |
 | **Database** | Neon Postgres (serverless, branch-per-PR via [`@neondatabase/serverless`](https://neon.tech)) |
 | **Auth** | [Better-Auth](https://www.better-auth.com) — email + password, sessions, password-reset via Resend |
-| **Migrations** | [`next-app/supabase/migrations/`](next-app/supabase/migrations/) — `0001` → `0004`, applied in order |
-| **Tests** | 47 in [`next-app/test/`](next-app/test/) — `pnpm test` |
+| **Migrations** | [`next-app/supabase/migrations/`](next-app/supabase/migrations/) — `0001` → `0016`, applied in order |
+| **Tests** | 96 in [`next-app/test/`](next-app/test/) — `pnpm test` |
 | **CI** | [`.github/workflows/ci.yml`](.github/workflows/ci.yml) — typecheck → lint → test → build |
-| **Deploy target** | Cloudflare Workers via [`@opennextjs/cloudflare`](https://opennext.js.org/cloudflare) — auto-deploy on merge to `main` |
-| **Live URL** | <https://barakah-hub.bakerabi91.workers.dev> |
+| **Deploy target** | Vercel — auto-deploy on merge to `main`; crons in [`next-app/vercel.json`](next-app/vercel.json) |
+| **Live URL** | <https://barakah-hub.vercel.app> |
 | **Audit history** | [`next-app/AUDIT_PHASE3.md`](next-app/AUDIT_PHASE3.md) — every P0/P1/P2 finding with status |
 | **Migration history** | [`next-app/docs/MIGRATING_TO_NEON.md`](next-app/docs/MIGRATING_TO_NEON.md) — Supabase → Neon + Better-Auth playbook |
 
@@ -126,18 +126,17 @@ barakah-hub/
 │   │   ├── auth-server.ts        getSession / getMeOrRedirect helpers
 │   │   ├── db/                   Drizzle + Neon HTTP driver
 │   │   └── ...
-│   ├── supabase/migrations/      Numbered SQL migrations 0001-0004
+│   ├── supabase/migrations/      Numbered SQL migrations 0001-0016
 │   │                             (folder kept for naming continuity; targets Neon)
-│   ├── test/                     Vitest + RTL — 47 tests
+│   ├── test/                     Vitest + RTL — 96 tests
 │   ├── docs/
 │   │   ├── BACKEND_ALTERNATIVES.md
 │   │   └── MIGRATING_TO_NEON.md
 │   ├── scripts/                  Legacy-data importer
-│   ├── middleware.ts             Edge-runtime auth gate (Workers requirement)
-│   ├── wrangler.toml             Cloudflare Workers config
-│   ├── open-next.config.ts       OpenNext adapter config
+│   ├── middleware.ts             Edge-runtime auth gate
+│   ├── vercel.json               Vercel build config + cron schedules
 │   ├── README.md                 Stack decisions, security, status
-│   ├── DEPLOY.md                 Cloudflare Workers + Neon deploy guide
+│   ├── DEPLOY.md                 Deploy guide (Vercel + Neon)
 │   ├── AUDIT_PHASE3.md           Audit + remediation history
 │   └── CONTRIBUTING.md           Branching, commits, review etiquette
 │
@@ -153,7 +152,7 @@ barakah-hub/
 
 We use **GitHub Flow** rather than Gitflow. Family-scale tooling does not
 need release branches; small, frequent, always-deployable PRs into `main`
-are simpler and pair well with Cloudflare Pages preview deployments.
+are simpler and pair well with Vercel preview deployments.
 
 ```
 main ──●──●──●──●──●─────●──● (always deployable; CI required)
@@ -257,7 +256,7 @@ git commit -m "chore: rename project to Barakah Hub"
 git push origin main
 ```
 
-Cloudflare Pages and any other GitHub integrations will follow the
+Vercel and any other GitHub integrations will follow the
 redirect; update them to the new URL at your leisure.
 
 ---
@@ -328,10 +327,10 @@ Branch name pattern:           main
 ✓ Do not allow bypassing the above settings
 ```
 
-### 6 · Wire up Cloudflare Pages
+### 6 · Wire up Vercel
 
-GitHub web UI → **Settings → Integrations → GitHub Apps → Cloudflare Pages**.
-In the Cloudflare dashboard, create a new project named `barakah-hub`,
+GitHub web UI → **Settings → Integrations → GitHub Apps → Vercel**.
+In the Vercel dashboard, import the repo as project `barakah-hub`,
 connect it to the GitHub repo, and set the build settings as documented in
 [`next-app/DEPLOY.md`](next-app/DEPLOY.md). Production deploys from `main`;
 preview deploys from every PR branch.
@@ -368,7 +367,7 @@ pass CI. The npm-style script equivalents are in [`next-app/package.json`](next-
 Phase 3 audit + remediation complete (5 P0 + 11 P1 + 9 P2 fixes).
 **Phases 3 + 4 + 5 of the Neon migration shipped on `feat/neon-migration`**:
 DB swapped from Supabase Postgres → Neon, Auth swapped from Supabase Auth →
-Better-Auth, deploy target migrated from Cloudflare Pages → Workers via
+Better-Auth, deploy target migrated from Cloudflare → Vercel via
 OpenNext. 47 tests green, CI runs typecheck/lint/test/build, branch-per-PR
 Neon DBs, project renamed **Barakah Hub**.
 

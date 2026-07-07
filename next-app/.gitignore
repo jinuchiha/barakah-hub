@@ -4,7 +4,7 @@
 # ═══════════════════════════════════════════════════════════════════
 
 # Symlinked mobile folder — not part of this Next.js project
-mobile/
+/mobile/
 
 # ── OS / editor noise
 .DS_Store
@@ -85,3 +85,5 @@ NOTES.local.md
 .cursor/
 .aider*
 .ruler/
+# untracked prod-DB helper for E2E test accounts
+e2e-tmp.ts

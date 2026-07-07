@@ -12,14 +12,14 @@ export function VerseBar({ locale = 'en' }: { locale?: 'ur' | 'en' }) {
   const v = VERSES[i];
   if (!v) return null;
   return (
-    <div className="flex shrink-0 items-center justify-center gap-3 border-b border-[rgba(30,42,74,0.4)] bg-gradient-to-r from-[var(--color-emerald-3)] via-[#1e2a4a] to-[var(--color-emerald-3)] px-6 py-1.5">
+    <div className="verse-bar flex shrink-0 items-center justify-center gap-3 border-b border-[var(--border)] px-6 py-1.5">
       <span className="truncate font-[var(--font-arabic)] text-base text-[var(--color-gold)]">{v.ar}</span>
-      <span className="text-xs text-white/20">·</span>
-      <span className="truncate text-xs text-white/70" dir={locale === 'ur' ? 'rtl' : 'ltr'}>
+      <span className="text-xs text-[var(--txt-4)]">·</span>
+      <span className="truncate text-xs text-[var(--txt-2)]" dir={locale === 'ur' ? 'rtl' : 'ltr'}>
         {locale === 'ur' ? v.ur : v.en}
       </span>
-      <span className="text-xs text-white/20">·</span>
-      <span className="font-[var(--font-en)] text-[10px] tracking-[1px] text-[rgba(255,255,255,0.55)]">{v.ref}</span>
+      <span className="text-xs text-[var(--txt-4)]">·</span>
+      <span className="font-[var(--font-en)] text-[10px] tracking-[1px] text-[var(--txt-3)]">{v.ref}</span>
     </div>
   );
 }

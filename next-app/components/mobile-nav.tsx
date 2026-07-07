@@ -21,7 +21,7 @@ export function MobileNav({ isAdmin = false, isSupervisor = false, badges = {} }
       </SheetTrigger>
       <SheetContent
         side="left"
-        className="bg-gradient-to-b from-[#0d0d09] to-[#080806]"
+        className="app-sidebar"
       >
         <SheetTitle className="px-4 pt-4 font-[var(--font-arabic)] text-base text-[var(--color-gold-2)]">
           بَرَكَة ہب
