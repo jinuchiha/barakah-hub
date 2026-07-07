@@ -1,3 +1,5 @@
+import { withSentryConfig } from '@sentry/nextjs';
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
@@ -17,7 +19,11 @@ const nextConfig = {
   },
 };
 
-// OpenNext for Cloudflare Workers handles dev-platform bindings via its
-// `opennextjs-cloudflare preview` command — no setup needed in this file.
-
-export default nextConfig;
+// Sentry wrapping is safe to apply unconditionally — the SDK itself
+// no-ops when SENTRY_DSN is unset (see sentry.*.config.ts), and the
+// source-map upload step just skips silently without SENTRY_AUTH_TOKEN.
+export default withSentryConfig(nextConfig, {
+  silent: true,
+  widenClientFileUpload: false,
+  sourcemaps: { disable: !process.env.SENTRY_AUTH_TOKEN },
+});
