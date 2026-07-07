@@ -203,7 +203,7 @@ function PaymentBanner({ isPaid, pledge, amount, onPay }: {
             <Text style={[styles.bannerTitle, { color: '#4ec38d' }]}>{t('dashboard.thisMontPaid')}</Text>
             {amount ? <Text style={[styles.bannerSub, { color: colors.text3 }]}>{formatPKR(amount)}</Text> : null}
           </View>
-          <Badge label="Verified" variant="success" />
+          <Badge label={t('dashboard.verified')} variant="success" />
         </GlassCard>
       </Animated.View>
     );
@@ -217,7 +217,7 @@ function PaymentBanner({ isPaid, pledge, amount, onPay }: {
         </View>
         <View style={styles.bannerText}>
           <Text style={[styles.bannerTitle, { color: colors.gold }]}>{t('dashboard.paymentDue')}</Text>
-          {pledge ? <Text style={[styles.bannerSub, { color: colors.text3 }]}>{formatPKR(pledge)}/mo</Text> : null}
+          {pledge ? <Text style={[styles.bannerSub, { color: colors.text3 }]}>{formatPKR(pledge)}{t('dashboard.perMonth')}</Text> : null}
         </View>
         <Button label={t('dashboard.payNow')} onPress={onPay} variant="gold" size="sm" />
       </GlassCard>
@@ -237,7 +237,7 @@ function StatsGrid({ pledge, pendingCount, isPaid }: {
         value={formatPKRFull(pledge ?? 0)}
         animateValue={pledge ?? 0}
         format={fmtRsWorklet}
-        label="My Pledge"
+        label={t('dashboard.myPledge')}
         style={styles.statHalf}
       />
       <StatCard

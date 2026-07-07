@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React, { useState } from 'react';
 import {
   View, Text, StyleSheet, Modal, ScrollView,
@@ -46,6 +47,7 @@ const STEP = 500;
 const QUICK_AMOUNTS = [500, 1000, 2000, 5000];
 
 export function PaymentSubmitModal({ visible, onClose, onSubmit, easyPaiseNumber, easyPaiseName }: PaymentSubmitModalProps) {
+  const { t } = useTranslation();
   const { colors } = useTheme();
   const styles = React.useMemo(() => makeStyles(colors), [colors]);
   const [screenshotUri, setScreenshotUri] = useState<string | undefined>();
@@ -101,7 +103,7 @@ export function PaymentSubmitModal({ visible, onClose, onSubmit, easyPaiseNumber
       setReceiptUploadFailed(false);
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Failed to submit';
-      Alert.alert('Submission failed', msg);
+      Alert.alert(t('pay.failed'), msg);
     } finally {
       setSubmitting(false);
     }
@@ -112,7 +114,7 @@ export function PaymentSubmitModal({ visible, onClose, onSubmit, easyPaiseNumber
   const handleInvalid = (formErrors: FieldErrors<FormData>) => {
     const first = Object.values(formErrors)[0];
     const msg = (first?.message as string | undefined) ?? 'Please fill all required fields correctly';
-    Alert.alert('Form incomplete', msg);
+    Alert.alert(t('pay.incomplete'), msg);
   };
 
   // Cancel should also clear typed amount, note, and attached screenshot so
@@ -134,15 +136,15 @@ export function PaymentSubmitModal({ visible, onClose, onSubmit, easyPaiseNumber
           {submitting ? (
             <View style={styles.submittingOverlay}>
               <ActivityIndicator size="large" color={colors.primary} />
-              <Text style={[styles.submittingText, { color: colors.text1 }]}>Processing…</Text>
+              <Text style={[styles.submittingText, { color: colors.text1 }]}>{t('pay.processing')}</Text>
             </View>
           ) : null}
           <View style={styles.handle} />
-          <Text style={styles.title}>Submit Payment</Text>
+          <Text style={styles.title}>{t('pay.title')}</Text>
           <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
             {easyPaiseNumber ? (
               <View style={[styles.easyPaiseBox, { borderColor: colors.primary, backgroundColor: colors.primaryDim }]}>
-                <Text style={[styles.easyPaiseTitle, { color: colors.primary }]}>Send via EasyPaisa First</Text>
+                <Text style={[styles.easyPaiseTitle, { color: colors.primary }]}>{t('pay.easyPaisaFirst')}</Text>
                 <Text style={[styles.easyPaiseName, { color: colors.text1 }]}>
                   {easyPaiseName ? `${easyPaiseName} — ` : ''}
                   <Text style={{ fontFamily: 'SpaceMono_400Regular', fontWeight: '700' }}>{easyPaiseNumber}</Text>
@@ -159,7 +161,7 @@ export function PaymentSubmitModal({ visible, onClose, onSubmit, easyPaiseNumber
                 const num = typeof value === 'number' ? value : 0;
                 return (
                   <View style={styles.amountBlock}>
-                    <Text style={styles.fieldLabel}>Amount (PKR)</Text>
+                    <Text style={styles.fieldLabel}>{t('pay.amountPkr')}</Text>
                     <View style={styles.presetsRow}>
                       {QUICK_AMOUNTS.map((amt) => (
                         <TouchableOpacity
@@ -210,7 +212,7 @@ export function PaymentSubmitModal({ visible, onClose, onSubmit, easyPaiseNumber
               }}
             />
 
-            <Text style={styles.fieldLabel}>Fund Pool</Text>
+            <Text style={styles.fieldLabel}>{t('pay.fundPool')}</Text>
             <Controller
               control={control}
               name="pool"
@@ -236,7 +238,7 @@ export function PaymentSubmitModal({ visible, onClose, onSubmit, easyPaiseNumber
               name="monthLabel"
               render={({ field: { onChange, value } }) => (
                 <Input
-                  label="Month"
+                  label={t('pay.month')}
                   value={value}
                   onChangeText={onChange}
                   error={errors.monthLabel?.message}
@@ -250,7 +252,7 @@ export function PaymentSubmitModal({ visible, onClose, onSubmit, easyPaiseNumber
               name="note"
               render={({ field: { onChange, value } }) => (
                 <Input
-                  label="Note (optional)"
+                  label={t('pay.noteOptional')}
                   value={value ?? ''}
                   onChangeText={onChange}
                   multiline
@@ -286,9 +288,9 @@ export function PaymentSubmitModal({ visible, onClose, onSubmit, easyPaiseNumber
             ) : null}
 
             <View style={styles.buttons}>
-              <Button label="Cancel" onPress={handleCancel} variant="ghost" style={styles.btn} />
+              <Button label={t('common.cancel')} onPress={handleCancel} variant="ghost" style={styles.btn} />
               <Button
-                label={submitting ? 'Submitting…' : 'Submit'}
+                label={submitting ? t('pay.submitting') : t('pay.submit')}
                 onPress={handleSubmit(handleFormSubmit, handleInvalid)}
                 loading={submitting}
                 disabled={submitting}

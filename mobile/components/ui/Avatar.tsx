@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, type ViewStyle } from 'react-native';
 import { Image } from 'expo-image';
 import { getInitials } from '@/lib/format';
-import { darkColors } from '@/lib/theme';
+import { useTheme } from '@/lib/useTheme';
 
 const RING_COLORS = [
   '#00e676', '#448aff', '#ffd740', '#ff5252', '#ea80fc', '#00e5ff',
@@ -30,6 +30,7 @@ interface AvatarProps {
 }
 
 function StatusDot({ status, size }: { status: 'online' | 'offline'; size: number }) {
+  const { colors } = useTheme();
   const dotSize = Math.max(10, size * 0.22);
   return (
     <View
@@ -39,7 +40,7 @@ function StatusDot({ status, size }: { status: 'online' | 'offline'; size: numbe
           width: dotSize,
           height: dotSize,
           borderRadius: dotSize / 2,
-          backgroundColor: status === 'online' ? darkColors.primary : darkColors.text4,
+          backgroundColor: status === 'online' ? colors.primary : colors.text4,
           bottom: 0,
           right: 0,
         },
@@ -49,6 +50,7 @@ function StatusDot({ status, size }: { status: 'online' | 'offline'; size: numbe
 }
 
 export function Avatar({ name, size = 'md', color, imageUrl, showStatus, style }: AvatarProps) {
+  const { colors } = useTheme();
   const numericSize = typeof size === 'number' ? size : SIZE_MAP[size];
   const ringColor = color ?? RING_COLORS[hashIndex(name)] ?? '#00e676';
   const initials = getInitials(name);
@@ -122,6 +124,6 @@ const styles = StyleSheet.create({
   statusDot: {
     position: 'absolute',
     borderWidth: 2,
-    borderColor: darkColors.bg1,
+    borderColor: 'rgba(10,15,26,0.85)',
   },
 });

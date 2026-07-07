@@ -171,7 +171,7 @@ const styles = StyleSheet.create({
     fontWeight: '400',
   },
   english: { fontSize: 12, fontFamily: 'Inter_400Regular', fontStyle: 'italic', lineHeight: 18, marginBottom: 6 },
-  urdu: { fontSize: 11, fontFamily: 'Inter_400Regular', textAlign: 'right', lineHeight: 20 },
+  urdu: { fontSize: 11, fontFamily: 'NotoNastaliqUrdu_400Regular', textAlign: 'right', lineHeight: 30 },
   howCard: { padding: spacing.md },
   howRow: {
     flexDirection: 'row',

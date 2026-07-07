@@ -97,7 +97,12 @@
     "seeAll": "ټول وګورئ",
     "paymentDue": "تادیه پاتې",
     "thisMontPaid": "دا میاشت: تادیه شوی",
-    "myPayments": "زما تادیات"
+    "myPayments": "زما تادیات",
+    "donated": "مرسته وکړه",
+    "goBack": "بېرته",
+    "myPledge": "زما ژمنه",
+    "verified": "تایید شوی",
+    "perMonth": "/میاشت"
   },
   "payments": {
     "title": "زما تادیات",
@@ -509,5 +514,18 @@
     "votingCases": "د رایې قضیې",
     "membersPendingApproval": "{{count}} غړی{{plural}} منلو ته پاتې",
     "paymentsToReview": "{{count}} تادیه{{plural}} بیاکتنې ته"
+  },
+  "pay": {
+    "title": "تادیه وسپارئ",
+    "processing": "پروسس روان دی…",
+    "easyPaisaFirst": "لومړی د EasyPaisa له لارې واستوئ",
+    "amountPkr": "اندازه (روپۍ)",
+    "fundPool": "د فنډ حوض",
+    "month": "میاشت",
+    "noteOptional": "یادښت (اختیاري)",
+    "submit": "وسپارئ",
+    "submitting": "سپارل کېږي…",
+    "failed": "سپارل ونشول",
+    "incomplete": "فورمه نیمګړې ده"
   }
 }

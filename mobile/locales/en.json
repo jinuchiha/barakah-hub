@@ -97,7 +97,12 @@
     "seeAll": "See All",
     "paymentDue": "Payment Due",
     "thisMontPaid": "This Month: Paid",
-    "myPayments": "MY PAYMENTS"
+    "myPayments": "MY PAYMENTS",
+    "donated": "donated",
+    "goBack": "Go Back",
+    "myPledge": "My Pledge",
+    "verified": "Verified",
+    "perMonth": "/mo"
   },
   "analytics": {
     "title": "Analytics",
@@ -509,5 +514,18 @@
     "votingCases": "Voting Cases",
     "membersPendingApproval": "{{count}} member{{plural}} pending approval",
     "paymentsToReview": "{{count}} payment{{plural}} to review"
+  },
+  "pay": {
+    "title": "Submit Payment",
+    "processing": "Processing…",
+    "easyPaisaFirst": "Send via EasyPaisa First",
+    "amountPkr": "Amount (PKR)",
+    "fundPool": "Fund Pool",
+    "month": "Month",
+    "noteOptional": "Note (optional)",
+    "submit": "Submit",
+    "submitting": "Submitting…",
+    "failed": "Submission failed",
+    "incomplete": "Form incomplete"
   }
 }

@@ -97,7 +97,12 @@
     "seeAll": "عرض الكل",
     "paymentDue": "الدفعة المستحقة",
     "thisMontPaid": "هذا الشهر: مدفوع",
-    "myPayments": "مدفوعاتي"
+    "myPayments": "مدفوعاتي",
+    "donated": "تبرّع",
+    "goBack": "رجوع",
+    "myPledge": "تعهدي",
+    "verified": "موثّق",
+    "perMonth": "/شهر"
   },
   "payments": {
     "title": "مدفوعاتي",
@@ -509,5 +514,18 @@
     "votingCases": "حالات التصويت",
     "membersPendingApproval": "{{count}} عضو{{plural}} بانتظار الموافقة",
     "paymentsToReview": "{{count}} دفعة{{plural}} للمراجعة"
+  },
+  "pay": {
+    "title": "إرسال الدفعة",
+    "processing": "جارٍ المعالجة…",
+    "easyPaisaFirst": "أرسل عبر EasyPaisa أولاً",
+    "amountPkr": "المبلغ (روبية)",
+    "fundPool": "صندوق التمويل",
+    "month": "الشهر",
+    "noteOptional": "ملاحظة (اختياري)",
+    "submit": "إرسال",
+    "submitting": "جارٍ الإرسال…",
+    "failed": "فشل الإرسال",
+    "incomplete": "النموذج غير مكتمل"
   }
 }

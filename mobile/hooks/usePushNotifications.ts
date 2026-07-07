@@ -7,7 +7,7 @@ import {
   registerPushToken,
   setBadgeCount,
 } from '@/lib/push';
-import { setupNotificationListeners } from '@/lib/notifications-handler';
+import { setupNotificationListeners, handleNotificationTap } from '@/lib/notifications-handler';
 
 export interface ForegroundNotification {
   title: string | null;
@@ -52,6 +52,12 @@ export function usePushNotifications(onForeground?: ForegroundHandler): void {
         body: notification.request.content.body,
         id: notification.request.identifier,
       });
+
+    // Cold start: a push tapped while the app was KILLED opens the app
+    // but never fires the response listener — replay it once here.
+    void Notifications.getLastNotificationResponseAsync().then((resp) => {
+      if (resp) handleNotificationTap(resp.notification);
+    }).catch(() => {});
       incrementNotificationCount();
     });
     return cleanup;
