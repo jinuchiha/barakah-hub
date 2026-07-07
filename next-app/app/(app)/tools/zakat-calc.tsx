@@ -40,7 +40,7 @@ export default function ZakatCalc() {
             </>
           ) : (
             <div className="text-[var(--txt-3)]">
-              Your savings are below nisab — no Zakat is due.
+              Your savings are below nisab · no Zakat is due.
             </div>
           )}
         </div>

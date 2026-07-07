@@ -4,6 +4,7 @@ import { Search } from 'lucide-react';
 import { fmtRs } from '@/lib/i18n/dict';
 import { ini, cn } from '@/lib/utils';
 import type { Member } from '@/lib/db/schema';
+import { PhotoLightbox } from '@/components/photo-lightbox';
 
 interface Props {
   members: Member[];
@@ -234,9 +235,11 @@ export default function TreeView({ members, paidBy, viewerId, viewerIsAdmin }: P
       {selectedMember && (
         <div className="mt-6 rounded-lg border border-[var(--border-2)] bg-[var(--surf-2)] p-4">
           <div className="mb-3 flex items-center gap-3">
-            <div className="grid size-12 shrink-0 place-items-center overflow-hidden rounded-full text-base font-bold text-white" style={{ background: selectedMember.color }}>
-              {selectedMember.photoUrl ? <img src={selectedMember.photoUrl} alt="" className="size-full rounded-full object-cover" /> : ini(selectedMember.nameEn || selectedMember.nameUr)}
-            </div>
+            <PhotoLightbox src={selectedMember.photoUrl} alt={selectedMember.nameEn || selectedMember.nameUr}>
+              <div className="grid size-12 shrink-0 place-items-center overflow-hidden rounded-full text-base font-bold text-white" style={{ background: selectedMember.color }}>
+                {selectedMember.photoUrl ? <img src={selectedMember.photoUrl} alt="" className="size-full rounded-full object-cover" /> : ini(selectedMember.nameEn || selectedMember.nameUr)}
+              </div>
+            </PhotoLightbox>
             <div className="flex-1">
               <div className="font-[var(--font-arabic)] text-xl leading-[1.9] text-[var(--color-gold-2)]">{selectedMember.nameUr || selectedMember.nameEn}</div>
               <div className="text-sm text-[var(--color-gold-4)]">{selectedMember.nameEn}</div>
@@ -389,34 +392,50 @@ function Branch({
       </div>
 
       {kids.length > 0 && isExpanded && (
-        <div className="flex flex-col items-center">
-          <div className="h-6 w-px bg-[var(--color-gold-4)]/50" />
-          <div className="relative flex items-start">
-            {kids.length > 1 && (
-              <div
-                className="absolute top-0 h-px bg-[var(--color-gold-4)]/40"
-                style={{ left: `calc(50% / ${kids.length} + 20px)`, right: `calc(50% / ${kids.length} + 20px)` }}
-              />
-            )}
-            {kids.map((k) => (
-              <div key={k.id} className="flex flex-col items-center px-2">
-                <div className="h-6 w-px bg-[var(--color-gold-4)]/50" />
-                <Branch
-                  m={k}
-                  spouse={primaryToSpouse.get(k.id) ?? null}
-                  childrenOf={childrenOf}
-                  primaryToSpouse={primaryToSpouse}
-                  visible={visible}
-                  expanded={expanded}
-                  onToggle={onToggle}
-                  onSelect={onSelect}
-                  selectedId={selectedId}
-                  paidBy={paidBy}
-                  viewerIsAdmin={viewerIsAdmin}
-                  viewerId={viewerId}
-                />
-              </div>
-            ))}
+        <div className="tree-grow flex flex-col items-center">
+          {/* Trunk from the parent — thicker, tapering like a real branch */}
+          <div className="h-7 w-[2.5px] rounded-full bg-gradient-to-b from-[var(--color-gold-2)]/80 to-[var(--color-gold-4)]/45" />
+          <div className="flex items-start">
+            {kids.map((k, i) => {
+              const first = i === 0;
+              const last = i === kids.length - 1;
+              const only = kids.length === 1;
+              return (
+                <div key={k.id} className="relative flex flex-col items-center px-2 pt-6">
+                  {/* Sibling rail, drawn as per-child halves so it ALWAYS
+                      spans exactly from the first child's stem to the last's,
+                      no matter how wide each subtree grows — no breaks. */}
+                  {!only && !first && (
+                    <div className={cn(
+                      'absolute right-1/2 top-0 h-[2px] left-0 bg-[var(--color-gold-4)]/45',
+                      last && 'rounded-r-full',
+                    )} />
+                  )}
+                  {!only && !last && (
+                    <div className={cn(
+                      'absolute left-1/2 top-0 h-[2px] right-0 bg-[var(--color-gold-4)]/45',
+                      first && 'rounded-l-full',
+                    )} />
+                  )}
+                  {/* Stem down into the child — grows from the rail */}
+                  <div className="absolute left-1/2 top-0 h-6 w-[2px] -translate-x-1/2 rounded-full bg-gradient-to-b from-[var(--color-gold-4)]/45 to-[var(--color-gold-2)]/70" />
+                  <Branch
+                    m={k}
+                    spouse={primaryToSpouse.get(k.id) ?? null}
+                    childrenOf={childrenOf}
+                    primaryToSpouse={primaryToSpouse}
+                    visible={visible}
+                    expanded={expanded}
+                    onToggle={onToggle}
+                    onSelect={onSelect}
+                    selectedId={selectedId}
+                    paidBy={paidBy}
+                    viewerIsAdmin={viewerIsAdmin}
+                    viewerId={viewerId}
+                  />
+                </div>
+              );
+            })}
           </div>
         </div>
       )}

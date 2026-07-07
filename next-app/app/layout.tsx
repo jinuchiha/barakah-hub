@@ -51,6 +51,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body>
+        {/* Apply the saved light/dark choice before first paint — without
+            this the mode reset on every reload ("theme change nahi hoti"). */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: "try{var m=localStorage.getItem('bh-mode');if(m==='light'){document.documentElement.classList.add('light');document.documentElement.classList.remove('dark');}}catch(e){}",
+          }}
+        />
         <ServiceWorkerRegister />
         {children}
         <Toaster

@@ -1,3 +1,4 @@
+import { PhotoLightbox } from '@/components/photo-lightbox';
 import { eq, desc, and } from 'drizzle-orm';
 import { getMeOrRedirect } from '@/lib/auth-server';
 import { db } from '@/lib/db';
@@ -43,17 +44,18 @@ export default async function MyAccountPage() {
       <Card className="mb-6 overflow-hidden">
         <CardBody className="p-6">
           <div className="mb-4 flex items-center gap-4">
-            <div
-              className="grid size-14 shrink-0 place-items-center overflow-hidden rounded-full text-xl font-bold text-white shadow-[0_0_12px_rgba(214,210,199,0.2)]"
-              style={{ background: me.color }}
-              aria-hidden="true"
-            >
-              {me.photoUrl ? (
-                <img src={me.photoUrl} alt="" className="size-full rounded-full object-cover" />
-              ) : (
-                ini(me.nameEn || me.nameUr)
-              )}
-            </div>
+            <PhotoLightbox src={me.photoUrl} alt={me.nameEn || me.nameUr}>
+              <div
+                className="grid size-14 shrink-0 place-items-center overflow-hidden rounded-full text-xl font-bold text-white shadow-[0_0_12px_rgba(214,210,199,0.2)]"
+                style={{ background: me.color }}
+              >
+                {me.photoUrl ? (
+                  <img src={me.photoUrl} alt="" className="size-full rounded-full object-cover" />
+                ) : (
+                  ini(me.nameEn || me.nameUr)
+                )}
+              </div>
+            </PhotoLightbox>
             <div className="flex-1">
               <div className="font-[var(--font-arabic)] text-xl text-[var(--color-gold-2)]">{me.nameUr}</div>
               <div className="font-[var(--font-en)] text-sm text-[var(--color-gold-4)]">{me.nameEn}</div>
@@ -71,7 +73,7 @@ export default async function MyAccountPage() {
           )}
           {rejectedTotal > 0 && (
             <div className="mt-1 text-xs text-[#f08585]">
-              {fmtRs(rejectedTotal)} rejected by supervisor — contact admin
+              {fmtRs(rejectedTotal)} rejected by supervisor · contact admin
             </div>
           )}
         </CardBody>
