@@ -156,6 +156,8 @@ export const DICT = {
   'case.amountNeeded': ['درکار رقم (روپے)', 'Amount needed (Rs.)'],
   'case.submit':       ['جمع کریں', 'Submit'],
   'case.emergencyFlag':['ہنگامی', 'Emergency'],
+  'mem.verifyEmail':   ['ای میل تصدیق کریں', 'Verify email'],
+  'mem.emailVerified': ['ای میل تصدیق ہو گئی · اب ممبر لاگ ان کر سکتا ہے', 'Email verified · the member can now sign in'],
   'case.newRequest':   ['+ نئی ہنگامی درخواست', '+ New Emergency Request'],
   'case.type':         ['قسم', 'Type'],
   'case.pool':         ['فنڈ پول', 'Pool'],

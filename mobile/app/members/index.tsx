@@ -136,12 +136,14 @@ export default function MembersScreen() {
         <FlashList
           data={filtered}
           keyExtractor={(item: Member) => item.id}
-          renderItem={({ item }) => (
-            <MemberCard
-              member={item}
-              isAdmin={user?.role === 'admin'}
-              onPress={() => router.push(`/members/${item.id}`)}
-            />
+          renderItem={({ item, index }) => (
+            <Animated.View entering={FadeInDown.duration(300).delay(Math.min(index, 10) * 35)}>
+              <MemberCard
+                member={item}
+                isAdmin={user?.role === 'admin'}
+                onPress={() => router.push(`/members/${item.id}`)}
+              />
+            </Animated.View>
           )}
           estimatedItemSize={76}
           contentContainerStyle={styles.list}

@@ -67,7 +67,11 @@ export default function NotificationsScreen() {
         <FlashList
           data={data ?? []}
           keyExtractor={(item: Notification) => item.id}
-          renderItem={({ item }) => <NotificationItem notification={item} onPress={() => openNotification(item)} />}
+          renderItem={({ item, index }) => (
+            <Animated.View entering={FadeInDown.duration(280).delay(Math.min(index, 10) * 30)}>
+              <NotificationItem notification={item} onPress={() => openNotification(item)} />
+            </Animated.View>
+          )}
           estimatedItemSize={80}
           contentContainerStyle={{ paddingBottom: spacing.xl }}
           refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={colors.primary} />}

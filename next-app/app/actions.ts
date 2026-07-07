@@ -1228,3 +1228,29 @@ export async function openFautiCase(memberId: string) {
   revalidatePath(`/admin/members/${memberId}`);
   return created;
 }
+
+/* ─── manually verify a user's email (admin)
+ *
+ * Escape hatch for OTP-delivery failure: the Resend sandbox sender
+ * (onboarding@resend.dev) only delivers to the Resend account owner, so
+ * family members' verification codes never arrive until a custom domain
+ * is verified. This lets the admin unblock a stuck account directly.
+ */
+export async function adminVerifyEmailByAddress(email: string): Promise<{ verified: boolean }> {
+  const me = await meOrThrow();
+  if (me.role !== 'admin') throw new Error('Admin only');
+  const clean = email.trim().toLowerCase();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(clean)) throw new Error('Invalid email address');
+
+  const updated = await db
+    .update(users)
+    .set({ emailVerified: true })
+    .where(sql`LOWER(${users.email}) = ${clean}`)
+    .returning({ id: users.id });
+  if (updated.length === 0) throw new Error('No account found with this email');
+
+  // Mask the address in the audit trail — enough to trace, not to leak.
+  const masked = `${clean.slice(0, 2)}***@${clean.split('@')[1]}`;
+  await audit(me.id, 'email-verified-manually', `Admin manually verified ${masked}`);
+  return { verified: true };
+}

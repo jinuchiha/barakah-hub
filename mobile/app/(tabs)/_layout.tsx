@@ -59,7 +59,7 @@ export default function TabsLayout() {
   return (
     <View style={[styles.container, { backgroundColor: colors.bg1 }]}>
       <Tabs
-        screenOptions={{ headerShown: false, tabBarStyle: { display: 'none' } }}
+        screenOptions={{ headerShown: false, tabBarStyle: { display: 'none' }, animation: 'shift' }}
         tabBar={renderTabBar}
       >
         <Tabs.Screen name="index" />
