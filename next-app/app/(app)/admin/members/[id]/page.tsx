@@ -133,7 +133,7 @@ export default async function MemberDetailPage({ params }: { params: Promise<{ i
                 </thead>
                 <tbody>
                   {memberPayments.map((p) => (
-                    <tr key={p.id} className="table-row-hover border-b border-[rgba(214,210,199,0.06)]">
+                    <tr key={p.id} className="table-row-hover border-b border-[var(--border)]">
                       <td className="px-4 py-2.5 text-xs text-[var(--txt-2)]">{dateFmt(p.paidOn)}</td>
                       <td className="px-4 py-2.5 text-xs text-[var(--txt-2)]">{p.monthLabel}</td>
                       <td className="px-4 py-2.5 text-xs capitalize text-[var(--txt-3)]">{p.pool}</td>

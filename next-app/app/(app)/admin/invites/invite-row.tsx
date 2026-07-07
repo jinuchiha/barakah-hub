@@ -60,7 +60,7 @@ export default function InviteRow({ invite, origin }: { invite: Invite; origin: 
   }
 
   return (
-    <div className={`border-b border-[rgba(214,210,199,0.06)] px-4 py-3 ${inactive ? 'opacity-60' : ''}`}>
+    <div className={`border-b border-[var(--border)] px-4 py-3 ${inactive ? 'opacity-60' : ''}`}>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">

@@ -62,7 +62,7 @@ export default async function MessagesPage() {
             {inbox.map((m) => {
               const sender = memById.get(m.fromId);
               return (
-                <div key={m.id} className={`border-b border-[rgba(214,210,199,0.06)] p-3 ${m.read ? '' : 'border-l-2 border-l-[rgba(200,155,60,0.55)] bg-[rgba(200,155,60,0.06)]'}`}>
+                <div key={m.id} className={`border-b border-[var(--border)] p-3 ${m.read ? '' : 'border-l-2 border-l-[rgba(200,155,60,0.55)] bg-[rgba(200,155,60,0.06)]'}`}>
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-semibold text-[var(--color-cream)]">{sender?.nameEn || sender?.nameUr || '?'}</span>
                     <span className="text-[10px] text-[var(--color-gold-4)]">{new Date(m.createdAt).toLocaleDateString('en-GB')}</span>
@@ -87,7 +87,7 @@ export default async function MessagesPage() {
               {sent.map((m) => {
                 const recipient = memById.get(m.toId);
                 return (
-                  <div key={m.id} className="border-b border-[rgba(214,210,199,0.06)] p-3">
+                  <div key={m.id} className="border-b border-[var(--border)] p-3">
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-semibold text-[var(--color-cream)]">To: {recipient?.nameEn || recipient?.nameUr || '?'}</span>
                       <span className="text-[10px] text-[var(--color-gold-4)]">{new Date(m.createdAt).toLocaleDateString('en-GB')}</span>
@@ -111,7 +111,7 @@ export default async function MessagesPage() {
             </CardHeader>
             <CardBody className="max-h-[420px] overflow-y-auto p-0">
               {allRecent.map((m) => (
-                <div key={`all-${m.id}`} className="border-b border-[rgba(214,210,199,0.06)] p-3">
+                <div key={`all-${m.id}`} className="border-b border-[var(--border)] p-3">
                   <div className="flex items-center justify-between gap-2">
                     <span className="min-w-0 truncate text-[12.5px] text-[var(--color-cream)]">
                       <span className="font-semibold">{nameById.get(m.fromId) ?? '?'}</span>
