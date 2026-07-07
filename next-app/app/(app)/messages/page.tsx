@@ -19,7 +19,7 @@ export default async function MessagesPage() {
     db.select().from(messages).where(eq(messages.toId, me.id)).orderBy(desc(messages.createdAt)).limit(50),
     db.select().from(messages).where(eq(messages.fromId, me.id)).orderBy(desc(messages.createdAt)).limit(50),
     db
-      .select({ id: members.id, nameEn: members.nameEn, nameUr: members.nameUr, role: members.role })
+      .select({ id: members.id, nameEn: members.nameEn, nameUr: members.nameUr, role: members.role, phone: members.phone })
       .from(members)
       // Approved + living only — rejected rows (incl. old test accounts
       // that audit FKs keep alive) must never appear as recipients.
@@ -43,7 +43,25 @@ export default async function MessagesPage() {
     <div className="mx-auto grid w-full max-w-5xl gap-4 lg:grid-cols-2">
       <Card>
         <CardHeader><CardTitle>{t('msg.send', locale)} · پیغام بھیجیں</CardTitle></CardHeader>
-        <CardBody><MessageForm recipients={recipients} /></CardBody>
+        <CardBody>
+          <MessageForm recipients={recipients} />
+          {/* wa.me needs no Cloud API — works the moment an admin has a phone */}
+          {recipients.some((r) => r.phone) && (
+            <div className="mt-4 flex flex-wrap gap-2 border-t border-[var(--border)] pt-4">
+              {recipients.filter((r) => r.phone).map((r) => (
+                <a
+                  key={r.id}
+                  href={`https://wa.me/${r.phone!.replace(/[^0-9]/g, '').replace(/^0/, '92')}?text=${encodeURIComponent('السلام علیکم · Barakah Hub se rabta')}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 rounded-full border border-[rgba(45,138,95,0.4)] bg-[rgba(45,138,95,0.10)] px-3 py-1.5 text-xs font-semibold text-[#4ec38d] transition-colors hover:bg-[rgba(45,138,95,0.18)]"
+                >
+                  🟢 WhatsApp · {r.nameUr || r.nameEn}
+                </a>
+              ))}
+            </div>
+          )}
+        </CardBody>
       </Card>
 
       <div className="flex flex-col gap-4">

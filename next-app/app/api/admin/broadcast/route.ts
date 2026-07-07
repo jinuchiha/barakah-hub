@@ -4,6 +4,7 @@ import { eq, and } from 'drizzle-orm';
 import { meOrThrow } from '@/lib/auth-server';
 import { db } from '@/lib/db';
 import { members, notifications, auditLog } from '@/lib/db/schema';
+import { sendWhatsAppText } from '@/lib/whatsapp';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -22,7 +23,7 @@ export async function POST(req: NextRequest) {
     const { subject, body } = schema.parse(payload);
 
     const approvedMembers = await db
-      .select({ id: members.id })
+      .select({ id: members.id, phone: members.phone })
       .from(members)
       .where(and(eq(members.status, 'approved'), eq(members.deceased, false)));
 
@@ -36,6 +37,18 @@ export async function POST(req: NextRequest) {
         type: 'broadcast',
       }));
       await db.insert(notifications).values(notifValues);
+      // WhatsApp fan-out (env-gated no-op) — broadcasts are rare and
+      // admin-initiated, so full delivery is worth it.
+      void (async () => {
+        for (const m of approvedMembers) {
+          if (!m.phone) continue;
+          await sendWhatsAppText(m.phone, `📢 *${subject}*
+
+${body}
+
+· Barakah Hub`);
+        }
+      })().catch((err) => { console.error('[whatsapp] broadcast:', err); });
     }
 
     await db.insert(auditLog).values({

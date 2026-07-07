@@ -3,6 +3,7 @@ import { and, eq, sql, inArray } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { members, payments, cases, loans, users } from '@/lib/db/schema';
 import { sendMonthlyStatementEmail } from '@/lib/email';
+import { sendWhatsAppText } from '@/lib/whatsapp';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -31,7 +32,7 @@ export async function GET(req: Request) {
   const monthLabel = prev.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 
   const approved = await db
-    .select({ id: members.id, nameEn: members.nameEn, nameUr: members.nameUr, authId: members.authId })
+    .select({ id: members.id, nameEn: members.nameEn, nameUr: members.nameUr, authId: members.authId, phone: members.phone })
     .from(members)
     .where(and(eq(members.status, 'approved'), eq(members.deceased, false)));
 
@@ -73,6 +74,18 @@ export async function GET(req: Request) {
     if (!m.authId) continue;
     const email = emailByAuthId.get(m.authId);
     if (!email) continue;
+    if (m.phone) {
+      await sendWhatsAppText(
+        m.phone,
+        `🌙 *ماہانہ گوشوارہ · ${monthLabel}*
+
+آپ کا عطیہ: Rs ${(myTotalMap.get(m.id) ?? 0).toLocaleString('en-PK')}
+کل خاندانی فنڈ: Rs ${fundTotal.toLocaleString('en-PK')}${(owedMap.get(m.id) ?? 0) > 0 ? `
+باقی قرض: Rs ${(owedMap.get(m.id) ?? 0).toLocaleString('en-PK')}` : ''}
+
+جزاک اللہ خیر · Barakah Hub`,
+      );
+    }
     try {
       await sendMonthlyStatementEmail(email, {
         name: m.nameEn || m.nameUr,
