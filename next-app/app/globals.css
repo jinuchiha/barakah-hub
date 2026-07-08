@@ -60,6 +60,7 @@
   --border: rgba(255,255,255,0.10);                   /* hairline */
   --border-2: rgba(255,255,255,0.16);                 /* emphasized */
   --border-accent: rgba(200,155,60,0.38);             /* used sparingly */
+  --tree-blue: #5b8def;      /* family-tree search-match accent — gold stays primary */
 }
 
 .light {
@@ -79,6 +80,7 @@
   --color-cream:  #0f1626;
   --color-ink:    #f7f5f0;
   --color-ink-2:  #ffffff;
+  --tree-blue: #3b63c9;
 }
 
 /* ─────────────────────────────────────────
