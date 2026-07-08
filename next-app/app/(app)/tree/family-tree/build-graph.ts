@@ -18,15 +18,20 @@ interface BuildGraphArgs {
   onSelect: (id: string) => void;
 }
 
-function makeNodeData(m: Member, isRoot: boolean, hasKids: boolean, args: BuildGraphArgs): PersonNodeData {
+function makeNodeData(m: Member, isRoot: boolean, childCount: number, args: BuildGraphArgs): PersonNodeData {
   const spouse = args.primaryToSpouse.get(m.id) ?? null;
-  const dimMain = !args.visible.has(m.id) && !(spouse && args.visible.has(spouse.id));
+  // Virtual father placeholders aren't in the members list, so they can
+  // never be in `visible` — dimming them would grey out every synthesized
+  // ancestor for no reason.
+  const isVirtual = m.id.startsWith('virtual:');
+  const dimMain = !isVirtual && !args.visible.has(m.id) && !(spouse && args.visible.has(spouse.id));
   const dimSpouse = spouse ? !args.visible.has(spouse.id) && !args.visible.has(m.id) : false;
   return {
     member: m,
     spouse,
     hasSpouse: Boolean(spouse),
-    hasKids,
+    hasKids: childCount > 0,
+    childCount,
     isExpanded: args.expanded.has(m.id),
     dimMain,
     dimSpouse,
@@ -57,7 +62,7 @@ export function buildFlowGraph(args: BuildGraphArgs): { nodes: Node[]; edges: Ed
     const kids = allKids.filter((k) => args.visible.has(k.id) || hasVisibleDescendant(k.id, args.childrenOf, args.visible));
     const hasKids = kids.length > 0;
 
-    nodes.push({ id: m.id, type: 'person', position: { x: 0, y: 0 }, draggable: false, data: makeNodeData(m, isRoot, hasKids, args) });
+    nodes.push({ id: m.id, type: 'person', position: { x: 0, y: 0 }, draggable: false, data: makeNodeData(m, isRoot, kids.length, args) });
 
     if (!hasKids || !args.expanded.has(m.id)) return;
     for (const k of kids) {

@@ -40,6 +40,7 @@ interface FormState {
   status: 'pending' | 'approved' | 'rejected';
   spouseId: string;
   parentId: string;
+  deceased: boolean;
 }
 
 const blank: FormState = {
@@ -57,6 +58,7 @@ const blank: FormState = {
   status: 'approved',
   spouseId: '',
   parentId: '',
+  deceased: false,
 };
 
 function fromMember(m: Member): FormState {
@@ -77,16 +79,17 @@ function fromMember(m: Member): FormState {
     status: m.status,
     spouseId: m.spouseId ?? '',
     parentId: m.parentId ?? '',
+    deceased: m.deceased,
   };
 }
 
 export default function MemberDialog({ mode, allMembers, onClose }: Props) {
-  // For the spouse dropdown — exclude the member themselves, deceased
-  // accounts, and (when editing) anyone already married to someone else
-  // (keeps pairing 1:1 and avoids accidentally breaking another couple).
+  // For the spouse dropdown — exclude the member themselves and (when
+  // editing) anyone already married to someone else (keeps pairing 1:1 and
+  // avoids accidentally breaking another couple). Marhoom members ARE
+  // eligible: ancestor couples in the family tree are usually both deceased.
   const spouseCandidates = allMembers.filter((m) => {
     if (mode.kind === 'edit' && m.id === mode.member.id) return false;
-    if (m.deceased) return false;
     if (m.status === 'rejected') return false;
     if (mode.kind === 'edit' && m.spouseId && m.spouseId !== mode.member.id) return false;
     return true;
@@ -132,6 +135,7 @@ export default function MemberDialog({ mode, allMembers, onClose }: Props) {
             province: form.province || undefined,
             monthlyPledge: form.monthlyPledge,
             parentId: form.parentId || undefined,
+            deceased: form.deceased,
           });
           toast.success('Member added');
         } else {
@@ -152,6 +156,7 @@ export default function MemberDialog({ mode, allMembers, onClose }: Props) {
             status: form.status,
             spouseId: form.spouseId || null,
             parentId: form.parentId || null,
+            deceased: form.deceased,
           });
           toast.success('Member updated');
         }
@@ -207,6 +212,10 @@ export default function MemberDialog({ mode, allMembers, onClose }: Props) {
             <input type="checkbox" checked={form.fatherDeceased} onChange={(e) => set('fatherDeceased', e.target.checked)} />
             Father has passed away (Marhoom)
           </label>
+          <label className="md:col-span-2 flex items-center gap-2 text-sm text-[var(--txt-2)]">
+            <input type="checkbox" checked={form.deceased} onChange={(e) => set('deceased', e.target.checked)} />
+            This member is marhoom — tree record only, no login account needed
+          </label>
           <div><Label>Relation</Label><Input value={form.relation} onChange={(e) => set('relation', e.target.value)} placeholder="e.g. Son of / Daughter of" /></div>
           <div><Label>Phone</Label><Input value={form.phone} onChange={(e) => set('phone', e.target.value)} placeholder="03xx-xxxxxxx" /></div>
           <div><Label>City</Label><Input value={form.city} onChange={(e) => set('city', e.target.value)} /></div>
@@ -252,7 +261,7 @@ export default function MemberDialog({ mode, allMembers, onClose }: Props) {
                   <option value="">None</option>
                   {spouseCandidates.map((c) => (
                     <option key={c.id} value={c.id}>
-                      {c.nameEn || c.nameUr}{c.fatherName ? ` · s/o ${c.fatherName}` : ''}
+                      {c.nameEn || c.nameUr}{c.deceased ? ' (marhoom)' : ''}{c.fatherName && c.fatherName !== '—' ? ` · s/o ${c.fatherName}` : ''}
                     </option>
                   ))}
                 </select>

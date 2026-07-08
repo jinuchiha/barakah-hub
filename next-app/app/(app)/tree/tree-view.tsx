@@ -28,11 +28,9 @@ const edgeTypes = { family: FamilyEdge };
 function TreeCanvas({ members, paidBy, viewerId, viewerIsAdmin }: Props) {
   const [q, setQ] = useState('');
   const [cityFilter, setCityFilter] = useState('');
-  // Manual toggles only. Virtual-father defaults and search-ancestor
-  // reveals are derived below, not written back here — see `collapsedOverride`
-  // for how an explicit user collapse wins over those auto-expands.
-  const [expanded, setExpanded] = useState<Set<string>>(() => new Set(members.map((m) => m.id)));
-  const [collapsedOverride, setCollapsedOverride] = useState<Set<string>>(() => new Set());
+  // Single source of truth: which nodes the user has collapsed. Default is
+  // everything expanded (empty set) — including virtual-father placeholders.
+  const [collapsed, setCollapsed] = useState<Set<string>>(() => new Set());
   const [selected, setSelected] = useState<string | null>(null);
   const { setCenter } = useReactFlow();
 
@@ -63,41 +61,34 @@ function TreeCanvas({ members, paidBy, viewerId, viewerIsAdmin }: Props) {
     );
   }, [members, q]);
 
-  // Ids that should render expanded even though the user never clicked
-  // them: virtual "father" placeholders (so a fresh visit isn't empty),
-  // and every ancestor of a search match (a collapsed ancestor would hide
-  // its whole subtree from the graph, burying the match entirely).
+  // Ancestors of search matches render expanded even if the user collapsed
+  // them — a collapsed ancestor removes its whole subtree from the graph,
+  // which would bury the match entirely. The user's collapsed set is left
+  // untouched; this only overrides the view while the search is active.
   const autoExpanded = useMemo(() => {
     const set = new Set<string>();
-    for (const e of entities) if (e.id.startsWith('virtual:')) set.add(e.id);
     for (const id of matchedIds) {
       let cur = parentOf.get(id);
       while (cur && cur !== '__root') { set.add(cur); cur = parentOf.get(cur); }
     }
     return set;
-  }, [entities, matchedIds, parentOf]);
+  }, [matchedIds, parentOf]);
 
   const effectiveExpanded = useMemo(() => {
-    const next = new Set(expanded);
-    for (const id of autoExpanded) next.add(id);
-    for (const id of collapsedOverride) next.delete(id);
+    const next = new Set<string>();
+    for (const e of entities) {
+      if (!collapsed.has(e.id) || autoExpanded.has(e.id)) next.add(e.id);
+    }
     return next;
-  }, [expanded, autoExpanded, collapsedOverride]);
+  }, [entities, collapsed, autoExpanded]);
 
   const toggle = useCallback((id: string) => {
-    setExpanded((prev) => {
-      const willCollapse = effectiveExpanded.has(id);
-      setCollapsedOverride((prevOverride) => {
-        const next = new Set(prevOverride);
-        if (willCollapse) next.add(id); else next.delete(id);
-        return next;
-      });
-      if (autoExpanded.has(id)) return prev; // state lives in collapsedOverride instead
+    setCollapsed((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id); else next.add(id);
       return next;
     });
-  }, [effectiveExpanded, autoExpanded]);
+  }, []);
 
   const { nodes, edges } = useMemo(() => {
     const raw = buildFlowGraph({
@@ -125,8 +116,8 @@ function TreeCanvas({ members, paidBy, viewerId, viewerIsAdmin }: Props) {
     <div>
       <Toolbar
         q={q} setQ={setQ} cityFilter={cityFilter} setCityFilter={setCityFilter} cities={cities}
-        onExpandAll={() => { setExpanded(new Set(entities.map((m) => m.id))); setCollapsedOverride(new Set()); }}
-        onCollapseAll={() => { setExpanded(new Set()); setCollapsedOverride(new Set()); }}
+        onExpandAll={() => setCollapsed(new Set())}
+        onCollapseAll={() => setCollapsed(new Set(entities.map((m) => m.id)))}
       />
 
       <div className={styles.wrapper} style={{ height: 'min(74vh, 720px)' }}>
@@ -143,9 +134,17 @@ function TreeCanvas({ members, paidBy, viewerId, viewerIsAdmin }: Props) {
             maxZoom={2}
             proOptions={{ hideAttribution: true }}
           >
-            <Background variant={BackgroundVariant.Dots} gap={28} size={1} color="rgba(255,255,255,0.06)" />
+            <Background variant={BackgroundVariant.Dots} gap={28} size={1} color="rgba(200,155,60,0.10)" />
             <Controls showInteractive={false} className={styles.controls} />
-            <MiniMap pannable zoomable className={styles.minimap} maskColor="rgba(6,11,19,0.72)" nodeColor="var(--color-gold-4)" />
+            <MiniMap
+              pannable
+              zoomable
+              className={styles.minimap}
+              bgColor="var(--surf-1)"
+              maskColor="color-mix(in srgb, var(--surf-2) 75%, transparent)"
+              nodeColor="var(--color-gold-4)"
+              nodeStrokeColor="transparent"
+            />
           </ReactFlow>
         )}
       </div>
