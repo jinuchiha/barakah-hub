@@ -1,10 +1,19 @@
 'use client';
-import { useMemo, useState } from 'react';
+import '@xyflow/react/dist/style.css';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { ReactFlow, Background, BackgroundVariant, Controls, MiniMap, ReactFlowProvider, useReactFlow } from '@xyflow/react';
 import { Search } from 'lucide-react';
 import { fmtRs } from '@/lib/i18n/dict';
-import { ini, cn } from '@/lib/utils';
+import { ini } from '@/lib/utils';
 import type { Member } from '@/lib/db/schema';
 import { PhotoLightbox } from '@/components/photo-lightbox';
+import { resolveMarriages, buildTreeData } from './family-tree/tree-data';
+import { buildFlowGraph } from './family-tree/build-graph';
+import { layoutTree } from './family-tree/dagre-layout';
+import { NODE_W_SINGLE, NODE_W_COUPLE, NODE_H } from './family-tree/constants';
+import PersonNode, { type PersonNodeData } from './family-tree/person-node';
+import FamilyEdge from './family-tree/family-edge';
+import styles from './family-tree/tree.module.css';
 
 interface Props {
   members: Member[];
@@ -13,432 +22,222 @@ interface Props {
   viewerIsAdmin: boolean;
 }
 
-function nameLower(s: string | null | undefined) {
-  return (s ?? '').toLowerCase().replace(/\s+/g, ' ').trim();
-}
+const nodeTypes = { person: PersonNode };
+const edgeTypes = { family: FamilyEdge };
 
-/**
- * Resolve spouse pairs and pick a "primary" side for tree rendering.
- *
- * Each marriage (A ↔ B) renders as ONE side-by-side card under the
- * primary partner's father. We pick the primary by UUID order — purely
- * a deterministic choice, no gender semantics. The secondary partner
- * still keeps their own ancestry data; they just don't appear twice in
- * the visual tree (which would split a couple's children visually).
- *
- * Returns:
- *  - primaryToSpouse:  primary id → spouse Member (for rendering)
- *  - claimedAsSpouse:  ids of secondary partners (hide from childrenOf)
- */
-function resolveMarriages(members: Member[]) {
-  const byId = new Map(members.map((m) => [m.id, m]));
-  const primaryToSpouse = new Map<string, Member>();
-  const claimedAsSpouse = new Set<string>();
-
-  for (const m of members) {
-    if (!m.spouseId || claimedAsSpouse.has(m.id) || primaryToSpouse.has(m.id)) continue;
-    const partner = byId.get(m.spouseId);
-    if (!partner || partner.spouseId !== m.id) continue;
-    const primary = m.id < partner.id ? m : partner;
-    const secondary = primary === m ? partner : m;
-    primaryToSpouse.set(primary.id, secondary);
-    claimedAsSpouse.add(secondary.id);
-  }
-  return { primaryToSpouse, claimedAsSpouse };
-}
-
-/** Synthesize a placeholder "father" node so siblings whose father isn't
- *  (yet) a member still group under one root instead of scattering. */
-function makeVirtualFather(id: string, name: string, deceased: boolean): Member {
-  const now = new Date();
-  return {
-    id,
-    authId: null,
-    username: id,
-    nameUr: '',
-    nameEn: name,
-    fatherName: '',
-    fatherDeceased: false,
-    clan: null,
-    relation: null,
-    parentId: null,
-    spouseId: null,
-    role: 'member',
-    status: 'approved',
-    phone: null,
-    city: null,
-    province: null,
-    monthlyPledge: 0,
-    color: '#64748b',
-    photoUrl: null,
-    deceased, // only when a child explicitly marks the father as passed away
-    needsSetup: false,
-    joinedAt: '',
-    createdAt: now,
-    updatedAt: now,
-  } as Member;
-}
-
-/**
- * Build the renderable node list + childrenOf map using:
- *  1. Explicit parentId (highest priority)
- *  2. fatherName case-insensitive match to another member's nameEn / nameUr
- *  3. A synthetic "virtual father" node keyed by the father name, so
- *     siblings sharing a non-member father group under one root
- *  4. Falls back to __root
- *
- * Members claimed as the secondary side of a marriage are skipped — they
- * render beside their primary spouse instead.
- */
-function buildTreeData(
-  members: Member[],
-  claimedAsSpouse: Set<string>,
-): { nodes: Member[]; childrenOf: Map<string, Member[]> } {
-  const byName = new Map<string, string>();
-  for (const m of members) {
-    if (m.nameEn) byName.set(nameLower(m.nameEn), m.id);
-    if (m.nameUr) byName.set(nameLower(m.nameUr), m.id);
-  }
-
-  const map = new Map<string, Member[]>();
-  const virtualFathers = new Map<string, Member>();
-  const push = (key: string, m: Member) => {
-    if (!map.has(key)) map.set(key, []);
-    map.get(key)!.push(m);
-  };
-
-  for (const m of members) {
-    if (claimedAsSpouse.has(m.id)) continue;
-    if (m.parentId) {
-      push(m.parentId, m);
-    } else if (m.fatherName && m.fatherName !== '—') {
-      const auto = byName.get(nameLower(m.fatherName));
-      if (auto && auto !== m.id) {
-        push(auto, m);
-      } else {
-        const vid = `virtual:${nameLower(m.fatherName)}`;
-        const existing = virtualFathers.get(vid);
-        if (!existing) {
-          virtualFathers.set(vid, makeVirtualFather(vid, m.fatherName, Boolean(m.fatherDeceased)));
-        } else if (m.fatherDeceased) {
-          existing.deceased = true; // a child confirmed the father has passed away
-        }
-        push(vid, m);
-      }
-    } else {
-      push('__root', m);
-    }
-  }
-
-  // Virtual fathers are themselves roots.
-  for (const vf of virtualFathers.values()) push('__root', vf);
-
-  return { nodes: [...members, ...virtualFathers.values()], childrenOf: map };
-}
-
-export default function TreeView({ members, paidBy, viewerId, viewerIsAdmin }: Props) {
+function TreeCanvas({ members, paidBy, viewerId, viewerIsAdmin }: Props) {
   const [q, setQ] = useState('');
   const [cityFilter, setCityFilter] = useState('');
+  // Manual toggles only. Virtual-father defaults and search-ancestor
+  // reveals are derived below, not written back here — see `collapsedOverride`
+  // for how an explicit user collapse wins over those auto-expands.
   const [expanded, setExpanded] = useState<Set<string>>(() => new Set(members.map((m) => m.id)));
+  const [collapsedOverride, setCollapsedOverride] = useState<Set<string>>(() => new Set());
   const [selected, setSelected] = useState<string | null>(null);
+  const { setCenter } = useReactFlow();
 
   const cities = useMemo(
     () => [...new Set(members.map((m) => m.city).filter(Boolean) as string[])].sort(),
     [members],
   );
 
+  const { primaryToSpouse, claimedAsSpouse } = useMemo(() => resolveMarriages(members), [members]);
+  const { entities, childrenOf, parentOf } = useMemo(
+    () => buildTreeData(members, claimedAsSpouse, primaryToSpouse),
+    [members, claimedAsSpouse, primaryToSpouse],
+  );
+  const roots = useMemo(() => childrenOf.get('__root') ?? [], [childrenOf]);
+
   const visible = useMemo(() => {
-    const term = q.toLowerCase();
+    if (!cityFilter) return new Set(members.map((m) => m.id));
+    return new Set(members.filter((m) => m.city === cityFilter).map((m) => m.id));
+  }, [members, cityFilter]);
+
+  const matchedIds = useMemo(() => {
+    const term = q.trim().toLowerCase();
+    if (!term) return new Set<string>();
     return new Set(
       members
-        .filter((m) => {
-          if (cityFilter && m.city !== cityFilter) return false;
-          if (!term) return true;
-          return `${m.nameEn} ${m.nameUr} ${m.fatherName} ${m.city ?? ''}`.toLowerCase().includes(term);
-        })
+        .filter((m) => `${m.nameEn} ${m.nameUr} ${m.fatherName} ${m.city ?? ''}`.toLowerCase().includes(term))
         .map((m) => m.id),
     );
-  }, [members, q, cityFilter]);
+  }, [members, q]);
 
-  const { primaryToSpouse, claimedAsSpouse } = useMemo(() => resolveMarriages(members), [members]);
-  const { nodes, childrenOf } = useMemo(() => buildTreeData(members, claimedAsSpouse), [members, claimedAsSpouse]);
+  // Ids that should render expanded even though the user never clicked
+  // them: virtual "father" placeholders (so a fresh visit isn't empty),
+  // and every ancestor of a search match (a collapsed ancestor would hide
+  // its whole subtree from the graph, burying the match entirely).
+  const autoExpanded = useMemo(() => {
+    const set = new Set<string>();
+    for (const e of entities) if (e.id.startsWith('virtual:')) set.add(e.id);
+    for (const id of matchedIds) {
+      let cur = parentOf.get(id);
+      while (cur && cur !== '__root') { set.add(cur); cur = parentOf.get(cur); }
+    }
+    return set;
+  }, [entities, matchedIds, parentOf]);
 
-  const roots = (childrenOf.get('__root') ?? [])
-    .filter((m) => hasVisibleDescendant(m.id, childrenOf, visible) || visible.has(m.id) || (primaryToSpouse.get(m.id) && visible.has(primaryToSpouse.get(m.id)!.id)));
+  const effectiveExpanded = useMemo(() => {
+    const next = new Set(expanded);
+    for (const id of autoExpanded) next.add(id);
+    for (const id of collapsedOverride) next.delete(id);
+    return next;
+  }, [expanded, autoExpanded, collapsedOverride]);
 
-  function toggle(id: string) {
+  const toggle = useCallback((id: string) => {
     setExpanded((prev) => {
+      const willCollapse = effectiveExpanded.has(id);
+      setCollapsedOverride((prevOverride) => {
+        const next = new Set(prevOverride);
+        if (willCollapse) next.add(id); else next.delete(id);
+        return next;
+      });
+      if (autoExpanded.has(id)) return prev; // state lives in collapsedOverride instead
       const next = new Set(prev);
       if (next.has(id)) next.delete(id); else next.add(id);
       return next;
     });
-  }
+  }, [effectiveExpanded, autoExpanded]);
 
-  const selectedMember = selected ? nodes.find((m) => m.id === selected) : null;
-  const selectedSpouse = selectedMember?.spouseId ? nodes.find((m) => m.id === selectedMember.spouseId) : null;
+  const { nodes, edges } = useMemo(() => {
+    const raw = buildFlowGraph({
+      roots, childrenOf, primaryToSpouse, expanded: effectiveExpanded, visible,
+      selectedId: selected, matchedIds, paidBy, viewerIsAdmin, viewerId,
+      onToggle: toggle, onSelect: setSelected,
+    });
+    return layoutTree(raw.nodes, raw.edges);
+  }, [roots, childrenOf, primaryToSpouse, effectiveExpanded, visible, selected, matchedIds, paidBy, viewerIsAdmin, viewerId, toggle]);
+
+  // Keep the first search match centered as ancestor-expansion reflows the tree.
+  useEffect(() => {
+    if (matchedIds.size === 0) return;
+    const firstId = [...matchedIds][0];
+    const node = nodes.find((n) => n.id === firstId || (n.data as PersonNodeData).spouse?.id === firstId);
+    if (!node) return;
+    const width = (node.data as PersonNodeData).spouse ? NODE_W_COUPLE : NODE_W_SINGLE;
+    setCenter(node.position.x + width / 2, node.position.y + NODE_H / 2, { zoom: 1.15, duration: 650 });
+  }, [nodes, matchedIds, setCenter]);
+
+  const selectedMember = selected ? entities.find((m) => m.id === selected) : null;
+  const selectedSpouse = selectedMember?.spouseId ? entities.find((m) => m.id === selectedMember.spouseId) : null;
 
   return (
     <div>
-      <div className="mb-4 flex flex-wrap items-center gap-2">
-        <div className="relative flex-1 min-w-[180px]">
-          <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-[var(--txt-4)]" />
-          <input
-            type="search"
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            placeholder="Search name..."
-            className="w-full rounded-md border border-[var(--border)] bg-[var(--surf-3)] py-2 pl-9 pr-3 text-sm text-[var(--color-cream)] outline-none focus:border-[var(--color-gold)]"
-          />
-        </div>
-        <select
-          value={cityFilter}
-          onChange={(e) => setCityFilter(e.target.value)}
-          className="rounded-md border border-[var(--border)] bg-[var(--surf-3)] px-3 py-2 text-sm text-[var(--color-cream)] outline-none focus:border-[var(--color-gold)]"
-        >
-          <option value="">All Cities</option>
-          {cities.map((c) => <option key={c} value={c}>{c}</option>)}
-        </select>
-        <button onClick={() => setExpanded(new Set(members.map((m) => m.id)))} aria-label="Expand all members" className="rounded-md border border-[var(--border)] px-3 py-2 text-xs hover:bg-[var(--surf-3)]">⊞ Expand all</button>
-        <button onClick={() => setExpanded(new Set())} aria-label="Collapse all members" className="rounded-md border border-[var(--border)] px-3 py-2 text-xs hover:bg-[var(--surf-3)]">⊟ Collapse all</button>
-        {(q || cityFilter) && (
-          <button onClick={() => { setQ(''); setCityFilter(''); }} className="rounded-md border border-[var(--border)] px-3 py-2 text-xs text-[var(--color-gold-4)] hover:bg-[var(--surf-3)]">↺ Reset</button>
-        )}
-      </div>
+      <Toolbar
+        q={q} setQ={setQ} cityFilter={cityFilter} setCityFilter={setCityFilter} cities={cities}
+        onExpandAll={() => { setExpanded(new Set(entities.map((m) => m.id))); setCollapsedOverride(new Set()); }}
+        onCollapseAll={() => { setExpanded(new Set()); setCollapsedOverride(new Set()); }}
+      />
 
-      <div className="overflow-x-auto pb-6">
-        <div className="inline-flex min-w-full flex-col items-center gap-0 pt-4">
-          {roots.length === 0 ? (
-            <p className="py-10 text-sm italic text-[var(--txt-3)]">No members match the filter</p>
-          ) : (
-            roots.map((r) => (
-              <Branch
-                key={r.id}
-                m={r}
-                spouse={primaryToSpouse.get(r.id) ?? null}
-                childrenOf={childrenOf}
-                primaryToSpouse={primaryToSpouse}
-                visible={visible}
-                expanded={expanded}
-                onToggle={toggle}
-                onSelect={setSelected}
-                selectedId={selected}
-                paidBy={paidBy}
-                viewerIsAdmin={viewerIsAdmin}
-                viewerId={viewerId}
-                isRoot
-              />
-            ))
-          )}
-        </div>
+      <div className={styles.wrapper} style={{ height: 'min(74vh, 720px)' }}>
+        {nodes.length === 0 ? (
+          <p className="grid h-full place-items-center text-sm italic text-[var(--txt-3)]">No members match the filter</p>
+        ) : (
+          <ReactFlow
+            nodes={nodes}
+            edges={edges}
+            nodeTypes={nodeTypes}
+            edgeTypes={edgeTypes}
+            fitView
+            minZoom={0.15}
+            maxZoom={2}
+            proOptions={{ hideAttribution: true }}
+          >
+            <Background variant={BackgroundVariant.Dots} gap={28} size={1} color="rgba(255,255,255,0.06)" />
+            <Controls showInteractive={false} className={styles.controls} />
+            <MiniMap pannable zoomable className={styles.minimap} maskColor="rgba(6,11,19,0.72)" nodeColor="var(--color-gold-4)" />
+          </ReactFlow>
+        )}
       </div>
 
       {selectedMember && (
-        <div className="mt-6 rounded-lg border border-[var(--border-2)] bg-[var(--surf-2)] p-4">
-          <div className="mb-3 flex items-center gap-3">
-            <PhotoLightbox src={selectedMember.photoUrl} alt={selectedMember.nameEn || selectedMember.nameUr}>
-              <div className="grid size-12 shrink-0 place-items-center overflow-hidden rounded-full text-base font-bold text-white" style={{ background: selectedMember.color }}>
-                {selectedMember.photoUrl ? <img src={selectedMember.photoUrl} alt="" className="size-full rounded-full object-cover" /> : ini(selectedMember.nameEn || selectedMember.nameUr)}
-              </div>
-            </PhotoLightbox>
-            <div className="flex-1">
-              <div className="font-[var(--font-arabic)] text-xl leading-[1.9] text-[var(--color-gold-2)]">{selectedMember.nameUr || selectedMember.nameEn}</div>
-              <div className="text-sm text-[var(--color-gold-4)]">{selectedMember.nameEn}</div>
-            </div>
-            {selectedSpouse && (
-              <div className="text-right text-[11px] text-[var(--txt-3)]">
-                <div>Spouse:</div>
-                <div className="font-semibold text-[var(--color-cream)]">{selectedSpouse.nameEn || selectedSpouse.nameUr}</div>
-              </div>
-            )}
-          </div>
-          <dl className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
-            {selectedMember.fatherName && selectedMember.fatherName !== '—' && (
-              <div><dt className="text-[10px] uppercase text-[var(--color-gold-4)]">Father</dt><dd className="mt-0.5">{selectedMember.fatherName}</dd></div>
-            )}
-            {selectedMember.relation && (
-              <div><dt className="text-[10px] uppercase text-[var(--color-gold-4)]">Relation</dt><dd className="mt-0.5">{selectedMember.relation}</dd></div>
-            )}
-            {selectedMember.city && <div><dt className="text-[10px] uppercase text-[var(--color-gold-4)]">City</dt><dd className="mt-0.5">{selectedMember.city}</dd></div>}
-            {selectedMember.province && <div><dt className="text-[10px] uppercase text-[var(--color-gold-4)]">Province</dt><dd className="mt-0.5">{selectedMember.province}</dd></div>}
-            {selectedMember.phone && <div><dt className="text-[10px] uppercase text-[var(--color-gold-4)]">Phone</dt><dd className="mt-0.5">{selectedMember.phone}</dd></div>}
-            {(viewerIsAdmin || selectedMember.id === viewerId) && (
-              <div><dt className="text-[10px] uppercase text-[var(--color-gold-4)]">Total Paid</dt><dd className="mt-0.5 font-[var(--font-display)] text-[var(--color-gold)]">{fmtRs(paidBy[selectedMember.id] || 0)}</dd></div>
-            )}
-          </dl>
-        </div>
+        <DetailPanel member={selectedMember} spouse={selectedSpouse} paidBy={paidBy} viewerIsAdmin={viewerIsAdmin} viewerId={viewerId} />
       )}
     </div>
   );
 }
 
-function hasVisibleDescendant(id: string, childrenOf: Map<string, Member[]>, visible: Set<string>, visited = new Set<string>()): boolean {
-  if (visited.has(id)) return false; // cycle guard
-  visited.add(id);
-  if (visible.has(id)) return true;
-  for (const child of (childrenOf.get(id) ?? [])) {
-    if (visible.has(child.id) || hasVisibleDescendant(child.id, childrenOf, visible, visited)) return true;
-  }
-  return false;
-}
-
-interface BranchProps {
-  m: Member;
-  spouse: Member | null;
-  childrenOf: Map<string, Member[]>;
-  primaryToSpouse: Map<string, Member>;
-  visible: Set<string>;
-  expanded: Set<string>;
-  onToggle: (id: string) => void;
-  onSelect: (id: string) => void;
-  selectedId: string | null;
-  paidBy: Record<string, number>;
-  viewerIsAdmin: boolean;
-  viewerId: string;
-  isRoot?: boolean;
-}
-
-function NodeCard({
-  m, isRoot, isSelected, onSelect, paidBy, viewerIsAdmin, viewerId, dim,
+function Toolbar({
+  q, setQ, cityFilter, setCityFilter, cities, onExpandAll, onCollapseAll,
 }: {
-  m: Member; isRoot?: boolean; isSelected: boolean;
-  onSelect: () => void; paidBy: Record<string, number>;
-  viewerIsAdmin: boolean; viewerId: string; dim?: boolean;
+  q: string; setQ: (v: string) => void; cityFilter: string; setCityFilter: (v: string) => void;
+  cities: string[]; onExpandAll: () => void; onCollapseAll: () => void;
 }) {
   return (
-    <div
-      onClick={onSelect}
-      role="treeitem"
-      aria-selected={isSelected}
-      className={cn(
-        'relative flex w-40 cursor-pointer flex-col items-center rounded-lg border bg-gradient-to-br from-[var(--surf-1)] to-[var(--surf-2)] p-3 text-center transition-all hover:border-[var(--color-gold)]',
-        isSelected && 'border-[var(--color-gold)] shadow-[0_0_0_3px_rgba(214,210,199,0.18)]',
-        isRoot && !isSelected && 'border-[var(--color-gold-2)]/60',
-        m.deceased && 'opacity-60',
-        !isRoot && !isSelected && !m.deceased && 'border-[var(--border)]',
-        dim && 'opacity-40 pointer-events-none',
-      )}
-    >
-      <div
-        className="mb-1 grid size-10 shrink-0 place-items-center overflow-hidden rounded-full text-xs font-bold text-white shadow-sm"
-        style={{ background: m.color, filter: m.deceased ? 'grayscale(0.7)' : 'none' }}
+    <div className="mb-4 flex flex-wrap items-center gap-2">
+      <div className="relative flex-1 min-w-[180px]">
+        <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-[var(--txt-4)]" />
+        <input
+          type="search"
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          placeholder="Search name..."
+          className="w-full rounded-md border border-[var(--border)] bg-[var(--surf-3)] py-2 pl-9 pr-3 text-sm text-[var(--color-cream)] outline-none focus:border-[var(--color-gold)]"
+        />
+      </div>
+      <select
+        value={cityFilter}
+        onChange={(e) => setCityFilter(e.target.value)}
+        className="rounded-md border border-[var(--border)] bg-[var(--surf-3)] px-3 py-2 text-sm text-[var(--color-cream)] outline-none focus:border-[var(--color-gold)]"
       >
-        {m.photoUrl ? <img src={m.photoUrl} alt="" className="size-full rounded-full object-cover" /> : ini(m.nameEn || m.nameUr)}
-      </div>
-      {/* Nastaliq ascenders overflow tight line boxes and paint over the
-          avatar above — Urdu names need their script's tall line-height. */}
-      <div className={cn('w-full text-[13px] font-semibold text-[var(--color-cream)]', m.nameUr ? 'font-[var(--font-arabic)] leading-[1.9]' : 'leading-tight')}>
-        {m.nameUr || m.nameEn}
-      </div>
-      {m.nameUr && m.nameEn && <div className="mt-0.5 text-[10px] text-[var(--txt-3)]">{m.nameEn}</div>}
-      {m.city && <div className="mt-0.5 text-[9px] text-[var(--color-gold-4)]">{m.city}</div>}
-      {m.deceased && <div className="mt-0.5 text-[9px] text-[var(--color-gold-4)] italic">مرحوم</div>}
-      {(viewerIsAdmin || m.id === viewerId) && paidBy[m.id] > 0 && (
-        <div className="mt-1 font-[var(--font-display)] text-xs text-[var(--color-gold)]">{fmtRs(paidBy[m.id])}</div>
+        <option value="">All Cities</option>
+        {cities.map((c) => <option key={c} value={c}>{c}</option>)}
+      </select>
+      <button onClick={onExpandAll} aria-label="Expand all members" className="rounded-md border border-[var(--border)] px-3 py-2 text-xs hover:bg-[var(--surf-3)]">⊞ Expand all</button>
+      <button onClick={onCollapseAll} aria-label="Collapse all members" className="rounded-md border border-[var(--border)] px-3 py-2 text-xs hover:bg-[var(--surf-3)]">⊟ Collapse all</button>
+      {(q || cityFilter) && (
+        <button onClick={() => { setQ(''); setCityFilter(''); }} className="rounded-md border border-[var(--border)] px-3 py-2 text-xs text-[var(--color-gold-4)] hover:bg-[var(--surf-3)]">↺ Reset</button>
       )}
     </div>
   );
 }
 
-function Branch({
-  m, spouse, childrenOf, primaryToSpouse,
-  visible, expanded, onToggle, onSelect, selectedId, paidBy, viewerIsAdmin, viewerId, isRoot,
-}: BranchProps) {
-  const allKids = childrenOf.get(m.id) ?? [];
-  const kids = allKids.filter((k) => hasVisibleDescendant(k.id, childrenOf, visible));
-  const isExpanded = expanded.has(m.id);
-  const isHidden = !visible.has(m.id) && !(spouse && visible.has(spouse.id));
-
+function DetailPanel({
+  member, spouse, paidBy, viewerIsAdmin, viewerId,
+}: {
+  member: Member; spouse: Member | null | undefined; paidBy: Record<string, number>; viewerIsAdmin: boolean; viewerId: string;
+}) {
   return (
-    <div className="flex flex-col items-center">
-      {/* Couple row: main node + (optional) spouse with marriage connector */}
-      <div className="relative flex items-center">
-        {kids.length > 0 && (
-          <button
-            onClick={(e) => { e.stopPropagation(); onToggle(m.id); }}
-            aria-label={isExpanded ? 'Collapse' : 'Expand'}
-            className="absolute -right-1 -top-1 z-10 grid size-5 place-items-center rounded-full border border-[var(--border)] bg-[var(--surf-3)] text-[10px] font-bold text-[var(--color-gold)] hover:bg-[var(--color-gold)]/10"
-          >
-            {isExpanded ? '−' : '+'}
-          </button>
-        )}
-        <NodeCard
-          m={m}
-          isRoot={isRoot}
-          isSelected={selectedId === m.id}
-          onSelect={() => !isHidden && onSelect(m.id)}
-          paidBy={paidBy}
-          viewerIsAdmin={viewerIsAdmin}
-          viewerId={viewerId}
-          dim={isHidden}
-        />
+    <div className="mt-6 rounded-lg border border-[var(--border-2)] bg-[var(--surf-2)] p-4">
+      <div className="mb-3 flex items-center gap-3">
+        <PhotoLightbox src={member.photoUrl} alt={member.nameEn || member.nameUr}>
+          <div className="grid size-12 shrink-0 place-items-center overflow-hidden rounded-full text-base font-bold text-white" style={{ background: member.color }}>
+            {member.photoUrl ? <img src={member.photoUrl} alt="" className="size-full rounded-full object-cover" /> : ini(member.nameEn || member.nameUr)}
+          </div>
+        </PhotoLightbox>
+        <div className="flex-1">
+          <div className="font-[var(--font-arabic)] text-xl leading-[1.9] text-[var(--color-gold-2)]">{member.nameUr || member.nameEn}</div>
+          <div className="text-sm text-[var(--color-gold-4)]">{member.nameEn}</div>
+        </div>
         {spouse && (
-          <>
-            <div className="mx-2 flex flex-col items-center" aria-hidden="true">
-              <div className="text-[18px] leading-none text-[var(--color-gold)]">∞</div>
-              <div className="mt-1 h-px w-6 bg-[var(--color-gold-4)]" />
-              <div className="mt-1 text-[8px] uppercase tracking-[1.5px] text-[var(--color-gold-4)]">married</div>
-            </div>
-            <NodeCard
-              m={spouse}
-              isSelected={selectedId === spouse.id}
-              onSelect={() => visible.has(spouse.id) && onSelect(spouse.id)}
-              paidBy={paidBy}
-              viewerIsAdmin={viewerIsAdmin}
-              viewerId={viewerId}
-              dim={!visible.has(spouse.id) && !visible.has(m.id)}
-            />
-          </>
+          <div className="text-right text-[11px] text-[var(--txt-3)]">
+            <div>Spouse:</div>
+            <div className="font-semibold text-[var(--color-cream)]">{spouse.nameEn || spouse.nameUr}</div>
+          </div>
         )}
       </div>
-
-      {kids.length > 0 && isExpanded && (
-        <div className="tree-grow flex flex-col items-center">
-          {/* Trunk from the parent — thicker, tapering like a real branch */}
-          <div className="h-7 w-[2.5px] rounded-full bg-gradient-to-b from-[var(--color-gold-2)]/80 to-[var(--color-gold-4)]/45" />
-          <div className="flex items-start">
-            {kids.map((k, i) => {
-              const first = i === 0;
-              const last = i === kids.length - 1;
-              const only = kids.length === 1;
-              return (
-                <div key={k.id} className="relative flex flex-col items-center px-2 pt-6">
-                  {/* Sibling rail, drawn as per-child halves so it ALWAYS
-                      spans exactly from the first child's stem to the last's,
-                      no matter how wide each subtree grows — no breaks. */}
-                  {!only && !first && (
-                    <div className={cn(
-                      'absolute right-1/2 top-0 h-[2px] left-0 bg-[var(--color-gold-4)]/45',
-                      last && 'rounded-r-full',
-                    )} />
-                  )}
-                  {!only && !last && (
-                    <div className={cn(
-                      'absolute left-1/2 top-0 h-[2px] right-0 bg-[var(--color-gold-4)]/45',
-                      first && 'rounded-l-full',
-                    )} />
-                  )}
-                  {/* Stem down into the child — grows from the rail */}
-                  <div className="absolute left-1/2 top-0 h-6 w-[2px] -translate-x-1/2 rounded-full bg-gradient-to-b from-[var(--color-gold-4)]/45 to-[var(--color-gold-2)]/70" />
-                  <Branch
-                    m={k}
-                    spouse={primaryToSpouse.get(k.id) ?? null}
-                    childrenOf={childrenOf}
-                    primaryToSpouse={primaryToSpouse}
-                    visible={visible}
-                    expanded={expanded}
-                    onToggle={onToggle}
-                    onSelect={onSelect}
-                    selectedId={selectedId}
-                    paidBy={paidBy}
-                    viewerIsAdmin={viewerIsAdmin}
-                    viewerId={viewerId}
-                  />
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
+      <dl className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
+        {member.fatherName && member.fatherName !== '—' && (
+          <div><dt className="text-[10px] uppercase text-[var(--color-gold-4)]">Father</dt><dd className="mt-0.5">{member.fatherName}</dd></div>
+        )}
+        {member.relation && (
+          <div><dt className="text-[10px] uppercase text-[var(--color-gold-4)]">Relation</dt><dd className="mt-0.5">{member.relation}</dd></div>
+        )}
+        {member.city && <div><dt className="text-[10px] uppercase text-[var(--color-gold-4)]">City</dt><dd className="mt-0.5">{member.city}</dd></div>}
+        {member.province && <div><dt className="text-[10px] uppercase text-[var(--color-gold-4)]">Province</dt><dd className="mt-0.5">{member.province}</dd></div>}
+        {member.phone && <div><dt className="text-[10px] uppercase text-[var(--color-gold-4)]">Phone</dt><dd className="mt-0.5">{member.phone}</dd></div>}
+        {(viewerIsAdmin || member.id === viewerId) && (
+          <div><dt className="text-[10px] uppercase text-[var(--color-gold-4)]">Total Paid</dt><dd className="mt-0.5 font-[var(--font-display)] text-[var(--color-gold)]">{fmtRs(paidBy[member.id] || 0)}</dd></div>
+        )}
+      </dl>
     </div>
+  );
+}
+
+export default function TreeView(props: Props) {
+  return (
+    <ReactFlowProvider>
+      <TreeCanvas {...props} />
+    </ReactFlowProvider>
   );
 }
