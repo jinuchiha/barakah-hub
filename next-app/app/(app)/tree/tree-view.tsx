@@ -13,6 +13,7 @@ import { layoutTree } from './family-tree/dagre-layout';
 import { NODE_W_SINGLE, NODE_W_COUPLE, NODE_H } from './family-tree/constants';
 import PersonNode, { type PersonNodeData } from './family-tree/person-node';
 import FamilyEdge from './family-tree/family-edge';
+import MemberDialog from '../admin/members/member-dialog';
 import styles from './family-tree/tree.module.css';
 
 interface Props {
@@ -32,6 +33,7 @@ function TreeCanvas({ members, paidBy, viewerId, viewerIsAdmin }: Props) {
   // everything expanded (empty set) — including virtual-father placeholders.
   const [collapsed, setCollapsed] = useState<Set<string>>(() => new Set());
   const [selected, setSelected] = useState<string | null>(null);
+  const [editTarget, setEditTarget] = useState<Member | null>(null);
   const { setCenter } = useReactFlow();
 
   const cities = useMemo(
@@ -150,7 +152,23 @@ function TreeCanvas({ members, paidBy, viewerId, viewerIsAdmin }: Props) {
       </div>
 
       {selectedMember && (
-        <DetailPanel member={selectedMember} spouse={selectedSpouse} paidBy={paidBy} viewerIsAdmin={viewerIsAdmin} viewerId={viewerId} />
+        <DetailPanel
+          member={selectedMember}
+          spouse={selectedSpouse}
+          paidBy={paidBy}
+          viewerIsAdmin={viewerIsAdmin}
+          viewerId={viewerId}
+          onEdit={viewerIsAdmin && !selectedMember.id.startsWith('virtual:') ? () => setEditTarget(selectedMember) : undefined}
+        />
+      )}
+
+      {editTarget && (
+        <MemberDialog
+          key={`tree-edit-${editTarget.id}`}
+          mode={{ kind: 'edit', member: editTarget }}
+          allMembers={members}
+          onClose={() => setEditTarget(null)}
+        />
       )}
     </div>
   );
@@ -192,9 +210,10 @@ function Toolbar({
 }
 
 function DetailPanel({
-  member, spouse, paidBy, viewerIsAdmin, viewerId,
+  member, spouse, paidBy, viewerIsAdmin, viewerId, onEdit,
 }: {
   member: Member; spouse: Member | null | undefined; paidBy: Record<string, number>; viewerIsAdmin: boolean; viewerId: string;
+  onEdit?: () => void;
 }) {
   return (
     <div className="mt-6 rounded-lg border border-[var(--border-2)] bg-[var(--surf-2)] p-4">
@@ -213,6 +232,15 @@ function DetailPanel({
             <div>Spouse:</div>
             <div className="font-semibold text-[var(--color-cream)]">{spouse.nameEn || spouse.nameUr}</div>
           </div>
+        )}
+        {onEdit && (
+          <button
+            type="button"
+            onClick={onEdit}
+            className="rounded-md border border-[var(--border-accent)] px-3 py-1.5 text-xs font-semibold text-[var(--color-gold-2)] transition-colors hover:bg-[var(--color-gold)]/10"
+          >
+            Edit member
+          </button>
         )}
       </div>
       <dl className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
