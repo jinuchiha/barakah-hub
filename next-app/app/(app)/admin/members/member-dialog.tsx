@@ -1,5 +1,5 @@
 'use client';
-import { useState, useTransition } from 'react';
+import { useMemo, useState, useTransition } from 'react';
 import { toast } from 'sonner';
 import { addMember, editMember } from '@/app/actions';
 import { Input, Label } from '@/components/ui/input';
@@ -96,12 +96,21 @@ export default function MemberDialog({ mode, allMembers, onClose }: Props) {
   });
   // Parent link allows deceased members (most ancestors are) — only
   // self-parenting and rejected accounts are excluded.
-  const parentCandidates = allMembers.filter((m) => {
-    if (mode.kind === 'edit' && m.id === mode.member.id) return false;
-    if (m.status === 'rejected') return false;
-    return true;
-  });
+  const parentCandidates = allMembers
+    .filter((m) => {
+      if (mode.kind === 'edit' && m.id === mode.member.id) return false;
+      if (m.status === 'rejected') return false;
+      return true;
+    })
+    .sort((a, b) => (a.nameEn || a.nameUr).localeCompare(b.nameEn || b.nameUr));
   const [pending, start] = useTransition();
+  const [childPending, startChild] = useTransition();
+  const [childEn, setChildEn] = useState('');
+  const [childUr, setChildUr] = useState('');
+  const [addedKids, setAddedKids] = useState<string[]>([]);
+  const existingKids = mode.kind === 'edit'
+    ? allMembers.filter((m) => m.parentId === mode.member.id && m.status !== 'rejected')
+    : [];
   const [form, setForm] = useState<FormState>(() =>
     mode.kind === 'edit' ? fromMember(mode.member) : blank,
   );
@@ -109,6 +118,49 @@ export default function MemberDialog({ mode, allMembers, onClose }: Props) {
   function set<K extends keyof FormState>(k: K, v: FormState[K]) {
     setForm((p) => ({ ...p, [k]: v }));
   }
+
+  function addChild() {
+    if (mode.kind !== 'edit') return;
+    const nameEn = childEn.trim();
+    if (nameEn.length < 2) { toast.error('Child name: at least 2 characters'); return; }
+    const parent = mode.member;
+    // Username just needs to be unique — a random suffix avoids collisions
+    // with siblings/cousins sharing a name. An admin can rename it later if
+    // the child ever claims an account.
+    const base = nameEn.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '').slice(0, 30) || 'child';
+    startChild(async () => {
+      try {
+        await addMember({
+          username: `${base}_${Math.random().toString(36).slice(-4)}`,
+          nameEn,
+          nameUr: childUr.trim() || nameEn,
+          fatherName: parent.nameEn || parent.nameUr,
+          parentId: parent.id,
+          city: parent.city ?? undefined,
+          province: parent.province ?? undefined,
+          monthlyPledge: 0,
+        });
+        setAddedKids((p) => [...p, nameEn]);
+        setChildEn('');
+        setChildUr('');
+        toast.success(`${nameEn} added to the family tree`);
+      } catch (e: unknown) {
+        toast.error(e instanceof Error ? e.message : 'Failed to add child');
+      }
+    });
+  }
+
+  // If the typed father's name exactly matches an existing member, offer a
+  // one-click link — the explicit parentId beats fuzzy text matching (two
+  // members can share a name; the link is unambiguous).
+  const suggestedParent = useMemo(() => {
+    if (form.parentId) return null;
+    const norm = (s: string | null) => (s ?? '').trim().toLowerCase().replace(/\s+/g, ' ');
+    const fn = norm(form.fatherName);
+    if (!fn || fn === '—') return null;
+    return parentCandidates.find((c) => norm(c.nameEn) === fn || norm(c.nameUr) === fn) ?? null;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form.parentId, form.fatherName, allMembers]);
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -185,6 +237,11 @@ export default function MemberDialog({ mode, allMembers, onClose }: Props) {
             <div className="md:col-span-2">
               <Label>Username *</Label>
               <Input value={form.username} onChange={(e) => set('username', e.target.value)} placeholder="e.g. ahmad_baloch" required />
+              <p className="mt-1 text-[10.5px] text-[var(--txt-3)]">
+                For a living member without an account yet: use their future email&apos;s prefix
+                (e.g. <span className="text-[var(--color-gold-4)]">ahmadkhan</span> for ahmadkhan@gmail.com) —
+                when they register with that email later, this record links to their account automatically.
+              </p>
             </div>
           )}
           <div><Label>English Name *</Label><Input value={form.nameEn} onChange={(e) => set('nameEn', e.target.value)} required /></div>
@@ -204,6 +261,15 @@ export default function MemberDialog({ mode, allMembers, onClose }: Props) {
                 </option>
               ))}
             </select>
+            {suggestedParent && (
+              <button
+                type="button"
+                onClick={() => set('parentId', suggestedParent.id)}
+                className="mt-1 block text-[11px] text-[var(--color-gold-2)] underline hover:text-[var(--color-gold)]"
+              >
+                ↳ Father&apos;s name matches &ldquo;{suggestedParent.nameEn || suggestedParent.nameUr}&rdquo; — click to link
+              </button>
+            )}
             <p className="mt-1 text-[10.5px] text-[var(--txt-3)]">
               Pick either parent in a married couple — the family tree shows this member under both automatically.
             </p>
@@ -267,6 +333,34 @@ export default function MemberDialog({ mode, allMembers, onClose }: Props) {
                 </select>
                 <p className="mt-1 text-[10.5px] text-[var(--txt-3)]">
                   Setting a spouse links both members automatically. Family tree will show them paired.
+                </p>
+              </div>
+              <div className="md:col-span-2 rounded-md border border-[var(--border)] bg-[var(--surf-3)] p-3">
+                <Label>Children — tree only (no account, e.g. under 18)</Label>
+                {(existingKids.length > 0 || addedKids.length > 0) && (
+                  <div className="mb-2 mt-1 flex flex-wrap gap-1.5">
+                    {existingKids.map((k) => (
+                      <span key={k.id} className="rounded-full border border-[var(--border)] px-2 py-0.5 text-[11px] text-[var(--txt-2)]">
+                        {k.nameEn || k.nameUr}{k.deceased ? ' (marhoom)' : ''}
+                      </span>
+                    ))}
+                    {addedKids.map((n, i) => (
+                      <span key={`new-${i}`} className="rounded-full border border-[var(--border-accent)] px-2 py-0.5 text-[11px] text-[var(--color-gold-2)]">
+                        {n} ✓
+                      </span>
+                    ))}
+                  </div>
+                )}
+                <div className="mt-1 flex gap-2">
+                  <Input value={childEn} onChange={(e) => setChildEn(e.target.value)} placeholder="Child's name (English)" />
+                  <Input value={childUr} onChange={(e) => setChildUr(e.target.value)} placeholder="اردو نام" dir="rtl" />
+                  <Button type="button" variant="ghost" onClick={addChild} disabled={childPending}>
+                    {childPending ? 'Adding…' : '+ Add'}
+                  </Button>
+                </div>
+                <p className="mt-1.5 text-[10.5px] text-[var(--txt-3)]">
+                  Appears in the family tree under {form.nameEn || 'this member'}{form.spouseId ? ' and their spouse' : ''} right away.
+                  No login, no pledge — an account can be linked by an admin when they&apos;re old enough.
                 </p>
               </div>
             </>

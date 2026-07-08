@@ -81,6 +81,13 @@ export default function MembersTable({ initial }: Props) {
     });
   }, [initial, q, status, province, city, sortKey, sortDir]);
 
+  // Marhoom members live in their own quiet section below the main table —
+  // mixing them into the active roster buries them among pledges/statuses
+  // that no longer apply to them.
+  const living = useMemo(() => filtered.filter((m) => !m.deceased), [filtered]);
+  const marhoom = useMemo(() => filtered.filter((m) => m.deceased), [filtered]);
+  const livingTotal = useMemo(() => initial.filter((m) => !m.deceased).length, [initial]);
+
   function reset() { setQ(''); setStatus(''); setProvince(''); setCity(''); }
 
   function whatsapp(m: Member) {
@@ -100,9 +107,10 @@ export default function MembersTable({ initial }: Props) {
   }
 
   return (
+    <>
     <Card>
       <CardHeader>
-        <CardTitle>{filtered.length} of {initial.length} members</CardTitle>
+        <CardTitle>{living.length} of {livingTotal} members</CardTitle>
         <Button variant="gold" size="sm" onClick={() => setDialog({ kind: 'add' })}>
           <Plus className="size-3" />Add Member
         </Button>
@@ -137,7 +145,7 @@ export default function MembersTable({ initial }: Props) {
               </tr>
             </thead>
             <tbody>
-              {filtered.map((m, i) => (
+              {living.map((m, i) => (
                 <tr key={m.id} className="table-row-hover border-b border-[var(--border)]">
                   <td className="px-4 py-2 font-[var(--font-en)] text-xs text-[var(--color-gold-4)]">{i + 1}</td>
                   <td className="px-4 py-2">
@@ -184,13 +192,64 @@ export default function MembersTable({ initial }: Props) {
                   </td>
                 </tr>
               ))}
-              {filtered.length === 0 && (
+              {living.length === 0 && (
                 <tr><td colSpan={7} className="p-10 text-center italic text-[var(--txt-3)]">No members match these filters.</td></tr>
               )}
             </tbody>
           </table>
         </div>
       </CardBody>
+    </Card>
+
+    {marhoom.length > 0 && (
+      <Card className="mt-6">
+        <CardHeader>
+          <div className="flex items-baseline gap-2.5">
+            <CardTitle>Marhoom</CardTitle>
+            <span className="font-[var(--font-arabic)] text-sm leading-[1.9] text-[var(--color-gold-2)]">مرحومین</span>
+          </div>
+          <span className="text-[10px] uppercase tracking-[1.5px] text-[var(--color-gold-4)]">{marhoom.length} · tree records</span>
+        </CardHeader>
+        <CardBody className="p-0">
+          {marhoom.map((m) => (
+            <div key={m.id} className="flex items-center gap-3 border-b border-[var(--border)] px-5 py-3 last:border-b-0 hover:bg-[var(--surf-3)] transition-colors">
+              <div
+                className="grid size-8 shrink-0 place-items-center overflow-hidden rounded-full text-[10px] font-bold text-white"
+                style={{ background: m.color, filter: 'grayscale(0.8) brightness(0.9)' }}
+              >
+                {m.photoUrl ? <img src={m.photoUrl} alt="" className="size-full rounded-full object-cover" /> : ini(m.nameEn || m.nameUr)}
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="truncate text-[13.5px] font-semibold text-[var(--color-cream)]">{m.nameUr || m.nameEn}</div>
+                <div className="mt-0.5 text-[11px] text-[var(--txt-3)]">
+                  {m.nameEn}
+                  {m.fatherName && m.fatherName !== '—' ? ` · s/o ${m.fatherName}` : ''}
+                  {m.city ? ` · ${m.city}` : ''}
+                </div>
+              </div>
+              <span className="font-[var(--font-arabic)] text-xs leading-[1.9] text-[var(--color-gold-4)]">مرحوم</span>
+              <div className="flex gap-1">
+                <button
+                  type="button"
+                  title="Edit"
+                  aria-label={`Edit ${m.nameEn || m.nameUr}`}
+                  onClick={() => setDialog({ kind: 'edit', member: m })}
+                  className="rounded p-1.5 hover:bg-[rgba(214,210,199,0.1)]"
+                >
+                  <Pencil className="size-3.5 text-[var(--txt-2)]" />
+                </button>
+                {m.role !== 'admin' && (
+                  <button type="button" title="Delete" aria-label={`Delete ${m.nameEn || m.nameUr}`} onClick={() => confirmDelete(m)} disabled={pending} className="rounded p-1.5 hover:bg-[rgba(220,50,50,0.15)] disabled:opacity-50">
+                    <Trash2 className="size-3.5 text-[#f87171]" />
+                  </button>
+                )}
+              </div>
+            </div>
+          ))}
+        </CardBody>
+      </Card>
+    )}
+
       {dialog && (
         <MemberDialog
           key={dialog.kind === 'edit' ? `edit-${dialog.member.id}` : 'add'}
@@ -208,7 +267,7 @@ export default function MembersTable({ initial }: Props) {
         destructive
         onConfirm={() => { if (deleteTarget) doDelete(deleteTarget); }}
       />
-    </Card>
+    </>
   );
 }
 
