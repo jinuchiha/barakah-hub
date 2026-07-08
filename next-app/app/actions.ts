@@ -190,6 +190,9 @@ const addMemberSchema = z.object({
   city: z.string().max(60).optional(),
   province: z.string().max(40).optional(),
   monthlyPledge: z.number().int().min(0).max(1_000_000).default(1000),
+  // Marhoom ancestors get a record (for the family tree) but never an
+  // account — needsSetup stays true and nobody claims it.
+  deceased: z.boolean().optional(),
 });
 
 export async function addMember(input: z.infer<typeof addMemberSchema>) {
@@ -695,6 +698,7 @@ const editMemberSchema = z.object({
   // Explicit parent link · null clears it, uuid sets it. A child linked to
   // either spouse in a couple renders under both — see tree-data.ts.
   parentId: z.string().uuid().nullable().optional(),
+  deceased: z.boolean().optional(),
 });
 
 export async function editMember(input: z.infer<typeof editMemberSchema>) {

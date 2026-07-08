@@ -12,8 +12,8 @@ export default function FamilyEdge({
 
   return (
     <>
-      <BaseEdge id={`${id}-glow`} path={path} style={{ stroke: 'var(--color-gold)', strokeWidth: 5, strokeOpacity: 0.16, filter: 'blur(2px)' }} />
-      <BaseEdge id={id} path={path} style={{ stroke: 'var(--color-gold-4)', strokeWidth: 1.75, strokeOpacity: 0.75 }} />
+      <BaseEdge id={`${id}-glow`} path={path} style={{ stroke: 'var(--color-gold)', strokeWidth: 6, strokeOpacity: 0.15, filter: 'blur(3px)' }} />
+      <BaseEdge id={id} path={path} style={{ stroke: 'var(--color-gold-2)', strokeWidth: 1.5, strokeOpacity: 0.55 }} />
     </>
   );
 }
