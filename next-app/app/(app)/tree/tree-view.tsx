@@ -42,7 +42,10 @@ function TreeCanvas({ members, paidBy, viewerId, viewerIsAdmin }: Props) {
   );
 
   const { primaryToSpouse, claimedAsSpouse } = useMemo(() => resolveMarriages(members), [members]);
-  const { entities, childrenOf, parentOf } = useMemo(() => buildTreeData(members, claimedAsSpouse), [members, claimedAsSpouse]);
+  const { entities, childrenOf, parentOf } = useMemo(
+    () => buildTreeData(members, claimedAsSpouse, primaryToSpouse),
+    [members, claimedAsSpouse, primaryToSpouse],
+  );
   const roots = useMemo(() => childrenOf.get('__root') ?? [], [childrenOf]);
 
   const visible = useMemo(() => {

@@ -692,6 +692,9 @@ const editMemberSchema = z.object({
   status: z.enum(['pending', 'approved', 'rejected']).optional(),
   // Pairing · null clears the marriage, uuid sets it.
   spouseId: z.string().uuid().nullable().optional(),
+  // Explicit parent link · null clears it, uuid sets it. A child linked to
+  // either spouse in a couple renders under both — see tree-data.ts.
+  parentId: z.string().uuid().nullable().optional(),
 });
 
 export async function editMember(input: z.infer<typeof editMemberSchema>) {

@@ -39,6 +39,7 @@ interface FormState {
   role: 'admin' | 'member' | 'supervisor';
   status: 'pending' | 'approved' | 'rejected';
   spouseId: string;
+  parentId: string;
 }
 
 const blank: FormState = {
@@ -55,6 +56,7 @@ const blank: FormState = {
   role: 'member',
   status: 'approved',
   spouseId: '',
+  parentId: '',
 };
 
 function fromMember(m: Member): FormState {
@@ -74,6 +76,7 @@ function fromMember(m: Member): FormState {
     role: m.role,
     status: m.status,
     spouseId: m.spouseId ?? '',
+    parentId: m.parentId ?? '',
   };
 }
 
@@ -86,6 +89,13 @@ export default function MemberDialog({ mode, allMembers, onClose }: Props) {
     if (m.deceased) return false;
     if (m.status === 'rejected') return false;
     if (mode.kind === 'edit' && m.spouseId && m.spouseId !== mode.member.id) return false;
+    return true;
+  });
+  // Parent link allows deceased members (most ancestors are) — only
+  // self-parenting and rejected accounts are excluded.
+  const parentCandidates = allMembers.filter((m) => {
+    if (mode.kind === 'edit' && m.id === mode.member.id) return false;
+    if (m.status === 'rejected') return false;
     return true;
   });
   const [pending, start] = useTransition();
@@ -121,6 +131,7 @@ export default function MemberDialog({ mode, allMembers, onClose }: Props) {
             city: form.city.trim() || undefined,
             province: form.province || undefined,
             monthlyPledge: form.monthlyPledge,
+            parentId: form.parentId || undefined,
           });
           toast.success('Member added');
         } else {
@@ -140,6 +151,7 @@ export default function MemberDialog({ mode, allMembers, onClose }: Props) {
             role: form.role,
             status: form.status,
             spouseId: form.spouseId || null,
+            parentId: form.parentId || null,
           });
           toast.success('Member updated');
         }
@@ -173,6 +185,24 @@ export default function MemberDialog({ mode, allMembers, onClose }: Props) {
           <div><Label>English Name *</Label><Input value={form.nameEn} onChange={(e) => set('nameEn', e.target.value)} required /></div>
           <div><Label>Urdu Name</Label><Input value={form.nameUr} onChange={(e) => set('nameUr', e.target.value)} dir="rtl" /></div>
           <div className="md:col-span-2"><Label>Father&apos;s Name *</Label><Input value={form.fatherName} onChange={(e) => set('fatherName', e.target.value)} required /></div>
+          <div className="md:col-span-2">
+            <Label>Link to parent (optional)</Label>
+            <select
+              value={form.parentId}
+              onChange={(e) => set('parentId', e.target.value)}
+              className="w-full rounded-md border border-[var(--border)] bg-[var(--surf-3)] px-3 py-2.5 text-sm text-[var(--color-cream)]"
+            >
+              <option value="">Not linked · father&apos;s name above is text only</option>
+              {parentCandidates.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.nameEn || c.nameUr}{c.deceased ? ' (marhoom)' : ''}
+                </option>
+              ))}
+            </select>
+            <p className="mt-1 text-[10.5px] text-[var(--txt-3)]">
+              Pick either parent in a married couple — the family tree shows this member under both automatically.
+            </p>
+          </div>
           <label className="md:col-span-2 flex items-center gap-2 text-sm text-[var(--txt-2)]">
             <input type="checkbox" checked={form.fatherDeceased} onChange={(e) => set('fatherDeceased', e.target.checked)} />
             Father has passed away (Marhoom)

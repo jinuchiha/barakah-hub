@@ -71,12 +71,22 @@ function makeVirtualFather(id: string, name: string, deceased: boolean): Member 
  *  4. Falls back to __root
  *
  * Members claimed as the secondary side of a marriage are skipped — they
- * render beside their primary spouse instead.
+ * render beside their primary spouse instead. Crucially, a child linked to
+ * EITHER spouse (via parentId, or fatherName matching either name) is keyed
+ * under the couple's primary id — a child belongs to the couple, not to
+ * whichever one parent happened to be named. Without this remap, a child
+ * added "from the mother's side" would be keyed under the secondary spouse's
+ * id, which never renders its own branch, and the child would vanish.
  */
 export function buildTreeData(
   members: Member[],
   claimedAsSpouse: Set<string>,
+  primaryToSpouse: Map<string, Member>,
 ): { entities: Member[]; childrenOf: Map<string, Member[]>; parentOf: Map<string, string> } {
+  const secondaryToPrimary = new Map<string, string>();
+  for (const [primaryId, spouse] of primaryToSpouse) secondaryToPrimary.set(spouse.id, primaryId);
+  const asPrimary = (id: string) => secondaryToPrimary.get(id) ?? id;
+
   const byName = new Map<string, string>();
   for (const m of members) {
     if (m.nameEn) byName.set(nameLower(m.nameEn), m.id);
@@ -95,11 +105,11 @@ export function buildTreeData(
   for (const m of members) {
     if (claimedAsSpouse.has(m.id)) continue;
     if (m.parentId) {
-      push(m.parentId, m);
+      push(asPrimary(m.parentId), m);
     } else if (m.fatherName && m.fatherName !== '—') {
       const auto = byName.get(nameLower(m.fatherName));
       if (auto && auto !== m.id) {
-        push(auto, m);
+        push(asPrimary(auto), m);
       } else {
         const vid = `virtual:${nameLower(m.fatherName)}`;
         const existing = virtualFathers.get(vid);
