@@ -3,10 +3,11 @@ import { getMeOrRedirect } from '@/lib/auth-server';
 import { db } from '@/lib/db';
 import { notifications } from '@/lib/db/schema';
 import { Card, CardHeader, CardTitle, CardBody } from '@/components/ui/card';
+import { EmptyState } from '@/components/ui/empty-state';
 import MarkAllReadButton from './mark-all-read';
 import Link from 'next/link';
 import type { Route } from 'next';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Bell } from 'lucide-react';
 import { notificationHref } from '@/lib/notification-link';
 import { t } from '@/lib/i18n/dict';
 import { getLocale } from '@/lib/i18n/server';
@@ -39,7 +40,7 @@ export default async function NotificationsPage() {
         <CardHeader><CardTitle>{t('msg.inbox', locale)}</CardTitle></CardHeader>
         <CardBody className="p-0">
           {list.length === 0 && (
-            <div className="py-12 text-center text-sm italic text-[var(--txt-3)]">All caught up · کوئی اطلاع نہیں</div>
+            <EmptyState icon={<Bell />} title="All caught up" description="کوئی اطلاع نہیں" />
           )}
           {list.map((n) => {
             const href = notificationHref(n.type);

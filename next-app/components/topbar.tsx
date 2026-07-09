@@ -8,6 +8,7 @@ import { signOut } from '@/lib/auth-client';
 import { ini } from '@/lib/utils';
 import { Crescent as CrescentMark } from '@/components/icons/crescent';
 import { MobileNav } from '@/components/mobile-nav';
+import { COMMAND_PALETTE_OPEN_EVENT } from '@/components/command-palette';
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -115,6 +116,15 @@ export function Topbar({ user, unreadCount = 0, isAdmin = false, isSupervisor = 
         >
           <Search className="size-[18px]" />
         </Link>
+        <button
+          type="button"
+          onClick={() => window.dispatchEvent(new Event(COMMAND_PALETTE_OPEN_EVENT))}
+          aria-label="Open command palette"
+          className="hidden h-9 items-center gap-1.5 rounded-lg px-2 text-[var(--txt-3)] transition-colors hover:bg-[var(--surf-3)] hover:text-[var(--color-cream)] lg:flex"
+        >
+          <Search className="size-[14px]" />
+          <kbd className="num rounded-md border border-[var(--border)] bg-[var(--surf-1)] px-1.5 py-0.5 text-[9px] text-[var(--txt-4)]">⌘K</kbd>
+        </button>
         {/* Language picker — Radix dropdown (the hand-rolled menu's
             outside-click capture handler raced its own item clicks) */}
         <DropdownMenu>

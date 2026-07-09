@@ -12,6 +12,7 @@ import { AnimatedNumber } from '@/components/animated-number';
 import { StatCard } from '@/components/stat-card';
 import { GoalBar } from '@/components/goal-bar';
 import { SpendingDonut, type DonutSlice } from '@/components/spending-donut';
+import { FundFlowChart, type FundFlowPoint } from '@/components/fund-flow-chart';
 import { Card, CardHeader, CardTitle, CardBody } from '@/components/ui/card';
 import { fmtRs, t } from '@/lib/i18n/dict';
 import { getLocale } from '@/lib/i18n/server';
@@ -223,6 +224,8 @@ export default async function DashboardPage() {
         </div>
       )}
 
+      {isAdmin && <FundFlowCard />}
+
       {!isAdmin && (
         <Card className="mb-6">
           <CardBody className="flex items-start gap-3">
@@ -332,6 +335,68 @@ function computeDaysRemaining(deadline: string | null): number | null {
   if (!deadline) return null;
   const ms = new Date(deadline).getTime() - new Date().getTime();
   return Math.ceil(ms / 86_400_000);
+}
+
+function last6MonthBuckets(): { key: string; label: string }[] {
+  const now = new Date();
+  const anchor = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+  return Array.from({ length: 6 }, (_, i) => {
+    const d = new Date(Date.UTC(anchor.getUTCFullYear(), anchor.getUTCMonth() - 5 + i, 1));
+    return { key: d.toISOString().slice(0, 10), label: d.toLocaleDateString('en-GB', { month: 'short', timeZone: 'UTC' }) };
+  });
+}
+
+/**
+ * Outflow = loan principals issued + disbursed *gift* cases. Disbursed
+ * *qarz* cases already turn into a `loans` row (see disburseCase in
+ * app/actions.ts), so counting them here too would double-count.
+ */
+async function getFundFlowSeries(): Promise<FundFlowPoint[]> {
+  const months = last6MonthBuckets();
+  const cutoff = months[0].key;
+
+  const inflowRows = await db
+    .select({ monthStart: payments.monthStart, total: sql<number>`SUM(${payments.amount})::int` })
+    .from(payments)
+    .where(and(eq(payments.pendingVerify, false), sql`${payments.monthStart} >= ${cutoff}::date`))
+    .groupBy(payments.monthStart);
+
+  const outflowResult = await db.execute<{ month_start: string; total: number }>(sql`
+    SELECT month_start, SUM(amount)::int AS total FROM (
+      SELECT date_trunc('month', ${loans.issuedOn})::date AS month_start, ${loans.amount} AS amount FROM ${loans}
+      UNION ALL
+      SELECT date_trunc('month', ${cases.resolvedAt})::date AS month_start, ${cases.amount} AS amount FROM ${cases}
+      WHERE ${cases.status} = 'disbursed' AND ${cases.caseType} = 'gift' AND ${cases.resolvedAt} IS NOT NULL
+    ) combined
+    WHERE month_start >= ${cutoff}::date
+    GROUP BY month_start
+  `);
+
+  const inflowMap = new Map(inflowRows.map((r) => [String(r.monthStart), Number(r.total)]));
+  const outflowMap = new Map(outflowResult.rows.map((r) => [String(r.month_start), Number(r.total)]));
+
+  return months.map((m) => ({
+    label: m.label,
+    inflow: inflowMap.get(m.key) ?? 0,
+    outflow: outflowMap.get(m.key) ?? 0,
+  }));
+}
+
+async function FundFlowCard() {
+  const series = await getFundFlowSeries();
+  return (
+    <Card className="mb-6">
+      <CardHeader>
+        <div className="flex items-center gap-2.5">
+          <Wallet className="size-4 text-[var(--color-gold)]" />
+          <CardTitle>Fund flow — last 6 months</CardTitle>
+        </div>
+      </CardHeader>
+      <CardBody>
+        <FundFlowChart data={series} />
+      </CardBody>
+    </Card>
+  );
 }
 
 async function MemberStats({ memberId, totalFund }: { memberId: string; totalFund: number }) {

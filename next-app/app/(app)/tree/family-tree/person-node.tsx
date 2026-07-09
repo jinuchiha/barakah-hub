@@ -82,12 +82,12 @@ function Card({
           ? 'color-mix(in srgb, var(--color-gold-2) 55%, transparent)'
           : 'var(--border)';
   const boxShadow = isSelected
-    ? '0 0 0 3px rgba(200,155,60,0.20), 0 0 26px rgba(200,155,60,0.18), 0 10px 26px rgba(0,0,0,0.4)'
+    ? '0 0 0 3px rgba(200,155,60,0.20), 0 0 26px rgba(200,155,60,0.18), 0 10px 26px var(--tree-shadow-ambient)'
     : isMatched
       ? '0 0 0 3px color-mix(in srgb, var(--tree-blue) 28%, transparent), 0 0 22px color-mix(in srgb, var(--tree-blue) 30%, transparent)'
       : inBloodline
-        ? '0 0 18px rgba(200,155,60,0.14), 0 10px 26px rgba(0,0,0,0.35)'
-        : '0 1px 0 rgba(255,255,255,0.03) inset, 0 10px 26px rgba(0,0,0,0.35)';
+        ? '0 0 18px rgba(200,155,60,0.14), 0 10px 26px var(--tree-shadow-ambient)'
+        : '0 1px 0 rgba(255,255,255,0.03) inset, 0 10px 26px var(--tree-shadow-ambient)';
 
   return (
     <div
@@ -207,7 +207,7 @@ export default function PersonNode({ data }: NodeProps<PersonFlowNode>) {
             background: 'var(--surf-1)',
             borderColor: 'color-mix(in srgb, var(--color-gold-2) 60%, transparent)',
             color: 'var(--color-gold-2)',
-            boxShadow: '0 2px 10px rgba(0,0,0,0.45)',
+            boxShadow: '0 2px 10px var(--tree-shadow-contact)',
           }}
         >
           {isExpanded ? '−' : `+${childCount}`}

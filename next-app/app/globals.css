@@ -61,6 +61,14 @@
   --border-2: rgba(255,255,255,0.16);                 /* emphasized */
   --border-accent: rgba(200,155,60,0.38);             /* used sparingly */
   --tree-blue: #5b8def;      /* family-tree search-match accent — gold stays primary */
+
+  /* Motion tokens — one shared vocabulary so every surface eases the
+     same way. glide = decelerating settle, spring = slight overshoot. */
+  --dur-fast: 150ms;
+  --dur-base: 250ms;
+  --dur-slow: 450ms;
+  --ease-glide: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-spring: cubic-bezier(0.34, 1.35, 0.4, 1);
 }
 
 .light {
@@ -133,6 +141,8 @@ html, body {
   background-attachment: fixed;
   color: var(--color-cream);
   font-family: var(--font-body);
+  /* Money app: digits align in columns everywhere a font supports it. */
+  font-variant-numeric: tabular-nums;
   font-size: 14px;
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
@@ -430,6 +440,14 @@ select:focus-visible {
 .animate-enter-delay-2 { animation: fadeSlideUp 0.28s 0.10s cubic-bezier(0.16,1,0.3,1) both; }
 .animate-enter-delay-3 { animation: fadeSlideUp 0.28s 0.15s cubic-bezier(0.16,1,0.3,1) both; }
 .animate-fade-in { animation: fadeIn 0.20s ease both; }
+
+/* Command palette panel — mounts fresh on every open (Radix unmounts on
+   close), so a plain entrance animation is enough; no exit state needed. */
+@keyframes cmdkPanelIn {
+  from { opacity: 0; transform: translate(-50%, -6px) scale(0.98); }
+  to   { opacity: 1; transform: translate(-50%, 0) scale(1); }
+}
+.cmdk-panel-in { animation: cmdkPanelIn 0.15s cubic-bezier(0.16,1,0.3,1) both; }
 
 /* ── Button pressed state ── */
 button:active:not(:disabled),

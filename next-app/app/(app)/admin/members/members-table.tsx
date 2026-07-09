@@ -2,10 +2,11 @@
 import { useCallback, useState, useMemo, useTransition } from 'react';
 import Link from 'next/link';
 import type { Route } from 'next';
-import { Search, Pencil, Trash2, MessageCircle, Plus, ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-react';
+import { Search, Pencil, Trash2, MessageCircle, Plus, ChevronUp, ChevronDown, ChevronsUpDown, Users } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardBody } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { EmptyState } from '@/components/ui/empty-state';
 import { fmtRs } from '@/lib/i18n/dict';
 import { ini, normalizePkPhone } from '@/lib/utils';
 import { hardDeleteMember } from '@/app/actions';
@@ -149,73 +150,78 @@ export default function MembersTable({ initial }: Props) {
           <Select value={city} onChange={setCity} options={[{ value: '', label: 'All Cities' }, ...cities.map(c => ({ value: c, label: c }))]} />
           <Button variant="ghost" size="sm" onClick={reset}>↺</Button>
         </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-[var(--border)] bg-[rgba(214,210,199,0.04)] text-left">
-                <th className="w-10 px-4 py-3 text-[10px] font-bold uppercase tracking-[1.5px] text-[var(--txt-4)]">#</th>
-                <SortTh label="Member"   col="name"   sortKey={sortKey} dir={sortDir} onSort={toggleSort} />
-                <SortTh label="Father"   col="father" sortKey={sortKey} dir={sortDir} onSort={toggleSort} />
-                <SortTh label="Location" col="city"   sortKey={sortKey} dir={sortDir} onSort={toggleSort} />
-                <SortTh label="Monthly"  col="pledge" sortKey={sortKey} dir={sortDir} onSort={toggleSort} right />
-                <SortTh label="Status"   col="status" sortKey={sortKey} dir={sortDir} onSort={toggleSort} />
-                <th className="w-32 px-4 py-3 text-[10px] font-bold uppercase tracking-[1.5px] text-[var(--txt-4)]">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
+        {living.length === 0 ? (
+          <EmptyState icon={<Users />} title="No members match these filters" />
+        ) : (
+          <>
+            {/* Mobile cards — below md the dense table would need horizontal scroll,
+                so each row collapses into a compact card instead. */}
+            <div className="divide-y divide-[var(--border)] md:hidden">
               {living.map((m, i) => (
-                <tr key={m.id} className="table-row-hover border-b border-[var(--border)]">
-                  <td className="px-4 py-2 font-[var(--font-en)] text-xs text-[var(--color-gold-4)]">{i + 1}</td>
-                  <td className="px-4 py-2">
-                    <Link href={`/admin/members/${m.id}` as Route} className="group/name flex items-center gap-2.5">
-                      <div className="grid size-7 shrink-0 place-items-center overflow-hidden rounded-full text-[10px] font-bold text-white" style={{ background: m.color }}>
-                        {m.photoUrl ? <img src={m.photoUrl} alt={m.nameEn || m.nameUr || 'Member photo'} className="size-full rounded-full object-cover" /> : ini(m.nameEn || m.nameUr)}
-                      </div>
-                      <div>
-                        <div className="text-sm font-semibold text-[var(--color-cream)] transition-colors group-hover/name:text-[var(--color-gold-2)]">{m.nameEn || m.nameUr}</div>
-                        {m.relation ? <div className="text-[10px] text-[var(--txt-3)]">{m.relation}</div> : null}
-                      </div>
-                    </Link>
-                  </td>
-                  <td className="px-4 py-2 text-xs text-[var(--txt-2)]">{m.fatherName === '—' ? '' : m.fatherName}</td>
-                  <td className="px-4 py-2 text-xs text-[var(--txt-3)]">{m.city ?? ''}{m.province ? <><br /><span className="opacity-70">{m.province}</span></> : null}</td>
-                  <td className="px-4 py-2 text-right font-[var(--font-display)] text-[var(--color-gold)]">{fmtRs(m.monthlyPledge)}</td>
-                  <td className="px-4 py-2">
-                    <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${m.role === 'admin' ? 'bg-[rgba(214,210,199,0.15)] text-[var(--color-gold)]' : m.status === 'approved' ? 'bg-[rgba(30,42,74,0.15)] text-[var(--color-emerald-2)]' : 'bg-[rgba(214,210,199,0.1)] text-[var(--color-gold-2)]'}`}>
-                      {m.deceased ? 'Deceased' : m.role === 'admin' ? 'Admin' : m.status === 'approved' ? 'Active' : 'Pending'}
-                    </span>
-                  </td>
-                  <td className="px-4 py-2">
-                    <div className="flex gap-1">
-                      <button
-                        type="button"
-                        title="Edit"
-                        aria-label={`Edit ${m.nameEn || m.nameUr}`}
-                        onClick={() => setDialog({ kind: 'edit', member: m })}
-                        className="rounded p-1.5 hover:bg-[rgba(214,210,199,0.1)]"
-                      >
-                        <Pencil className="size-3.5 text-[var(--txt-2)]" />
-                      </button>
-                      {m.phone && (
-                        <button type="button" title="WhatsApp" aria-label={`Send WhatsApp to ${m.nameEn || m.nameUr}`} onClick={() => whatsapp(m)} className="rounded p-1.5 hover:bg-[rgba(37,211,102,0.15)]">
-                          <MessageCircle className="size-3.5 text-[#25d366]" />
-                        </button>
-                      )}
-                      {m.role !== 'admin' && (
-                        <button type="button" title="Delete" aria-label={`Delete ${m.nameEn || m.nameUr}`} onClick={() => confirmDelete(m)} disabled={pending} className="rounded p-1.5 hover:bg-[rgba(220,50,50,0.15)] disabled:opacity-50">
-                          <Trash2 className="size-3.5 text-[#f87171]" />
-                        </button>
-                      )}
-                    </div>
-                  </td>
-                </tr>
+                <MemberCard
+                  key={m.id}
+                  member={m}
+                  index={i}
+                  pending={pending}
+                  onEdit={() => setDialog({ kind: 'edit', member: m })}
+                  onWhatsapp={() => whatsapp(m)}
+                  onDelete={() => confirmDelete(m)}
+                />
               ))}
-              {living.length === 0 && (
-                <tr><td colSpan={7} className="p-10 text-center italic text-[var(--txt-3)]">No members match these filters.</td></tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+            </div>
+
+            <div className="hidden overflow-x-auto md:block">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-[var(--border)] bg-[rgba(214,210,199,0.04)] text-left">
+                    <th className="w-10 px-4 py-3 text-[10px] font-bold uppercase tracking-[1.5px] text-[var(--txt-4)]">#</th>
+                    <SortTh label="Member"   col="name"   sortKey={sortKey} dir={sortDir} onSort={toggleSort} />
+                    <SortTh label="Father"   col="father" sortKey={sortKey} dir={sortDir} onSort={toggleSort} />
+                    <SortTh label="Location" col="city"   sortKey={sortKey} dir={sortDir} onSort={toggleSort} />
+                    <SortTh label="Monthly"  col="pledge" sortKey={sortKey} dir={sortDir} onSort={toggleSort} right />
+                    <SortTh label="Status"   col="status" sortKey={sortKey} dir={sortDir} onSort={toggleSort} />
+                    <th className="w-32 px-4 py-3 text-[10px] font-bold uppercase tracking-[1.5px] text-[var(--txt-4)]">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {living.map((m, i) => (
+                    <tr key={m.id} className="table-row-hover border-b border-[var(--border)]">
+                      <td className="px-4 py-2 font-[var(--font-en)] text-xs text-[var(--color-gold-4)]">{i + 1}</td>
+                      <td className="px-4 py-2">
+                        <Link href={`/admin/members/${m.id}` as Route} className="group/name flex items-center gap-2.5">
+                          <div className="grid size-7 shrink-0 place-items-center overflow-hidden rounded-full text-[10px] font-bold text-white" style={{ background: m.color }}>
+                            {m.photoUrl ? <img src={m.photoUrl} alt={m.nameEn || m.nameUr || 'Member photo'} className="size-full rounded-full object-cover" /> : ini(m.nameEn || m.nameUr)}
+                          </div>
+                          <div>
+                            <div className="text-sm font-semibold text-[var(--color-cream)] transition-colors group-hover/name:text-[var(--color-gold-2)]">{m.nameEn || m.nameUr}</div>
+                            {m.relation ? <div className="text-[10px] text-[var(--txt-3)]">{m.relation}</div> : null}
+                          </div>
+                        </Link>
+                      </td>
+                      <td className="px-4 py-2 text-xs text-[var(--txt-2)]">{m.fatherName === '—' ? '' : m.fatherName}</td>
+                      <td className="px-4 py-2 text-xs text-[var(--txt-3)]">{m.city ?? ''}{m.province ? <><br /><span className="opacity-70">{m.province}</span></> : null}</td>
+                      <td className="px-4 py-2 text-right font-[var(--font-display)] text-[var(--color-gold)]">{fmtRs(m.monthlyPledge)}</td>
+                      <td className="px-4 py-2">
+                        <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${m.role === 'admin' ? 'bg-[rgba(214,210,199,0.15)] text-[var(--color-gold)]' : m.status === 'approved' ? 'bg-[rgba(30,42,74,0.15)] text-[var(--color-emerald-2)]' : 'bg-[rgba(214,210,199,0.1)] text-[var(--color-gold-2)]'}`}>
+                          {m.deceased ? 'Deceased' : m.role === 'admin' ? 'Admin' : m.status === 'approved' ? 'Active' : 'Pending'}
+                        </span>
+                      </td>
+                      <td className="px-4 py-2">
+                        <RowActions
+                          member={m}
+                          pending={pending}
+                          onEdit={() => setDialog({ kind: 'edit', member: m })}
+                          onWhatsapp={() => whatsapp(m)}
+                          onDelete={() => confirmDelete(m)}
+                        />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )}
       </CardBody>
     </Card>
 
@@ -366,5 +372,95 @@ function SortTh({ label, col, sortKey, dir, onSort, right }: {
         {!right && <Icon className="size-3" aria-hidden />}
       </span>
     </th>
+  );
+}
+
+interface RowActionsProps {
+  member: Member;
+  pending: boolean;
+  onEdit: () => void;
+  onWhatsapp: () => void;
+  onDelete: () => void;
+}
+
+/** Edit/WhatsApp/Delete icon buttons — shared between the desktop table row and the mobile card. */
+function RowActions({ member: m, pending, onEdit, onWhatsapp, onDelete }: RowActionsProps) {
+  return (
+    <div className="flex gap-1">
+      <button
+        type="button"
+        title="Edit"
+        aria-label={`Edit ${m.nameEn || m.nameUr}`}
+        onClick={onEdit}
+        className="rounded p-1.5 hover:bg-[rgba(214,210,199,0.1)]"
+      >
+        <Pencil className="size-3.5 text-[var(--txt-2)]" />
+      </button>
+      {m.phone && (
+        <button type="button" title="WhatsApp" aria-label={`Send WhatsApp to ${m.nameEn || m.nameUr}`} onClick={onWhatsapp} className="rounded p-1.5 hover:bg-[rgba(37,211,102,0.15)]">
+          <MessageCircle className="size-3.5 text-[#25d366]" />
+        </button>
+      )}
+      {m.role !== 'admin' && (
+        <button type="button" title="Delete" aria-label={`Delete ${m.nameEn || m.nameUr}`} onClick={onDelete} disabled={pending} className="rounded p-1.5 hover:bg-[rgba(220,50,50,0.15)] disabled:opacity-50">
+          <Trash2 className="size-3.5 text-[#f87171]" />
+        </button>
+      )}
+    </div>
+  );
+}
+
+interface MemberCardProps {
+  member: Member;
+  index: number;
+  pending: boolean;
+  onEdit: () => void;
+  onWhatsapp: () => void;
+  onDelete: () => void;
+}
+
+/** Mobile row-collapse for the main members table — avatar+name header,
+ *  key facts as label/value pairs, actions row at the bottom. */
+function MemberCard({ member: m, index, pending, onEdit, onWhatsapp, onDelete }: MemberCardProps) {
+  const statusLabel = m.deceased ? 'Deceased' : m.role === 'admin' ? 'Admin' : m.status === 'approved' ? 'Active' : 'Pending';
+  const statusClass = m.role === 'admin'
+    ? 'bg-[rgba(214,210,199,0.15)] text-[var(--color-gold)]'
+    : m.status === 'approved'
+      ? 'bg-[rgba(30,42,74,0.15)] text-[var(--color-emerald-2)]'
+      : 'bg-[rgba(214,210,199,0.1)] text-[var(--color-gold-2)]';
+
+  return (
+    <div className="p-4">
+      <Link href={`/admin/members/${m.id}` as Route} className="group/name mb-3 flex items-center gap-2.5">
+        <span className="font-[var(--font-en)] text-[10px] text-[var(--color-gold-4)]">{index + 1}</span>
+        <div className="grid size-8 shrink-0 place-items-center overflow-hidden rounded-full text-[10px] font-bold text-white" style={{ background: m.color }}>
+          {m.photoUrl ? <img src={m.photoUrl} alt={m.nameEn || m.nameUr || 'Member photo'} className="size-full rounded-full object-cover" /> : ini(m.nameEn || m.nameUr)}
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="truncate text-sm font-semibold text-[var(--color-cream)] transition-colors group-hover/name:text-[var(--color-gold-2)]">{m.nameEn || m.nameUr}</div>
+          {m.relation ? <div className="text-[10px] text-[var(--txt-3)]">{m.relation}</div> : null}
+        </div>
+        <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold ${statusClass}`}>{statusLabel}</span>
+      </Link>
+
+      <div className="grid grid-cols-2 gap-2 text-xs">
+        <div>
+          <div className="text-[10px] uppercase tracking-[1px] text-[var(--txt-4)]">Father</div>
+          <div className="text-[var(--txt-2)]">{m.fatherName === '—' ? '—' : m.fatherName}</div>
+        </div>
+        <div>
+          <div className="text-[10px] uppercase tracking-[1px] text-[var(--txt-4)]">Location</div>
+          <div className="text-[var(--txt-3)]">{m.city ?? '—'}{m.province ? <span className="opacity-70"> · {m.province}</span> : null}</div>
+        </div>
+        <div>
+          <div className="text-[10px] uppercase tracking-[1px] text-[var(--txt-4)]">Monthly</div>
+          <div className="font-[var(--font-display)] text-[var(--color-gold)]">{fmtRs(m.monthlyPledge)}</div>
+        </div>
+      </div>
+
+      <div className="mt-3 flex justify-end border-t border-[var(--border)] pt-2">
+        <RowActions member={m} pending={pending} onEdit={onEdit} onWhatsapp={onWhatsapp} onDelete={onDelete} />
+      </div>
+    </div>
   );
 }
