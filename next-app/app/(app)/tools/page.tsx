@@ -1,12 +1,18 @@
 export const dynamic = 'force-dynamic';
 
+import { and, eq } from 'drizzle-orm';
 import { getMeOrRedirect } from '@/lib/auth-server';
+import { db } from '@/lib/db';
+import { members } from '@/lib/db/schema';
 import { Card, CardHeader, CardTitle, CardBody } from '@/components/ui/card';
 import { formatHijriDate } from '@/lib/hijri';
 import { getDailyVerse } from '@/lib/quran';
 import { t } from '@/lib/i18n/dict';
 import { getLocale } from '@/lib/i18n/server';
 import ZakatCalc from './zakat-calc';
+import FitranaCalc from './fitrana-calc';
+import QiblaCompass from './qibla-compass';
+import TasbeehCounter from './tasbeeh-counter';
 import { PrayerTimesCard } from '@/components/prayer-times-card';
 
 export const metadata = { title: 'Islamic Tools · Barakah Hub' };
@@ -18,6 +24,8 @@ export default async function ToolsPage() {
   const today = new Date();
   const hijriDate = formatHijriDate(today);
   const verse = getDailyVerse();
+  // Living approved family members — the "whole family" quick-set in Fitrana.
+  const familyCount = await db.$count(members, and(eq(members.status, 'approved'), eq(members.deceased, false)));
 
   return (
     <div className="mx-auto w-full max-w-4xl lg:max-w-6xl">
@@ -60,6 +68,36 @@ export default async function ToolsPage() {
           </CardHeader>
           <CardBody>
             <ZakatCalc />
+          </CardBody>
+        </Card>
+
+        {/* Fitrana Calculator */}
+        <Card>
+          <CardHeader>
+            <CardTitle>{t('tools.fitrana', locale)}</CardTitle>
+          </CardHeader>
+          <CardBody>
+            <FitranaCalc familyCount={familyCount} />
+          </CardBody>
+        </Card>
+
+        {/* Qibla Direction */}
+        <Card>
+          <CardHeader>
+            <CardTitle>{t('tools.qibla', locale)}</CardTitle>
+          </CardHeader>
+          <CardBody>
+            <QiblaCompass />
+          </CardBody>
+        </Card>
+
+        {/* Tasbeeh Counter */}
+        <Card>
+          <CardHeader>
+            <CardTitle>{t('tools.tasbeeh', locale)}</CardTitle>
+          </CardHeader>
+          <CardBody>
+            <TasbeehCounter />
           </CardBody>
         </Card>
 

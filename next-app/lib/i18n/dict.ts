@@ -123,6 +123,9 @@ export const DICT = {
   'tools.prayer':     ['اوقاتِ نماز', 'Prayer Times'],
   'tools.zakat':      ['زکوٰۃ کیلکولیٹر', 'Zakat Calculator'],
   'tools.verse':      ['آج کی آیت', 'Daily Verse'],
+  'tools.fitrana':    ['فطرانہ کیلکولیٹر', 'Fitrana Calculator'],
+  'tools.qibla':      ['سمتِ قبلہ', 'Qibla Direction'],
+  'tools.tasbeeh':    ['تسبیح کاؤنٹر', 'Tasbeeh Counter'],
 
   // Tree
   'tree.title':       ['خاندانی شجرہ', 'Family Tree'],
