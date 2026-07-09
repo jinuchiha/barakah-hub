@@ -242,15 +242,19 @@ function TreeCanvas({ members, paidBy, viewerId, viewerIsAdmin }: Props) {
           >
             <Background variant={BackgroundVariant.Dots} gap={28} size={1} color="rgba(200,155,60,0.10)" />
             <Controls showInteractive={false} className={styles.controls} />
-            <MiniMap
-              pannable
-              zoomable
-              className={styles.minimap}
-              bgColor="var(--surf-1)"
-              maskColor="color-mix(in srgb, var(--surf-2) 75%, transparent)"
-              nodeColor="var(--color-gold-4)"
-              nodeStrokeColor="transparent"
-            />
+            {/* The minimap only earns its corner once the tree outgrows one
+                screen — on a small family it's just a stray box. */}
+            {nodes.length > 12 && (
+              <MiniMap
+                pannable
+                zoomable
+                className={styles.minimap}
+                bgColor="var(--surf-1)"
+                maskColor="color-mix(in srgb, var(--surf-2) 75%, transparent)"
+                nodeColor="var(--color-gold-4)"
+                nodeStrokeColor="transparent"
+              />
+            )}
           </ReactFlow>
         )}
       </div>
