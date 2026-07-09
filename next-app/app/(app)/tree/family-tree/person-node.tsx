@@ -18,6 +18,12 @@ export interface PersonNodeData extends Record<string, unknown> {
   selectedId: string | null;
   matchedIds: Set<string>;
   isRoot: boolean;
+  inBloodline: boolean;
+  /** Bloodline highlight is active and this node is NOT part of it. */
+  fade: boolean;
+  /** Play the bloom entrance animation (initial growth or a new member). */
+  grow: boolean;
+  growDelay: string;
   paidBy: Record<string, number>;
   viewerIsAdmin: boolean;
   viewerId: string;
@@ -61,23 +67,27 @@ function Avatar({ m }: { m: Member }) {
 }
 
 function Card({
-  m, isRoot, isSelected, isMatched, dim, onSelect, paidBy, viewerIsAdmin, viewerId,
+  m, isRoot, isSelected, isMatched, inBloodline, dim, onSelect, paidBy, viewerIsAdmin, viewerId,
 }: {
-  m: Member; isRoot?: boolean; isSelected: boolean; isMatched: boolean; dim: boolean;
+  m: Member; isRoot?: boolean; isSelected: boolean; isMatched: boolean; inBloodline: boolean; dim: boolean;
   onSelect: () => void; paidBy: Record<string, number>; viewerIsAdmin: boolean; viewerId: string;
 }) {
   const borderColor = isSelected
     ? 'var(--color-gold)'
     : isMatched
       ? 'var(--tree-blue)'
-      : isRoot
-        ? 'color-mix(in srgb, var(--color-gold-2) 55%, transparent)'
-        : 'var(--border)';
+      : inBloodline
+        ? 'color-mix(in srgb, var(--color-gold) 55%, transparent)'
+        : isRoot
+          ? 'color-mix(in srgb, var(--color-gold-2) 55%, transparent)'
+          : 'var(--border)';
   const boxShadow = isSelected
     ? '0 0 0 3px rgba(200,155,60,0.20), 0 0 26px rgba(200,155,60,0.18), 0 10px 26px rgba(0,0,0,0.4)'
     : isMatched
       ? '0 0 0 3px color-mix(in srgb, var(--tree-blue) 28%, transparent), 0 0 22px color-mix(in srgb, var(--tree-blue) 30%, transparent)'
-      : '0 1px 0 rgba(255,255,255,0.03) inset, 0 10px 26px rgba(0,0,0,0.35)';
+      : inBloodline
+        ? '0 0 18px rgba(200,155,60,0.14), 0 10px 26px rgba(0,0,0,0.35)'
+        : '0 1px 0 rgba(255,255,255,0.03) inset, 0 10px 26px rgba(0,0,0,0.35)';
 
   return (
     <div
@@ -91,11 +101,14 @@ function Card({
         m.deceased && !dim && 'opacity-75',
       )}
       style={{
-        background: 'linear-gradient(160deg, var(--surf-1) 0%, color-mix(in srgb, var(--surf-1) 55%, var(--surf-2)) 100%)',
+        background: 'linear-gradient(160deg, color-mix(in srgb, var(--surf-1) 86%, transparent) 0%, color-mix(in srgb, var(--surf-1) 60%, transparent) 100%)',
+        backdropFilter: 'blur(8px)',
+        WebkitBackdropFilter: 'blur(8px)',
         borderColor,
         boxShadow,
       }}
     >
+      <span aria-hidden="true" className={styles.leaves} />
       {isRoot && (
         <span
           aria-hidden="true"
@@ -133,13 +146,18 @@ function Card({
 export default function PersonNode({ data }: NodeProps<PersonFlowNode>) {
   const {
     member, spouse, hasKids, childCount, isExpanded, dimMain, dimSpouse, selectedId, matchedIds,
-    isRoot, paidBy, viewerIsAdmin, viewerId, onToggle, onSelect,
+    isRoot, inBloodline, fade, grow, growDelay, paidBy, viewerIsAdmin, viewerId, onToggle, onSelect,
   } = data;
 
   return (
     <div
-      className="relative flex items-start justify-center pb-3"
-      style={{ width: spouse ? NODE_W_COUPLE : NODE_W_SINGLE }}
+      className={cn('relative flex items-start justify-center pb-3', grow && styles.bloom)}
+      style={{
+        width: spouse ? NODE_W_COUPLE : NODE_W_SINGLE,
+        opacity: fade ? 0.3 : undefined,
+        transition: 'opacity 0.3s ease',
+        ...(grow ? ({ '--gen-delay': growDelay } as React.CSSProperties) : null),
+      }}
     >
       <Handle type="target" position={Position.Top} style={hiddenHandle} />
       <Card
@@ -147,6 +165,7 @@ export default function PersonNode({ data }: NodeProps<PersonFlowNode>) {
         isRoot={isRoot}
         isSelected={selectedId === member.id}
         isMatched={matchedIds.has(member.id)}
+        inBloodline={inBloodline}
         dim={dimMain}
         onSelect={() => onSelect(member.id)}
         paidBy={paidBy}
@@ -169,6 +188,7 @@ export default function PersonNode({ data }: NodeProps<PersonFlowNode>) {
           m={spouse}
           isSelected={selectedId === spouse.id}
           isMatched={matchedIds.has(spouse.id)}
+          inBloodline={inBloodline}
           dim={dimSpouse}
           onSelect={() => onSelect(spouse.id)}
           paidBy={paidBy}
