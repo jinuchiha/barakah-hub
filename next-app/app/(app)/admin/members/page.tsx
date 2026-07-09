@@ -45,7 +45,11 @@ export default async function MembersPage({
   }
 
   const pending  = all.filter((m) => m.status === 'pending');
-  const approved = all.filter((m) => m.status === 'approved' && !m.deceased);
+  // "Active" counts contributing members — tree-only child records (no
+  // account, no pledge, linked to a parent) belong to Total, not Active.
+  const approved = all.filter(
+    (m) => m.status === 'approved' && !m.deceased && !(!m.authId && m.needsSetup && m.monthlyPledge === 0 && m.parentId),
+  );
   const total    = all.filter((m) => m.status !== 'rejected');
   // Real count even when rejected rows are filtered out of the main query.
   let rejectedCount = all.filter((m) => m.status === 'rejected').length;

@@ -1,5 +1,5 @@
 'use client';
-import { useState, useMemo, useTransition } from 'react';
+import { useCallback, useState, useMemo, useTransition } from 'react';
 import Link from 'next/link';
 import type { Route } from 'next';
 import { Search, Pencil, Trash2, MessageCircle, Plus, ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-react';
@@ -81,12 +81,30 @@ export default function MembersTable({ initial }: Props) {
     });
   }, [initial, q, status, province, city, sortKey, sortDir]);
 
+  // Tree-only child records (added via the parent's "Children" quick-add):
+  // no account, no pledge, linked to a parent. They belong in the family
+  // tree, not in the contributing-members roster — they get their own
+  // section below. Setting a pledge or linking an account promotes them
+  // back into the main list automatically.
+  const isDependent = useCallback(
+    (m: Member) => !m.authId && m.needsSetup && m.monthlyPledge === 0 && Boolean(m.parentId) && !m.deceased,
+    [],
+  );
+
   // Marhoom members live in their own quiet section below the main table —
   // mixing them into the active roster buries them among pledges/statuses
   // that no longer apply to them.
-  const living = useMemo(() => filtered.filter((m) => !m.deceased), [filtered]);
+  const living = useMemo(() => filtered.filter((m) => !m.deceased && !isDependent(m)), [filtered, isDependent]);
+  const dependents = useMemo(() => filtered.filter(isDependent), [filtered, isDependent]);
   const marhoom = useMemo(() => filtered.filter((m) => m.deceased), [filtered]);
-  const livingTotal = useMemo(() => initial.filter((m) => !m.deceased).length, [initial]);
+  const livingTotal = useMemo(() => initial.filter((m) => !m.deceased && !isDependent(m)).length, [initial, isDependent]);
+  const parentName = useCallback(
+    (m: Member) => {
+      const p = initial.find((x) => x.id === m.parentId);
+      return p ? (p.nameEn || p.nameUr) : null;
+    },
+    [initial],
+  );
 
   function reset() { setQ(''); setStatus(''); setProvince(''); setCity(''); }
 
@@ -200,6 +218,52 @@ export default function MembersTable({ initial }: Props) {
         </div>
       </CardBody>
     </Card>
+
+    {dependents.length > 0 && (
+      <Card className="mt-6">
+        <CardHeader>
+          <div className="flex items-baseline gap-2.5">
+            <CardTitle>Children</CardTitle>
+            <span className="text-[11px] text-[var(--txt-3)]">family tree only · no account, no pledge yet</span>
+          </div>
+          <span className="text-[10px] uppercase tracking-[1.5px] text-[var(--color-gold-4)]">{dependents.length}</span>
+        </CardHeader>
+        <CardBody className="p-0">
+          {dependents.map((m) => (
+            <div key={m.id} className="flex items-center gap-3 border-b border-[var(--border)] px-5 py-3 last:border-b-0 hover:bg-[var(--surf-3)] transition-colors">
+              <div
+                className="grid size-8 shrink-0 place-items-center overflow-hidden rounded-full text-[10px] font-bold text-white"
+                style={{ background: m.color }}
+              >
+                {m.photoUrl ? <img src={m.photoUrl} alt="" className="size-full rounded-full object-cover" /> : ini(m.nameEn || m.nameUr)}
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="truncate text-[13.5px] font-semibold text-[var(--color-cream)]">{m.nameUr || m.nameEn}</div>
+                <div className="mt-0.5 text-[11px] text-[var(--txt-3)]">
+                  {m.nameEn}
+                  {parentName(m) ? ` · child of ${parentName(m)}` : ''}
+                </div>
+              </div>
+              <span className="rounded-full border border-[var(--border)] px-2 py-0.5 text-[10px] text-[var(--txt-3)]">shows in tree</span>
+              <div className="flex gap-1">
+                <button
+                  type="button"
+                  title="Edit"
+                  aria-label={`Edit ${m.nameEn || m.nameUr}`}
+                  onClick={() => setDialog({ kind: 'edit', member: m })}
+                  className="rounded p-1.5 hover:bg-[rgba(214,210,199,0.1)]"
+                >
+                  <Pencil className="size-3.5 text-[var(--txt-2)]" />
+                </button>
+                <button type="button" title="Delete" aria-label={`Delete ${m.nameEn || m.nameUr}`} onClick={() => confirmDelete(m)} disabled={pending} className="rounded p-1.5 hover:bg-[rgba(220,50,50,0.15)] disabled:opacity-50">
+                  <Trash2 className="size-3.5 text-[#f87171]" />
+                </button>
+              </div>
+            </div>
+          ))}
+        </CardBody>
+      </Card>
+    )}
 
     {marhoom.length > 0 && (
       <Card className="mt-6">
