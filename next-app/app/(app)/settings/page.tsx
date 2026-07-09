@@ -22,20 +22,19 @@ export default async function SettingsPage() {
         <p className="mt-1 font-[var(--font-en)] text-sm italic text-[var(--color-gold-4)]">Settings & Preferences</p>
       </header>
 
+      <section className="mb-6">
+        <h2 className="mb-4 text-[13px] font-semibold uppercase tracking-[1.5px] text-[var(--color-gold-4)]">My Profile</h2>
+        <ProfileForm member={me} />
+      </section>
+
       <div className="lg:grid lg:grid-cols-2 lg:items-start lg:gap-6">
       <Card className="mb-4 lg:mb-0">
-        <CardHeader><CardTitle>My Profile</CardTitle></CardHeader>
-        <CardBody><ProfileForm member={me} /></CardBody>
-      </Card>
-
-      <div>
-      <Card className="mb-4">
         <CardHeader><CardTitle>Theme & Appearance</CardTitle></CardHeader>
         <CardBody><ThemePicker /></CardBody>
       </Card>
 
       {isAdmin && (
-        <Card className="mb-4">
+        <Card className="mb-4 lg:mb-0">
           <CardHeader>
             <CardTitle>Admin Configuration</CardTitle>
             <WhatsAppTestButton />
@@ -43,7 +42,6 @@ export default async function SettingsPage() {
           <CardBody><AdminConfigForm config={cfg ?? { id: 1, voteThresholdPct: 50, defaultMonthlyPledge: 1000, goalAmount: 0, goalLabelUr: null, goalLabelEn: null, goalDeadline: null, themePalette: 'gold', orgNameUr: 'بَرَكَة ہب', orgNameEn: 'Barakah Hub', easyPaiseName: null, easyPaiseNumber: null, updatedAt: new Date() }} /></CardBody>
         </Card>
       )}
-      </div>
       </div>
     </div>
   );

@@ -1,6 +1,6 @@
 'use client';
 import '@xyflow/react/dist/style.css';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ReactFlow, Background, BackgroundVariant, Controls, MiniMap, ReactFlowProvider, useReactFlow } from '@xyflow/react';
 import { Search } from 'lucide-react';
 import { fmtRs } from '@/lib/i18n/dict';
@@ -26,6 +26,23 @@ interface Props {
 const nodeTypes = { person: PersonNode };
 const edgeTypes = { family: FamilyEdge };
 
+// Ambient gold dust drifting up the canvas — fixed positions (not random)
+// so server and client render identically.
+const DUST = [
+  { left: '6%', top: '78%', delay: '0s', dur: '11s' },
+  { left: '14%', top: '32%', delay: '2.4s', dur: '14s' },
+  { left: '23%', top: '64%', delay: '5s', dur: '10s' },
+  { left: '34%', top: '22%', delay: '1.2s', dur: '13s' },
+  { left: '45%', top: '85%', delay: '3.6s', dur: '12s' },
+  { left: '55%', top: '40%', delay: '6.5s', dur: '15s' },
+  { left: '64%', top: '70%', delay: '0.8s', dur: '11s' },
+  { left: '73%', top: '28%', delay: '4.2s', dur: '13s' },
+  { left: '82%', top: '58%', delay: '7s', dur: '10s' },
+  { left: '91%', top: '80%', delay: '2s', dur: '14s' },
+  { left: '38%', top: '55%', delay: '8s', dur: '12s' },
+  { left: '68%', top: '90%', delay: '5.8s', dur: '15s' },
+];
+
 function TreeCanvas({ members, paidBy, viewerId, viewerIsAdmin }: Props) {
   const [q, setQ] = useState('');
   const [cityFilter, setCityFilter] = useState('');
@@ -34,7 +51,12 @@ function TreeCanvas({ members, paidBy, viewerId, viewerIsAdmin }: Props) {
   const [collapsed, setCollapsed] = useState<Set<string>>(() => new Set());
   const [selected, setSelected] = useState<string | null>(null);
   const [editTarget, setEditTarget] = useState<Member | null>(null);
-  const { setCenter } = useReactFlow();
+  const { setCenter, getZoom } = useReactFlow();
+
+  // Living-tree growth: play the generation-staggered entrance once per
+  // page open, then hand animation duties to the reflow transitions.
+  const [reduced] = useState(() => typeof window !== 'undefined' && Boolean(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches));
+  const [entered, setEntered] = useState(reduced);
 
   const cities = useMemo(
     () => [...new Set(members.map((m) => m.city).filter(Boolean) as string[])].sort(),
@@ -92,14 +114,75 @@ function TreeCanvas({ members, paidBy, viewerId, viewerIsAdmin }: Props) {
     });
   }, []);
 
+  // Bloodline of the selected person: their ancestor chain up to the root
+  // plus every descendant, with each couple's partner included. Everything
+  // outside it fades so the selected line glows through the whole tree.
+  const secondaryToPrimary = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const [primaryId, spouse] of primaryToSpouse) map.set(spouse.id, primaryId);
+    return map;
+  }, [primaryToSpouse]);
+
+  const bloodline = useMemo(() => {
+    if (!selected) return null;
+    const prim = (id: string) => secondaryToPrimary.get(id) ?? id;
+    const set = new Set<string>();
+    const addCouple = (id: string) => {
+      set.add(id);
+      const sp = primaryToSpouse.get(id);
+      if (sp) set.add(sp.id);
+    };
+    let cur: string | undefined = prim(selected);
+    while (cur && cur !== '__root') {
+      addCouple(cur);
+      cur = parentOf.get(cur);
+    }
+    const queue = [prim(selected)];
+    while (queue.length) {
+      const id = queue.shift()!;
+      for (const child of childrenOf.get(id) ?? []) {
+        const cid = prim(child.id);
+        if (set.has(cid)) continue;
+        addCouple(cid);
+        queue.push(cid);
+      }
+    }
+    return set;
+  }, [selected, secondaryToPrimary, primaryToSpouse, parentOf, childrenOf]);
+
+  // Members that appeared since the previous data load bloom in from their
+  // branch instead of the whole tree replaying its entrance. Uses the
+  // setState-during-render "derived from previous props" pattern — the
+  // extra render happens before commit, so the bloom class is present in
+  // the first painted frame.
+  const curIds = useMemo(() => new Set(entities.map((e) => e.id)), [entities]);
+  const [tracked, setTracked] = useState<{ ids: Set<string>; fresh: Set<string> | null }>({ ids: curIds, fresh: null });
+  if (tracked.ids !== curIds) {
+    const fresh = new Set<string>();
+    for (const id of curIds) if (!tracked.ids.has(id)) fresh.add(id);
+    setTracked({ ids: curIds, fresh: fresh.size > 0 && !reduced ? fresh : null });
+  }
+  const newIds = tracked.ids === curIds ? tracked.fresh : null;
+
+  const growAll = !entered && !reduced;
+
   const { nodes, edges } = useMemo(() => {
     const raw = buildFlowGraph({
       roots, childrenOf, primaryToSpouse, expanded: effectiveExpanded, visible,
-      selectedId: selected, matchedIds, paidBy, viewerIsAdmin, viewerId,
+      selectedId: selected, matchedIds, bloodline, growAll, newIds,
+      paidBy, viewerIsAdmin, viewerId,
       onToggle: toggle, onSelect: setSelected,
     });
     return layoutTree(raw.nodes, raw.edges);
-  }, [roots, childrenOf, primaryToSpouse, effectiveExpanded, visible, selected, matchedIds, paidBy, viewerIsAdmin, viewerId, toggle]);
+  }, [roots, childrenOf, primaryToSpouse, effectiveExpanded, visible, selected, matchedIds, bloodline, growAll, newIds, paidBy, viewerIsAdmin, viewerId, toggle]);
+
+  // End the entrance once the deepest generation has bloomed. Depth delays
+  // cap at 8 generations, so a fixed ceiling covers any family size.
+  useEffect(() => {
+    if (reduced) return;
+    const t = setTimeout(() => setEntered(true), 8 * 380 + 1400);
+    return () => clearTimeout(t);
+  }, [reduced]);
 
   // Keep the first search match centered as ancestor-expansion reflows the tree.
   useEffect(() => {
@@ -110,6 +193,20 @@ function TreeCanvas({ members, paidBy, viewerId, viewerIsAdmin }: Props) {
     const width = (node.data as PersonNodeData).spouse ? NODE_W_COUPLE : NODE_W_SINGLE;
     setCenter(node.position.x + width / 2, node.position.y + NODE_H / 2, { zoom: 1.15, duration: 650 });
   }, [nodes, matchedIds, setCenter]);
+
+  // Focus the selected branch: glide the camera to the clicked couple
+  // without changing the user's zoom level. Latest nodes are mirrored into
+  // a ref (inside an effect, per react-hooks/refs) so selecting doesn't
+  // re-center on every unrelated relayout.
+  const nodesRef = useRef(nodes);
+  useEffect(() => { nodesRef.current = nodes; }, [nodes]);
+  useEffect(() => {
+    if (!selected) return;
+    const node = nodesRef.current.find((n) => n.id === selected || (n.data as PersonNodeData).spouse?.id === selected);
+    if (!node) return;
+    const width = (node.data as PersonNodeData).spouse ? NODE_W_COUPLE : NODE_W_SINGLE;
+    setCenter(node.position.x + width / 2, node.position.y + NODE_H / 2, { zoom: getZoom(), duration: 550 });
+  }, [selected, setCenter, getZoom]);
 
   const selectedMember = selected ? entities.find((m) => m.id === selected) : null;
   const selectedSpouse = selectedMember?.spouseId ? entities.find((m) => m.id === selectedMember.spouseId) : null;
@@ -123,6 +220,13 @@ function TreeCanvas({ members, paidBy, viewerId, viewerIsAdmin }: Props) {
       />
 
       <div className={styles.wrapper} style={{ height: 'min(74vh, 720px)' }}>
+        {!reduced && DUST.map((p, i) => (
+          <span
+            key={i}
+            className={styles.dust}
+            style={{ left: p.left, top: p.top, animationDelay: p.delay, animationDuration: p.dur }}
+          />
+        ))}
         {nodes.length === 0 ? (
           <p className="grid h-full place-items-center text-sm italic text-[var(--txt-3)]">No members match the filter</p>
         ) : (
