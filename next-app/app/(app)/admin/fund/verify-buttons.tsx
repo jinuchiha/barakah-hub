@@ -41,11 +41,19 @@ export default function VerifyButtons({
 }) {
   const [pending, start] = useTransition();
   const [dialog, setDialog] = useState<DialogState>({ kind: 'none' });
+  const [done, setDone] = useState<'approved' | 'rejected' | 'verified' | null>(null);
 
   function call(fn: () => Promise<unknown>, successMsg: string) {
     start(async () => {
       try { await fn(); toast.success(successMsg); }
       catch (e: unknown) { toast.error(e instanceof Error ? e.message : 'Action failed'); }
+    });
+  }
+
+  function callOptimistic(fn: () => Promise<unknown>, successMsg: string, revert: () => void) {
+    start(async () => {
+      try { await fn(); toast.success(successMsg); }
+      catch (e: unknown) { revert(); toast.error(e instanceof Error ? e.message : 'Action failed'); }
     });
   }
 
@@ -55,19 +63,22 @@ export default function VerifyButtons({
         <div className="flex gap-1.5">
           <button
             type="button"
-            onClick={() => call(() => supervisorApprovePayment(paymentId), 'Approved · pending admin final')}
-            disabled={pending}
-            className="rounded-md bg-[rgba(45,138,95,0.15)] px-3 py-1.5 text-xs font-bold text-[#4ec38d] disabled:opacity-50 hover:bg-[rgba(45,138,95,0.25)]"
+            onClick={() => {
+              setDone('approved');
+              callOptimistic(() => supervisorApprovePayment(paymentId), 'Approved · pending admin final', () => setDone(null));
+            }}
+            disabled={pending || done !== null}
+            className={`rounded-md bg-[rgba(45,138,95,0.15)] px-3 py-1.5 text-xs font-bold text-[#4ec38d] transition-transform duration-150 ease-out active:scale-[0.98] disabled:opacity-50 hover:bg-[rgba(45,138,95,0.25)] ${done === 'approved' ? 'scale-[0.98]' : ''}`}
           >
-            ✓ Approve
+            {done === 'approved' ? '✓ Approved' : '✓ Approve'}
           </button>
           <button
             type="button"
             onClick={() => setDialog({ kind: 'reject-prompt' })}
-            disabled={pending}
-            className="rounded-md bg-[rgba(220,82,82,0.10)] px-3 py-1.5 text-xs font-bold text-[#f08585] disabled:opacity-50 hover:bg-[rgba(220,82,82,0.20)]"
+            disabled={pending || done !== null}
+            className={`rounded-md bg-[rgba(220,82,82,0.10)] px-3 py-1.5 text-xs font-bold text-[#f08585] transition-transform duration-150 ease-out active:scale-[0.98] disabled:opacity-50 hover:bg-[rgba(220,82,82,0.20)] ${done === 'rejected' ? 'scale-[0.98]' : ''}`}
           >
-            ✗ Reject
+            {done === 'rejected' ? '✓ Rejected' : '✗ Reject'}
           </button>
         </div>
         <PromptDialog
@@ -77,10 +88,14 @@ export default function VerifyButtons({
           description="Provide a reason for rejection (optional)."
           placeholder="e.g. Receipt unclear, amount mismatch…"
           confirmLabel="Reject"
-          onConfirm={(note) => call(
-            () => supervisorRejectPayment(paymentId, note || undefined),
-            'Rejected',
-          )}
+          onConfirm={(note) => {
+            setDone('rejected');
+            callOptimistic(
+              () => supervisorRejectPayment(paymentId, note || undefined),
+              'Rejected',
+              () => setDone(null),
+            );
+          }}
         />
       </>
     );
@@ -90,10 +105,18 @@ export default function VerifyButtons({
     return (
       <>
         <div className="flex gap-1.5">
-          <button type="button" onClick={() => call(() => verifyPayment(paymentId), 'Verified ✓')} disabled={pending} className="rounded-md bg-[rgba(45,138,95,0.15)] px-3 py-1 text-xs font-bold text-[#4ec38d] disabled:opacity-50 hover:bg-[rgba(45,138,95,0.25)]">
-            ✓ Verify
+          <button
+            type="button"
+            onClick={() => {
+              setDone('verified');
+              callOptimistic(() => verifyPayment(paymentId), 'Verified ✓', () => setDone(null));
+            }}
+            disabled={pending || done === 'verified'}
+            className={`rounded-md bg-[rgba(45,138,95,0.15)] px-3 py-1 text-xs font-bold text-[#4ec38d] transition-transform duration-150 ease-out active:scale-[0.98] disabled:opacity-50 hover:bg-[rgba(45,138,95,0.25)] ${done === 'verified' ? 'scale-[0.98]' : ''}`}
+          >
+            {done === 'verified' ? '✓ Verified' : '✓ Verify'}
           </button>
-          <button type="button" onClick={() => setDialog({ kind: 'delete-confirm' })} disabled={pending} className="rounded-md border border-[var(--border-2)] bg-transparent px-2.5 py-1 text-xs text-[var(--txt-3)] hover:border-[#dc5252]/40 hover:bg-red-500/10 hover:text-[#f08585] disabled:opacity-50">
+          <button type="button" onClick={() => setDialog({ kind: 'delete-confirm' })} disabled={pending} className="rounded-md border border-[var(--border-2)] bg-transparent px-2.5 py-1 text-xs text-[var(--txt-3)] hover:border-[#dc5252]/40 hover:bg-red-500/10 hover:text-[#f08585] disabled:opacity-50 transition-transform duration-150 ease-out active:scale-[0.98]">
             Delete
           </button>
         </div>

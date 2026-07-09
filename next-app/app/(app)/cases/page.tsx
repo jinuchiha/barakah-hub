@@ -1,10 +1,12 @@
 import { eq, desc, inArray } from 'drizzle-orm';
+import { ShieldCheck } from 'lucide-react';
 import { getMeOrRedirect } from '@/lib/auth-server';
 import { t } from '@/lib/i18n/dict';
 import { getLocale } from '@/lib/i18n/server';
 import { db } from '@/lib/db';
 import { members, cases, votes, config as configTbl } from '@/lib/db/schema';
 import { Card, CardHeader, CardTitle, CardBody } from '@/components/ui/card';
+import { EmptyState } from '@/components/ui/empty-state';
 import { Breadcrumb } from '@/components/breadcrumb';
 import { fmtRs } from '@/lib/i18n/dict';
 import VoteButtons from './vote-buttons';
@@ -75,7 +77,9 @@ export default async function CasesPage() {
 
       <div className="space-y-3">
         {allCases.length === 0 && (
-          <Card><CardBody className="py-10 text-center text-sm italic text-[var(--txt-3)]">الحمدللہ · اس وقت سب خیریت ہے · No emergency cases yet</CardBody></Card>
+          <Card><CardBody>
+            <EmptyState icon={<ShieldCheck />} title="No emergency cases yet" description="الحمدللہ · اس وقت سب خیریت ہے" />
+          </CardBody></Card>
         )}
         {allCases.map((c) => {
           const applicant = memById.get(c.applicantId);

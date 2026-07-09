@@ -10,9 +10,11 @@ import { db } from '@/lib/db';
 import { members, payments } from '@/lib/db/schema';
 import { Card, CardHeader, CardTitle, CardBody } from '@/components/ui/card';
 import { StatCard } from '@/components/stat-card';
+import { EmptyState } from '@/components/ui/empty-state';
 import { Breadcrumb } from '@/components/breadcrumb';
 import { fmtRs } from '@/lib/i18n/dict';
 import { ini } from '@/lib/utils';
+import { Receipt } from 'lucide-react';
 import RecordPaymentForm from './record-payment-form';
 import VerifyButtons from './verify-buttons';
 import { ExportLink } from '@/components/export-link';
@@ -426,7 +428,7 @@ export default async function FundPage() {
           <CardBody className="p-0">
             <div className="max-h-96 overflow-y-auto">
               {history.length === 0 ? (
-                <div className="py-10 text-center text-sm italic text-[var(--txt-3)]">No payments yet</div>
+                <EmptyState icon={<Receipt />} title="No payments yet" description="Verified payments will show up here." />
               ) : history.map((p) => {
                 const m = memById.get(p.memberId);
                 return (

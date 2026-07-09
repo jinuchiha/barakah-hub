@@ -7,6 +7,7 @@ import { Topbar } from '@/components/topbar';
 import { BarakahFieldMount } from '@/components/barakah-field-mount';
 import { VerseBar } from '@/components/verse-bar';
 import { TooltipProvider } from '@/components/ui/tooltip';
+import { CommandPalette } from '@/components/command-palette';
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const me = await getMeOrRedirect();
@@ -44,6 +45,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   return (
     <TooltipProvider delayDuration={200}>
+      <CommandPalette isAdmin={isAdmin} />
       <div className="flex h-screen flex-col">
         <Topbar
           user={{

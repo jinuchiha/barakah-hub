@@ -1,12 +1,13 @@
 import { redirect } from 'next/navigation';
 import type { Route } from 'next';
 import { eq, desc, asc } from 'drizzle-orm';
-import { FileText, CheckCircle2, AlertCircle } from 'lucide-react';
+import { FileText, CheckCircle2, AlertCircle, Coins } from 'lucide-react';
 import { getMeOrRedirect } from '@/lib/auth-server';
 import { db } from '@/lib/db';
 import { members, loans } from '@/lib/db/schema';
 import { Card, CardHeader, CardTitle, CardBody } from '@/components/ui/card';
 import { StatCard } from '@/components/stat-card';
+import { EmptyState } from '@/components/ui/empty-state';
 import { Breadcrumb } from '@/components/breadcrumb';
 import { fmtRs } from '@/lib/i18n/dict';
 import IssueLoanForm from './issue-loan-form';
@@ -62,7 +63,7 @@ export default async function LoansPage() {
         <CardHeader><CardTitle>Active Qarz</CardTitle></CardHeader>
         <CardBody className="p-0">
           {active.length === 0 && (
-            <div className="py-12 text-center text-sm italic text-[var(--txt-3)]">No active qarz · No outstanding loans</div>
+            <EmptyState icon={<Coins />} title="No active qarz" description="No outstanding loans right now." />
           )}
           {active.map((l) => {
             const m = memById.get(l.memberId);

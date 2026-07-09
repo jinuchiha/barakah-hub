@@ -20,6 +20,28 @@
   --xy-controls-button-color: var(--txt-2);
   --xy-controls-button-color-hover: var(--color-gold-2);
   --xy-controls-button-border-color: var(--border);
+
+  /* Shadow ink for the canvas — person-node inline styles reference these
+     so light mode can soften them without touching component code. */
+  --tree-shadow-ambient: rgba(0, 0, 0, 0.35);
+  --tree-shadow-contact: rgba(0, 0, 0, 0.45);
+}
+
+:global(html.light) .wrapper {
+  --tree-shadow-ambient: rgba(15, 22, 38, 0.12);
+  --tree-shadow-contact: rgba(15, 22, 38, 0.18);
+}
+
+:global(html.light) .wrapper .dust {
+  opacity: 0;
+  animation-name: dustFloatLight;
+}
+
+@keyframes dustFloatLight {
+  0%   { transform: translateY(14px); opacity: 0; }
+  18%  { opacity: 0.5; }
+  65%  { opacity: 0.25; }
+  100% { transform: translateY(-52px); opacity: 0; }
 }
 
 .wrapper :global(.react-flow) {
