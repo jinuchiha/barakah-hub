@@ -21,13 +21,16 @@ export function SectionNote({ children }: { children: React.ReactNode }) {
   );
 }
 
-function ReadOnlyField({ label, value, lang }: { label: string; value: string; lang?: string }) {
+function ReadOnlyField({ label, value }: { label: string; value: string }) {
+  // Only flip to RTL when the value actually contains Arabic-script text —
+  // an English name forced RTL right-aligns awkwardly against its neighbours.
+  const isUrdu = /[؀-ۿ]/.test(value);
   return (
     <div>
       <Label>{label}</Label>
       <div
-        lang={lang}
-        dir={lang === 'ur' ? 'rtl' : undefined}
+        lang={isUrdu ? 'ur' : undefined}
+        dir={isUrdu ? 'rtl' : undefined}
         className="rounded-md border border-[var(--border)] bg-[var(--surf-3)] px-4 py-2.5 text-sm text-[var(--txt-2)]"
       >
         {value}
@@ -107,7 +110,7 @@ export function ProfileSection({ member, photoUrl, color, showColors, onToggleCo
 export function FamilySection({ member }: { member: Member }) {
   return (
     <div className="grid gap-3">
-      <ReadOnlyField label="Father's Name" value={member.fatherName} lang="ur" />
+      <ReadOnlyField label="Father's Name" value={member.fatherName} />
       <ReadOnlyField label="Relation" value={member.relation || '—'} />
       <div className="grid grid-cols-2 gap-3">
         <LinkBadge label="Parent link" linked={!!member.parentId} />

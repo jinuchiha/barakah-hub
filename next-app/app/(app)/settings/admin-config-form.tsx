@@ -41,7 +41,16 @@ export default function AdminConfigForm({ config }: { config: Config }) {
     <form onSubmit={save}>
       <div>
         <Label>Vote threshold for case approval: <span className="text-[var(--color-gold)]">{thresh}%</span></Label>
-        <input type="range" min={30} max={75} step={5} value={thresh} onChange={(e) => setThresh(parseInt(e.target.value))} className="w-full accent-[var(--color-gold-2)]" />
+        <input
+          type="range"
+          min={30}
+          max={75}
+          step={5}
+          value={thresh}
+          onChange={(e) => setThresh(parseInt(e.target.value))}
+          className="slider-gold mt-2 w-full"
+          style={{ '--fill': `${((thresh - 30) / 45) * 100}%` } as React.CSSProperties}
+        />
         <div className="mt-1 text-[10px] italic text-[var(--color-gold-4)]">Higher = more consensus needed. 50% = simple majority.</div>
       </div>
       <div className="mt-4 max-w-xs">
