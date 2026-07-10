@@ -44,12 +44,12 @@ export default function AdminConfigForm({ config }: { config: Config }) {
         <input type="range" min={30} max={75} step={5} value={thresh} onChange={(e) => setThresh(parseInt(e.target.value))} className="w-full accent-[var(--color-gold-2)]" />
         <div className="mt-1 text-[10px] italic text-[var(--color-gold-4)]">Higher = more consensus needed. 50% = simple majority.</div>
       </div>
-      <div className="mt-3">
+      <div className="mt-4 max-w-xs">
         <Label>Default monthly pledge (Rs.)</Label>
         <Input type="number" value={defaultMonthly} onChange={(e) => setDefaultMonthly(parseInt(e.target.value) || 0)} />
       </div>
       <div className="mt-5 border-t border-dashed border-[var(--border)] pt-4">
-        <div className="mb-2 font-[var(--font-display)] text-[10px] uppercase tracking-[2px] text-[var(--color-gold-4)]">FAMILY GOAL</div>
+        <div className="mb-2 text-[10px] font-semibold uppercase tracking-[1.5px] text-[var(--color-gold-4)]">FAMILY GOAL</div>
         <div className="grid gap-3 md:grid-cols-2">
           <div><Label>Goal label (Urdu)</Label><Input value={goalLabelUr} onChange={(e) => setGoalLabelUr(e.target.value)} placeholder="مثلاً: عید الفطر تک" dir="rtl" /></div>
           <div><Label>Goal label (English)</Label><Input value={goalLabelEn} onChange={(e) => setGoalLabelEn(e.target.value)} placeholder="e.g. Eid-ul-Fitr Goal" /></div>
@@ -58,7 +58,7 @@ export default function AdminConfigForm({ config }: { config: Config }) {
         </div>
       </div>
       <div className="mt-5 border-t border-dashed border-[var(--border)] pt-4">
-        <div className="mb-2 font-[var(--font-display)] text-[10px] uppercase tracking-[2px] text-[var(--color-gold-4)]">FAUTI FUND · فوتی فنڈ</div>
+        <div className="mb-2 text-[10px] font-semibold uppercase tracking-[1.5px] text-[var(--color-gold-4)]">FAUTI FUND · فوتی فنڈ</div>
         <p className="mb-3 text-[11px] text-[var(--txt-3)]">
           Kisi member ki wafat par unke ghar walon ko diya jane wala muqarrar payout. 0 = workflow band.
         </p>
@@ -69,7 +69,7 @@ export default function AdminConfigForm({ config }: { config: Config }) {
       </div>
       {/* EasyPaisa Collection Account */}
       <div className="mt-5 border-t border-dashed border-[var(--border)] pt-4">
-        <div className="mb-2 font-[var(--font-display)] text-[10px] uppercase tracking-[2px] text-[var(--color-gold-4)]">EASYPAISE COLLECTION ACCOUNT</div>
+        <div className="mb-2 text-[10px] font-semibold uppercase tracking-[1.5px] text-[var(--color-gold-4)]">EASYPAISE COLLECTION ACCOUNT</div>
         <p className="mb-3 text-[11px] text-[var(--txt-3)]">
           Supervisor ka personal EasyPaisa number yahan set karo. Members ko payment karte waqt yeh details dikhengi taaki woh seedha bhej sakein phir receipt upload karein.
         </p>
@@ -85,7 +85,9 @@ export default function AdminConfigForm({ config }: { config: Config }) {
         </div>
       </div>
 
-      <Button type="submit" variant="gold" className="mt-4" disabled={pending}>{pending ? 'Saving…' : 'Save Configuration'}</Button>
+      <div className="mt-5 flex justify-end border-t border-[var(--border)] pt-4">
+        <Button type="submit" variant="gold" disabled={pending}>{pending ? 'Saving…' : 'Save Configuration'}</Button>
+      </div>
     </form>
   );
 }

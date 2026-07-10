@@ -1,5 +1,6 @@
 'use client';
 import { useMemo, useState, useTransition } from 'react';
+import { Settings2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { updateProfile } from '@/app/actions';
 import type { Member } from '@/lib/db/schema';
@@ -20,7 +21,16 @@ function validate(form: FormState): FieldErrors {
   return errors;
 }
 
-export default function ProfileForm({ member }: { member: Member }) {
+interface ProfileFormProps {
+  member: Member;
+  isAdmin: boolean;
+  /** Rendered inside the Appearance card (theme picker — buttons only). */
+  appearance: React.ReactNode;
+  /** Rendered after the form, inside the same column (admin card — has its own <form>). */
+  children?: React.ReactNode;
+}
+
+export default function ProfileForm({ member, isAdmin, appearance, children }: ProfileFormProps) {
   const [pending, start] = useTransition();
   const [initial] = useState(() => toFormState(member));
   const [form, setForm] = useState(initial);
@@ -49,20 +59,28 @@ export default function ProfileForm({ member }: { member: Member }) {
     });
   }
 
+  const navSections = isAdmin
+    ? [...PROFILE_SECTIONS, { id: 'admin', label: 'Administration', icon: Settings2 }]
+    : PROFILE_SECTIONS;
+
   return (
-    <form onSubmit={save} className="xl:flex xl:items-start xl:gap-8">
-      <ProfileMiniNav sections={PROFILE_SECTIONS} />
+    <div className="xl:flex xl:items-start xl:gap-8">
+      <ProfileMiniNav sections={navSections} />
       <div className="min-w-0 flex-1">
-        <SectionsGrid
-          member={member}
-          form={form}
-          errors={errors}
-          showColors={showColors}
-          set={set}
-          onToggleColors={() => setShowColors((s) => !s)}
-        />
-        <ProfileSaveBar visible={dirty} pending={pending} onReset={reset} />
+        <form onSubmit={save}>
+          <SectionsGrid
+            member={member}
+            form={form}
+            errors={errors}
+            showColors={showColors}
+            set={set}
+            onToggleColors={() => setShowColors((s) => !s)}
+            appearance={appearance}
+          />
+          <ProfileSaveBar visible={dirty} pending={pending} onReset={reset} />
+        </form>
+        {children}
       </div>
-    </form>
+    </div>
   );
 }

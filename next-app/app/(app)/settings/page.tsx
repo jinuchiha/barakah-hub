@@ -1,12 +1,13 @@
-import WhatsAppTestButton from './whatsapp-test-button';
 import { eq } from 'drizzle-orm';
+import { Settings2 } from 'lucide-react';
 import { getMeOrRedirect } from '@/lib/auth-server';
 import { db } from '@/lib/db';
 import { config as configTbl } from '@/lib/db/schema';
-import { Card, CardHeader, CardTitle, CardBody } from '@/components/ui/card';
+import WhatsAppTestButton from './whatsapp-test-button';
 import ProfileForm from './profile-form';
 import ThemePicker from './theme-picker';
 import AdminConfigForm from './admin-config-form';
+import { SectionCard } from './profile-section-card';
 
 export const metadata = { title: 'Settings · Barakah Hub' };
 
@@ -17,32 +18,23 @@ export default async function SettingsPage() {
 
   return (
     <div className="mx-auto w-full max-w-2xl lg:max-w-6xl">
-      <header className="mb-6 border-b border-[var(--border)] pb-4">
+      <header className="mb-8 border-b border-[var(--border)] pb-5">
         <h1 className="font-[var(--font-arabic)] text-3xl text-[var(--color-gold-2)]">ترتیبات</h1>
         <p className="mt-1 font-[var(--font-en)] text-sm italic text-[var(--color-gold-4)]">Settings & Preferences</p>
       </header>
 
-      <section className="mb-6">
-        <h2 className="mb-4 text-[13px] font-semibold uppercase tracking-[1.5px] text-[var(--color-gold-4)]">My Profile</h2>
-        <ProfileForm member={me} />
-      </section>
-
-      <div className="lg:grid lg:grid-cols-2 lg:items-start lg:gap-6">
-      <Card className="mb-4 lg:mb-0">
-        <CardHeader><CardTitle>Theme & Appearance</CardTitle></CardHeader>
-        <CardBody><ThemePicker /></CardBody>
-      </Card>
-
-      {isAdmin && (
-        <Card className="mb-4 lg:mb-0">
-          <CardHeader>
-            <CardTitle>Admin Configuration</CardTitle>
-            <WhatsAppTestButton />
-          </CardHeader>
-          <CardBody><AdminConfigForm config={cfg ?? { id: 1, voteThresholdPct: 50, defaultMonthlyPledge: 1000, goalAmount: 0, goalLabelUr: null, goalLabelEn: null, goalDeadline: null, themePalette: 'gold', orgNameUr: 'بَرَكَة ہب', orgNameEn: 'Barakah Hub', easyPaiseName: null, easyPaiseNumber: null, updatedAt: new Date() }} /></CardBody>
-        </Card>
-      )}
-      </div>
+      {/* One continuous section grid — profile, family, contact, appearance,
+          and (admin-only) configuration all share the same card language,
+          gap rhythm, and mini-nav. */}
+      <ProfileForm member={me} isAdmin={isAdmin} appearance={<ThemePicker />}>
+        {isAdmin && (
+          <div className="mt-4">
+            <SectionCard id="admin" title="Admin Configuration" icon={Settings2} index={4} action={<WhatsAppTestButton />}>
+              <AdminConfigForm config={cfg ?? { id: 1, voteThresholdPct: 50, defaultMonthlyPledge: 1000, fautiAmount: 0, goalAmount: 0, goalLabelUr: null, goalLabelEn: null, goalDeadline: null, themePalette: 'gold', orgNameUr: 'بَرَكَة ہب', orgNameEn: 'Barakah Hub', easyPaiseName: null, easyPaiseNumber: null, updatedAt: new Date() }} />
+            </SectionCard>
+          </div>
+        )}
+      </ProfileForm>
     </div>
   );
 }

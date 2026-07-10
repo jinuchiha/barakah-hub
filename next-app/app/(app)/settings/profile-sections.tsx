@@ -12,6 +12,15 @@ export function FieldError({ message }: { message?: string }) {
   return <p className="mt-1 min-h-4 text-[11px] text-red-400">{message ?? ''}</p>;
 }
 
+/** One shared style for every in-card explanatory note — quiet bordered strip. */
+export function SectionNote({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="rounded-md border border-[var(--border)] bg-[rgba(214,210,199,0.03)] px-3 py-2.5 text-[11px] leading-relaxed text-[var(--txt-3)]">
+      {children}
+    </p>
+  );
+}
+
 function ReadOnlyField({ label, value, lang }: { label: string; value: string; lang?: string }) {
   return (
     <div>
@@ -90,7 +99,7 @@ export function ProfileSection({ member, photoUrl, color, showColors, onToggleCo
         )}
       </div>
       {showColors && <ColorSwatches color={color} onChange={onColorChange} />}
-      <p className="text-[11px] text-[var(--txt-4)]">Name changes require admin approval · contact your administrator.</p>
+      <SectionNote>Name changes require admin approval — contact your administrator.</SectionNote>
     </div>
   );
 }
@@ -104,56 +113,54 @@ export function FamilySection({ member }: { member: Member }) {
         <LinkBadge label="Parent link" linked={!!member.parentId} />
         <LinkBadge label="Spouse link" linked={!!member.spouseId} />
       </div>
-      <p className="rounded-md border border-[var(--border)] bg-[rgba(214,210,199,0.03)] px-3 py-2.5 text-[11px] text-[var(--txt-3)]">
+      <SectionNote>
         Lineage and family relationships are managed by admin — contact your administrator to update these.
-      </p>
+      </SectionNote>
     </div>
   );
 }
 
-interface ContactSectionProps {
+interface ContactAddressSectionProps {
   phone: string;
-  error?: string;
-  onChange: (v: string) => void;
-}
-
-export function ContactSection({ phone, error, onChange }: ContactSectionProps) {
-  return (
-    <div>
-      <Label htmlFor="prof-phone">Phone</Label>
-      <Input id="prof-phone" value={phone} maxLength={30} onChange={(e) => onChange(e.target.value)} placeholder="03xx-xxxxxxx" />
-      <FieldError message={error} />
-    </div>
-  );
-}
-
-interface AddressSectionProps {
   city: string;
   province: string;
+  phoneError?: string;
   cityError?: string;
+  onPhoneChange: (v: string) => void;
   onCityChange: (v: string) => void;
   onProvinceChange: (v: string) => void;
 }
 
-export function AddressSection({ city, province, cityError, onCityChange, onProvinceChange }: AddressSectionProps) {
+/** Phone + city + province in one card — three lonely fields in two
+ *  half-empty cards read as clutter, together they make one clean unit. */
+export function ContactAddressSection({
+  phone, city, province, phoneError, cityError, onPhoneChange, onCityChange, onProvinceChange,
+}: ContactAddressSectionProps) {
   return (
-    <div className="grid gap-3 sm:grid-cols-2">
+    <div className="grid gap-3">
       <div>
-        <Label htmlFor="prof-city">City</Label>
-        <Input id="prof-city" value={city} maxLength={60} onChange={(e) => onCityChange(e.target.value)} />
-        <FieldError message={cityError} />
+        <Label htmlFor="prof-phone">Phone</Label>
+        <Input id="prof-phone" value={phone} maxLength={30} onChange={(e) => onPhoneChange(e.target.value)} placeholder="03xx-xxxxxxx" />
+        <FieldError message={phoneError} />
       </div>
-      <div>
-        <Label htmlFor="prof-province">Province</Label>
-        <select
-          id="prof-province"
-          value={province}
-          onChange={(e) => onProvinceChange(e.target.value)}
-          className="w-full rounded-md border border-[var(--border)] bg-[var(--surf-3)] px-3 py-2.5 text-sm text-[var(--color-cream)]"
-        >
-          {PROVINCES.map((p) => <option key={p} value={p}>{p || 'Select province'}</option>)}
-        </select>
-        <FieldError />
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div>
+          <Label htmlFor="prof-city">City</Label>
+          <Input id="prof-city" value={city} maxLength={60} onChange={(e) => onCityChange(e.target.value)} />
+          <FieldError message={cityError} />
+        </div>
+        <div>
+          <Label htmlFor="prof-province">Province</Label>
+          <select
+            id="prof-province"
+            value={province}
+            onChange={(e) => onProvinceChange(e.target.value)}
+            className="w-full rounded-md border border-[var(--border)] bg-[var(--surf-3)] px-3 py-2.5 text-sm text-[var(--color-cream)]"
+          >
+            {PROVINCES.map((p) => <option key={p} value={p}>{p || 'Select province'}</option>)}
+          </select>
+          <FieldError />
+        </div>
       </div>
     </div>
   );
