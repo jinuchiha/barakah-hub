@@ -1,5 +1,4 @@
 import { eq } from 'drizzle-orm';
-import { Settings2 } from 'lucide-react';
 import { getMeOrRedirect } from '@/lib/auth-server';
 import { db } from '@/lib/db';
 import { config as configTbl } from '@/lib/db/schema';
@@ -7,7 +6,7 @@ import WhatsAppTestButton from './whatsapp-test-button';
 import ProfileForm from './profile-form';
 import ThemePicker from './theme-picker';
 import AdminConfigForm from './admin-config-form';
-import { SectionCard } from './profile-section-card';
+import { AdminSectionCard } from './admin-section-card';
 
 export const metadata = { title: 'Settings · Barakah Hub' };
 
@@ -29,9 +28,9 @@ export default async function SettingsPage() {
       <ProfileForm member={me} isAdmin={isAdmin} appearance={<ThemePicker />}>
         {isAdmin && (
           <div className="mt-4">
-            <SectionCard id="admin" title="Admin Configuration" icon={Settings2} index={4} action={<WhatsAppTestButton />}>
+            <AdminSectionCard action={<WhatsAppTestButton />}>
               <AdminConfigForm config={cfg ?? { id: 1, voteThresholdPct: 50, defaultMonthlyPledge: 1000, fautiAmount: 0, goalAmount: 0, goalLabelUr: null, goalLabelEn: null, goalDeadline: null, themePalette: 'gold', orgNameUr: 'بَرَكَة ہب', orgNameEn: 'Barakah Hub', easyPaiseName: null, easyPaiseNumber: null, updatedAt: new Date() }} />
-            </SectionCard>
+            </AdminSectionCard>
           </div>
         )}
       </ProfileForm>
