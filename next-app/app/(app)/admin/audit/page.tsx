@@ -114,8 +114,8 @@ export default async function AuditPage({ searchParams }: PageProps) {
   const exportHref = `/api/exports/audit${exportParams.toString() ? `?${exportParams}` : ''}`;
 
   return (
-    <div>
-      <header className="mb-6 flex flex-wrap items-start justify-between gap-3 border-b border-[var(--border)] pb-4">
+    <div className="mx-auto max-w-[1400px]">
+      <header className="mb-8 flex flex-wrap items-start justify-between gap-3 border-b border-[var(--border)] pb-5">
         <div>
           <h1 className="font-[var(--font-arabic)] text-3xl text-[var(--color-gold-2)]">آڈٹ لاگ</h1>
           <p className="mt-1 font-[var(--font-en)] text-sm italic text-[var(--color-gold-4)]">Tamper-evident activity journal · INSERT-only at DB layer</p>

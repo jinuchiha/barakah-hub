@@ -113,7 +113,7 @@ export default async function DashboardPage() {
 
   return (
     <div className="mx-auto max-w-[1400px]">
-      <header className="mb-7 flex flex-wrap items-end justify-between gap-3 border-b border-[var(--border)] pb-5">
+      <header className="mb-8 flex flex-wrap items-end justify-between gap-3 border-b border-[var(--border)] pb-5">
         <div>
           <div className="text-[11px] font-semibold uppercase tracking-[2px] text-[var(--txt-3)]">
             {isAdmin ? 'Administrator' : 'Member'} · Dashboard

@@ -21,7 +21,7 @@ export default async function SearchPage({ searchParams }: Props) {
   if (!term) {
     return (
       <div className="mx-auto w-full max-w-3xl lg:max-w-4xl">
-        <header className="mb-6 border-b border-[var(--border)] pb-4">
+        <header className="mb-8 border-b border-[var(--border)] pb-5">
           <h1 className="font-[var(--font-arabic)] text-3xl text-[var(--color-gold-2)]">تلاش</h1>
           <p className="mt-1 font-[var(--font-en)] text-sm italic text-[var(--color-gold-4)]">
             Searches members{isAdmin ? ', payments, cases, loans' : ' and cases'}.
@@ -98,7 +98,7 @@ export default async function SearchPage({ searchParams }: Props) {
 
   return (
     <div className="mx-auto w-full max-w-3xl lg:max-w-4xl">
-      <header className="mb-6 border-b border-[var(--border)] pb-4">
+      <header className="mb-8 border-b border-[var(--border)] pb-5">
         <h1 className="font-[var(--font-arabic)] text-3xl text-[var(--color-gold-2)]">تلاش</h1>
         <p className="mt-1 font-[var(--font-en)] text-sm italic text-[var(--color-gold-4)]">
           {totalHits} result{totalHits === 1 ? '' : 's'} for &quot;{term}&quot;

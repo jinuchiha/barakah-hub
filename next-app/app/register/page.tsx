@@ -20,7 +20,7 @@ export default async function RegisterPage() {
           </div>
           <CardBody>
             <RegisterForm />
-            <p className="mt-4 text-center text-xs italic text-[var(--color-gold-4)]">
+            <p className="mt-4 text-center text-[11px] text-[var(--txt-3)]">
               Already registered? <a href="/login" className="text-[var(--color-gold)] hover:underline">Sign in</a>
             </p>
           </CardBody>

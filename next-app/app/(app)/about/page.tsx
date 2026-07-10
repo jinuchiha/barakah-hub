@@ -51,7 +51,7 @@ export default async function AboutPage() {
   await getMeOrRedirect();
   return (
     <div className="mx-auto w-full max-w-3xl">
-      <header className="mb-6 border-b border-[var(--border)] pb-4">
+      <header className="mb-8 border-b border-[var(--border)] pb-5">
         <h1 className="font-[var(--font-arabic)] text-3xl text-[var(--color-gold-2)]">اس فنڈ کے بارے میں</h1>
         <p className="mt-1 font-[var(--font-en)] text-sm italic text-[var(--color-gold-4)]">Islamic basis of this family fund</p>
       </header>
@@ -88,7 +88,7 @@ export default async function AboutPage() {
       <Card className="mt-6">
         <CardHeader><CardTitle>How This Fund Works</CardTitle></CardHeader>
         <CardBody>
-          <div className="grid gap-3 text-sm text-[var(--txt-2)] sm:grid-cols-2">
+          <div className="grid gap-4 text-sm text-[var(--txt-2)] sm:grid-cols-2">
             {[
               ['Sadaqah', 'Monthly voluntary donations. Donor identity is hidden from other members per the principle of giving in secret.'],
               ['Zakat', 'Annual obligatory charity on qualifying wealth. Routed to eligible recipients through the admin.'],

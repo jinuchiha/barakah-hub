@@ -16,7 +16,7 @@ export default async function BroadcastPage() {
 
   return (
     <div className="max-w-2xl">
-      <header className="mb-6 border-b border-[var(--border)] pb-4">
+      <header className="mb-8 border-b border-[var(--border)] pb-5">
         <h1 className="font-[var(--font-arabic)] text-3xl text-[var(--color-gold-2)]">اعلان</h1>
         <p className="mt-1 font-[var(--font-en)] text-sm italic text-[var(--color-gold-4)]">Sends a notification to all {recipientCount} family members</p>
       </header>

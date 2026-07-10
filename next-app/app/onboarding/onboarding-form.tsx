@@ -65,7 +65,7 @@ export default function OnboardingForm({ existing }: Props) {
 
       {step === 1 && (
         <>
-          <p className="mb-4 text-xs italic text-[var(--color-gold-4)]">Your name + father&apos;s name. We use the father&apos;s name to build the family tree.</p>
+          <p className="mb-4 text-[11px] text-[var(--txt-3)]">Your name + father&apos;s name. We use the father&apos;s name to build the family tree.</p>
           <div className="grid gap-3 md:grid-cols-2">
             <div><Label>English Name *</Label><Input value={form.nameEn} onChange={(e) => set('nameEn', e.target.value)} placeholder="Ahmad Baloch" /></div>
             <div><Label>Urdu Name</Label><Input value={form.nameUr} onChange={(e) => set('nameUr', e.target.value)} dir="rtl" /></div>
@@ -77,7 +77,7 @@ export default function OnboardingForm({ existing }: Props) {
 
       {step === 2 && (
         <>
-          <p className="mb-4 text-xs italic text-[var(--color-gold-4)]">Phone enables WhatsApp reminders for vote and dues.</p>
+          <p className="mb-4 text-[11px] text-[var(--txt-3)]">Phone enables WhatsApp reminders for vote and dues.</p>
           <div className="grid gap-3 md:grid-cols-2">
             <div><Label>Phone *</Label><Input value={form.phone} onChange={(e) => set('phone', e.target.value)} placeholder="03xx-xxxxxxx" /></div>
             <div><Label>City *</Label><Input value={form.city} onChange={(e) => set('city', e.target.value)} /></div>

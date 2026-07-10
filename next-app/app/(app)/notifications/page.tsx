@@ -28,7 +28,7 @@ export default async function NotificationsPage() {
 
   return (
     <div className="mx-auto w-full max-w-2xl lg:max-w-3xl">
-      <header className="mb-6 flex flex-wrap items-start justify-between gap-3 border-b border-[var(--border)] pb-4">
+      <header className="mb-8 flex flex-wrap items-start justify-between gap-3 border-b border-[var(--border)] pb-5">
         <div>
           <h1 className="font-[var(--font-arabic)] text-3xl text-[var(--color-gold-2)]">اطلاعات</h1>
           <p className="mt-1 font-[var(--font-en)] text-sm italic text-[var(--color-gold-4)]">{unread} unread of {list.length}</p>
