@@ -215,6 +215,41 @@ a:focus-visible {
   }
 }
 
+/* Gold range slider — the native control's white track reads unstyled on
+   the ink canvas. Fill percentage comes from the component via --fill. */
+.slider-gold {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  border-radius: 9999px;
+  background: linear-gradient(
+    to right,
+    var(--color-gold) 0%,
+    var(--color-gold) var(--fill, 50%),
+    var(--surf-3) var(--fill, 50%)
+  );
+  border: 1px solid var(--border);
+  cursor: pointer;
+}
+.slider-gold::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--color-gold-2);
+  border: 2px solid var(--surf-2);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+}
+.slider-gold::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--color-gold-2);
+  border: 2px solid var(--surf-2);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+}
+
 /* Screen-reader-only utility */
 .sr-only {
   position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;

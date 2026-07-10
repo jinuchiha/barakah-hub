@@ -30,8 +30,8 @@ export default function ThemePicker() {
 
   return (
     <div>
-      <p className="mb-3 text-xs italic text-[var(--color-gold-4)]">
-        Appearance is saved on this device and applies instantly.
+      <p className="mb-3 text-[11px] text-[var(--txt-3)]">
+        Saved on this device · applies instantly.
       </p>
       <div className="grid gap-3 sm:grid-cols-2">
         {OPTIONS.map((o) => (
