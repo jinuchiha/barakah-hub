@@ -55,7 +55,7 @@ export default async function MemberDetailPage({ params }: { params: Promise<{ i
   const name = m.nameEn || m.nameUr;
 
   return (
-    <div className="mx-auto max-w-[1200px]">
+    <div className="mx-auto max-w-[1400px]">
       <Breadcrumb crumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Members', href: '/admin/members' }, { label: name }]} />
 
       {/* ── Identity header ── */}

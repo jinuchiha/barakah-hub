@@ -88,8 +88,8 @@ export default async function AnnualReportPage({ searchParams }: Props) {
   );
 
   return (
-    <div className="report-root print:bg-white print:text-black">
-      <div className="mb-6 flex flex-wrap items-start justify-between gap-3 border-b border-[var(--border)] pb-4 print:border-gray-300">
+    <div className="report-root mx-auto max-w-[1400px] print:bg-white print:text-black">
+      <div className="mb-8 flex flex-wrap items-start justify-between gap-3 border-b border-[var(--border)] pb-5 print:border-gray-300">
         <div>
           <h1 className="font-[var(--font-arabic)] text-3xl text-[var(--color-gold-2)] print:text-gray-900">سالانہ رپورٹ</h1>
           <p className="mt-1 font-[var(--font-en)] text-sm italic text-[var(--color-gold-4)] print:text-gray-600">

@@ -23,8 +23,8 @@ export default async function InvitesPage() {
   const origin = process.env.NEXT_PUBLIC_APP_URL ?? 'https://barakah-hub.vercel.app';
 
   return (
-    <div>
-      <header className="mb-6 border-b border-[var(--border)] pb-4">
+    <div className="mx-auto max-w-[1400px]">
+      <header className="mb-8 border-b border-[var(--border)] pb-5">
         <h1 className="font-[var(--font-arabic)] text-3xl text-[var(--color-gold-2)]">دعوت نامے</h1>
         <p className="mt-1 font-[var(--font-en)] text-sm italic text-[var(--color-gold-4)]">Generate shareable invite links / QR codes for new members</p>
       </header>

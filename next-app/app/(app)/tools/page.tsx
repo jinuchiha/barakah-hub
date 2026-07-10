@@ -29,7 +29,7 @@ export default async function ToolsPage() {
 
   return (
     <div className="mx-auto w-full max-w-4xl lg:max-w-6xl">
-      <header className="mb-6 border-b border-[var(--border)] pb-4">
+      <header className="mb-8 border-b border-[var(--border)] pb-5">
         <h1 className="font-[var(--font-arabic)] text-3xl text-[var(--color-gold-2)]">اسلامی ٹولز</h1>
         <p className="mt-1 font-[var(--font-en)] text-sm italic text-[var(--color-gold-4)]">Islamic Tools</p>
       </header>

@@ -40,7 +40,7 @@ export default async function CasesPage() {
   return (
     <div className="mx-auto max-w-[1400px]">
       <Breadcrumb crumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Emergency Votes' }]} />
-      <header className="mb-8 flex flex-wrap items-end justify-between gap-4 border-b border-[var(--border)] pb-6">
+      <header className="mb-8 flex flex-wrap items-end justify-between gap-4 border-b border-[var(--border)] pb-5">
         <div>
           <div className="mb-2 text-[10px] font-bold uppercase tracking-[2px] text-[var(--txt-3)]">
             Community · Emergency Fund
@@ -120,7 +120,7 @@ export default async function CasesPage() {
                       </div>
                       <span className="font-[var(--font-en)] text-xs text-[var(--color-gold-4)]">{pct}%</span>
                     </div>
-                    <div className="mb-2 text-xs italic text-[var(--color-gold-4)]">Needed: {need} of {eligibleCount} ({voteThresh}%)</div>
+                    <div className="mb-2 text-[11px] text-[var(--txt-3)]">Needed: {need} of {eligibleCount} ({voteThresh}%)</div>
                     {/* Anyone other than the applicant can vote. Admins are
                         ALSO allowed to vote on their own request (server
                         action enforces this). */}

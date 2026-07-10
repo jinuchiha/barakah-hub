@@ -19,7 +19,7 @@ export default function ForgotPasswordPage() {
               <div className="mt-1 font-[var(--font-en)] text-[10px] italic text-[var(--txt-3)]">They ask what they should spend · say: what is beyond your needs · Al-Baqarah 2:219</div>
             </div>
             <ForgotForm />
-            <p className="mt-4 text-center text-xs italic text-[var(--color-gold-4)]">
+            <p className="mt-4 text-center text-[11px] text-[var(--txt-3)]">
               <a href="/login" className="text-[var(--color-gold)] hover:underline">← Back to login</a>
             </p>
           </CardBody>

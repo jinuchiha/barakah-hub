@@ -89,7 +89,7 @@ export default function IssueLoanForm({ members }: Props) {
           placeholder="e.g. 500 per month"
         />
         {installment > 0 && amount > 0 && (
-          <p className="mt-1 text-[11px] text-[var(--txt-4)]">
+          <p className="mt-1 text-[11px] text-[var(--txt-3)]">
             ≈ {Math.ceil(amount / installment)} months to settle
           </p>
         )}
