@@ -3,6 +3,8 @@ import { desc } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { members, payments, loans, cases, auditLog, repayments, config as configTbl } from '@/lib/db/schema';
 import { sendWeeklyBackupEmail } from '@/lib/email';
+import { outboxHealth } from '@/lib/outbox';
+import { poolBalances } from '@/lib/ledger';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -102,6 +104,8 @@ export async function GET(req: Request) {
   const disbursedTotal = caseRows.filter((c) => c.status === 'disbursed').reduce((s, c) => s + c.amount, 0);
   const qarzOutstanding = loanRows.filter((l) => l.active).reduce((s, l) => s + (l.amount - l.paid), 0);
 
+  const [ledgerPosition, delivery] = await Promise.all([poolBalances(), outboxHealth()]);
+
   const date = new Date().toISOString().slice(0, 10);
   const summary = {
     date,
@@ -113,6 +117,14 @@ export async function GET(req: Request) {
     fundTotal: paymentRows.filter((p) => p.status === 'verified').reduce((s, p) => s + p.amount, 0),
     outflows: { disbursedTotal, qarzOutstanding, netAfterDisbursed: paymentRows.filter((p) => p.status === 'verified').reduce((s, p) => s + p.amount, 0) - disbursedTotal },
     ledgerReconcile: { loansChecked: loanRows.length, mismatches, healedQarzCases: healed },
+    // The real position, from the ledger, alongside the gross inflow above.
+    // "How much has the family given" and "how much can we commit" are
+    // different questions and the summary should answer both.
+    ledger: ledgerPosition,
+    // Notification delivery, which previously had no number at all. A
+    // non-zero `dead` count means something needs fixing — most likely a
+    // missing WHATSAPP_TEMPLATE_* or RESEND_API_KEY.
+    notifications: delivery,
     config: cfg ? { voteThreshold: cfg.voteThresholdPct, easyPaise: cfg.easyPaiseNumber ?? 'not set' } : null,
   };
 

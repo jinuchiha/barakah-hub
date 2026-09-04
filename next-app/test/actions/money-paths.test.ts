@@ -191,7 +191,13 @@ describe('verifyPayment — two-person rule', () => {
     const db = makeDbMock({
       selectQueue: [
         [admin],
-        [{ id: UUID, status: 'supervisor_approved', supervisorApprovedAt: new Date(), supervisorRejectedAt: null, supervisorApprovedById: 'admin-1' }],
+        // verifyPayment now credits the ledger and queues the receipt from
+        // this row, so the fixture has to carry the money fields.
+        [{
+          id: UUID, status: 'supervisor_approved', supervisorApprovedAt: new Date(),
+          supervisorRejectedAt: null, supervisorApprovedById: 'admin-1',
+          memberId: 'member-1', amount: 500, pool: 'sadaqah', monthLabel: 'May 2026',
+        }],
         [{ id: UUID, memberId: 'member-1', amount: 500, pool: 'sadaqah', monthLabel: 'May 2026' }],
       ],
       updateResult: [{ id: UUID }],

@@ -64,6 +64,49 @@ async function send(to: string, subject: string, html: string, text: string): Pr
   }
 }
 
+/**
+ * Send an email and THROW when it does not go out.
+ *
+ * `send()` above swallows every failure and additionally discards Resend's
+ * `{ error }` response, so even a configured provider could reject a message
+ * and the caller would never learn. That is tolerable for the legacy
+ * fire-and-forget call sites, which had nothing to do with the information
+ * anyway.
+ *
+ * The outbox worker needs the opposite: a failure has to propagate so the
+ * message can be retried with backoff, or land in `dead` where someone can
+ * see it. Hence a separate function rather than changing `send` under ten
+ * existing callers.
+ */
+export async function sendEmail(to: string, subject: string, text: string): Promise<void> {
+  const key = process.env.RESEND_API_KEY;
+  if (!key) throw new Error('RESEND_API_KEY not configured');
+
+  const { Resend } = await import('resend');
+  const resend = new Resend(key);
+  const result = await resend.emails.send({
+    from: FROM,
+    to,
+    subject,
+    html: shell(subject, `<p style="margin:0;white-space:pre-line;">${escapeHtml(text)}</p>`),
+    text,
+  });
+
+  // The SDK reports API-level rejections in the response rather than by
+  // throwing. Ignoring it is how a "sent" email never arrives.
+  if (result.error) {
+    throw new Error(`Resend rejected: ${result.error.message ?? String(result.error)}`);
+  }
+}
+
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
 /* ─── 1. Welcome ─── */
 export async function sendWelcomeEmail(to: string, name: string): Promise<void> {
   const body = `
@@ -278,7 +321,20 @@ interface BackupSummary {
   loans: { total: number; active: number };
   cases: { total: number; approved: number };
   auditEntries: number;
+  /** Gross verified inflow — what the family has contributed in total. */
   fundTotal: number;
+  /** The real position from the ledger: inflow minus outflow, per pool.
+   *  A different question from fundTotal, and the one that gates a decision. */
+  ledger?: {
+    available: Record<string, number>;
+    inflow: Record<string, number>;
+    outflow: Record<string, number>;
+    totalAvailable: number;
+  };
+  /** Notification delivery. `dead > 0` means something needs a human. */
+  notifications?: {
+    pending: number; sent: number; dead: number; oldestPendingMinutes: number | null;
+  };
   config: { voteThreshold: number; easyPaise: string } | null;
 }
 

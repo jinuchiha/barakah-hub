@@ -48,22 +48,16 @@ import { db, inTransaction, type Tx } from '@/lib/db';
 type Conn = typeof db | Tx;
 import { members, payments, cases, votes, loans, repayments, auditLog, notifications, messages, memberInvites, users, config as configTbl } from '@/lib/db/schema';
 import { monthStartFromLabel } from '@/lib/month';
-import { broadcastPush, sendPushToMembers } from '@/lib/push';
+import { broadcastPush } from '@/lib/push';
 import { notifyMembers as notify, fundApproverIds, adminIds, emailFundApprovers } from '@/lib/notify';
-import { sendApprovalEmail, sendPaymentReceiptEmail, sendEmergencyCaseEmail } from '@/lib/email';
+import { sendEmergencyCaseEmail } from '@/lib/email';
 import { sendWhatsAppText, sendWhatsAppBusinessMessage } from '@/lib/whatsapp';
 import { runAfterResponse } from '@/lib/after-response';
+import { enqueue } from '@/lib/outbox';
 import {
   creditPayment, debitLoanIssue, creditLoanRepayment, debitCaseDisbursement,
   reverse as reverseLedger, entryForSource, assertSufficientFunds,
 } from '@/lib/ledger';
-
-/** Lookup the auth email for a member via auth_id → users.email. Null if missing. */
-async function emailForMember(memberAuthId: string | null): Promise<string | null> {
-  if (!memberAuthId) return null;
-  const [row] = await db.select({ email: users.email }).from(users).where(eq(users.id, memberAuthId)).limit(1);
-  return row?.email ?? null;
-}
 
 /* ─── helpers */
 
@@ -162,19 +156,36 @@ export async function approveMember(memberId: string) {
       en: 'Your account has been approved · you can now use the app',
       type: 'approved',
     });
+
+    const who = m.nameEn || m.nameUr;
+    await enqueue(tx, {
+      channel: 'email',
+      kind: 'member-approved',
+      memberId,
+      dedupeKey: `approved-email:${memberId}`,
+      payload: {
+        subject: 'Your Barakah Hub account is approved',
+        body: `Salaam ${who},
+
+Your account has been approved. You can now sign in and use the app.
+
+JazakAllah Khair.`,
+      },
+    });
+    await enqueue(tx, {
+      channel: 'push',
+      kind: 'member-approved',
+      memberId,
+      dedupeKey: `approved-push:${memberId}`,
+      payload: {
+        title: '🎉 Account approved',
+        body: 'Salaam · your Barakah Hub account has been approved. Welcome!',
+        data: { type: 'approved' },
+        channelId: 'admin',
+      },
+    });
   });
-  // Push notification so they see it on lock screen
-  runAfterResponse('approveMember.push', () => sendPushToMembers([memberId], {
-    title: '🎉 Account approved',
-    body: 'Salaam · your Barakah Hub account has been approved. Welcome!',
-    data: { type: 'approved' },
-    channelId: 'admin',
-  }));
-  // Email approval · fire & forget, never block on email
-  runAfterResponse('approveMember.email', async () => {
-    const email = await emailForMember(m.authId);
-    if (email) await sendApprovalEmail(email, m.nameEn || m.nameUr);
-  });
+  // Email + push for this approval were queued inside the transaction above.
   waToMember(memberId, `🎉 *مبارک ہو!*
 
 ${m.nameUr || m.nameEn} · آپ کا Barakah Hub اکاؤنٹ منظور ہو گیا۔ اب آپ ایپ استعمال کر سکتے ہیں۔
@@ -717,64 +728,63 @@ export async function verifyPayment(paymentId: string) {
       monthLabel: existing.monthLabel,
       actorId: me.id,
     });
+
+    // The receipt is queued in the SAME transaction that verified the
+    // payment, so "verified" and "a receipt is owed" cannot disagree. The
+    // dedupe key means a replayed verification does not send twice.
+    const rs = `Rs ${existing.amount.toLocaleString('en-PK')}`;
+    const receiptBody =
+      `Your ${existing.pool} contribution of ${rs} for ${existing.monthLabel} has been verified.` +
+      `
+
+Receipt no: #${paymentId.slice(0, 8).toUpperCase()}` +
+      `
+Verify: ${process.env.NEXT_PUBLIC_APP_URL ?? 'https://barakah-hub.vercel.app'}/verify-receipt/${paymentId}`;
+
+    await enqueue(tx, {
+      channel: 'email',
+      kind: 'payment-receipt',
+      memberId: existing.memberId,
+      dedupeKey: `receipt-email:${paymentId}`,
+      payload: { subject: `Receipt · ${rs} ${existing.pool} · ${existing.monthLabel}`, body: receiptBody },
+    });
+    await enqueue(tx, {
+      channel: 'push',
+      kind: 'payment-verified',
+      memberId: existing.memberId,
+      dedupeKey: `receipt-push:${paymentId}`,
+      payload: {
+        title: '✅ Donation verified',
+        body: `Your ${existing.pool} contribution of ${rs} has been verified.`,
+        data: { type: 'payment-verified', paymentId },
+        channelId: 'payments',
+      },
+    });
+    await enqueue(tx, {
+      channel: 'whatsapp',
+      kind: 'payment-receipt',
+      memberId: existing.memberId,
+      dedupeKey: `receipt-wa:${paymentId}`,
+      payload: {
+        templateEnvVar: 'WHATSAPP_TEMPLATE_RECEIPT',
+        templateParams: [rs, existing.monthLabel],
+        fallbackText: receiptBody,
+      },
+    });
   });
-  // Notify the donor that their payment was approved (push + email receipt)
+  // The in-app notification row stays a direct write: it is a database row
+  // in our own table, not a third-party call, so it has none of the delivery
+  // problems the outbox exists to solve. Email, WhatsApp and push for this
+  // verification were queued inside the transaction above.
   const [p] = await db.select().from(payments).where(eq(payments.id, paymentId)).limit(1);
   if (p) {
-    // In-app row too, so the verification shows in the bell list (push is
-    // transient, email can be missed).
-    runAfterResponse('verifyPayment.notify', () => notify([p.memberId], {
+    runAfterResponse('verifyPayment.inAppRow', () => notify([p.memberId], {
       titleEn: 'Donation verified',
       titleUr: 'عطیہ کی تصدیق ہو گئی',
       en: `Your ${p.pool} contribution of Rs ${p.amount.toLocaleString('en-PK')} for ${p.monthLabel} has been verified.`,
       ur: `${p.monthLabel} کا آپ کا عطیہ Rs ${p.amount.toLocaleString('en-PK')} تصدیق ہو گیا۔`,
       type: 'payment-verified',
     }));
-    runAfterResponse('verifyPayment.push', () => sendPushToMembers([p.memberId], {
-      title: '✅ Donation verified',
-      body: `Your ${p.pool} contribution of Rs ${p.amount.toLocaleString('en-PK')} for ${p.monthLabel} has been verified.`,
-      data: { type: 'payment-verified', paymentId: p.id },
-      channelId: 'payments',
-    }));
-    runAfterResponse('verifyPayment.receipt', async () => {
-      const [donor] = await db.select().from(members).where(eq(members.id, p.memberId)).limit(1);
-      if (!donor) return;
-      const email = await emailForMember(donor.authId);
-      if (email) {
-        await sendPaymentReceiptEmail(email, {
-          name: donor.nameEn || donor.nameUr,
-          amount: p.amount,
-          pool: p.pool,
-          monthLabel: p.monthLabel,
-          paymentId: p.id,
-          verifiedAt,
-        });
-      }
-      // Receipt on WhatsApp too (user wants both channels). No-ops
-      // without the Cloud API env; text works inside a 24h session.
-      if (donor.phone) {
-        const base = process.env.NEXT_PUBLIC_APP_URL ?? 'https://barakah-hub.vercel.app';
-        const poolLabel = p.pool === 'sadaqah' ? 'صدقہ' : p.pool === 'zakat' ? 'زکوٰۃ' : 'قرض';
-        await sendWhatsAppBusinessMessage(donor.phone, {
-          templateEnvVar: 'WHATSAPP_TEMPLATE_RECEIPT',
-          templateParams: [
-            donor.nameUr || donor.nameEn,
-            `Rs ${p.amount.toLocaleString('en-PK')}`,
-            p.monthLabel,
-          ],
-          fallbackText:
-          `✅ *رسید تصدیق شدہ · Barakah Hub*
-
-رقم: *Rs ${p.amount.toLocaleString('en-PK')}* (${poolLabel})
-مہینہ: ${p.monthLabel}
-رسید نمبر: #${p.id.slice(0, 8).toUpperCase()}
-
-تصدیق کریں: ${base}/verify-receipt/${p.id}
-
-جزاک اللہ خیر`,
-        });
-      }
-    });
   }
   revalidatePath('/admin/fund');
   revalidatePath('/myaccount');

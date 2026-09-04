@@ -393,3 +393,42 @@ export type Config = typeof config.$inferSelect;
 export type PaymentStatus = (typeof paymentStatusEnum.enumValues)[number];
 export type LedgerEntry = typeof ledgerEntries.$inferSelect;
 export type NewLedgerEntry = typeof ledgerEntries.$inferInsert;
+
+/* ─── OUTBOX (notification delivery queue) ─── */
+// Three audit findings had one root cause: the INTENT to notify was never
+// persisted. Push reported success on failure, WhatsApp free-text was
+// rejected outside Meta's 24h window, and 20 fire-and-forget promises could
+// be killed by the serverless freeze — and every one of those failures was
+// invisible, with no queue, no retry and no delivery rate to look at.
+//
+// An action now writes a ROW inside the same transaction as the state change,
+// so "the payment was verified" and "a receipt is owed" commit together. A
+// worker drains it with backoff. See migration 0020.
+export const outboxChannelEnum = pgEnum('outbox_channel', ['email', 'whatsapp', 'push']);
+export const outboxStateEnum = pgEnum('outbox_state', ['pending', 'sent', 'dead']);
+
+export const outboxMessages = pgTable('outbox_messages', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  channel: outboxChannelEnum('channel').notNull(),
+  state: outboxStateEnum('state').notNull().default('pending'),
+  memberId: uuid('member_id').references(() => members.id, { onDelete: 'cascade' }),
+  /** Selects the renderer; `payload` carries its parameters. */
+  kind: text('kind').notNull(),
+  /** jsonb, not a rendered string — a template fix should apply to queued messages. */
+  payload: jsonb('payload').notNull().default({}),
+  attempts: integer('attempts').notNull().default(0),
+  maxAttempts: integer('max_attempts').notNull().default(5),
+  nextAttemptAt: timestamp('next_attempt_at', { withTimezone: true }).notNull().defaultNow(),
+  lastError: text('last_error'),
+  sentAt: timestamp('sent_at', { withTimezone: true }),
+  /** UNIQUE when set — the same logical notification cannot be queued twice. */
+  dedupeKey: text('dedupe_key'),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+}, (t) => ({
+  stateIdx: index('outbox_state_idx').on(t.state),
+  memberIdx: index('outbox_member_idx').on(t.memberId),
+}));
+
+export type OutboxMessage = typeof outboxMessages.$inferSelect;
+export type NewOutboxMessage = typeof outboxMessages.$inferInsert;
+export type OutboxChannel = (typeof outboxChannelEnum.enumValues)[number];

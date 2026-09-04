@@ -12,6 +12,10 @@
     {
       "path": "/api/cron/weekly-backup",
       "schedule": "0 2 * * 0"
+    },
+    {
+      "path": "/api/cron/outbox",
+      "schedule": "*/5 * * * *"
     }
   ],
   "buildCommand": "pnpm db:migrate:deploy && pnpm build",
