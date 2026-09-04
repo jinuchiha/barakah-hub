@@ -3,6 +3,7 @@ import { eq, and, sum } from 'drizzle-orm';
 import { meOrThrow } from '@/lib/auth-server';
 import { db } from '@/lib/db';
 import { payments, members } from '@/lib/db/schema';
+import { poolBalances } from '@/lib/ledger';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -31,7 +32,27 @@ export async function GET() {
       and(eq(members.deceased, false), eq(members.status, 'approved')),
     );
 
-    return NextResponse.json({ sadaqah, zakat, qarz, pendingCount, memberCount });
+    // The per-pool figures above are gross verified INFLOW — the historical
+    // meaning of this endpoint, kept as-is so existing clients do not shift
+    // under them. But inflow is not a balance: it counts every rupee ever
+    // disbursed as though it were still in the fund.
+    //
+    // `available` is the real position, from the ledger: inflow minus
+    // outflow. It is what should gate a decision, and what a member asking
+    // "how much do we have?" actually means.
+    const ledger = await poolBalances();
+
+    return NextResponse.json({
+      // Gross verified contributions (unchanged meaning).
+      sadaqah, zakat, qarz,
+      pendingCount,
+      memberCount,
+      // Real position, per pool and in total.
+      available: ledger.available,
+      inflow: ledger.inflow,
+      outflow: ledger.outflow,
+      totalAvailable: ledger.totalAvailable,
+    });
   } catch {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }

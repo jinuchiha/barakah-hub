@@ -45,19 +45,16 @@ export async function connect(): Promise<Client> {
  * SAME splitter and error-tolerance rules as scripts/migrate.ts, so a
  * migration that would break the real runner breaks here too.
  */
-export async function applyMigrations(client: Client, schemaName = 'bh_test'): Promise<void> {
-  await client.query(`DROP SCHEMA IF EXISTS ${schemaName} CASCADE`);
-  await client.query(`CREATE SCHEMA ${schemaName}`);
-  await client.query(`SET search_path TO ${schemaName}`);
-  // gen_random_uuid() lives in pgcrypto on older servers; on 13+ it is
-  // built in. Create the extension in the public schema if it is missing.
-  await client.query('CREATE EXTENSION IF NOT EXISTS pgcrypto').catch(() => {});
+const MIGRATION_DIR = join(process.cwd(), 'supabase', 'migrations');
 
-  const dir = join(process.cwd(), 'supabase', 'migrations');
-  const files = readdirSync(dir).filter((f) => f.endsWith('.sql')).sort();
+export function migrationFiles(): string[] {
+  return readdirSync(MIGRATION_DIR).filter((f) => f.endsWith('.sql')).sort();
+}
 
+/** Apply specific migration files to the current search_path, in order. */
+export async function applyFiles(client: Client, files: string[]): Promise<void> {
   for (const filename of files) {
-    const sql = readFileSync(join(dir, filename), 'utf8');
+    const sql = readFileSync(join(MIGRATION_DIR, filename), 'utf8');
     for (const stmt of splitStatements(sql)) {
       try {
         await client.query(stmt);
@@ -69,6 +66,32 @@ export async function applyMigrations(client: Client, schemaName = 'bh_test'): P
       }
     }
   }
+}
+
+/**
+ * Create a clean schema and apply migrations to it.
+ *
+ * `stopBefore` applies only the files sorting before that name, which lets a
+ * test reproduce the state a real deployment is in *before* an upgrade — the
+ * only way to test a data backfill honestly.
+ */
+export async function applyMigrations(
+  client: Client,
+  schemaName = 'bh_test',
+  opts: { stopBefore?: string } = {},
+): Promise<void> {
+  await client.query(`DROP SCHEMA IF EXISTS ${schemaName} CASCADE`);
+  await client.query(`CREATE SCHEMA ${schemaName}`);
+  await client.query(`SET search_path TO ${schemaName}`);
+  // gen_random_uuid() lives in pgcrypto on older servers; on 13+ it is
+  // built in. Create the extension if it is missing.
+  await client.query('CREATE EXTENSION IF NOT EXISTS pgcrypto').catch(() => {});
+
+  const files = opts.stopBefore
+    ? migrationFiles().filter((f) => f < opts.stopBefore!)
+    : migrationFiles();
+
+  await applyFiles(client, files);
 }
 
 /** Insert a minimal member and return its id. */

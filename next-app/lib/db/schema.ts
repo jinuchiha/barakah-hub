@@ -75,6 +75,9 @@ export const statusEnum = pgEnum('member_status', ['pending', 'approved', 'rejec
 export const poolEnum = pgEnum('fund_pool', ['sadaqah', 'zakat', 'qarz']);
 export const caseStatusEnum = pgEnum('case_status', ['voting', 'approved', 'rejected', 'disbursed']);
 export const caseTypeEnum = pgEnum('case_type', ['gift', 'qarz']);
+export const ledgerSourceEnum = pgEnum('ledger_source', [
+  'payment', 'loan_issue', 'loan_repayment', 'case_disbursement', 'reversal',
+]);
 
 /* ─── MEMBERS ─── */
 export const members = pgTable('members', {
@@ -301,6 +304,42 @@ export const auditLog = pgTable('audit_log', {
   createdIdx: index('audit_created_idx').on(t.createdAt),
 }));
 
+/* ─── LEDGER (append-only, signed) ─── */
+// The single source of truth for what the fund actually holds.
+//
+// The fund total used to be SUM(verified payments) — gross inflow with no
+// debit side, so the balance members saw overstated the money available,
+// solvency could not be checked before issuing a loan, and correcting a
+// mistake meant DELETING the payment rather than reversing it.
+//
+// Now every movement is one signed row: positive in, negative out. A pool's
+// balance is SUM(amount) for that pool. Immutable at the DB layer (triggers
+// in migration 0018), corrected by adding a reversal — never by editing.
+//
+// source_id is a plain uuid, deliberately NOT a foreign key: an entry must
+// outlive the row it accounts for (payments cascade with their member), and
+// referential integrity here would let a deletion silently rewrite history.
+export const ledgerEntries = pgTable('ledger_entries', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  pool: poolEnum('pool').notNull(),
+  /** Signed, whole rupees. Positive = into the fund, negative = out. */
+  amount: integer('amount').notNull(),
+  sourceType: ledgerSourceEnum('source_type').notNull(),
+  /** payments.id | loans.id | repayments.id | cases.id */
+  sourceId: uuid('source_id'),
+  memberId: uuid('member_id').references(() => members.id, { onDelete: 'set null' }),
+  /** Set only on a reversal, naming the entry being undone. */
+  reversesId: uuid('reverses_id').references((): AnyPgColumn => ledgerEntries.id),
+  detail: text('detail'),
+  occurredOn: date('occurred_on').notNull().defaultNow(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  createdBy: uuid('created_by').references(() => members.id, { onDelete: 'set null' }),
+}, (t) => ({
+  poolIdx: index('ledger_pool_idx').on(t.pool),
+  memberIdx: index('ledger_member_idx').on(t.memberId),
+  occurredIdx: index('ledger_occurred_idx').on(t.occurredOn),
+}));
+
 /* ─── CONFIG (singleton row) ─── */
 export const config = pgTable('config', {
   id: integer('id').primaryKey().default(1),
@@ -332,3 +371,5 @@ export type Loan = typeof loans.$inferSelect;
 export type Notification = typeof notifications.$inferSelect;
 export type AuditEntry = typeof auditLog.$inferSelect;
 export type Config = typeof config.$inferSelect;
+export type LedgerEntry = typeof ledgerEntries.$inferSelect;
+export type NewLedgerEntry = typeof ledgerEntries.$inferInsert;

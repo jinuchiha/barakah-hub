@@ -53,6 +53,10 @@ import { notifyMembers as notify, fundApproverIds, adminIds, emailFundApprovers 
 import { sendApprovalEmail, sendPaymentReceiptEmail, sendEmergencyCaseEmail } from '@/lib/email';
 import { sendWhatsAppText, sendWhatsAppBusinessMessage } from '@/lib/whatsapp';
 import { runAfterResponse } from '@/lib/after-response';
+import {
+  creditPayment, debitLoanIssue, creditLoanRepayment, debitCaseDisbursement,
+  reverse as reverseLedger, entryForSource, assertSufficientFunds,
+} from '@/lib/ledger';
 
 /** Lookup the auth email for a member via auth_id → users.email. Null if missing. */
 async function emailForMember(memberAuthId: string | null): Promise<string | null> {
@@ -574,12 +578,25 @@ export async function adminDeletePayment(paymentId: string) {
   const [p] = await db.select().from(payments).where(eq(payments.id, paymentId)).limit(1);
   if (!p) return;
   await inTransaction(async (tx) => {
+    // If the payment had been verified it is in the books, so removing the
+    // row alone would silently change the balance with no explanation. Post
+    // a reversal first: the original entry stays visible and the correction
+    // says why. Unverified payments were never credited, so there is
+    // nothing to reverse.
+    const entry = await entryForSource(tx, 'payment', paymentId);
+    if (entry) {
+      await reverseLedger(tx, {
+        entryId: entry.id,
+        reason: `Payment ${paymentId} deleted by admin`,
+        actorId: me.id,
+      });
+    }
     await tx.delete(payments).where(eq(payments.id, paymentId));
     await audit(
       tx,
       me.id,
       'payment-deleted',
-      `Deleted Rs ${p.amount} ${p.pool} for ${p.monthLabel}`,
+      `Deleted Rs ${p.amount} ${p.pool} for ${p.monthLabel}${entry ? ' · ledger reversal posted' : ''}`,
       p.memberId,
     );
   });
@@ -658,6 +675,18 @@ export async function verifyPayment(paymentId: string) {
         ? `Verified payment ${paymentId} under SINGLE-PERSON control — no second approved admin/supervisor existed at verification time. Appoint a supervisor to restore the two-person rule.`
         : `Verified payment ${paymentId}`,
     );
+    // Verification is the moment the money is recognised as received, so
+    // this is where it enters the books — not at submission, when it is
+    // still only a claim. Idempotent on (source_type, source_id), so a
+    // replay cannot credit the same payment twice.
+    await creditPayment(tx, {
+      paymentId,
+      pool: existing.pool,
+      amount: existing.amount,
+      memberId: existing.memberId,
+      monthLabel: existing.monthLabel,
+      actorId: me.id,
+    });
   });
   // Notify the donor that their payment was approved (push + email receipt)
   const [p] = await db.select().from(payments).where(eq(payments.id, paymentId)).limit(1);
@@ -1232,6 +1261,10 @@ export async function issueLoan(input: z.infer<typeof issueLoanSchema>) {
   if (borrower.status !== 'approved') throw new Error('Member must be approved to receive a loan');
 
   const created = await inTransaction(async (tx) => {
+    // Refuse to lend money the fund does not hold. There was no solvency
+    // check at all before the ledger existed — the gross-inflow total made
+    // over-commitment invisible.
+    await assertSufficientFunds(tx, 'qarz', data.amount);
     const [row] = await tx
       .insert(loans)
       .values({
@@ -1254,6 +1287,10 @@ export async function issueLoan(input: z.infer<typeof issueLoanSchema>) {
       `Issued ${data.amount} qarz: ${data.purpose}${data.installmentAmount ? ` · plan ${data.installmentAmount}/month` : ''}`,
       data.memberId,
     );
+    await debitLoanIssue(tx, {
+      loanId: row.id, amount: data.amount, memberId: data.memberId,
+      purpose: data.purpose, actorId: me.id,
+    });
     return row;
   });
   revalidatePath('/admin/loans');
@@ -1305,10 +1342,14 @@ export async function recordRepayment(input: z.infer<typeof repaySchema>) {
     const loanRow = rows[0];
     const settled = !loanRow.active;
 
-    await tx.insert(repayments).values({
+    const [repaymentRow] = await tx.insert(repayments).values({
       loanId: data.loanId,
       amount: data.amount,
       note: data.note,
+    }).returning({ id: repayments.id });
+    await creditLoanRepayment(tx, {
+      repaymentId: repaymentRow.id, amount: data.amount,
+      memberId: loanRow.memberId, actorId: me.id,
     });
     await audit(
       tx,
@@ -1345,7 +1386,20 @@ export async function disburseCase(caseId: string) {
     }
 
     const row = updated[0];
+    // Do not pay out money the pool does not hold.
+    await assertSufficientFunds(tx, row.pool, row.amount);
     await audit(tx, me.id, 'case-disbursed', `Disbursed ${row.amount} for ${row.beneficiaryName}`, row.applicantId);
+
+    // A GIFT leaves the fund here. A QARZ case's outflow is recorded by the
+    // loan_issue entry for the loan created just below — posting both would
+    // debit the fund twice for one disbursement.
+    if (row.caseType === 'gift') {
+      await debitCaseDisbursement(tx, {
+        caseId: row.id, pool: row.pool, amount: row.amount,
+        memberId: row.applicantId, beneficiaryName: row.beneficiaryName,
+        actorId: me.id,
+      });
+    }
 
     // A qarz disbursement creates the loan that tracks repayment. This used
     // to be a separate write after the status flip, so a failure between the
@@ -1354,7 +1408,7 @@ export async function disburseCase(caseId: string) {
     // flip, and loans.case_id is UNIQUE (migration 0017), so a retry cannot
     // create a second loan either.
     if (row.caseType === 'qarz') {
-      await tx.insert(loans).values({
+      const [loanRow] = await tx.insert(loans).values({
         memberId: row.applicantId,
         amount: row.amount,
         purpose: row.reasonEn,
@@ -1363,8 +1417,16 @@ export async function disburseCase(caseId: string) {
         caseId: row.id,
         paid: 0,
         active: true,
-      }).onConflictDoNothing();
+      }).onConflictDoNothing().returning({ id: loans.id });
       await audit(tx, me.id, 'loan-issue', `Auto-issued ${row.amount} qarz loan from disbursed case ${row.id}`, row.applicantId);
+      // Only when the loan was actually created — a retry that hit the
+      // unique index on loans.case_id must not debit the fund again.
+      if (loanRow) {
+        await debitLoanIssue(tx, {
+          loanId: loanRow.id, amount: row.amount, memberId: row.applicantId,
+          purpose: row.reasonEn, actorId: me.id,
+        });
+      }
     }
     return row;
   });
