@@ -5,6 +5,7 @@ import { sendPushToMembers, type PushPayload } from '@/lib/push';
 import { sendPaymentReviewEmail, sendNewMemberEmail, type ReviewInput } from '@/lib/email';
 import { sendWhatsAppText } from '@/lib/whatsapp';
 import { signApproveToken } from '@/lib/approve-token';
+import { runAfterResponse } from '@/lib/after-response';
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://barakah-hub.vercel.app';
 
@@ -29,7 +30,7 @@ export async function notifyMembers(
       recipientId: id, titleEn: n.titleEn, titleUr: n.titleUr, en: n.en, ur: n.ur, type: n.type,
     })),
   );
-  if (push) void sendPushToMembers(recipientIds, push).catch(() => {});
+  if (push) runAfterResponse('notify.push', () => sendPushToMembers(recipientIds, push));
 }
 
 /** Approved, living members who can act on fund approvals (admins +

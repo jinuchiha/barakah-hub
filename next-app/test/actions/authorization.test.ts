@@ -8,21 +8,10 @@ import { makeDbMock, makeSessionMock } from '../helpers/db-mock';
 const sessionMock = vi.hoisted(() => ({ instance: null as unknown }));
 const dbMock = vi.hoisted(() => ({ instance: null as unknown }));
 
-vi.mock('@/lib/auth-server', () => ({
-  getSession: async () => sessionMock.instance,
-  getUser: async () => (sessionMock.instance as any)?.user ?? null,
-  getMeOrRedirect: async () => { throw new Error('not used in action tests'); },
-  // Mirrors the real meOrThrow but uses hoisted mocks so no real auth module loads
-  meOrThrow: async () => {
-    const session = sessionMock.instance as any;
-    if (!session?.user) throw new Error('Not authenticated');
-    const db = (dbMock.instance as any);
-    const result = await db.select().from({}).where({}).limit(1);
-    const m = Array.isArray(result) ? result[0] : result;
-    if (!m) throw new Error('Member record not found');
-    return m;
-  },
-}));
+vi.mock('@/lib/auth-server', async () => {
+  const { makeAuthServerMock } = await import('../helpers/auth-mock');
+  return makeAuthServerMock(sessionMock, dbMock);
+});
 vi.mock('@/lib/db', () => ({
   get db() { return dbMock.instance; },
 }));
@@ -118,7 +107,7 @@ describe('castVote', () => {
     const { castVote } = await import('@/app/actions');
 
     await expect(castVote('00000000-0000-0000-0000-000000000001', true))
-      .rejects.toThrow(/not eligible/i);
+      .rejects.toThrow(/not approved/i);
   });
 
   it('rejects voting on own case', async () => {
@@ -231,5 +220,76 @@ describe('editMember', () => {
         role: 'member',
       }),
     ).rejects.toThrow(/cannot demote yourself/i);
+  });
+});
+
+/**
+ * Regression: BH-21. hardDeleteMember had a last-admin guard; editMember did
+ * not, so an admin could demote or reject the only OTHER admin, and two
+ * admins demoting each other concurrently could leave the org with zero —
+ * an unrecoverable lockout with no way back in short of direct database
+ * access.
+ */
+describe('editMember — last-admin guard', () => {
+  beforeEach(() => vi.resetModules());
+
+  const ADMIN_A = { ...adminRow, id: '11111111-1111-1111-1111-111111111111' };
+  const VICTIM = '22222222-2222-2222-2222-222222222222';
+
+  it('refuses to demote the last remaining admin', async () => {
+    sessionMock.instance = makeSessionMock({ id: 'auth-admin' });
+    dbMock.instance = makeDbMock({
+      selectQueue: [[ADMIN_A], [{ role: 'admin' }]],
+      countResult: 0, // no OTHER approved living admin
+    });
+    const { editMember } = await import('@/app/actions');
+    await expect(editMember({ id: VICTIM, role: 'member' })).rejects.toThrow(/last admin/i);
+  });
+
+  it('refuses to reject the last remaining admin (status is a demotion too)', async () => {
+    sessionMock.instance = makeSessionMock({ id: 'auth-admin' });
+    dbMock.instance = makeDbMock({
+      selectQueue: [[ADMIN_A], [{ role: 'admin' }]],
+      countResult: 0,
+    });
+    const { editMember } = await import('@/app/actions');
+    await expect(editMember({ id: VICTIM, status: 'rejected' })).rejects.toThrow(/last admin/i);
+  });
+
+  it('refuses to mark the last remaining admin deceased', async () => {
+    sessionMock.instance = makeSessionMock({ id: 'auth-admin' });
+    dbMock.instance = makeDbMock({
+      selectQueue: [[ADMIN_A], [{ role: 'admin' }]],
+      countResult: 0,
+    });
+    const { editMember } = await import('@/app/actions');
+    await expect(editMember({ id: VICTIM, deceased: true })).rejects.toThrow(/last admin/i);
+  });
+
+  it('allows demoting an admin while another admin remains', async () => {
+    sessionMock.instance = makeSessionMock({ id: 'auth-admin' });
+    dbMock.instance = makeDbMock({
+      selectQueue: [[ADMIN_A], [{ role: 'admin' }], [{ spouseId: null }]],
+      countResult: 2,
+    });
+    const { editMember } = await import('@/app/actions');
+    await expect(editMember({ id: VICTIM, role: 'member' })).resolves.toBeUndefined();
+  });
+
+  it('does not run the guard when editing a non-admin', async () => {
+    sessionMock.instance = makeSessionMock({ id: 'auth-admin' });
+    dbMock.instance = makeDbMock({
+      selectQueue: [[ADMIN_A], [{ role: 'member' }], [{ spouseId: null }]],
+      countResult: 0, // would trip the guard if it applied
+    });
+    const { editMember } = await import('@/app/actions');
+    await expect(editMember({ id: VICTIM, role: 'member' })).resolves.toBeUndefined();
+  });
+
+  it('still refuses self-demotion', async () => {
+    sessionMock.instance = makeSessionMock({ id: 'auth-admin' });
+    dbMock.instance = makeDbMock({ selectQueue: [[ADMIN_A]] });
+    const { editMember } = await import('@/app/actions');
+    await expect(editMember({ id: ADMIN_A.id, role: 'member' })).rejects.toThrow(/demote yourself/i);
   });
 });

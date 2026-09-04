@@ -16,7 +16,8 @@
     "db:migrate": "tsx scripts/migrate.ts",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
-    "import:legacy": "tsx scripts/migrate-localstorage.ts"
+    "import:legacy": "tsx scripts/migrate-localstorage.ts",
+    "db:migrate:deploy": "tsx scripts/migrate-on-deploy.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.95.2",

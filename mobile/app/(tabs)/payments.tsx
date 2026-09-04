@@ -107,7 +107,7 @@ function PaymentsScreen() {
   const pendingCount = data?.filter((p) => p.pendingVerify).length ?? 0;
 
   // No try/catch here — errors propagate to PaymentSubmitModal which shows Alert.
-  const handleSubmit = async (formData: { amount: number; pool: FundPool; monthLabel: string; note?: string; receiptUrl?: string }) => {
+  const handleSubmit = async (formData: { amount: number; pool: FundPool; monthLabel: string; note?: string; receiptUrl?: string; idempotencyKey: string }) => {
     await submitMutation.mutateAsync(formData);
     setShowModal(false);
     // Same reward moment the web gives: a sourced dua instead of a toast.

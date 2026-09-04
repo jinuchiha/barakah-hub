@@ -9,20 +9,10 @@ import { makeDbMock, makeSessionMock } from '../helpers/db-mock';
 const sessionMock = vi.hoisted(() => ({ instance: null as unknown }));
 const dbMock = vi.hoisted(() => ({ instance: null as unknown }));
 
-vi.mock('@/lib/auth-server', () => ({
-  getSession: async () => sessionMock.instance,
-  getUser: async () => (sessionMock.instance as { user?: unknown })?.user ?? null,
-  getMeOrRedirect: async () => { throw new Error('not used in action tests'); },
-  meOrThrow: async () => {
-    const session = sessionMock.instance as { user?: { id: string } } | null;
-    if (!session?.user) throw new Error('Not authenticated');
-    const db = dbMock.instance as { select: () => { from: (t: unknown) => { where: (w: unknown) => { limit: (n: number) => Promise<unknown[]> } } } };
-    const result = await db.select().from({}).where({}).limit(1);
-    const m = Array.isArray(result) ? result[0] : result;
-    if (!m) throw new Error('Member record not found');
-    return m;
-  },
-}));
+vi.mock('@/lib/auth-server', async () => {
+  const { makeAuthServerMock } = await import('../helpers/auth-mock');
+  return makeAuthServerMock(sessionMock, dbMock);
+});
 vi.mock('@/lib/db', () => ({
   get db() { return dbMock.instance; },
 }));
@@ -181,6 +171,57 @@ describe('verifyPayment — two-person rule', () => {
         supervisorApprovedAt: new Date(), supervisorRejectedAt: null,
         supervisorApprovedById: 'admin-1',
       }]],
+      // Two eligible approvers exist, so two-person control is achievable
+      // and must be enforced.
+      countResult: 2,
+    });
+    const { verifyPayment } = await import('@/app/actions');
+    await expect(verifyPayment(UUID)).rejects.toThrow(/two-person/i);
+  });
+
+  // Regression: BH-05. Enforcing the two-person rule unconditionally
+  // deadlocked every single-admin install — the founder could supervisor-
+  // approve but never verify, so no payment could ever reach the fund total
+  // and the product's core loop was dead on arrival. The rule now degrades
+  // when a second approver does not exist, and the degradation is recorded.
+  it('allows self-verification when no second approver exists, and records it', async () => {
+    asAdmin();
+    const inserted: unknown[] = [];
+    const db = makeDbMock({
+      selectQueue: [
+        [admin],
+        [{ id: UUID, pendingVerify: true, supervisorApprovedAt: new Date(), supervisorRejectedAt: null, supervisorApprovedById: 'admin-1' }],
+        [{ id: UUID, memberId: 'member-1', amount: 500, pool: 'sadaqah', monthLabel: 'May 2026' }],
+      ],
+      updateResult: [{ id: UUID }],
+      countResult: 1, // the founder is the ONLY eligible approver
+    });
+    const origInsert = db.insert;
+    db.insert = ((...args: unknown[]) => {
+      const chain = origInsert(...(args as []));
+      const origValues = chain.values as (v: unknown) => unknown;
+      chain.values = (v: unknown) => { inserted.push(v); return origValues(v); };
+      return chain;
+    }) as typeof db.insert;
+    dbMock.instance = db;
+
+    const { verifyPayment } = await import('@/app/actions');
+    await expect(verifyPayment(UUID)).resolves.toBeUndefined();
+
+    const actions = inserted.map((v) => (v as { action?: string }).action).filter(Boolean);
+    expect(actions).toContain('payment-verified-single-control');
+    expect(actions).not.toContain('payment-verified');
+  });
+
+  it('still refuses self-verification when a second approver exists', async () => {
+    asAdmin();
+    dbMock.instance = makeDbMock({
+      selectQueue: [[admin], [{
+        id: UUID, pendingVerify: true,
+        supervisorApprovedAt: new Date(), supervisorRejectedAt: null,
+        supervisorApprovedById: 'admin-1',
+      }]],
+      countResult: 3,
     });
     const { verifyPayment } = await import('@/app/actions');
     await expect(verifyPayment(UUID)).rejects.toThrow(/two-person/i);

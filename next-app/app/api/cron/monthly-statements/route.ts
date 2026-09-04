@@ -1,12 +1,16 @@
 import { NextResponse } from 'next/server';
 import { and, eq, sql, inArray } from 'drizzle-orm';
 import { db } from '@/lib/db';
-import { members, payments, cases, loans, users } from '@/lib/db/schema';
+import { members, payments, cases, loans, users, notifications } from '@/lib/db/schema';
 import { sendMonthlyStatementEmail } from '@/lib/email';
 import { sendWhatsAppText } from '@/lib/whatsapp';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
+// Without this the job runs at the platform default and is killed mid-loop
+// as the family grows — silently, with no error and no retry, so half the
+// members simply never get a statement.
+export const maxDuration = 300;
 
 /**
  * Monthly statement — emails every approved member a personalised summary
@@ -68,9 +72,20 @@ export async function GET(req: Request) {
     : [];
   const emailByAuthId = new Map(userRows.map((u) => [u.id, u.email]));
 
+  // Idempotency. Vercel Cron is at-least-once and this endpoint is also
+  // manually triggerable, so without a marker a retry re-sends the whole
+  // family's statement by email AND WhatsApp. Mirrors the guard
+  // /api/cron/reminders already had.
+  const statementType = `monthly-statement:${monthLabel}`;
+  const alreadySent = await db
+    .select({ recipientId: notifications.recipientId })
+    .from(notifications)
+    .where(eq(notifications.type, statementType));
+  const sentSet = new Set(alreadySent.map((n) => n.recipientId));
+
   let sent = 0;
   const failed: string[] = [];
-  const targets = approved.filter((m) => m.authId && emailByAuthId.get(m.authId));
+  const targets = approved.filter((m) => m.authId && emailByAuthId.get(m.authId) && !sentSet.has(m.id));
   // 5 members at a time — serial sends brush the function timeout on a
   // large family; email failures are tracked, WhatsApp never throws.
   for (let i = 0; i < targets.length; i += 5) {
@@ -99,6 +114,15 @@ export async function GET(req: Request) {
             loansOwed: owedMap.get(m.id) ?? 0,
           });
           sent++;
+          // Marker written only after a successful send, so a member whose
+          // email failed is retried by the next run rather than skipped.
+          await db.insert(notifications).values({
+            recipientId: m.id,
+            titleEn: 'Monthly statement', titleUr: 'ماہانہ گوشوارہ',
+            en: `Your ${monthLabel} statement has been emailed to you.`,
+            ur: `${monthLabel} کا گوشوارہ آپ کو ای میل کر دیا گیا ہے۔`,
+            type: statementType,
+          });
         } catch (err) {
           console.error(`[cron] monthly-statement failed for ${email}:`, err);
           failed.push(email);
@@ -107,5 +131,5 @@ export async function GET(req: Request) {
     );
   }
 
-  return NextResponse.json({ sent, failed: failed.length, monthLabel, fundTotal });
+  return NextResponse.json({ sent, failed: failed.length, skipped: sentSet.size, monthLabel, fundTotal });
 }

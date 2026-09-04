@@ -13,168 +13,116 @@ import 'dotenv/config';
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { Pool } from '@neondatabase/serverless';
-
-const url = process.env.DATABASE_URL_DIRECT ?? process.env.DATABASE_URL;
-if (!url) {
-  console.error('❌ DATABASE_URL_DIRECT (or DATABASE_URL) must be set in .env.local');
-  process.exit(1);
-}
-
-if (url.includes('-pooler.')) {
-  console.warn(
-    '⚠  Connection targets the pooled endpoint. If errors mention prepared\n' +
-    '   statements, set DATABASE_URL_DIRECT to the non-pooled URL.\n',
-  );
-}
-
-/** Split a SQL file into individual statements, respecting dollar-quoted bodies. */
-function splitStatements(sql: string): string[] {
-  const out: string[] = [];
-  let buf = '';
-  let inDollar = false;
-  let dollarTag = '';
-  let inLineComment = false;
-  let inBlockComment = false;
-
-  for (let i = 0; i < sql.length; i++) {
-    const c = sql[i];
-    const next2 = sql.slice(i, i + 2);
-
-    if (inLineComment) {
-      buf += c;
-      if (c === '\n') inLineComment = false;
-      continue;
-    }
-    if (inBlockComment) {
-      buf += c;
-      if (next2 === '*/') { buf += sql[i + 1]; i++; inBlockComment = false; }
-      continue;
-    }
-    if (!inDollar) {
-      if (next2 === '--') { inLineComment = true; buf += c; continue; }
-      if (next2 === '/*') { inBlockComment = true; buf += c; continue; }
-    }
-
-    // Detect dollar-quoted body open/close: $$ or $tag$
-    if (c === '$') {
-      const m = sql.slice(i).match(/^\$([A-Za-z_][A-Za-z0-9_]*)?\$/);
-      if (m) {
-        const tag = m[0];
-        if (!inDollar) {
-          inDollar = true;
-          dollarTag = tag;
-        } else if (tag === dollarTag) {
-          inDollar = false;
-          dollarTag = '';
-        }
-        buf += tag;
-        i += tag.length - 1;
-        continue;
-      }
-    }
-
-    if (c === ';' && !inDollar) {
-      const stmt = buf.trim();
-      if (stmt) out.push(stmt);
-      buf = '';
-      continue;
-    }
-    buf += c;
-  }
-  const tail = buf.trim();
-  if (tail) out.push(tail);
-  return out;
-}
+import { splitStatements, isTolerable } from './migration-sql';
 
 /**
- * Patterns we treat as "the migration meant to do this but the DB
- * already has it". Each entry is a regex matched (case-insensitive)
- * against the error message. NEVER use bare substrings here — a loose
- * substring like `'relation'` would also match "relation X does not
- * exist", silently masking real bugs.
+ * Resolve the connection at call time, not module load, so the pure helpers
+ * below (`splitStatements`, `isTolerable`) can be imported and unit-tested
+ * without the module exiting the process on import.
  */
-const TOLERABLE: RegExp[] = [
-  // CREATE TYPE / TABLE / INDEX / EXTENSION etc. that's already there
-  /already exists/i,
-  /duplicate(_object| object)/i,
-  /duplicate(_column| column)/i,
-  // Re-running INSERTs against a singleton row (config table)
-  /duplicate key value/i,
-  /violates unique constraint/i,
-  // Supabase-specific schema/role references in 0001 — no-ops on Neon.
-  // Authorization is enforced in app code, not DB-level RLS, so these
-  // missing policy targets don't reduce security.
-  /schema "auth" does not exist/i,
-  /schema "storage" does not exist/i,
-  /function auth\.uid\(\) does not exist/i,
-  /relation "storage\.(buckets|objects)" does not exist/i,
-  /role "(authenticated|anon|service_role|supabase_admin)" does not exist/i,
-  // Re-running 0001 on a Neon branch copied from prod: members.auth_id
-  // is TEXT there (0004 swapped it), so the legacy Supabase RLS helpers
-  // comparing it to auth.uid() fail at CREATE with a type error. Exact
-  // messages only — a loose "operator does not exist" would mask real
-  // type bugs in new migrations.
-  /operator does not exist: text = uuid/i,
-  /function (is_admin|my_member_id)\(\) does not exist/i,
-];
-
-function isTolerable(err: unknown): boolean {
-  const msg = err instanceof Error ? err.message : String(err);
-  return TOLERABLE.some((rx) => rx.test(msg));
+function resolveUrl(): string {
+  const url = process.env.DATABASE_URL_DIRECT ?? process.env.DATABASE_URL;
+  if (!url) {
+    console.error('❌ DATABASE_URL_DIRECT (or DATABASE_URL) must be set in .env.local');
+    process.exit(1);
+  }
+  if (url.includes('-pooler.')) {
+    console.warn(
+      '⚠  Connection targets the pooled endpoint. If errors mention prepared\n' +
+      '   statements, set DATABASE_URL_DIRECT to the non-pooled URL.\n',
+    );
+  }
+  return url;
 }
 
 async function main() {
-  const pool = new Pool({ connectionString: url });
+  const pool = new Pool({ connectionString: resolveUrl() });
+  // A transaction must run on ONE connection. pool.query() may hand out a
+  // different connection per call, which would silently scatter BEGIN /
+  // SAVEPOINT / COMMIT across sessions — so take a dedicated client.
+  const client = await pool.connect();
 
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS _barakah_migrations (
-      filename    TEXT PRIMARY KEY,
-      applied_at  TIMESTAMPTZ NOT NULL DEFAULT now()
-    )
-  `);
+  try {
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS _barakah_migrations (
+        filename    TEXT PRIMARY KEY,
+        applied_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+      )
+    `);
 
-  const dir = join(process.cwd(), 'supabase', 'migrations');
-  const files = readdirSync(dir).filter((f) => f.endsWith('.sql')).sort();
+    const dir = join(process.cwd(), 'supabase', 'migrations');
+    const files = readdirSync(dir).filter((f) => f.endsWith('.sql')).sort();
 
-  console.log(`▶ Found ${files.length} migration(s) in ${dir}`);
+    console.log(`▶ Found ${files.length} migration(s) in ${dir}`);
 
-  for (const filename of files) {
-    const { rows } = await pool.query(
-      'SELECT 1 FROM _barakah_migrations WHERE filename = $1',
-      [filename],
-    );
-    if (rows.length > 0) {
-      console.log(`  ⊘  ${filename}  (already applied)`);
-      continue;
-    }
-
-    const sql = readFileSync(join(dir, filename), 'utf8');
-    const statements = splitStatements(sql);
-    process.stdout.write(`  ▸  ${filename}  applying ${statements.length} statement(s)`);
-
-    let skipped = 0;
-    for (const stmt of statements) {
-      try {
-        await pool.query(stmt);
-      } catch (err) {
-        if (isTolerable(err)) {
-          skipped++;
-        } else {
-          console.log(' ✗');
-          console.error(`\n   Failed statement:\n   ${stmt.slice(0, 200)}${stmt.length > 200 ? '...' : ''}\n`);
-          throw err;
-        }
+    for (const filename of files) {
+      const { rows } = await client.query(
+        'SELECT 1 FROM _barakah_migrations WHERE filename = $1',
+        [filename],
+      );
+      if (rows.length > 0) {
+        console.log(`  ⊘  ${filename}  (already applied)`);
+        continue;
       }
-    }
 
-    await pool.query(
-      'INSERT INTO _barakah_migrations (filename) VALUES ($1) ON CONFLICT DO NOTHING',
-      [filename],
-    );
-    console.log(skipped > 0 ? ` ✓ (${skipped} pre-existing object(s) tolerated)` : ' ✓');
+      const sql = readFileSync(join(dir, filename), 'utf8');
+      const statements = splitStatements(sql);
+      process.stdout.write(`  ▸  ${filename}  applying ${statements.length} statement(s)`);
+
+      // One transaction per FILE. Previously every statement ran in its own
+      // implicit transaction, so a failure partway through left the earlier
+      // statements committed while the ledger still reported the migration
+      // as unapplied — a half-migrated schema no re-run could reliably
+      // repair. Now a file applies completely or not at all.
+      //
+      // The ledger insert is inside that same transaction, so "recorded as
+      // applied" and "actually applied" can never disagree.
+      //
+      // Tolerated statements need a savepoint: in Postgres any error aborts
+      // the enclosing transaction, so skipping one means rolling back to a
+      // point taken immediately before it.
+      let skipped = 0;
+      await client.query('BEGIN');
+      try {
+        for (const stmt of statements) {
+          await client.query('SAVEPOINT stmt');
+          try {
+            await client.query(stmt);
+            await client.query('RELEASE SAVEPOINT stmt');
+          } catch (err) {
+            if (isTolerable(err, stmt)) {
+              skipped++;
+              await client.query('ROLLBACK TO SAVEPOINT stmt');
+              await client.query('RELEASE SAVEPOINT stmt');
+            } else {
+              console.log(' ✗');
+              console.error(`
+   Failed statement:
+   ${stmt.slice(0, 200)}${stmt.length > 200 ? '...' : ''}
+`);
+              throw err;
+            }
+          }
+        }
+
+        await client.query(
+          'INSERT INTO _barakah_migrations (filename) VALUES ($1) ON CONFLICT DO NOTHING',
+          [filename],
+        );
+        await client.query('COMMIT');
+      } catch (err) {
+        await client.query('ROLLBACK').catch(() => {});
+        console.error(`   ${filename} rolled back — no statement from this file was applied.
+`);
+        throw err;
+      }
+      console.log(skipped > 0 ? ` ✓ (${skipped} pre-existing object(s) tolerated)` : ' ✓');
+    }
+  } finally {
+    client.release();
+    await pool.end();
   }
 
-  await pool.end();
   console.log('\n✓ All migrations applied.');
 }
 

@@ -31,16 +31,20 @@ export function makeDbMock(opts: {
   updateResult?: unknown;
   deleteResult?: unknown;
   countResult?: number;
+  /** Consumed in order by successive $count calls, for actions that issue
+   *  several distinct counts (e.g. hardDeleteMember's reference check). */
+  countQueue?: number[];
   selectQueue?: unknown[];
 }) {
   const queue = opts.selectQueue ? [...opts.selectQueue] : null;
+  const counts = opts.countQueue ? [...opts.countQueue] : null;
   return {
     select: vi.fn(() => makeQuery(queue ? queue.shift() : (opts.selectResult ?? []))),
     selectDistinct: vi.fn(() => makeQuery(queue ? queue.shift() : (opts.selectResult ?? []))),
     insert: vi.fn(() => makeQuery(opts.insertResult ?? [])),
     update: vi.fn(() => makeQuery(opts.updateResult ?? [])),
     delete: vi.fn(() => makeQuery(opts.deleteResult ?? [])),
-    $count: vi.fn(async () => opts.countResult ?? 0),
+    $count: vi.fn(async () => (counts && counts.length > 0 ? counts.shift()! : (opts.countResult ?? 0))),
   };
 }
 

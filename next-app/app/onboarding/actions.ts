@@ -7,6 +7,7 @@ import { db } from '@/lib/db';
 import { members, memberInvites, auditLog, users } from '@/lib/db/schema';
 import { sendWelcomeEmail } from '@/lib/email';
 import { notifyMembers, adminIds, alertAdminsNewMember } from '@/lib/notify';
+import { runAfterResponse } from '@/lib/after-response';
 
 const schema = z.object({
   nameEn: z.string().min(2).max(80),
@@ -83,7 +84,7 @@ export async function onboardSelf(input: z.infer<typeof schema>) {
       },
       { title: '👤 Account claim to review', body: data.nameEn, data: { type: 'member-pending' }, channelId: 'admin' },
     );
-    void alertAdminsNewMember(data.nameEn).catch((err) => { console.error('[notify] new member alert:', err); });
+    runAfterResponse('onboarding.alertAdmins', () => alertAdminsNewMember(data.nameEn));
     revalidatePath('/dashboard');
     return;
   }
@@ -149,9 +150,10 @@ export async function onboardSelf(input: z.infer<typeof schema>) {
       .where(and(eq(memberInvites.id, validInvite.id), lt(memberInvites.usedCount, memberInvites.maxUses)));
   }
 
-  // Welcome email · fire and forget, don't block onboarding on email failure.
-  if (user.email) {
-    void sendWelcomeEmail(user.email, data.nameEn).catch(() => {});
+  // Welcome email · never block onboarding on email delivery.
+  const welcomeEmail = user.email;
+  if (welcomeEmail) {
+    runAfterResponse('onboarding.welcomeEmail', () => sendWelcomeEmail(welcomeEmail, data.nameEn));
   }
 
   // Notify admins of a pending member (founders are auto-approved → skip).

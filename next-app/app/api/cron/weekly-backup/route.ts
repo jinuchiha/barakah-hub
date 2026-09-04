@@ -6,6 +6,10 @@ import { sendWeeklyBackupEmail } from '@/lib/email';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
+// Cron jobs fan out over the whole membership. At the platform default they
+// are killed mid-loop with no error and no retry, so the work silently
+// half-completes as the family grows.
+export const maxDuration = 300;
 
 /**
  * Weekly backup snapshot — every Sunday at 2 AM.
@@ -62,8 +66,15 @@ export async function GET(req: Request) {
   const orphanQarzCases = caseRows.filter(
     (c) => c.caseType === 'qarz' && c.status === 'disbursed' && !loanCaseIds.has(c.id),
   );
+  let healed = 0;
   for (const c of orphanQarzCases) {
-    await db.insert(loans).values({
+    // The claim above ("keyed on caseId, so idempotent") was not enforced by
+    // anything: loans.case_id had no UNIQUE constraint, so two overlapping
+    // cron runs could each observe the same orphan and each insert a loan,
+    // doubling a borrower's recorded debt. Migration 0017 adds the partial
+    // unique index; ON CONFLICT DO NOTHING now makes the loser a no-op
+    // instead of an error, so the claim is true by construction.
+    const inserted = await db.insert(loans).values({
       memberId: c.applicantId,
       amount: c.amount,
       purpose: c.reasonEn,
@@ -72,12 +83,17 @@ export async function GET(req: Request) {
       caseId: c.id,
       paid: 0,
       active: true,
-    });
-    await db.insert(auditLog).values({
-      action: 'ledger-reconcile-healed',
-      detail: `Disbursed qarz case ${c.id} had no loan row · auto-created ${c.amount} loan for ${c.beneficiaryName}`,
-      targetId: c.applicantId,
-    });
+    }).onConflictDoNothing().returning({ id: loans.id });
+
+    // Only audit the run that actually created the row.
+    if (inserted.length > 0) {
+      healed++;
+      await db.insert(auditLog).values({
+        action: 'ledger-reconcile-healed',
+        detail: `Disbursed qarz case ${c.id} had no loan row · auto-created ${c.amount} loan for ${c.beneficiaryName}`,
+        targetId: c.applicantId,
+      });
+    }
   }
 
   // Outflow picture — the fund total everywhere is gross verified income;
@@ -96,7 +112,7 @@ export async function GET(req: Request) {
     auditEntries: auditRows.length,
     fundTotal: paymentRows.filter((p) => !p.pendingVerify).reduce((s, p) => s + p.amount, 0),
     outflows: { disbursedTotal, qarzOutstanding, netAfterDisbursed: paymentRows.filter((p) => !p.pendingVerify).reduce((s, p) => s + p.amount, 0) - disbursedTotal },
-    ledgerReconcile: { loansChecked: loanRows.length, mismatches, healedQarzCases: orphanQarzCases.length },
+    ledgerReconcile: { loansChecked: loanRows.length, mismatches, healedQarzCases: healed },
     config: cfg ? { voteThreshold: cfg.voteThresholdPct, easyPaise: cfg.easyPaiseNumber ?? 'not set' } : null,
   };
 

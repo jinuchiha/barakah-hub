@@ -103,6 +103,11 @@ export default function DonationForm({ easyPaiseName, easyPaiseNumber }: Donatio
   const [note, setNote] = useState('');
   const [receiptUrl, setReceiptUrl] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  // One key per submission intent. If the action's response is lost (network
+  // blip, function timeout) the retry carries the same key and the server
+  // returns the original payment instead of creating a duplicate. Rotated
+  // only after a submission actually lands.
+  const idempotencyKey = useRef<string>(crypto.randomUUID());
 
   function reset() {
     setAmount(0);
@@ -136,7 +141,8 @@ export default function DonationForm({ easyPaiseName, easyPaiseNumber }: Donatio
     }
     start(async () => {
       try {
-        await submitDonation({ amount, pool, monthLabel: month, note: note || undefined, receiptUrl: receiptUrl || undefined });
+        await submitDonation({ amount, pool, monthLabel: month, note: note || undefined, receiptUrl: receiptUrl || undefined, idempotencyKey: idempotencyKey.current });
+        idempotencyKey.current = crypto.randomUUID();
         toast.success(tr('toast.donationSubmitted', locale));
         setDuaFor(pool);
         reset();

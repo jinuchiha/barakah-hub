@@ -1,62 +1,44 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { meApprovedOrThrow } from '@/lib/auth-server';
-import { db } from '@/lib/db';
-import { payments, auditLog } from '@/lib/db/schema';
-import { monthStartFromLabel } from '@/lib/month';
-import { notifyMembers, fundApproverIds, emailFundApprovers } from '@/lib/notify';
+import { submitDonation } from '@/app/actions';
+import { errorResponse } from '@/lib/api-error';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
+/**
+ * Member self-submits a donation (mobile).
+ *
+ * Delegates to the `submitDonation` server action rather than re-implementing
+ * the insert. This route used to carry its own copy of the schema, the insert
+ * and the notification fan-out; the two drifted (the action gained the
+ * idempotency guard, this route did not), which is exactly the failure the
+ * "one mutation choke point" architecture exists to prevent.
+ *
+ * `idempotencyKey` is what makes a client retry safe: the mobile app generates
+ * one per submission attempt and reuses it when the request times out, so a
+ * request that committed server-side but lost its response converges on the
+ * original payment instead of creating a second one.
+ */
 const schema = z.object({
   amount: z.number().int().positive().max(10_000_000),
-  // Members self-submit donations only · the qarz pool is disbursed by
-  // admins, never self-credited.
   pool: z.enum(['sadaqah', 'zakat']).default('sadaqah'),
   monthLabel: z.string().min(3).max(40),
   note: z.string().max(200).optional(),
   // https-only · z.string().url() alone also accepts javascript:/data: schemes
   receiptUrl: z.string().url().startsWith('https://').or(z.string().startsWith('/uploads/')).optional(),
+  idempotencyKey: z.string().min(8).max(64).optional(),
 });
 
 export async function POST(req: NextRequest) {
   try {
-    const me = await meApprovedOrThrow(); // approved + not deceased
-    const body = await req.json();
-    const data = schema.parse(body);
-
-    // Sequential inserts · the neon-http driver has no transaction support
-    // (see lib/db/index.ts). Matches the web path in app/actions.ts.
-    const [created] = await db
-      .insert(payments)
-      .values({
-        memberId: me.id,
-        ...data,
-        monthStart: monthStartFromLabel(data.monthLabel),
-        pendingVerify: true,
-      })
-      .returning();
-    await db.insert(auditLog).values({
-      actorId: me.id,
-      action: 'payment-self-submit',
-      detail: `Submitted ${data.pool} ${data.amount} for ${data.monthLabel}`,
-      targetId: me.id,
-    });
-
-    void notifyMembers(
-      await fundApproverIds(me.id),
-      { titleEn: 'New payment to review', titleUr: 'نئی ادائیگی برائے منظوری', en: `${me.nameEn || me.nameUr} submitted Rs ${data.amount} (${data.pool}) for ${data.monthLabel}.`, ur: `${me.nameUr || me.nameEn} نے ${data.monthLabel} کے لیے روپے ${data.amount} جمع کیے۔`, type: 'payment-pending' },
-      { title: '🧾 New payment to review', body: `${me.nameEn || me.nameUr} · Rs ${data.amount} ${data.pool}`, data: { type: 'payment-pending' }, channelId: 'payments' },
-    ).catch(() => {});
-    void emailFundApprovers(
-      { memberName: me.nameEn || me.nameUr, amount: data.amount, pool: data.pool, monthLabel: data.monthLabel, note: data.note, receiptUrl: data.receiptUrl },
-      me.id,
-    ).catch(() => {});
-
+    const data = schema.parse(await req.json());
+    const created = await submitDonation(data);
     return NextResponse.json(created, { status: 201 });
   } catch (err) {
-    const msg = err instanceof Error ? err.message : 'Bad request';
-    return NextResponse.json({ error: msg }, { status: 400 });
+    if (err instanceof z.ZodError) {
+      return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
+    }
+    return errorResponse(err, 'POST /api/payments/submit');
   }
 }

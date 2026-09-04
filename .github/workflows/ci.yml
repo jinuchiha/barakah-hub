@@ -22,6 +22,20 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: ci
+          POSTGRES_PASSWORD: ci
+          POSTGRES_DB: ci
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - uses: actions/checkout@v4
 
@@ -50,8 +64,29 @@ jobs:
       - name: Test
         run: pnpm test
 
+      # Migrations must parse and apply cleanly before the build that depends
+      # on them is trusted. Runs against a throwaway Postgres, not Neon: the
+      # point is to catch broken SQL and a half-applied migration file, which
+      # is exactly what used to reach production unverified.
+      - name: Migration check
+        env:
+          DATABASE_URL_DIRECT: postgresql://ci:ci@localhost:5432/ci
+        run: pnpm db:migrate
+
       - name: Build
         run: pnpm build
         env:
           DATABASE_URL: postgresql://ci:ci@localhost/ci?sslmode=require
           BETTER_AUTH_SECRET: ci-placeholder-secret-long-enough-for-better-auth
+
+      # Supply-chain visibility. Reporting-only for now: the repository has
+      # never run an audit, so the current advisory baseline is unknown and
+      # hard-failing here would red-line CI for reasons unrelated to the change
+      # under review.
+      #
+      # TODO(before this can block): run `pnpm audit --audit-level high` once,
+      # fix or explicitly accept whatever it reports, then delete
+      # `continue-on-error` so high/critical advisories fail the build.
+      - name: Dependency audit (reporting only)
+        continue-on-error: true
+        run: pnpm audit --audit-level high

@@ -1,5 +1,5 @@
 'use client';
-import { useState, useTransition } from 'react';
+import { useRef, useState, useTransition } from 'react';
 import { toast } from 'sonner';
 import { recordPayment } from '@/app/actions';
 import { Input, Label } from '@/components/ui/input';
@@ -9,6 +9,9 @@ const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 
 
 export default function RecordPaymentForm({ members }: { members: { id: string; nameEn: string }[] }) {
   const [pending, start] = useTransition();
+  // Rotated only after a submission lands, so a retry after a lost response
+  // converges on the original payment instead of creating a duplicate.
+  const idempotencyKey = useRef<string>(crypto.randomUUID());
   const [memberId, setMemberId] = useState(members[0]?.id ?? '');
   const [amount, setAmount] = useState(0);
   const [pool, setPool] = useState<'sadaqah' | 'zakat' | 'qarz'>('sadaqah');
@@ -20,7 +23,8 @@ export default function RecordPaymentForm({ members }: { members: { id: string; 
     if (!memberId || !amount) { toast.error('Pick member and amount'); return; }
     start(async () => {
       try {
-        await recordPayment({ memberId, amount, pool, monthLabel: month, note });
+        await recordPayment({ memberId, amount, pool, monthLabel: month, note, idempotencyKey: idempotencyKey.current });
+        idempotencyKey.current = crypto.randomUUID();
         toast.success(`Payment recorded`);
         setAmount(0); setNote('');
       } catch (e: unknown) { toast.error(e instanceof Error ? e.message : 'Failed'); }

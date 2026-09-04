@@ -130,6 +130,10 @@ export const payments = pgTable('payments', {
   memberId: uuid('member_id').notNull().references(() => members.id, { onDelete: 'cascade' }),
   amount: integer('amount').notNull(),
   pool: poolEnum('pool').notNull().default('sadaqah'),
+  // Client-supplied per-attempt key. A partial UNIQUE index (migration 0017)
+  // makes a replayed submission collide instead of creating a second payment;
+  // the action then returns the original row. Nullable for historical rows.
+  idempotencyKey: text('idempotency_key'),
   monthLabel: text('month_label').notNull(), // e.g. 'May 2026' (display)
   monthStart: date('month_start').notNull(),  // first-of-month — sortable
   paidOn: date('paid_on').notNull().defaultNow(),
@@ -280,8 +284,13 @@ export const pushTokens = pgTable('push_tokens', {
 /* ─── AUDIT LOG (append-only) ─── */
 export const auditLog = pgTable('audit_log', {
   id: uuid('id').primaryKey().defaultRandom(),
+  // actor_id stays NO ACTION on delete: a member who performed actions keeps
+  // their attribution, and hardDeleteMember refuses to remove them.
   actorId: uuid('actor_id').references(() => members.id),
-  targetId: uuid('target_id').references(() => members.id),
+  // target_id is SET NULL (migration 0017) so an audit row outlives the
+  // member it referred to — the row itself must survive, the table is
+  // append-only. Identity is preserved in `detail` by hardDeleteMember.
+  targetId: uuid('target_id').references(() => members.id, { onDelete: 'set null' }),
   action: text('action').notNull(),
   detail: text('detail'),
   metadata: jsonb('metadata'),

@@ -77,6 +77,52 @@ export async function meApprovedOrThrow(): Promise<Member> {
 }
 
 /**
+ * THE privileged-action gate. Every action that acts on someone else's data
+ * or on org-wide state must obtain its caller through this function.
+ *
+ * Why this exists: `meOrThrow()` proves only that a session maps to a member
+ * row. It says nothing about whether that member is still *entitled* to act.
+ * Call sites used to pair it with a bare `if (me.role !== 'admin')`, which
+ * checked the role but never the status or the deceased flag — so rejecting
+ * an admin's member row (the one lever an operator pulls in an emergency)
+ * did not actually revoke their power over the REST surface, where the
+ * page-level `getMeOrRedirect` status checks never run.
+ *
+ * Checks run in escalating order so the caller learns the *first* reason
+ * they were refused, and so an entitlement failure is never masked by a
+ * role failure:
+ *   1. authenticated + has a member row   (meOrThrow)
+ *   2. status === 'approved'
+ *   3. not deceased
+ *   4. role ∈ roles
+ *
+ * `denyMessage` exists only to preserve the exact strings that REST routes
+ * map to HTTP 403 — see `errorStatus()` in lib/api-error.ts.
+ */
+export async function requireRole(
+  roles: readonly Member['role'][],
+  denyMessage = 'Admin only',
+): Promise<Member> {
+  const m = await meOrThrow();
+  if (m.status !== 'approved') throw new Error('Account not approved');
+  if (m.deceased) throw new Error('Account inactive');
+  if (!roles.includes(m.role)) throw new Error(denyMessage);
+  return m;
+}
+
+/** Admin-only privileged caller. The common case. */
+export async function requireAdmin(denyMessage = 'Admin only'): Promise<Member> {
+  return requireRole(['admin'], denyMessage);
+}
+
+/** Admin or supervisor — the money operations. */
+export async function requireFundManager(
+  denyMessage = 'Supervisor or admin only',
+): Promise<Member> {
+  return requireRole(['admin', 'supervisor'], denyMessage);
+}
+
+/**
  * Permission predicates.
  *
  *  - canManageFunds: record + verify + reject payments. Admins AND

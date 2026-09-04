@@ -1,15 +1,23 @@
 import { and, desc, eq, gte, lte, inArray, or, ilike, type SQL } from 'drizzle-orm';
-import { getMeOrRedirect } from '@/lib/auth-server';
+import { requireAdmin } from '@/lib/auth-server';
 import { db } from '@/lib/db';
 import { auditLog, members } from '@/lib/db/schema';
 import { csvResponse, toCsv } from '@/lib/csv';
+import { errorResponse } from '@/lib/api-error';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 export async function GET(req: Request) {
-  const me = await getMeOrRedirect();
-  if (me.role !== 'admin') return new Response('Forbidden', { status: 403 });
+  // Was getMeOrRedirect(), which issues redirect('/login') — inside a route
+  // handler that surfaces as a 307 to an HTML page rather than a JSON 401,
+  // and the mobile client only clears its session on a 401. requireAdmin
+  // throws instead, and errorResponse maps it to the right status.
+  try {
+    await requireAdmin();
+  } catch (err) {
+    return errorResponse(err, 'app/api/exports/audit/route.ts');
+  }
 
   // Mirror the same filters as the audit log UI so admins can export the
   // exact subset they're looking at.

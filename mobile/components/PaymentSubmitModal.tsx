@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   View, Text, StyleSheet, Modal, ScrollView,
   TouchableOpacity, Alert, Platform, KeyboardAvoidingView, TextInput, ActivityIndicator,
@@ -8,6 +8,7 @@ import { useForm, Controller, type FieldErrors } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Image } from 'expo-image';
+import * as Crypto from 'expo-crypto';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Input } from './ui/Input';
 import { Button } from './ui/Button';
@@ -33,7 +34,7 @@ type FormData = z.infer<typeof schema>;
 interface PaymentSubmitModalProps {
   visible: boolean;
   onClose: () => void;
-  onSubmit: (data: FormData & { receiptUrl?: string }) => Promise<void>;
+  onSubmit: (data: FormData & { receiptUrl?: string; idempotencyKey: string }) => Promise<void>;
   easyPaiseNumber?: string;
   easyPaiseName?: string;
 }
@@ -53,6 +54,13 @@ export function PaymentSubmitModal({ visible, onClose, onSubmit, easyPaiseNumber
   const [screenshotUri, setScreenshotUri] = useState<string | undefined>();
   const [submitting, setSubmitting] = useState(false);
   const [receiptUploadFailed, setReceiptUploadFailed] = useState(false);
+
+  // One key per submission INTENT, not per request. A timed-out submit may
+  // already have committed server-side, so the retry has to carry the SAME
+  // key for the server to recognise it as a replay and return the original
+  // payment instead of creating a second one. Rotated only once a submission
+  // actually succeeds, or when the form is cancelled.
+  const idempotencyKeyRef = useRef<string>(Crypto.randomUUID());
 
   const {
     control,
@@ -97,7 +105,8 @@ export function PaymentSubmitModal({ visible, onClose, onSubmit, easyPaiseNumber
     setSubmitting(true);
     try {
       const receiptUrl = await uploadReceiptIfPresent();
-      await onSubmit({ ...data, receiptUrl });
+      await onSubmit({ ...data, receiptUrl, idempotencyKey: idempotencyKeyRef.current });
+      idempotencyKeyRef.current = Crypto.randomUUID();
       reset({ amount: undefined, pool: 'sadaqah', monthLabel: currentMonthLabel(), note: '' });
       setScreenshotUri(undefined);
       setReceiptUploadFailed(false);
@@ -120,6 +129,7 @@ export function PaymentSubmitModal({ visible, onClose, onSubmit, easyPaiseNumber
   // Cancel should also clear typed amount, note, and attached screenshot so
   // a future submit doesn't auto-include them.
   const handleCancel = () => {
+    idempotencyKeyRef.current = Crypto.randomUUID();
     reset({ amount: undefined, pool: 'sadaqah', monthLabel: currentMonthLabel(), note: '' });
     setScreenshotUri(undefined);
     setReceiptUploadFailed(false);

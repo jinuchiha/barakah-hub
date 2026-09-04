@@ -105,3 +105,66 @@ email fails to send. Check:
 | Resend | Transactional email delivery | resend.com/docs → Support |
 | Meta Business | WhatsApp Cloud API | business.facebook.com/support |
 | Application bugs | Anything not covered above | The developer who last worked on this repo |
+
+---
+
+## Database privilege separation (OUTSTANDING — not yet done)
+
+**Status: open.** The audit-log immutability guarantee is only partial until
+this is finished, and no code change can complete it — it is an infrastructure
+task.
+
+**What is protected now.** `audit_log` has three triggers that block tampering
+from the normal query path: `BEFORE UPDATE` and `BEFORE DELETE` (migration
+0002, row-level) and `BEFORE TRUNCATE` (migration 0017, statement-level — row
+triggers do not fire on TRUNCATE, which was an open hole).
+
+**What is still exposed.** The application connects with `DATABASE_URL` as
+`neondb_owner`, which *owns* `audit_log`. An owner can:
+
+```sql
+DROP TRIGGER audit_log_block_delete ON audit_log;   -- then DELETE freely
+ALTER TABLE audit_log DISABLE TRIGGER ALL;
+DROP TABLE audit_log;
+```
+
+So the trail is protected against application bugs and accidents, **not**
+against anyone holding the production connection string. Do not describe it as
+tamper-proof until the steps below are done.
+
+**To close it:**
+
+1. Create a runtime role with DML but no DDL, and no TRUNCATE on `audit_log`:
+   ```sql
+   CREATE ROLE barakah_app LOGIN PASSWORD '<generated>';
+   GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO barakah_app;
+   GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO barakah_app;
+   REVOKE TRUNCATE ON audit_log FROM barakah_app;
+   REVOKE UPDATE, DELETE ON audit_log FROM barakah_app;
+   ALTER DEFAULT PRIVILEGES IN SCHEMA public
+     GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO barakah_app;
+   ```
+2. Point `DATABASE_URL` at `barakah_app`. Leave `DATABASE_URL_DIRECT` on the
+   owner — migrations legitimately need DDL.
+
+**Read this before you do it — there is a trap.** Migration 0001 runs
+`ALTER TABLE ... ENABLE ROW LEVEL SECURITY` on ten tables, but every policy it
+tried to create referenced Supabase-only objects (`auth.uid()`, the
+`authenticated` role) and was skipped by the migration runner. RLS is
+therefore **enabled with zero policies**. The table owner bypasses RLS, which
+is why the app works today. The moment you introduce a non-owner role, RLS
+starts denying *everything* and the app goes down hard.
+
+So step 1 must be paired with a decision, in the same change:
+
+- **Either** write real policies for `barakah_app`,
+- **or** `ALTER TABLE <t> DISABLE ROW LEVEL SECURITY` on those ten tables and
+  rely on the application-layer gate in `lib/auth-server.ts` (`requireRole`),
+  which is what actually enforces authorization today.
+
+Rehearse on a Neon branch before touching production.
+
+**Beyond that**, a genuinely tamper-evident trail needs an append-only sink
+outside this database (object storage with object-lock, or a managed log
+service). Nothing inside a database an operator controls can prove it was not
+edited by that operator.

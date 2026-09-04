@@ -1,9 +1,17 @@
 name: Neon PR branch
 
-# Creates a Neon database branch named `pr-<number>` for every pull
-# request. The CI job in ci.yml reads its DATABASE_URL from the output
-# of this workflow's branch-creation step (passed via repo dispatch
-# isn't needed — neondatabase/create-branch-action exposes outputs).
+# Creates a Neon database branch named `pr-<number>` for every pull request
+# and applies migrations to it, so schema changes are exercised before merge.
+#
+# The parent is NOT production. It used to be `main`, which meant every pull
+# request materialised a copy-on-write clone of live member names, phone
+# numbers, emails and payment history — and nothing ever read it, because
+# ci.yml hardcoded a placeholder connection string. That was production PII
+# duplicated per PR for zero testing value.
+#
+# NEON_CI_PARENT_BRANCH must name a seeded, non-production branch (create one
+# once with `neonctl branches create --name ci-base`). If the secret is
+# unset the job fails closed rather than silently falling back to main.
 
 on:
   pull_request:
@@ -30,12 +38,27 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Verify a non-production parent is configured
+        env:
+          PARENT: ${{ secrets.NEON_CI_PARENT_BRANCH }}
+        run: |
+          if [ -z "$PARENT" ]; then
+            echo "::error::NEON_CI_PARENT_BRANCH is not set. Refusing to branch from production."
+            echo "Create a seeded branch (e.g. ci-base) and set it as a repository secret."
+            exit 1
+          fi
+          if [ "$PARENT" = "main" ] || [ "$PARENT" = "production" ]; then
+            echo "::error::NEON_CI_PARENT_BRANCH is '$PARENT' — that is production. Use a seeded branch."
+            exit 1
+          fi
+          echo "Branching from '$PARENT'."
+
       - name: Create Neon branch
         id: neon
         uses: neondatabase/create-branch-action@v6
         with:
           project_id: ${{ secrets.NEON_PROJECT_ID }}
-          parent_branch: main
+          parent_branch: ${{ secrets.NEON_CI_PARENT_BRANCH }}
           branch_name: pr-${{ github.event.number }}
           api_key: ${{ secrets.NEON_API_KEY }}
 
@@ -62,7 +85,6 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            const url = '${{ steps.neon.outputs.db_url_pooled }}';
             const tag = `<!-- neon-branch-pr-${{ github.event.number }} -->`;
             const body = `${tag}\n🌿 Neon branch \`pr-${{ github.event.number }}\` is ready. Migrations applied.\n\nConnection string is set on this PR's CI runs as \`DATABASE_URL\`.`;
 

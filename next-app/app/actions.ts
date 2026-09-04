@@ -13,26 +13,39 @@
  * cookie, validated server-side via `getSession()` / `meOrThrow()`.
  *
  * Therefore every action in this file must:
- *   1. Call `meOrThrow()` to confirm a session + member record exist.
- *   2. Check role / ownership explicitly before any read or write.
+ *   1. Obtain its caller through the right gate — NOT a bare `meOrThrow()`:
+ *        · `requireAdmin()` / `requireFundManager()` for privileged actions.
+ *          These check authenticated → approved → not deceased → role, in
+ *          that order, so entitlement can never be skipped by a call site
+ *          that remembers the role check but forgets the status check.
+ *        · `meApprovedOrThrow()` for member-scoped actions (vote, submit,
+ *          create case, message).
+ *        · `meOrThrow()` ONLY for strictly self-scoped operations that a
+ *          pending member must still perform (profile setup, marking their
+ *          own notifications read).
+ *   2. Check ownership explicitly where the role alone is not sufficient.
  *   3. Validate input with Zod (refuse anything from the body we cannot
  *      independently confirm against the session).
  *   4. Append an `audit_log` row for any state change.
  *
- * The `audit_log` table has UPDATE/DELETE triggers (migration 0002)
- * that block tampering at the DB layer regardless of caller.
+ * The `audit_log` table has UPDATE/DELETE triggers (migration 0002) and a
+ * TRUNCATE trigger (migration 0017) that block tampering from the query
+ * path. NOTE: they do not stop the table's own owner from dropping them,
+ * and the app currently connects as that owner — see RUNBOOK.md
+ * "Database privilege separation" for the outstanding infrastructure work.
  */
 import { revalidatePath } from 'next/cache';
-import { eq, and, sql, inArray, isNull } from 'drizzle-orm';
+import { eq, and, ne, sql, inArray, isNull } from 'drizzle-orm';
 import { z } from 'zod';
-import { meOrThrow } from '@/lib/auth-server';
+import { meOrThrow, meApprovedOrThrow, requireAdmin, requireFundManager } from '@/lib/auth-server';
 import { db } from '@/lib/db';
 import { members, payments, cases, votes, loans, repayments, auditLog, notifications, messages, memberInvites, users, config as configTbl } from '@/lib/db/schema';
 import { monthStartFromLabel } from '@/lib/month';
 import { broadcastPush, sendPushToMembers } from '@/lib/push';
 import { notifyMembers as notify, fundApproverIds, adminIds, emailFundApprovers } from '@/lib/notify';
 import { sendApprovalEmail, sendPaymentReceiptEmail, sendEmergencyCaseEmail } from '@/lib/email';
-import { sendWhatsAppText } from '@/lib/whatsapp';
+import { sendWhatsAppText, sendWhatsAppBusinessMessage } from '@/lib/whatsapp';
+import { runAfterResponse } from '@/lib/after-response';
 
 /** Lookup the auth email for a member via auth_id → users.email. Null if missing. */
 async function emailForMember(memberAuthId: string | null): Promise<string | null> {
@@ -46,18 +59,70 @@ async function audit(actorId: string, action: string, detail: string, targetId?:
   await db.insert(auditLog).values({ actorId, targetId, action, detail });
 }
 
+/**
+ * Insert a payment at most once for a given idempotency key.
+ *
+ * Returns `inserted: false` together with the pre-existing row when the key
+ * has already been used, so callers can skip the audit row, notifications
+ * and emails on a replay while still handing the client the same payment it
+ * created the first time.
+ *
+ * Three-step because the neon-http driver has no transactions:
+ *   1. Look the key up — the common replay case, and the cheapest.
+ *   2. Insert with ON CONFLICT DO NOTHING — the partial unique index from
+ *      migration 0017 makes a concurrent duplicate lose here rather than
+ *      creating a second row.
+ *   3. If the insert returned nothing, another in-flight attempt with the
+ *      same key won the race; read its row back.
+ *
+ * With no key supplied the insert is unguarded, exactly as before — callers
+ * that can supply one always should.
+ */
+async function insertPaymentOnce(
+  values: typeof payments.$inferInsert,
+  idempotencyKey?: string,
+): Promise<{ inserted: boolean; payment: typeof payments.$inferSelect }> {
+  if (!idempotencyKey) {
+    const [row] = await db.insert(payments).values(values).returning();
+    if (!row) throw new Error('Payment could not be recorded. Please try again.');
+    return { inserted: true, payment: row };
+  }
+
+  const [prior] = await db
+    .select().from(payments)
+    .where(eq(payments.idempotencyKey, idempotencyKey))
+    .limit(1);
+  if (prior) return { inserted: false, payment: prior };
+
+  const inserted = await db
+    .insert(payments)
+    .values({ ...values, idempotencyKey })
+    .onConflictDoNothing()
+    .returning();
+  if (inserted.length > 0) return { inserted: true, payment: inserted[0] };
+
+  const [raced] = await db
+    .select().from(payments)
+    .where(eq(payments.idempotencyKey, idempotencyKey))
+    .limit(1);
+  if (raced) return { inserted: false, payment: raced };
+
+  // ON CONFLICT fired but no row carries the key — the conflict came from a
+  // different constraint. Surface it rather than silently dropping money.
+  throw new Error('Payment could not be recorded. Please try again.');
+}
+
 /** WhatsApp one member (env-gated no-op) — never blocks the caller. */
 function waToMember(memberId: string, body: string): void {
-  void (async () => {
+  runAfterResponse('whatsapp.member', async () => {
     const [m] = await db.select({ phone: members.phone }).from(members).where(eq(members.id, memberId)).limit(1);
     if (m?.phone) await sendWhatsAppText(m.phone, body);
-  })().catch((err) => { console.error('[whatsapp] member send:', err); });
+  });
 }
 
 /* ─── approve pending member (admin) */
 export async function approveMember(memberId: string) {
-  const me = await meOrThrow();
-  if (me.role !== 'admin') throw new Error('Admin only');
+  const me = await requireAdmin();
   if (!/^[0-9a-f-]{36}$/i.test(memberId)) throw new Error('Invalid id');
 
   const [m] = await db.select().from(members).where(eq(members.id, memberId)).limit(1);
@@ -75,16 +140,17 @@ export async function approveMember(memberId: string) {
     type: 'approved',
   });
   // Push notification so they see it on lock screen
-  void sendPushToMembers([memberId], {
+  runAfterResponse('approveMember.push', () => sendPushToMembers([memberId], {
     title: '🎉 Account approved',
     body: 'Salaam · your Barakah Hub account has been approved. Welcome!',
     data: { type: 'approved' },
     channelId: 'admin',
-  }).catch((err) => { console.error('[push] approve member:', err); });
+  }));
   // Email approval · fire & forget, never block on email
-  void emailForMember(m.authId).then((email) => {
-    if (email) return sendApprovalEmail(email, m.nameEn || m.nameUr);
-  }).catch((err) => { console.error('[email] approve member:', err); });
+  runAfterResponse('approveMember.email', async () => {
+    const email = await emailForMember(m.authId);
+    if (email) await sendApprovalEmail(email, m.nameEn || m.nameUr);
+  });
   waToMember(memberId, `🎉 *مبارک ہو!*
 
 ${m.nameUr || m.nameEn} · آپ کا Barakah Hub اکاؤنٹ منظور ہو گیا۔ اب آپ ایپ استعمال کر سکتے ہیں۔
@@ -95,8 +161,7 @@ ${m.nameUr || m.nameEn} · آپ کا Barakah Hub اکاؤنٹ منظور ہو گ
 
 /* ─── reject pending member (admin) */
 export async function rejectMember(memberId: string) {
-  const me = await meOrThrow();
-  if (me.role !== 'admin') throw new Error('Admin only');
+  const me = await requireAdmin();
   if (!/^[0-9a-f-]{36}$/i.test(memberId)) throw new Error('Invalid id');
 
   const [m] = await db.select().from(members).where(eq(members.id, memberId)).limit(1);
@@ -134,8 +199,7 @@ const bulkImportSchema = z.object({
 });
 
 export async function bulkImportMembers(input: z.infer<typeof bulkImportSchema>): Promise<{ imported: number; skipped: number; errors: string[] }> {
-  const me = await meOrThrow();
-  if (me.role !== 'admin') throw new Error('Admin only');
+  const me = await requireAdmin();
   const data = bulkImportSchema.parse(input);
 
   // Detect existing usernames so we skip duplicates cleanly instead of
@@ -196,8 +260,7 @@ const addMemberSchema = z.object({
 });
 
 export async function addMember(input: z.infer<typeof addMemberSchema>) {
-  const me = await meOrThrow();
-  if (me.role !== 'admin') throw new Error('Only admin can add members');
+  const me = await requireAdmin('Only admin can add members');
   const data = addMemberSchema.parse(input);
   const [created] = await db
     .insert(members)
@@ -227,22 +290,21 @@ const recordPaymentSchema = z.object({
   pool: z.enum(['sadaqah', 'zakat', 'qarz']).default('sadaqah'),
   monthLabel: z.string().min(3).max(40),
   note: z.string().max(200).optional(),
+  // Same per-attempt key as submitDonation — an admin re-submitting after a
+  // timeout must not create a second payment either.
+  idempotencyKey: z.string().min(8).max(64).optional(),
 });
 
 export async function recordPayment(input: z.infer<typeof recordPaymentSchema>) {
-  const me = await meOrThrow();
-  if (me.role !== 'admin' && me.role !== 'supervisor') {
-    throw new Error('Only admin or supervisor can record payments');
-  }
+  const me = await requireFundManager('Only admin or supervisor can record payments');
   const data = recordPaymentSchema.parse(input);
-  const [created] = await db
-    .insert(payments)
-    .values({
-      ...data,
-      monthStart: monthStartFromLabel(data.monthLabel),
-      pendingVerify: true,
-    })
-    .returning();
+  const result = await insertPaymentOnce({
+    ...data,
+    monthStart: monthStartFromLabel(data.monthLabel),
+    pendingVerify: true,
+  }, data.idempotencyKey);
+  if (!result.inserted) return result.payment;
+  const created = result.payment;
   await audit(
     me.id,
     'payment-record',
@@ -259,13 +321,13 @@ export async function recordPayment(input: z.infer<typeof recordPaymentSchema>) 
     },
     { title: '🧾 New payment to review', body: `Rs ${data.amount.toLocaleString('en-PK')} ${data.pool}`, data: { type: 'payment-pending' }, channelId: 'payments' },
   );
-  void (async () => {
+  runAfterResponse('recordPayment.emailApprovers', async () => {
     const [m] = await db.select().from(members).where(eq(members.id, data.memberId)).limit(1);
     await emailFundApprovers(
       { memberName: m?.nameEn || m?.nameUr || 'A member', amount: data.amount, pool: data.pool, monthLabel: data.monthLabel, note: data.note, paymentId: created.id },
       me.id,
     );
-  })().catch((err) => { console.error('[email] payment review:', err); });
+  });
   revalidatePath('/admin/fund');
   revalidatePath('/dashboard');
   return created;
@@ -281,22 +343,32 @@ const submitDonationSchema = z.object({
   note: z.string().max(200).optional(),
   // https-only · matches /api/payments/submit
   receiptUrl: z.string().url().startsWith('https://').or(z.string().startsWith('/uploads/')).optional(),
+  // Per-attempt key generated by the client (one per filled form / one per
+  // queued submission). Replaying it returns the original payment instead of
+  // creating a second one — see submitDonation.
+  idempotencyKey: z.string().min(8).max(64).optional(),
 });
 
 export async function submitDonation(input: z.infer<typeof submitDonationSchema>) {
-  const me = await meOrThrow();
-  if (me.status !== 'approved') throw new Error('Account not approved');
-  if (me.deceased) throw new Error('Account inactive');
+  const me = await meApprovedOrThrow();
   const data = submitDonationSchema.parse(input);
-  const [created] = await db
-    .insert(payments)
-    .values({
-      ...data,
-      memberId: me.id,
-      monthStart: monthStartFromLabel(data.monthLabel),
-      pendingVerify: true,
-    })
-    .returning();
+
+  // Idempotent insert. A flaky network hides the difference between "the
+  // server never got it" and "the server committed it but the response was
+  // lost", and the user's only recovery is to submit again — which used to
+  // create a second payment. The key makes the retry converge on the
+  // original row, and everything downstream (audit, notifications, emails)
+  // fires only for the attempt that actually inserted.
+  const created = await insertPaymentOnce({
+    ...data,
+    memberId: me.id,
+    monthStart: monthStartFromLabel(data.monthLabel),
+    pendingVerify: true,
+  }, data.idempotencyKey);
+
+  if (!created.inserted) return created.payment;
+  const payment = created.payment;
+
   await audit(me.id, 'payment-self-submit', `Submitted ${data.pool} ${data.amount} for ${data.monthLabel}`, me.id);
   // Notify fund approvers (supervisors + admins) so the approval queue
   // doesn't sit unseen.
@@ -314,23 +386,20 @@ export async function submitDonation(input: z.infer<typeof submitDonationSchema>
       data: { type: 'payment-pending' }, channelId: 'payments',
     },
   );
-  void emailFundApprovers(
-    { memberName: me.nameEn || me.nameUr, amount: data.amount, pool: data.pool, monthLabel: data.monthLabel, note: data.note, receiptUrl: data.receiptUrl, paymentId: created.id },
+  runAfterResponse('submitDonation.emailApprovers', () => emailFundApprovers(
+    { memberName: me.nameEn || me.nameUr, amount: data.amount, pool: data.pool, monthLabel: data.monthLabel, note: data.note, receiptUrl: data.receiptUrl, paymentId: payment.id },
     me.id,
-  ).catch((err) => { console.error('[email] payment review:', err); });
+  ));
   revalidatePath('/myaccount');
   revalidatePath('/admin/fund');
   revalidatePath('/dashboard');
-  return created;
+  return payment;
 }
 
 /* ─── supervisor approve (intermediate · admin still needs to verify) */
 export async function supervisorApprovePayment(paymentId: string) {
-  const me = await meOrThrow();
+  const me = await requireFundManager();
   if (!/^[0-9a-f-]{36}$/i.test(paymentId)) throw new Error('Invalid id');
-  if (me.role !== 'supervisor' && me.role !== 'admin') {
-    throw new Error('Supervisor or admin only');
-  }
   // Approval clears any prior rejection in case admin resent.
   const updated = await db
     .update(payments)
@@ -369,11 +438,8 @@ export async function supervisorApprovePayment(paymentId: string) {
 
 /* ─── supervisor reject (admin must decide: resend or delete) */
 export async function supervisorRejectPayment(paymentId: string, note?: string) {
-  const me = await meOrThrow();
+  const me = await requireFundManager();
   if (!/^[0-9a-f-]{36}$/i.test(paymentId)) throw new Error('Invalid id');
-  if (me.role !== 'supervisor' && me.role !== 'admin') {
-    throw new Error('Supervisor or admin only');
-  }
   const trimmedNote = note?.trim().slice(0, 500) || null;
   const updated = await db
     .update(payments)
@@ -418,9 +484,8 @@ export async function supervisorRejectPayment(paymentId: string, note?: string) 
 
 /* ─── admin resend rejected payment back to supervisor */
 export async function adminResendPaymentToSupervisor(paymentId: string) {
-  const me = await meOrThrow();
+  const me = await requireAdmin();
   if (!/^[0-9a-f-]{36}$/i.test(paymentId)) throw new Error('Invalid id');
-  if (me.role !== 'admin') throw new Error('Admin only');
   const updated = await db
     .update(payments)
     .set({
@@ -447,9 +512,8 @@ export async function adminResendPaymentToSupervisor(paymentId: string) {
 
 /* ─── admin hard-delete payment (any state) */
 export async function adminDeletePayment(paymentId: string) {
-  const me = await meOrThrow();
+  const me = await requireAdmin();
   if (!/^[0-9a-f-]{36}$/i.test(paymentId)) throw new Error('Invalid id');
-  if (me.role !== 'admin') throw new Error('Admin only');
   const [p] = await db.select().from(payments).where(eq(payments.id, paymentId)).limit(1);
   if (!p) return;
   await db.delete(payments).where(eq(payments.id, paymentId));
@@ -470,9 +534,8 @@ export async function adminDeletePayment(paymentId: string) {
  * (adminDeletePayment) · they can't override the rejection here.
  */
 export async function verifyPayment(paymentId: string) {
-  const me = await meOrThrow();
+  const me = await requireAdmin();
   if (!/^[0-9a-f-]{36}$/i.test(paymentId)) throw new Error('Invalid id');
-  if (me.role !== 'admin') throw new Error('Admin only');
 
   const [existing] = await db.select().from(payments).where(eq(payments.id, paymentId)).limit(1);
   if (!existing) throw new Error('Payment not found');
@@ -485,8 +548,32 @@ export async function verifyPayment(paymentId: string) {
   }
   // Two-person rule, enforced in role logic (not just UI): the person who
   // supervisor-approved the cash cannot also be the one who verifies it.
-  if (existing.supervisorApprovedById === me.id) {
-    throw new Error('Two-person rule: you approved this payment as supervisor, so a different admin must verify it.');
+  //
+  // The rule needs two eligible humans to exist. On a single-admin install
+  // (the bootstrap founder, before any supervisor is appointed) there is only
+  // one, so enforcing it strictly made EVERY payment unverifiable — the fund
+  // total could never leave zero and the product's core loop was dead on
+  // arrival. Silently waiving the rule would be worse: a financial control
+  // that disappears without a trace is not a control.
+  //
+  // So: enforce it whenever two-person control is actually possible, and when
+  // it is not, allow the verification but record the degraded control as its
+  // own audit action so the exception is visible to anyone reading the trail.
+  const selfApproved = existing.supervisorApprovedById === me.id;
+  let singleControl = false;
+  if (selfApproved) {
+    const eligibleApprovers = await db.$count(
+      members,
+      and(
+        eq(members.status, 'approved'),
+        eq(members.deceased, false),
+        inArray(members.role, ['admin', 'supervisor']),
+      ),
+    );
+    if (eligibleApprovers > 1) {
+      throw new Error('Two-person rule: you approved this payment as supervisor, so a different admin must verify it.');
+    }
+    singleControl = true;
   }
 
   const verifiedAt = new Date();
@@ -499,26 +586,32 @@ export async function verifyPayment(paymentId: string) {
     .where(and(eq(payments.id, paymentId), eq(payments.pendingVerify, true)))
     .returning({ id: payments.id });
   if (flipped.length === 0) throw new Error('Already verified');
-  await audit(me.id, 'payment-verified', `Verified payment ${paymentId}`);
+  await audit(
+    me.id,
+    singleControl ? 'payment-verified-single-control' : 'payment-verified',
+    singleControl
+      ? `Verified payment ${paymentId} under SINGLE-PERSON control — no second approved admin/supervisor existed at verification time. Appoint a supervisor to restore the two-person rule.`
+      : `Verified payment ${paymentId}`,
+  );
   // Notify the donor that their payment was approved (push + email receipt)
   const [p] = await db.select().from(payments).where(eq(payments.id, paymentId)).limit(1);
   if (p) {
     // In-app row too, so the verification shows in the bell list (push is
     // transient, email can be missed).
-    void notify([p.memberId], {
+    runAfterResponse('verifyPayment.notify', () => notify([p.memberId], {
       titleEn: 'Donation verified',
       titleUr: 'عطیہ کی تصدیق ہو گئی',
       en: `Your ${p.pool} contribution of Rs ${p.amount.toLocaleString('en-PK')} for ${p.monthLabel} has been verified.`,
       ur: `${p.monthLabel} کا آپ کا عطیہ Rs ${p.amount.toLocaleString('en-PK')} تصدیق ہو گیا۔`,
       type: 'payment-verified',
-    }).catch((err) => { console.error('[notify] payment verified:', err); });
-    void sendPushToMembers([p.memberId], {
+    }));
+    runAfterResponse('verifyPayment.push', () => sendPushToMembers([p.memberId], {
       title: '✅ Donation verified',
       body: `Your ${p.pool} contribution of Rs ${p.amount.toLocaleString('en-PK')} for ${p.monthLabel} has been verified.`,
       data: { type: 'payment-verified', paymentId: p.id },
       channelId: 'payments',
-    }).catch((err) => { console.error('[push] payment verified:', err); });
-    void (async () => {
+    }));
+    runAfterResponse('verifyPayment.receipt', async () => {
       const [donor] = await db.select().from(members).where(eq(members.id, p.memberId)).limit(1);
       if (!donor) return;
       const email = await emailForMember(donor.authId);
@@ -537,8 +630,14 @@ export async function verifyPayment(paymentId: string) {
       if (donor.phone) {
         const base = process.env.NEXT_PUBLIC_APP_URL ?? 'https://barakah-hub.vercel.app';
         const poolLabel = p.pool === 'sadaqah' ? 'صدقہ' : p.pool === 'zakat' ? 'زکوٰۃ' : 'قرض';
-        await sendWhatsAppText(
-          donor.phone,
+        await sendWhatsAppBusinessMessage(donor.phone, {
+          templateEnvVar: 'WHATSAPP_TEMPLATE_RECEIPT',
+          templateParams: [
+            donor.nameUr || donor.nameEn,
+            `Rs ${p.amount.toLocaleString('en-PK')}`,
+            p.monthLabel,
+          ],
+          fallbackText:
           `✅ *رسید تصدیق شدہ · Barakah Hub*
 
 رقم: *Rs ${p.amount.toLocaleString('en-PK')}* (${poolLabel})
@@ -548,9 +647,9 @@ export async function verifyPayment(paymentId: string) {
 تصدیق کریں: ${base}/verify-receipt/${p.id}
 
 جزاک اللہ خیر`,
-        );
+        });
       }
-    })().catch((err) => { console.error('[email] payment receipt:', err); });
+    });
   }
   revalidatePath('/admin/fund');
   revalidatePath('/myaccount');
@@ -564,10 +663,8 @@ export async function verifyPayment(paymentId: string) {
  * power than the veto path below.
  */
 export async function castVote(caseId: string, yes: boolean) {
-  const me = await meOrThrow();
+  const me = await meApprovedOrThrow();
   if (!/^[0-9a-f-]{36}$/i.test(caseId)) throw new Error('Invalid case id');
-  if (me.status !== 'approved') throw new Error('Account not approved');
-  if (me.deceased) throw new Error('Not eligible');
   const [c] = await db.select().from(cases).where(eq(cases.id, caseId)).limit(1);
   if (!c) throw new Error('Case not found');
   if (c.status !== 'voting') throw new Error('Voting closed');
@@ -616,8 +713,7 @@ const goalSchema = z.object({
 });
 
 export async function updateGoal(input: z.infer<typeof goalSchema>) {
-  const me = await meOrThrow();
-  if (me.role !== 'admin') throw new Error('Admin only');
+  const me = await requireAdmin();
   const data = goalSchema.parse(input);
   await db.update(configTbl).set(data).where(eq(configTbl.id, 1));
   await audit(me.id, 'config-changed', `Goal updated to ${data.goalAmount}`);
@@ -668,8 +764,7 @@ const adminCfgSchema = z.object({
 });
 
 export async function updateAdminConfig(input: z.infer<typeof adminCfgSchema>) {
-  const me = await meOrThrow();
-  if (me.role !== 'admin') throw new Error('Admin only');
+  const me = await requireAdmin();
   const data = adminCfgSchema.parse(input);
   await db.update(configTbl).set(data).where(eq(configTbl.id, 1));
   await audit(me.id, 'config-changed', JSON.stringify(data));
@@ -702,8 +797,7 @@ const editMemberSchema = z.object({
 });
 
 export async function editMember(input: z.infer<typeof editMemberSchema>) {
-  const me = await meOrThrow();
-  if (me.role !== 'admin') throw new Error('Admin only');
+  const me = await requireAdmin();
   const { id, spouseId, ...rest } = editMemberSchema.parse(input);
 
   // Refuse self-demotion to avoid lockout
@@ -712,6 +806,35 @@ export async function editMember(input: z.infer<typeof editMemberSchema>) {
   }
   if (id === me.id && rest.status && rest.status !== 'approved') {
     throw new Error('Cannot change your own status · contact another admin');
+  }
+
+  // Last-admin guard. hardDeleteMember had one; this path did not, so an
+  // admin could demote or reject the only *other* admin — and two admins
+  // demoting each other concurrently could leave the org with zero, which is
+  // an unrecoverable lockout (there is no way back in without direct database
+  // access). The conditional UPDATE below is the real gate: it only applies
+  // when at least one OTHER approved, living admin still exists, so the
+  // concurrent case has a single winner.
+  const demotesAdmin = (rest.role && rest.role !== 'admin')
+    || (rest.status && rest.status !== 'approved')
+    || rest.deceased === true;
+
+  if (demotesAdmin) {
+    const [victim] = await db.select({ role: members.role }).from(members).where(eq(members.id, id)).limit(1);
+    if (victim?.role === 'admin') {
+      const otherAdmins = await db.$count(
+        members,
+        and(
+          eq(members.role, 'admin'),
+          eq(members.status, 'approved'),
+          eq(members.deceased, false),
+          ne(members.id, id),
+        ),
+      );
+      if (otherAdmins < 1) {
+        throw new Error('Cannot demote the last admin · promote another member to admin first');
+      }
+    }
   }
 
   await db.update(members).set(rest).where(eq(members.id, id));
@@ -758,8 +881,28 @@ export async function editMember(input: z.infer<typeof editMemberSchema>) {
 /* ─── delete member (admin) · soft via deceased=false→true OR hard delete */
 export async function softDeleteMember(memberId: string) {
   if (!/^[0-9a-f-]{36}$/i.test(memberId)) throw new Error('Invalid id');
-  const me = await meOrThrow();
-  if (me.role !== 'admin') throw new Error('Admin only');
+  const me = await requireAdmin();
+
+  // Same last-admin protection as editMember and hardDeleteMember. Marking an
+  // admin deceased revokes their power (requireRole refuses a deceased
+  // caller), so doing it to the only admin locks the organisation out just as
+  // surely as demoting them would.
+  const [victim] = await db.select({ role: members.role }).from(members).where(eq(members.id, memberId)).limit(1);
+  if (victim?.role === 'admin') {
+    const otherAdmins = await db.$count(
+      members,
+      and(
+        eq(members.role, 'admin'),
+        eq(members.status, 'approved'),
+        eq(members.deceased, false),
+        ne(members.id, memberId),
+      ),
+    );
+    if (otherAdmins < 1) {
+      throw new Error('Cannot mark the last admin deceased · promote another member to admin first');
+    }
+  }
+
   await db.update(members).set({ deceased: true }).where(eq(members.id, memberId));
   await audit(me.id, 'member-deceased', `Marked deceased`, memberId);
   revalidatePath('/admin/members');
@@ -767,8 +910,7 @@ export async function softDeleteMember(memberId: string) {
 }
 
 export async function hardDeleteMember(memberId: string) {
-  const me = await meOrThrow();
-  if (me.role !== 'admin') throw new Error('Admin only');
+  const me = await requireAdmin();
   if (memberId === me.id) throw new Error('Cannot delete yourself');
 
   const [target] = await db.select().from(members).where(eq(members.id, memberId)).limit(1);
@@ -779,12 +921,70 @@ export async function hardDeleteMember(memberId: string) {
     if (adminCount <= 1) throw new Error('Cannot delete the last admin · promote another member first');
   }
 
-  // Clear spouse pointer to prevent dangling references in tree
-  await db.update(members).set({ spouseId: null }).where(eq(members.spouseId, memberId));
-  // Re-parent any children to the admin
-  await db.update(members).set({ parentId: me.id }).where(eq(members.parentId, memberId));
+  // Refuse before mutating anything.
+  //
+  // This used to clear spouse pointers and re-parent children BEFORE the
+  // delete. Both writes were redundant — members.parent_id (0001) and
+  // members.spouse_id (0009) are both ON DELETE SET NULL, so the database
+  // already handles them atomically — and both were actively harmful,
+  // because audit_log.actor_id REFERENCES members(id) with no ON DELETE
+  // clause. Every member has at least one audit row (onboarding writes
+  // 'setup-complete'), so the DELETE always raised a foreign-key violation
+  // AFTER those two updates had already committed. With no transaction on
+  // the neon-http driver they were never rolled back: the admin saw an
+  // error while the family tree had silently been rewritten.
+  //
+  // A member with financial or audit history must never be erasable anyway —
+  // that history is the ledger. So: check every reference first, refuse with
+  // an actionable message, and otherwise perform ONE statement that either
+  // fully succeeds or changes nothing.
+  // Six plain $count calls rather than one hand-rolled scalar-subquery
+  // SELECT. This path runs only when an admin deletes a footprint-free
+  // record, so the extra round-trips cost nothing, and $count is the API
+  // used everywhere else in this file — no clever construct to be wrong
+  // about in production.
+  const [payCount, caseCount, loanCount, voteCount, auditCount, childCount] = await Promise.all([
+    db.$count(payments, eq(payments.memberId, memberId)),
+    db.$count(cases, eq(cases.applicantId, memberId)),
+    db.$count(loans, eq(loans.memberId, memberId)),
+    db.$count(votes, eq(votes.memberId, memberId)),
+    db.$count(auditLog, eq(auditLog.actorId, memberId)),
+    db.$count(members, eq(members.parentId, memberId)),
+  ]);
+
+  const blockers: string[] = [];
+  if (payCount > 0) blockers.push('payment records');
+  if (caseCount > 0) blockers.push('emergency cases');
+  if (loanCount > 0) blockers.push('loans');
+  if (voteCount > 0) blockers.push('votes');
+  if (childCount > 0) blockers.push('children in the family tree');
+  // Audit rows where this member is the ACTOR mean they performed actions of
+  // their own, and that attribution must never be broken — so it blocks.
+  // Rows where they are merely the TARGET (e.g. the 'member-added' entry an
+  // admin wrote when creating them) do not block: those survive the delete
+  // with target_id set to NULL by the FK (migration 0017), and the identity
+  // they referred to is captured in the deletion entry written just below.
+  if (auditCount > 0) blockers.push('audit-log actions they performed');
+
+  if (blockers.length > 0) {
+    throw new Error(
+      `Cannot delete ${target.nameEn || target.nameUr}: this member has ${blockers.join(', ')}. ` +
+      'Deleting would destroy financial or audit history. Mark them deceased instead, ' +
+      'or reassign their children first.',
+    );
+  }
+
+  // Record the identity BEFORE the row disappears, so the trail stays
+  // readable once the FK nulls the target reference. No targetId here —
+  // it would reference a member that no longer exists.
+  await audit(
+    me.id,
+    'member-deleted',
+    `Hard deleted member ${memberId} · username=${target.username} · name=${target.nameEn || target.nameUr}`,
+  );
+  // Single statement. spouse_id on any partner, and parent_id on any
+  // descendant, are cleared by their own ON DELETE SET NULL constraints.
   await db.delete(members).where(eq(members.id, memberId));
-  await audit(me.id, 'member-deleted', 'Hard deleted', memberId);
   revalidatePath('/admin/members');
   revalidatePath('/tree');
 }
@@ -818,8 +1018,7 @@ const caseSchema = z.object({
 );
 
 export async function createCase(input: z.infer<typeof caseSchema>) {
-  const me = await meOrThrow();
-  if (me.status !== 'approved') throw new Error('Account not approved');
+  const me = await meApprovedOrThrow();
   const parsed = caseSchema.parse(input);
 
   // Normalise: a single `reason` fans out to both legacy columns; pick
@@ -847,35 +1046,39 @@ export async function createCase(input: z.infer<typeof caseSchema>) {
   await audit(me.id, 'emergency-create', `${data.caseType} ${data.amount} for ${data.beneficiaryName}`, me.id);
   // Emergency cases go out on WhatsApp too — the vote is time-critical.
   if (data.emergency) {
-    void (async () => {
+    runAfterResponse('createCase.emergencyWhatsApp', async () => {
       const voters = await db
         .select({ id: members.id, phone: members.phone })
         .from(members)
         .where(and(eq(members.status, 'approved'), eq(members.deceased, false), sql`${members.id} != ${me.id}`));
       for (const v of voters) {
         if (!v.phone) continue;
-        await sendWhatsAppText(v.phone, `🚨 *ہنگامی کیس · ووٹ درکار*
+        await sendWhatsAppBusinessMessage(v.phone, {
+          templateEnvVar: 'WHATSAPP_TEMPLATE_EMERGENCY',
+          templateParams: [data.beneficiaryName, `Rs ${data.amount.toLocaleString('en-PK')}`],
+          fallbackText: `🚨 *ہنگامی کیس · ووٹ درکار*
 
 ${data.beneficiaryName} کے لیے Rs ${data.amount.toLocaleString('en-PK')} کی درخواست
 وجہ: ${data.reasonUr || data.reasonEn}
 
-ووٹ دیں: ${process.env.NEXT_PUBLIC_APP_URL ?? 'https://barakah-hub.vercel.app'}/cases`);
+ووٹ دیں: ${process.env.NEXT_PUBLIC_APP_URL ?? 'https://barakah-hub.vercel.app'}/cases`,
+        });
       }
-    })().catch((err) => { console.error('[whatsapp] emergency broadcast:', err); });
+    });
   }
   // Broadcast push so every approved member sees the new case in time to vote
-  void broadcastPush(me.id, {
+  runAfterResponse('createCase.broadcastPush', () => broadcastPush(me.id, {
     title: data.emergency ? '🚨 Emergency case opened' : '🆘 New case to vote on',
     body: `${data.beneficiaryName} · ${data.category} · Rs ${data.amount.toLocaleString('en-PK')}`,
     data: { type: 'case', caseId: created.id },
     channelId: 'cases',
-  }).catch((err) => { console.error('[push] broadcast case:', err); });
+  }));
 
   // Email alert · only for cases flagged emergency (so we don't spam on
   // every routine request). Sends to every approved member except the
   // applicant themselves.
   if (data.emergency) {
-    void (async () => {
+    runAfterResponse('createCase.emergencyEmail', async () => {
       const recipients = await db
         .select({ nameEn: members.nameEn, nameUr: members.nameUr, authId: members.authId })
         .from(members)
@@ -897,7 +1100,7 @@ ${data.beneficiaryName} کے لیے Rs ${data.amount.toLocaleString('en-PK')} ک
           caseId: created.id,
         });
       }
-    })().catch((err) => { console.error('[email] emergency case alert:', err); });
+    });
   }
 
   revalidatePath('/cases');
@@ -918,8 +1121,7 @@ const issueLoanSchema = z.object({
 });
 
 export async function issueLoan(input: z.infer<typeof issueLoanSchema>) {
-  const me = await meOrThrow();
-  if (me.role !== 'admin') throw new Error('Admin only');
+  const me = await requireAdmin();
   const data = issueLoanSchema.parse(input);
 
   const [borrower] = await db.select().from(members).where(eq(members.id, data.memberId)).limit(1);
@@ -961,8 +1163,7 @@ const repaySchema = z.object({
 });
 
 export async function recordRepayment(input: z.infer<typeof repaySchema>) {
-  const me = await meOrThrow();
-  if (me.role !== 'admin') throw new Error('Admin only');
+  const me = await requireAdmin();
   const data = repaySchema.parse(input);
 
   // Single guarded UPDATE: only succeeds when the loan is still active
@@ -1019,9 +1220,8 @@ export async function recordRepayment(input: z.infer<typeof repaySchema>) {
 
 /* ─── disburse an approved case (admin) */
 export async function disburseCase(caseId: string) {
-  const me = await meOrThrow();
+  const me = await requireAdmin();
   if (!/^[0-9a-f-]{36}$/i.test(caseId)) throw new Error('Invalid case id');
-  if (me.role !== 'admin') throw new Error('Admin only');
 
   // Atomic: only updates when status is still 'approved' · prevents TOCTOU double-disburse
   const updated = await db
@@ -1077,10 +1277,9 @@ ${c.beneficiaryName} کے لیے Rs ${c.amount.toLocaleString('en-PK')} ادا �
  * the audit log so the action is traceable.
  */
 export async function adminResolveCase(caseId: string, decision: 'approved' | 'rejected') {
-  const me = await meOrThrow();
+  const me = await requireAdmin();
   if (!/^[0-9a-f-]{36}$/i.test(caseId)) throw new Error('Invalid case id');
   if (decision !== 'approved' && decision !== 'rejected') throw new Error('Invalid decision');
-  if (me.role !== 'admin') throw new Error('Admin only');
 
   // Atomic like disburseCase: only flips a case that is still voting, so a
   // concurrent vote-tally auto-resolve (or a second admin) can't be
@@ -1114,9 +1313,8 @@ export async function adminResolveCase(caseId: string, decision: 'approved' | 'r
  * an associated loan are blocked to keep the loan ledger consistent.
  */
 export async function adminDeleteCase(caseId: string) {
-  const me = await meOrThrow();
+  const me = await requireAdmin();
   if (!/^[0-9a-f-]{36}$/i.test(caseId)) throw new Error('Invalid case id');
-  if (me.role !== 'admin') throw new Error('Admin only');
 
   const [c] = await db.select().from(cases).where(eq(cases.id, caseId)).limit(1);
   if (!c) throw new Error('Case not found');
@@ -1147,8 +1345,7 @@ const createInviteSchema = z.object({
 });
 
 export async function createInvite(input: z.infer<typeof createInviteSchema>) {
-  const me = await meOrThrow();
-  if (me.role !== 'admin') throw new Error('Admin only');
+  const me = await requireAdmin();
   const data = createInviteSchema.parse(input);
   const token = generateInviteToken();
   const expiresAt = new Date(Date.now() + data.expiresInDays * 86_400_000);
@@ -1163,8 +1360,7 @@ export async function createInvite(input: z.infer<typeof createInviteSchema>) {
 
 export async function revokeInvite(inviteId: string) {
   if (!/^[0-9a-f-]{36}$/i.test(inviteId)) throw new Error('Invalid id');
-  const me = await meOrThrow();
-  if (me.role !== 'admin') throw new Error('Admin only');
+  const me = await requireAdmin();
   await db.update(memberInvites).set({ revoked: true }).where(eq(memberInvites.id, inviteId));
   await audit(me.id, 'invite-revoked', inviteId);
   revalidatePath('/admin/invites');
@@ -1202,8 +1398,7 @@ const sendMessageSchema = z.object({
 });
 
 export async function sendMessage(input: z.infer<typeof sendMessageSchema>) {
-  const me = await meOrThrow();
-  if (me.status !== 'approved') throw new Error('Account not approved');
+  const me = await meApprovedOrThrow();
   const data = sendMessageSchema.parse(input);
 
   const [recipient] = await db.select().from(members).where(eq(members.id, data.toId)).limit(1);
@@ -1233,8 +1428,7 @@ export async function sendMessage(input: z.infer<typeof sendMessageSchema>) {
  * fixed entitlement, so the case lands directly in 'approved' and the
  * admin disburses it with the normal disburseCase flow. */
 export async function openFautiCase(memberId: string) {
-  const me = await meOrThrow();
-  if (me.role !== 'admin') throw new Error('Admin only');
+  const me = await requireAdmin();
   if (!/^[0-9a-f-]{36}$/i.test(memberId)) throw new Error('Invalid member id');
 
   const [m] = await db.select().from(members).where(eq(members.id, memberId)).limit(1);
@@ -1286,8 +1480,7 @@ export async function openFautiCase(memberId: string) {
  * is verified. This lets the admin unblock a stuck account directly.
  */
 export async function adminVerifyEmailByAddress(email: string): Promise<{ verified: boolean }> {
-  const me = await meOrThrow();
-  if (me.role !== 'admin') throw new Error('Admin only');
+  const me = await requireAdmin();
   const clean = email.trim().toLowerCase();
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(clean)) throw new Error('Invalid email address');
 

@@ -3,6 +3,7 @@ import { and, eq, isNull, sql } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { members, payments, loans, notifications } from '@/lib/db/schema';
 import { sendPushToMembers } from '@/lib/push';
+import { runAfterResponse } from '@/lib/after-response';
 import { currentMonthLabel } from '@/lib/month';
 import { buildPaymentReminder, sendWhatsAppTemplate, sendWhatsAppText } from '@/lib/whatsapp';
 import { planStatus } from '@/lib/loan-math';
@@ -10,6 +11,10 @@ import { fmtRs } from '@/lib/i18n/dict';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
+// Cron jobs fan out over the whole membership. At the platform default they
+// are killed mid-loop with no error and no retry, so the work silently
+// half-completes as the family grows.
+export const maxDuration = 300;
 
 /**
  * Defaulter reminder — finds approved, non-deceased members who have NOT
@@ -85,12 +90,12 @@ export async function GET(req: Request) {
         type: loanReminderType,
       })),
     );
-    void sendPushToMembers(behindFresh.map(({ loan }) => loan.memberId), {
+    runAfterResponse('cron.loanReminderPush', () => sendPushToMembers(behindFresh.map(({ loan }) => loan.memberId), {
       title: 'Qarz installment due',
       body: 'Your repayment plan is behind schedule · open the Loans tab.',
       data: { type: 'loan-reminder' },
       channelId: 'payments',
-    }).catch(() => {});
+    }));
   }
 
   if (defaulters.length === 0) {

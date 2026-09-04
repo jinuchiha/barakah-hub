@@ -8,6 +8,10 @@ interface SubmitDonationInput {
   monthLabel: string;
   note?: string;
   receiptUrl?: string;
+  /** Per-submission-intent key. Reused across retries so a request that
+   *  committed server-side but timed out client-side cannot create a second
+   *  payment — the server returns the original row instead. */
+  idempotencyKey?: string;
 }
 
 async function fetchMyPayments(): Promise<Payment[]> {

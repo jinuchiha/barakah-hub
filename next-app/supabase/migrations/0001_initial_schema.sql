@@ -164,7 +164,9 @@ CREATE TABLE config (
   updated_at            TIMESTAMPTZ NOT NULL DEFAULT now(),
   CHECK (id = 1)
 );
-INSERT INTO config (id) VALUES (1);
+-- Idempotent: a ledger-less re-run (disaster recovery, fresh branch
+-- without _barakah_migrations) must not fail on the singleton row.
+INSERT INTO config (id) VALUES (1) ON CONFLICT DO NOTHING;
 
 -- ──────────────────────────────────────────────────────────────────
 -- ROW LEVEL SECURITY — sadqa privacy enforced at DB layer
