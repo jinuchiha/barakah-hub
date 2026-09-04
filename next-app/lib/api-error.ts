@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { logError } from '@/lib/log';
 
 /**
  * One error contract for every REST route.
@@ -65,8 +66,15 @@ export function errorResponse(err: unknown, context: string): NextResponse {
   // detail, so they pass through as 400. Anything that looks like an
   // infrastructure fault is masked.
   if (looksInternal(message)) {
-    console.error(`[api] ${context}:`, err);
-    return NextResponse.json({ error: 'Something went wrong. Please try again.' }, { status: 500 });
+    // Structured, with the request id attached, so the masked response the
+    // user sees can still be traced back to a specific failure. Previously
+    // this was a bare console.error with no id — the user got "something
+    // went wrong" and nobody could find out what.
+    void logError({ event: 'api.internal_error', route: context, err });
+    return NextResponse.json(
+      { error: 'Something went wrong. Please try again.' },
+      { status: 500 },
+    );
   }
 
   return NextResponse.json({ error: message }, { status: 400 });

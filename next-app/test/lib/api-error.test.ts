@@ -86,11 +86,23 @@ describe('errorResponse', () => {
     expect(res.status).toBe(500);
   });
 
-  it('logs the masked error server-side so it is still diagnosable', () => {
+  it('logs the masked error server-side as structured JSON so it is still diagnosable', async () => {
     const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
     errorResponse(new Error('relation "payments" does not exist'), 'GET /api/payments');
+
+    // logError reads the request id from headers(), so it resolves on a
+    // later microtask than the response. Flush before asserting.
+    await new Promise((r) => setTimeout(r, 0));
+
     expect(spy).toHaveBeenCalled();
-    expect(String(spy.mock.calls[0][0])).toContain('GET /api/payments');
+    const line = JSON.parse(String(spy.mock.calls[0][0])) as Record<string, unknown>;
+    // The masked 500 the client sees must still be traceable: the log
+    // carries the route, the real error, and a request id to search on.
+    expect(line.event).toBe('api.internal_error');
+    expect(line.route).toBe('GET /api/payments');
+    expect(String(line.errorMessage)).toContain('relation "payments" does not exist');
+    expect(line.requestId).toBeTruthy();
+    expect(line.level).toBe('error');
   });
 
   it('does not leak an unbounded error string to the client', async () => {

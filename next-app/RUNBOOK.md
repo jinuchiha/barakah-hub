@@ -168,3 +168,97 @@ Rehearse on a Neon branch before touching production.
 outside this database (object storage with object-lock, or a managed log
 service). Nothing inside a database an operator controls can prove it was not
 edited by that operator.
+
+---
+
+## "Notifications stopped arriving" (the outbox)
+
+Delivery is now a queue, not a side effect, so this is answerable instead of
+guesswork. Everything below is a query, not a hunch.
+
+**1 · Ask the app first.**
+
+```bash
+curl -s "$APP_URL/api/health?deep=1" | jq .notifications
+# { "pending": 3, "sent": 1420, "dead": 2, "oldestPendingMinutes": 4 }
+```
+
+- `dead > 0` — messages that will never send without a change. **This is the
+  usual answer.** See step 2.
+- `oldestPendingMinutes > 60` — the drain has stopped. The cron runs every 5
+  minutes, so an hour-old backlog means `/api/cron/outbox` is not running:
+  check `CRON_SECRET` is set and look at the Vercel cron logs.
+- All zero and members still report nothing — the message was never queued.
+  Check the action actually calls `enqueue()`.
+
+**2 · Read why they died.**
+
+```sql
+SELECT channel, kind, count(*), max(last_error) AS example
+FROM outbox_messages WHERE state = 'dead'
+GROUP BY channel, kind ORDER BY count(*) DESC;
+```
+
+The two causes you will actually see:
+
+| `last_error` contains | Fix |
+|---|---|
+| `outside the 24-hour window` | Set the named `WHATSAPP_TEMPLATE_*` env var to an approved template. Meta rejects business-initiated free text; no amount of retrying changes that. |
+| `RESEND_API_KEY not configured` | Set it. Messages stay queued rather than being lost, so they deliver once it is set. |
+| `Member has no phone/email` | Nothing to fix in the app — the member has no address on file. |
+
+**3 · Requeue after fixing the cause.**
+
+```sql
+-- Re-arm dead messages once the env var / key is in place.
+UPDATE outbox_messages
+SET state = 'pending', attempts = 0, next_attempt_at = now(), last_error = NULL
+WHERE state = 'dead' AND channel = 'whatsapp';
+```
+
+The next cron run picks them up. Dedupe keys mean this cannot double-send
+anything that already went out.
+
+---
+
+## "Where did this number come from?" (the ledger)
+
+The fund balance is `SUM(amount)` over `ledger_entries`, one signed row per
+movement. It is append-only — corrections are reversals, never edits.
+
+```sql
+-- Current position per pool.
+SELECT pool, SUM(amount)::int AS available FROM ledger_entries GROUP BY pool;
+
+-- Everything that moved a pool, newest first.
+SELECT occurred_on, source_type, amount, detail
+FROM ledger_entries WHERE pool = 'sadaqah' ORDER BY occurred_on DESC LIMIT 50;
+
+-- Does the ledger agree with the payment records?
+SELECT
+  (SELECT COALESCE(SUM(amount),0) FROM payments WHERE status = 'verified') AS verified_payments,
+  (SELECT COALESCE(SUM(amount),0) FROM ledger_entries WHERE source_type = 'payment') AS ledger_credits;
+```
+
+Those two figures should match. If they do not, a verification committed
+without its ledger entry — which the transaction wrapping is meant to make
+impossible, so treat a mismatch as a real incident and check the
+`ledger-reconcile-mismatch` audit rows.
+
+Note `available` can legitimately be **negative** for `qarz`: lending more
+than has been repaid is the normal state of a loan fund.
+
+---
+
+## Tracing one request
+
+Every request carries `x-request-id`, stamped by middleware and returned on
+the response. Ask the user for it, then search the Vercel logs for that
+value: every log line for that request is JSON carrying the same id, plus
+`event`, `actorId` and `durationMs`.
+
+```
+requestId:"<id>"                 all lines for one request
+event:"api.internal_error"       masked 500s, with the real error
+outcome:"error"                  failed timed operations
+```
