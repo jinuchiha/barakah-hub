@@ -17,7 +17,8 @@
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
     "import:legacy": "tsx scripts/migrate-localstorage.ts",
-    "db:migrate:deploy": "tsx scripts/migrate-on-deploy.ts"
+    "db:migrate:deploy": "tsx scripts/migrate-on-deploy.ts",
+    "test:int": "vitest run test/integration"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.95.2",
@@ -58,6 +59,7 @@
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.1",
     "@types/node": "^22.9.0",
+    "@types/pg": "^8.23.1",
     "@types/qrcode": "^1.5.6",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
@@ -69,6 +71,7 @@
     "eslint": "^9.14.0",
     "eslint-config-next": "^16.0.0",
     "happy-dom": "^20.9.0",
+    "pg": "^8.23.0",
     "postcss": "^8.4.49",
     "tailwindcss": "^4.0.0",
     "tsx": "^4.19.2",

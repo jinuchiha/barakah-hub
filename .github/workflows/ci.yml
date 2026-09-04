@@ -61,7 +61,14 @@ jobs:
       - name: Lint
         run: pnpm lint
 
+      # Unit tests plus the integration suite. INTEGRATION_DATABASE_URL is
+      # what switches the integration tests on: without it they skip, so a
+      # developer without Postgres can still run `pnpm test`. Here it is set,
+      # so the real-database invariants (audit-log triggers, unique
+      # constraints, foreign-key behaviour, transaction rollback) are gates.
       - name: Test
+        env:
+          INTEGRATION_DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
         run: pnpm test
 
       # Migrations must parse and apply cleanly before the build that depends
