@@ -17,7 +17,7 @@ export default async function VerifyReceiptPage({ params }: { params: Promise<{ 
   const [p] = valid
     ? await db.select().from(payments).where(eq(payments.id, id)).limit(1)
     : [];
-  const ok = p && !p.pendingVerify;
+  const ok = p && p.status === 'verified';
 
   return (
     <main className="grid min-h-svh place-items-center px-4 py-10">

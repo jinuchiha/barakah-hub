@@ -28,7 +28,7 @@ async function loadState(token: string) {
     && (approver.role === 'admin' || approver.role === 'supervisor');
   if (!eligible) return { kind: 'invalid' as const };
   const [donor] = await db.select().from(members).where(eq(members.id, p.memberId)).limit(1);
-  if (!p.pendingVerify) return { kind: 'verified' as const, p, donor };
+  if (p.status === 'verified') return { kind: 'verified' as const, p, donor };
   if (p.supervisorRejectedAt) return { kind: 'rejected' as const, p, donor };
   if (p.supervisorApprovedAt) return { kind: 'approved' as const, p, donor };
   return { kind: 'ready' as const, p, donor, approver };

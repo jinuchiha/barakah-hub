@@ -10,7 +10,7 @@
  *  - Soft-delete via `deceased` flag on members.
  */
 import { pgTable, pgEnum, uuid, text, integer, timestamp, boolean, jsonb, index, primaryKey, date, type AnyPgColumn } from 'drizzle-orm/pg-core';
-import { relations } from 'drizzle-orm';
+import { relations, sql } from 'drizzle-orm';
 
 /* ─── BETTER-AUTH TABLES ─── */
 // Schema follows Better-Auth's Drizzle adapter expectations.
@@ -75,6 +75,14 @@ export const statusEnum = pgEnum('member_status', ['pending', 'approved', 'rejec
 export const poolEnum = pgEnum('fund_pool', ['sadaqah', 'zakat', 'qarz']);
 export const caseStatusEnum = pgEnum('case_status', ['voting', 'approved', 'rejected', 'disbursed']);
 export const caseTypeEnum = pgEnum('case_type', ['gift', 'qarz']);
+// A payment's state used to live in five nullable columns — 2^5 representable
+// combinations, most of them nonsense the database happily stored (approved
+// and rejected at once, verified while still pending). This enum is the
+// single source of truth; migration 0019 enforces legal transitions with a
+// trigger, so `verified` can only ever become `voided`.
+export const paymentStatusEnum = pgEnum('payment_status', [
+  'submitted', 'supervisor_approved', 'supervisor_rejected', 'verified', 'voided',
+]);
 export const ledgerSourceEnum = pgEnum('ledger_source', [
   'payment', 'loan_issue', 'loan_repayment', 'case_disbursement', 'reversal',
 ]);
@@ -142,7 +150,18 @@ export const payments = pgTable('payments', {
   paidOn: date('paid_on').notNull().defaultNow(),
   note: text('note'),
   receiptUrl: text('receipt_url'),
-  pendingVerify: boolean('pending_verify').notNull().default(false),
+  /** The authoritative state. Write this — never `pendingVerify`. */
+  status: paymentStatusEnum('status').notNull().default('submitted'),
+  /**
+   * DERIVED from `status` by the database (GENERATED ALWAYS, migration 0019).
+   *
+   * Kept because ~25 read sites depend on it and their meaning is unchanged.
+   * It cannot be written, and that is the point: the boolean and the status
+   * can no longer disagree, because there is only one of them.
+   */
+  pendingVerify: boolean('pending_verify').notNull().generatedAlwaysAs(
+    sql`(status = 'submitted' OR status = 'supervisor_approved' OR status = 'supervisor_rejected')`,
+  ),
   // Two-step approval — supervisor approves first (intermediate),
   // admin verifies last (final). Supervisor approval is OPTIONAL —
   // admin can always verify directly. See app/actions.ts.
@@ -371,5 +390,6 @@ export type Loan = typeof loans.$inferSelect;
 export type Notification = typeof notifications.$inferSelect;
 export type AuditEntry = typeof auditLog.$inferSelect;
 export type Config = typeof config.$inferSelect;
+export type PaymentStatus = (typeof paymentStatusEnum.enumValues)[number];
 export type LedgerEntry = typeof ledgerEntries.$inferSelect;
 export type NewLedgerEntry = typeof ledgerEntries.$inferInsert;

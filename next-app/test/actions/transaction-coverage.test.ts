@@ -18,7 +18,7 @@
  * against real Postgres.
  */
 import { describe, it, expect } from 'vitest';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 
 const ACTIONS = readFileSync(join(process.cwd(), 'app', 'actions.ts'), 'utf8');
@@ -132,5 +132,76 @@ describe('castVote serialises voters on the same case', () => {
     expect(body).toMatch(/\.for\('update'\)/);
     // And the lock must be taken before the tally read, not after.
     expect(body.indexOf(".for('update')")).toBeLessThan(body.indexOf('yesCount'));
+  });
+});
+
+/**
+ * Regression: BH-25 / the state machine.
+ *
+ * A verified payment is money the fund has recognised as received. Deleting
+ * the row would silently move the balance with nothing left to point at.
+ * adminDeletePayment must VOID it — keeping the record, posting a
+ * compensating ledger entry — and may only truly delete a payment that never
+ * entered the books.
+ */
+describe('verified payments are voided, never deleted', () => {
+  const body = ACTIONS.split(/(?=^export async function )/m)
+    .find((b) => b.startsWith('export async function adminDeletePayment'))!;
+
+  it('branches on the verified state rather than treating all payments alike', () => {
+    expect(body).toMatch(/status === 'verified'/);
+  });
+
+  it('posts a ledger reversal on the verified path', () => {
+    expect(body).toMatch(/reverseLedger\(/);
+    expect(body).toMatch(/entryForSource\(/);
+  });
+
+  it('sets status to voided instead of deleting on the verified path', () => {
+    // 'return;' also appears earlier (the not-found guard), so search from
+    // the branch start rather than from the top of the function.
+    const start = body.indexOf('if (wasVerified)');
+    const verifiedBranch = body.slice(start, body.indexOf('return;', start));
+    expect(verifiedBranch).toMatch(/status: 'voided'/);
+    expect(verifiedBranch).not.toMatch(/\.delete\(/);
+  });
+
+  it('still deletes an unverified payment — nothing to preserve', () => {
+    expect(body).toMatch(/tx\.delete\(payments\)/);
+    expect(body).toMatch(/never entered the books/);
+  });
+
+  it('records the two outcomes as distinct audit actions', () => {
+    expect(body).toMatch(/'payment-voided'/);
+    expect(body).toMatch(/'payment-deleted'/);
+  });
+});
+
+/**
+ * With `voided` in the state machine, `pending_verify = false` no longer
+ * means "verified" — a voided payment is also not pending. Every money read
+ * must therefore name the state explicitly, or voided payments get counted
+ * as contributions.
+ */
+describe('money reads name the verified state explicitly', () => {
+  it('no money query relies on the derived boolean to mean "verified"', () => {
+    const offenders: string[] = [];
+    const roots = ['app', 'lib'];
+    const walk = (dir: string) => {
+      for (const e of readdirSync(dir, { withFileTypes: true })) {
+        const p = join(dir, e.name);
+        if (e.isDirectory()) { if (e.name !== 'node_modules') walk(p); continue; }
+        if (!/\.tsx?$/.test(e.name)) continue;
+        const src = readFileSync(p, 'utf8');
+        if (src.includes('eq(payments.pendingVerify, false)')) offenders.push(p);
+        if (/!\w+\.pendingVerify/.test(src)) offenders.push(p + ' (negated boolean)');
+      }
+    };
+    for (const r of roots) walk(join(process.cwd(), r));
+    expect(
+      offenders,
+      `These treat pending_verify = false as "verified", which now also matches ` +
+      `voided payments. Use status === 'verified':\n${offenders.join('\n')}`,
+    ).toEqual([]);
   });
 });

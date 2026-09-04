@@ -106,12 +106,12 @@ export async function GET(req: Request) {
   const summary = {
     date,
     members: { total: memberRows.length, approved: memberRows.filter((m) => m.status === 'approved').length },
-    payments: { total: paymentRows.length, verified: paymentRows.filter((p) => !p.pendingVerify).length, pending: paymentRows.filter((p) => p.pendingVerify).length },
+    payments: { total: paymentRows.length, verified: paymentRows.filter((p) => p.status === 'verified').length, pending: paymentRows.filter((p) => p.pendingVerify).length },
     loans: { total: loanRows.length, active: loanRows.filter((l) => l.active).length },
     cases: { total: caseRows.length, approved: caseRows.filter((c) => c.status === 'approved').length },
     auditEntries: auditRows.length,
-    fundTotal: paymentRows.filter((p) => !p.pendingVerify).reduce((s, p) => s + p.amount, 0),
-    outflows: { disbursedTotal, qarzOutstanding, netAfterDisbursed: paymentRows.filter((p) => !p.pendingVerify).reduce((s, p) => s + p.amount, 0) - disbursedTotal },
+    fundTotal: paymentRows.filter((p) => p.status === 'verified').reduce((s, p) => s + p.amount, 0),
+    outflows: { disbursedTotal, qarzOutstanding, netAfterDisbursed: paymentRows.filter((p) => p.status === 'verified').reduce((s, p) => s + p.amount, 0) - disbursedTotal },
     ledgerReconcile: { loansChecked: loanRows.length, mismatches, healedQarzCases: healed },
     config: cfg ? { voteThreshold: cfg.voteThresholdPct, easyPaise: cfg.easyPaiseNumber ?? 'not set' } : null,
   };

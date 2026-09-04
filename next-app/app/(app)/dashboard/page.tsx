@@ -26,7 +26,7 @@ export default async function DashboardPage() {
   const [totalRow] = await db
     .select({ total: sql<number>`COALESCE(SUM(${payments.amount}),0)::int` })
     .from(payments)
-    .where(eq(payments.pendingVerify, false));
+    .where(eq(payments.status, 'verified'));
   const totalFund = Number(totalRow?.total ?? 0);
 
   // Total Rs sitting in the supervisor/admin approval flow — shown to
@@ -57,7 +57,7 @@ export default async function DashboardPage() {
   const series = await db
     .select({ monthStart: payments.monthStart, total: sql<number>`SUM(${payments.amount})::int` })
     .from(payments)
-    .where(eq(payments.pendingVerify, false))
+    .where(eq(payments.status, 'verified'))
     .groupBy(payments.monthStart)
     .orderBy(desc(payments.monthStart))
     .limit(6);
@@ -81,7 +81,7 @@ export default async function DashboardPage() {
     ? await db
         .select({ pool: payments.pool, total: sql<number>`SUM(${payments.amount})::int` })
         .from(payments)
-        .where(eq(payments.pendingVerify, false))
+        .where(eq(payments.status, 'verified'))
         .groupBy(payments.pool)
     : [];
   const POOL_META: Record<string, { label: string; color: string }> = {
@@ -358,7 +358,7 @@ async function getFundFlowSeries(): Promise<FundFlowPoint[]> {
   const inflowRows = await db
     .select({ monthStart: payments.monthStart, total: sql<number>`SUM(${payments.amount})::int` })
     .from(payments)
-    .where(and(eq(payments.pendingVerify, false), sql`${payments.monthStart} >= ${cutoff}::date`))
+    .where(and(eq(payments.status, 'verified'), sql`${payments.monthStart} >= ${cutoff}::date`))
     .groupBy(payments.monthStart);
 
   const outflowResult = await db.execute<{ month_start: string; total: number }>(sql`
@@ -407,13 +407,13 @@ async function MemberStats({ memberId, totalFund }: { memberId: string; totalFun
   const [myTotal] = await db
     .select({ total: sql<number>`COALESCE(SUM(${payments.amount}),0)::int` })
     .from(payments)
-    .where(and(eq(payments.memberId, memberId), eq(payments.pendingVerify, false)));
+    .where(and(eq(payments.memberId, memberId), eq(payments.status, 'verified')));
   const my = Number(myTotal?.total ?? 0);
 
   const months = await db
     .selectDistinct({ m: payments.monthStart })
     .from(payments)
-    .where(and(eq(payments.memberId, memberId), eq(payments.pendingVerify, false), sql`${payments.monthStart} >= ${yearStart}::date`));
+    .where(and(eq(payments.memberId, memberId), eq(payments.status, 'verified'), sql`${payments.monthStart} >= ${yearStart}::date`));
 
   const pct = Math.round((months.length / monthsThisYearSoFar) * 100);
 
@@ -491,7 +491,7 @@ async function AdminRecentActivity() {
 
 async function CommunityActivity({ meId, isAdmin }: { meId: string; isAdmin: boolean }) {
   const [recentPayments, recentCases, recentLoans] = await Promise.all([
-    db.select().from(payments).where(eq(payments.pendingVerify, false)).orderBy(desc(payments.createdAt)).limit(8),
+    db.select().from(payments).where(eq(payments.status, 'verified')).orderBy(desc(payments.createdAt)).limit(8),
     db.select().from(cases).orderBy(desc(cases.createdAt)).limit(4),
     db.select().from(loans).orderBy(desc(loans.issuedOn)).limit(4),
   ]);

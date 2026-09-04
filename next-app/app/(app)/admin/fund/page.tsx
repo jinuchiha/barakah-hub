@@ -138,7 +138,7 @@ export default async function FundPage() {
   // Admin: full view.
   const [allMembers, history, awaitingSupervisor, awaitingAdmin, rejectedBySupervisor] = await Promise.all([
     db.select().from(members),
-    db.select().from(payments).where(eq(payments.pendingVerify, false)).orderBy(desc(payments.paidOn)).limit(50),
+    db.select().from(payments).where(eq(payments.status, 'verified')).orderBy(desc(payments.paidOn)).limit(50),
     // Awaiting supervisor: still in their initial queue (not approved, not rejected)
     db.select().from(payments)
       .where(and(
@@ -168,7 +168,7 @@ export default async function FundPage() {
       total: sql<number>`COALESCE(SUM(${payments.amount}),0)::int`,
     })
     .from(payments)
-    .where(eq(payments.pendingVerify, false))
+    .where(eq(payments.status, 'verified'))
     .groupBy(payments.pool);
   const poolTotals = {
     sadaqah: pools.find((p) => p.pool === 'sadaqah')?.total ?? 0,
@@ -184,7 +184,7 @@ export default async function FundPage() {
       total: sql<number>`SUM(${payments.amount})::int`,
     })
     .from(payments)
-    .where(eq(payments.pendingVerify, false))
+    .where(eq(payments.status, 'verified'))
     .groupBy(payments.monthStart, payments.monthLabel, payments.pool)
     .orderBy(desc(payments.monthStart));
 
@@ -203,14 +203,16 @@ export default async function FundPage() {
   // This-month contribution board — who has paid, who is pending, who hasn't.
   const nowLabel = currentMonthLabel();
   const monthPayments = await db
-    .select({ memberId: payments.memberId, pendingVerify: payments.pendingVerify })
+    .select({ memberId: payments.memberId, status: payments.status })
     .from(payments)
     .where(eq(payments.monthLabel, nowLabel));
   const monthStatus = new Map<string, 'paid' | 'pending'>();
   for (const p of monthPayments) {
     const prev = monthStatus.get(p.memberId);
-    if (!p.pendingVerify) monthStatus.set(p.memberId, 'paid');
-    else if (prev !== 'paid') monthStatus.set(p.memberId, 'pending');
+    if (p.status === 'verified') monthStatus.set(p.memberId, 'paid');
+    // A voided payment is not a contribution and must not mark the member
+    // as pending either — it never counted.
+    else if (p.status !== 'voided' && prev !== 'paid') monthStatus.set(p.memberId, 'pending');
   }
   const boardMembers = allMembers
     .filter((m) => m.status === 'approved' && !m.deceased)

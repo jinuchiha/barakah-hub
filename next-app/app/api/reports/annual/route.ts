@@ -44,7 +44,7 @@ export async function GET(req: NextRequest) {
     const endDate = end.toISOString().slice(0, 10);
 
     const [pays, caseRows, loanRows, memberRows] = await Promise.all([
-      db.select().from(payments).where(and(gte(payments.createdAt, start), lt(payments.createdAt, end), eq(payments.pendingVerify, false))),
+      db.select().from(payments).where(and(gte(payments.createdAt, start), lt(payments.createdAt, end), eq(payments.status, 'verified'))),
       db.select().from(cases).where(and(gte(cases.createdAt, start), lt(cases.createdAt, end))),
       db.select().from(loans).where(and(gte(loans.issuedOn, startDate), lt(loans.issuedOn, endDate))),
       db.select({ id: members.id, status: members.status, createdAt: members.createdAt }).from(members),

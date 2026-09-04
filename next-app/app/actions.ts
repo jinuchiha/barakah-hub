@@ -342,7 +342,7 @@ export async function recordPayment(input: z.infer<typeof recordPaymentSchema>) 
     const r = await insertPaymentOnce(tx, {
       ...data,
       monthStart: monthStartFromLabel(data.monthLabel),
-      pendingVerify: true,
+      status: 'submitted',
     }, data.idempotencyKey);
     if (!r.inserted) return r;
     await audit(
@@ -409,7 +409,7 @@ export async function submitDonation(input: z.infer<typeof submitDonationSchema>
       ...data,
       memberId: me.id,
       monthStart: monthStartFromLabel(data.monthLabel),
-      pendingVerify: true,
+      status: 'submitted',
     }, data.idempotencyKey);
     if (!r.inserted) return r;
     await audit(tx, me.id, 'payment-self-submit', `Submitted ${data.pool} ${data.amount} for ${data.monthLabel}`, me.id);
@@ -454,6 +454,7 @@ export async function supervisorApprovePayment(paymentId: string) {
     const rows = await tx
       .update(payments)
       .set({
+        status: 'supervisor_approved',
         supervisorApprovedAt: new Date(),
         supervisorApprovedById: me.id,
         supervisorRejectedAt: null,
@@ -499,6 +500,7 @@ export async function supervisorRejectPayment(paymentId: string, note?: string) 
     const rows = await tx
       .update(payments)
       .set({
+        status: 'supervisor_rejected',
         supervisorRejectedAt: new Date(),
         supervisorRejectedById: me.id,
         supervisorRejectionNote: trimmedNote,
@@ -548,6 +550,7 @@ export async function adminResendPaymentToSupervisor(paymentId: string) {
     const rows = await tx
       .update(payments)
       .set({
+        status: 'submitted',
         supervisorRejectedAt: null,
         supervisorRejectedById: null,
         supervisorRejectionNote: null,
@@ -577,30 +580,56 @@ export async function adminDeletePayment(paymentId: string) {
   if (!/^[0-9a-f-]{36}$/i.test(paymentId)) throw new Error('Invalid id');
   const [p] = await db.select().from(payments).where(eq(payments.id, paymentId)).limit(1);
   if (!p) return;
+  // Two different operations wore one name here, and treating them the same
+  // is how financial history gets destroyed:
+  //
+  //  · A VERIFIED payment is money the fund has recognised as received. It is
+  //    in the books and it is history. It must be VOIDED — the row stays, a
+  //    compensating ledger entry explains the correction, and the audit trail
+  //    still names the original. Deleting it would silently move the balance
+  //    with nothing to point at afterwards.
+  //
+  //  · A payment that was never verified never entered the books. It is a
+  //    data-entry mistake — a typo, a duplicate slip — and deleting it is
+  //    the correct cleanup, because there is nothing to preserve.
+  //
+  // The status enum makes the distinction unambiguous, and migration 0019's
+  // trigger guarantees `verified` can only ever move to `voided`.
+  const wasVerified = p.status === 'verified';
+
   await inTransaction(async (tx) => {
-    // If the payment had been verified it is in the books, so removing the
-    // row alone would silently change the balance with no explanation. Post
-    // a reversal first: the original entry stays visible and the correction
-    // says why. Unverified payments were never credited, so there is
-    // nothing to reverse.
-    const entry = await entryForSource(tx, 'payment', paymentId);
-    if (entry) {
-      await reverseLedger(tx, {
-        entryId: entry.id,
-        reason: `Payment ${paymentId} deleted by admin`,
-        actorId: me.id,
-      });
+    if (wasVerified) {
+      const entry = await entryForSource(tx, 'payment', paymentId);
+      if (entry) {
+        await reverseLedger(tx, {
+          entryId: entry.id,
+          reason: `Payment ${paymentId} voided by admin`,
+          actorId: me.id,
+        });
+      }
+      await tx.update(payments).set({ status: 'voided' }).where(eq(payments.id, paymentId));
+      await audit(
+        tx,
+        me.id,
+        'payment-voided',
+        `Voided verified payment Rs ${p.amount} ${p.pool} for ${p.monthLabel}` +
+        `${entry ? ' · ledger reversal posted' : ' · WARNING: no ledger entry found to reverse'}`,
+        p.memberId,
+      );
+      return;
     }
+
     await tx.delete(payments).where(eq(payments.id, paymentId));
     await audit(
       tx,
       me.id,
       'payment-deleted',
-      `Deleted Rs ${p.amount} ${p.pool} for ${p.monthLabel}${entry ? ' · ledger reversal posted' : ''}`,
+      `Deleted unverified Rs ${p.amount} ${p.pool} for ${p.monthLabel} (never entered the books)`,
       p.memberId,
     );
   });
   revalidatePath('/admin/fund');
+  revalidatePath('/dashboard');
 }
 
 /* ─── verify / reject pending payment (admin)
@@ -616,12 +645,13 @@ export async function verifyPayment(paymentId: string) {
 
   const [existing] = await db.select().from(payments).where(eq(payments.id, paymentId)).limit(1);
   if (!existing) throw new Error('Payment not found');
-  if (!existing.pendingVerify) throw new Error('Already verified');
-  if (!existing.supervisorApprovedAt) {
-    throw new Error('Supervisor must approve this payment first before admin can verify.');
-  }
-  if (existing.supervisorRejectedAt) {
+  if (existing.status === 'verified') throw new Error('Already verified');
+  if (existing.status === 'voided') throw new Error('This payment was voided · it cannot be verified.');
+  if (existing.status === 'supervisor_rejected') {
     throw new Error('Supervisor rejected this payment · resend it for re-approval first, or delete it.');
+  }
+  if (existing.status !== 'supervisor_approved') {
+    throw new Error('Supervisor must approve this payment first before admin can verify.');
   }
   // Two-person rule, enforced in role logic (not just UI): the person who
   // supervisor-approved the cash cannot also be the one who verifies it.
@@ -663,7 +693,7 @@ export async function verifyPayment(paymentId: string) {
   await inTransaction(async (tx) => {
     const flipped = await tx
       .update(payments)
-      .set({ pendingVerify: false, verifiedById: me.id, verifiedAt })
+      .set({ status: 'verified', verifiedById: me.id, verifiedAt })
       .where(and(eq(payments.id, paymentId), eq(payments.pendingVerify, true)))
       .returning({ id: payments.id });
     if (flipped.length === 0) throw new Error('Already verified');

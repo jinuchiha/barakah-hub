@@ -26,7 +26,7 @@ export async function GET() {
       monthLabel: payments.monthLabel,
       pool: payments.pool,
       amount: payments.amount,
-      pendingVerify: payments.pendingVerify,
+      status: payments.status,
       memberName: members.nameEn,
       memberPhone: members.phone,
       note: payments.note,
@@ -36,18 +36,18 @@ export async function GET() {
     .leftJoin(members, eq(payments.memberId, members.id))
     // Verified only, so summing amount_pkr reconciles with every in-app
     // total (dashboard, statements, annual report all filter the same way).
-    .where(eq(payments.pendingVerify, false))
+    .where(eq(payments.status, 'verified'))
     .orderBy(desc(payments.paidOn));
 
   const csv = toCsv(
-    ['id', 'paid_on', 'month', 'pool', 'amount_pkr', 'verified', 'member', 'phone', 'note', 'created_at'],
+    ['id', 'paid_on', 'month', 'pool', 'amount_pkr', 'status', 'member', 'phone', 'note', 'created_at'],
     rows.map((r) => [
       r.id,
       r.paidOn,
       r.monthLabel,
       r.pool,
       r.amount,
-      !r.pendingVerify,
+      r.status,
       r.memberName ?? '',
       r.memberPhone ?? '',
       r.note ?? '',

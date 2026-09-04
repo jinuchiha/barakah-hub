@@ -22,7 +22,7 @@ export default async function MyAccountPage() {
   const cfg = cfgRows[0];
 
   const verifiedTotal = myPayments
-    .filter((p) => !p.pendingVerify)
+    .filter((p) => p.status === 'verified')
     .reduce((a, p) => a + p.amount, 0);
   const pendingPayments = myPayments.filter((p) => p.pendingVerify);
   const rejectedTotal = pendingPayments

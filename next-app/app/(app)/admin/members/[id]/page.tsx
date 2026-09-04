@@ -47,7 +47,7 @@ export default async function MemberDetailPage({ params }: { params: Promise<{ i
     repaysByLoan.set(r.loanId, [...(repaysByLoan.get(r.loanId) ?? []), r]);
   }
 
-  const verified = memberPayments.filter((p) => !p.pendingVerify);
+  const verified = memberPayments.filter((p) => p.status === 'verified');
   const verifiedTotal = verified.reduce((s, p) => s + p.amount, 0);
   const pendingTotal = memberPayments.filter((p) => p.pendingVerify && !p.supervisorRejectedAt).reduce((s, p) => s + p.amount, 0);
   const monthsPaid = new Set(verified.map((p) => p.monthLabel)).size;
@@ -139,8 +139,8 @@ export default async function MemberDetailPage({ params }: { params: Promise<{ i
                       <td className="px-4 py-2.5 text-xs capitalize text-[var(--txt-3)]">{p.pool}</td>
                       <td className="px-4 py-2.5 text-right font-[var(--font-display)] text-[var(--color-gold)]">{fmtRs(p.amount)}</td>
                       <td className="px-4 py-2.5">
-                        <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${!p.pendingVerify ? 'bg-[rgba(45,138,95,0.12)] text-[#4ec38d]' : p.supervisorRejectedAt ? 'bg-[rgba(220,82,82,0.12)] text-[#f08585]' : 'bg-[rgba(200,155,60,0.12)] text-[var(--color-gold-2)]'}`}>
-                          {!p.pendingVerify ? 'Verified' : p.supervisorRejectedAt ? 'Rejected' : 'Pending'}
+                        <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${p.status === 'verified' ? 'bg-[rgba(45,138,95,0.12)] text-[#4ec38d]' : p.status === 'supervisor_rejected' || p.status === 'voided' ? 'bg-[rgba(220,82,82,0.12)] text-[#f08585]' : 'bg-[rgba(200,155,60,0.12)] text-[var(--color-gold-2)]'}`}>
+                          {p.status === 'verified' ? 'Verified' : p.status === 'voided' ? 'Voided' : p.status === 'supervisor_rejected' ? 'Rejected' : p.status === 'supervisor_approved' ? 'Awaiting admin' : 'Pending'}
                         </span>
                       </td>
                       <td className="max-w-[200px] truncate px-4 py-2.5 text-xs text-[var(--txt-4)]">{p.note}</td>

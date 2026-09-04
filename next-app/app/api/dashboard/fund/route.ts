@@ -18,7 +18,7 @@ export async function GET() {
     const poolTotals = await db
       .select({ pool: payments.pool, total: sum(payments.amount) })
       .from(payments)
-      .where(eq(payments.pendingVerify, false))
+      .where(eq(payments.status, 'verified'))
       .groupBy(payments.pool);
 
     const sadaqah = Number(poolTotals.find((r) => r.pool === 'sadaqah')?.total ?? 0);

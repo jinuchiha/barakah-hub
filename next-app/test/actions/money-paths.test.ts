@@ -140,7 +140,7 @@ describe('verifyPayment — two-person rule', () => {
   it('admin cannot verify before the supervisor pre-approves', async () => {
     asAdmin();
     dbMock.instance = makeDbMock({
-      selectQueue: [[admin], [{ id: UUID, pendingVerify: true, supervisorApprovedAt: null, supervisorRejectedAt: null }]],
+      selectQueue: [[admin], [{ id: UUID, status: 'submitted', supervisorApprovedAt: null, supervisorRejectedAt: null }]],
     });
     const { verifyPayment } = await import('@/app/actions');
     await expect(verifyPayment(UUID)).rejects.toThrow(/supervisor must approve/i);
@@ -149,7 +149,7 @@ describe('verifyPayment — two-person rule', () => {
   it('a payment cannot be verified twice', async () => {
     asAdmin();
     dbMock.instance = makeDbMock({
-      selectQueue: [[admin], [{ id: UUID, pendingVerify: false }]],
+      selectQueue: [[admin], [{ id: UUID, status: 'verified' }]],
     });
     const { verifyPayment } = await import('@/app/actions');
     await expect(verifyPayment(UUID)).rejects.toThrow(/already verified/i);
@@ -158,7 +158,7 @@ describe('verifyPayment — two-person rule', () => {
   it('supervisor-rejected payments must be resent, not verified', async () => {
     asAdmin();
     dbMock.instance = makeDbMock({
-      selectQueue: [[admin], [{ id: UUID, pendingVerify: true, supervisorApprovedAt: new Date(), supervisorRejectedAt: new Date() }]],
+      selectQueue: [[admin], [{ id: UUID, status: 'supervisor_rejected', supervisorApprovedAt: null, supervisorRejectedAt: new Date() }]],
     });
     const { verifyPayment } = await import('@/app/actions');
     await expect(verifyPayment(UUID)).rejects.toThrow(/rejected/i);
@@ -168,7 +168,7 @@ describe('verifyPayment — two-person rule', () => {
     asAdmin();
     dbMock.instance = makeDbMock({
       selectQueue: [[admin], [{
-        id: UUID, pendingVerify: true,
+        id: UUID, status: 'supervisor_approved',
         supervisorApprovedAt: new Date(), supervisorRejectedAt: null,
         supervisorApprovedById: 'admin-1',
       }]],
@@ -191,7 +191,7 @@ describe('verifyPayment — two-person rule', () => {
     const db = makeDbMock({
       selectQueue: [
         [admin],
-        [{ id: UUID, pendingVerify: true, supervisorApprovedAt: new Date(), supervisorRejectedAt: null, supervisorApprovedById: 'admin-1' }],
+        [{ id: UUID, status: 'supervisor_approved', supervisorApprovedAt: new Date(), supervisorRejectedAt: null, supervisorApprovedById: 'admin-1' }],
         [{ id: UUID, memberId: 'member-1', amount: 500, pool: 'sadaqah', monthLabel: 'May 2026' }],
       ],
       updateResult: [{ id: UUID }],
@@ -218,7 +218,7 @@ describe('verifyPayment — two-person rule', () => {
     asAdmin();
     dbMock.instance = makeDbMock({
       selectQueue: [[admin], [{
-        id: UUID, pendingVerify: true,
+        id: UUID, status: 'supervisor_approved',
         supervisorApprovedAt: new Date(), supervisorRejectedAt: null,
         supervisorApprovedById: 'admin-1',
       }]],
@@ -232,7 +232,7 @@ describe('verifyPayment — two-person rule', () => {
     asAdmin();
     dbMock.instance = makeDbMock({
       selectQueue: [[admin], [{
-        id: UUID, pendingVerify: true,
+        id: UUID, status: 'supervisor_approved',
         supervisorApprovedAt: new Date(), supervisorRejectedAt: null,
         supervisorApprovedById: 'someone-else',
       }]],

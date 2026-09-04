@@ -46,7 +46,7 @@ export async function GET(req: Request) {
   const [fundRow] = await db
     .select({ total: sql<number>`COALESCE(SUM(${payments.amount}),0)::bigint` })
     .from(payments)
-    .where(eq(payments.pendingVerify, false));
+    .where(eq(payments.status, 'verified'));
   const fundTotal = Number(fundRow?.total ?? 0);
 
   const openCases = await db.$count(cases, eq(cases.status, 'voting'));
@@ -55,7 +55,7 @@ export async function GET(req: Request) {
   const myPayments = await db
     .select({ memberId: payments.memberId, total: sql<number>`COALESCE(SUM(${payments.amount}),0)::bigint` })
     .from(payments)
-    .where(and(eq(payments.monthLabel, monthLabel), eq(payments.pendingVerify, false), inArray(payments.memberId, memberIds)))
+    .where(and(eq(payments.monthLabel, monthLabel), eq(payments.status, 'verified'), inArray(payments.memberId, memberIds)))
     .groupBy(payments.memberId);
   const myTotalMap = new Map(myPayments.map((p) => [p.memberId, Number(p.total)]));
 

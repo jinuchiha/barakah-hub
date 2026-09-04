@@ -14,9 +14,10 @@ vi.mock('@/lib/auth-server', () => ({
   getMeOrRedirect: async () => { throw new Error('not used in onboarding tests'); },
 }));
 
-vi.mock('@/lib/db', () => ({
-  get db() { return dbMock.instance; },
-}));
+vi.mock('@/lib/db', async () => {
+  const { makeDbModuleMock } = await import('../helpers/db-module-mock');
+  return makeDbModuleMock(dbMock);
+});
 
 vi.mock('next/cache', () => ({
   revalidatePath: vi.fn(),

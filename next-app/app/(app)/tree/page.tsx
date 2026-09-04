@@ -29,12 +29,12 @@ export default async function TreePage() {
     ? db
         .select({ memberId: payments.memberId, total: sql<number>`SUM(${payments.amount})::int` })
         .from(payments)
-        .where(eq(payments.pendingVerify, false))
+        .where(eq(payments.status, 'verified'))
         .groupBy(payments.memberId)
     : db
         .select({ memberId: payments.memberId, total: sql<number>`SUM(${payments.amount})::int` })
         .from(payments)
-        .where(and(eq(payments.pendingVerify, false), eq(payments.memberId, me.id)))
+        .where(and(eq(payments.status, 'verified'), eq(payments.memberId, me.id)))
         .groupBy(payments.memberId);
   const paymentTotals = await totalsQuery;
   const paidByObj: Record<string, number> = Object.fromEntries(

@@ -25,7 +25,7 @@ export default async function AnnualReportPage({ searchParams }: Props) {
   const poolTotals = await db
     .select({ pool: payments.pool, total: sql<number>`SUM(${payments.amount})::int`, count: sql<number>`COUNT(*)::int` })
     .from(payments)
-    .where(and(eq(payments.pendingVerify, false), gte(payments.createdAt, from), lte(payments.createdAt, to)))
+    .where(and(eq(payments.status, 'verified'), gte(payments.createdAt, from), lte(payments.createdAt, to)))
     .groupBy(payments.pool);
   const totalIncome = poolTotals.reduce((s, p) => s + Number(p.total), 0);
 
@@ -69,7 +69,7 @@ export default async function AnnualReportPage({ searchParams }: Props) {
       lastPaid: sql<string>`MAX(${payments.paidOn})::text`,
     })
     .from(payments)
-    .where(and(eq(payments.pendingVerify, false), gte(payments.createdAt, from), lte(payments.createdAt, to)))
+    .where(and(eq(payments.status, 'verified'), gte(payments.createdAt, from), lte(payments.createdAt, to)))
     .groupBy(payments.memberId)
     .orderBy(sql`SUM(${payments.amount}) DESC`);
 
