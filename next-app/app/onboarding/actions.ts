@@ -3,7 +3,7 @@ import { revalidatePath } from 'next/cache';
 import { and, eq, lt, sql } from 'drizzle-orm';
 import { z } from 'zod';
 import { getSession } from '@/lib/auth-server';
-import { db } from '@/lib/db';
+import { db, inTransaction } from '@/lib/db';
 import { members, memberInvites, auditLog, users } from '@/lib/db/schema';
 import { sendWelcomeEmail } from '@/lib/email';
 import { notifyMembers, adminIds, alertAdminsNewMember } from '@/lib/notify';
@@ -51,7 +51,8 @@ export async function onboardSelf(input: z.infer<typeof schema>) {
     // already-approved identity purely by email-prefix === username. To stop
     // an outsider taking over an approved member, a claim drops the record to
     // `pending` so an admin re-confirms before it's active again.
-    await db
+    await inTransaction(async (tx) => {
+      await tx
       .update(members)
       .set({
         authId: user.id,
@@ -67,12 +68,13 @@ export async function onboardSelf(input: z.infer<typeof schema>) {
         status: 'pending',
       })
       .where(eq(members.id, byUsername.id));
-    // Username login: mirror the member username onto the auth user.
-    await db.update(users).set({ username: byUsername.username.toLowerCase(), displayUsername: byUsername.username }).where(eq(users.id, user.id));
-    await db.insert(auditLog).values({
-      actorId: byUsername.id,
-      action: 'account-claimed',
-      detail: `Claimed account ${username} · awaiting admin re-approval`,
+      // Username login: mirror the member username onto the auth user.
+      await tx.update(users).set({ username: byUsername.username.toLowerCase(), displayUsername: byUsername.username }).where(eq(users.id, user.id));
+      await tx.insert(auditLog).values({
+        actorId: byUsername.id,
+        action: 'account-claimed',
+        detail: `Claimed account ${username} · awaiting admin re-approval`,
+      });
     });
     await notifyMembers(
       await adminIds(byUsername.id),
@@ -97,7 +99,7 @@ export async function onboardSelf(input: z.infer<typeof schema>) {
     finalUsername = `${username}_${user.id.slice(-4)}`;
   }
   // Username login: mirror the chosen username onto the auth user.
-  await db.update(users).set({ username: finalUsername.toLowerCase(), displayUsername: finalUsername }).where(eq(users.id, user.id));
+  // (username mirror moved inside the transaction below)
 
   // Bootstrap: if there are no admins yet, the first user IS the admin —
   // auto-approved and elevated. This removes the chicken-and-egg of
@@ -117,7 +119,9 @@ export async function onboardSelf(input: z.infer<typeof schema>) {
     }
   }
 
-  const [created] = await db
+  const created = await inTransaction(async (tx) => {
+    await tx.update(users).set({ username: finalUsername.toLowerCase(), displayUsername: finalUsername }).where(eq(users.id, user.id));
+    const [row] = await tx
     .insert(members)
     .values({
       authId: user.id,
@@ -135,20 +139,24 @@ export async function onboardSelf(input: z.infer<typeof schema>) {
       needsSetup: false,
     })
     .returning();
-  await db.insert(auditLog).values({
-    actorId: created.id,
-    action: 'setup-complete',
-    detail: `Self-registered as ${username}`,
-  });
+    await tx.insert(auditLog).values({
+      actorId: row.id,
+      action: 'setup-complete',
+      detail: `Self-registered as ${username}`,
+    });
 
-  // Atomically increment the invite usedCount · the usedCount < maxUses
-  // condition makes concurrent signups unable to exceed the cap.
-  if (validInvite) {
-    await db
-      .update(memberInvites)
-      .set({ usedCount: sql`${memberInvites.usedCount} + 1` })
-      .where(and(eq(memberInvites.id, validInvite.id), lt(memberInvites.usedCount, memberInvites.maxUses)));
-  }
+    // Consumed in the same transaction as the member row. Previously the
+    // member could be created while this update failed, so the invite kept a
+    // use it had actually spent and could exceed its cap. The
+    // usedCount < maxUses condition remains the concurrency gate.
+    if (validInvite) {
+      await tx
+        .update(memberInvites)
+        .set({ usedCount: sql`${memberInvites.usedCount} + 1` })
+        .where(and(eq(memberInvites.id, validInvite.id), lt(memberInvites.usedCount, memberInvites.maxUses)));
+    }
+    return row;
+  });
 
   // Welcome email · never block onboarding on email delivery.
   const welcomeEmail = user.email;

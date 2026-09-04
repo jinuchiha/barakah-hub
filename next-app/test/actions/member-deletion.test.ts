@@ -26,7 +26,10 @@ vi.mock('@/lib/auth-server', async () => {
   const { makeAuthServerMock } = await import('../helpers/auth-mock');
   return makeAuthServerMock(sessionMock, dbMock);
 });
-vi.mock('@/lib/db', () => ({ get db() { return dbMock.instance; } }));
+vi.mock('@/lib/db', async () => {
+  const { makeDbModuleMock } = await import('../helpers/db-module-mock');
+  return makeDbModuleMock(dbMock);
+});
 vi.mock('next/cache', () => ({ revalidatePath: vi.fn() }));
 vi.mock('@/lib/after-response', () => ({ runAfterResponse: vi.fn() }));
 vi.mock('@/lib/push', () => ({

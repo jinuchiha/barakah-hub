@@ -14,6 +14,9 @@ export function makeQuery<T>(result: T): Promise<T> & Record<string, unknown> {
     'from', 'where', 'limit', 'orderBy', 'groupBy', 'set', 'values',
     'returning', 'select', 'insert', 'update', 'delete', 'onConflictDoNothing',
     'leftJoin', 'innerJoin', 'rightJoin', 'fullJoin',
+    // 'for' backs SELECT ... FOR UPDATE, used by castVote to serialise
+    // voters on the same case row.
+    'for', 'onConflictDoUpdate',
   ]) {
     builder[m] = vi.fn(() => makeQuery(result));
   }

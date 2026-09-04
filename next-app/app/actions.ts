@@ -38,7 +38,14 @@ import { revalidatePath } from 'next/cache';
 import { eq, and, ne, sql, inArray, isNull } from 'drizzle-orm';
 import { z } from 'zod';
 import { meOrThrow, meApprovedOrThrow, requireAdmin, requireFundManager } from '@/lib/auth-server';
-import { db } from '@/lib/db';
+import { db, inTransaction, type Tx } from '@/lib/db';
+
+/**
+ * Either the plain client or a transaction handle. Helpers take this so the
+ * same code works inside and outside a transaction, and so a call site has to
+ * state which one it means.
+ */
+type Conn = typeof db | Tx;
 import { members, payments, cases, votes, loans, repayments, auditLog, notifications, messages, memberInvites, users, config as configTbl } from '@/lib/db/schema';
 import { monthStartFromLabel } from '@/lib/month';
 import { broadcastPush, sendPushToMembers } from '@/lib/push';
@@ -55,8 +62,17 @@ async function emailForMember(memberAuthId: string | null): Promise<string | nul
 }
 
 /* ─── helpers */
-async function audit(actorId: string, action: string, detail: string, targetId?: string) {
-  await db.insert(auditLog).values({ actorId, targetId, action, detail });
+
+/**
+ * Append an audit row.
+ *
+ * Takes the connection explicitly so it can be called with a transaction
+ * handle. That is the whole point: the audit row must commit with the state
+ * change it describes, not after it. Passing `db` here is only correct when
+ * there is genuinely nothing to be atomic with.
+ */
+async function audit(conn: Conn, actorId: string, action: string, detail: string, targetId?: string) {
+  await conn.insert(auditLog).values({ actorId, targetId, action, detail });
 }
 
 /**
@@ -67,41 +83,43 @@ async function audit(actorId: string, action: string, detail: string, targetId?:
  * and emails on a replay while still handing the client the same payment it
  * created the first time.
  *
- * Three-step because the neon-http driver has no transactions:
+ * Three steps, because the key can lose a race even inside a transaction —
+ * a concurrent transaction may have committed the same key already:
  *   1. Look the key up — the common replay case, and the cheapest.
  *   2. Insert with ON CONFLICT DO NOTHING — the partial unique index from
  *      migration 0017 makes a concurrent duplicate lose here rather than
  *      creating a second row.
- *   3. If the insert returned nothing, another in-flight attempt with the
- *      same key won the race; read its row back.
+ *   3. If the insert returned nothing, another attempt with the same key won;
+ *      read its row back.
  *
- * With no key supplied the insert is unguarded, exactly as before — callers
- * that can supply one always should.
+ * With no key supplied the insert is unguarded — callers that can supply one
+ * always should.
  */
 async function insertPaymentOnce(
+  conn: Conn,
   values: typeof payments.$inferInsert,
   idempotencyKey?: string,
 ): Promise<{ inserted: boolean; payment: typeof payments.$inferSelect }> {
   if (!idempotencyKey) {
-    const [row] = await db.insert(payments).values(values).returning();
+    const [row] = await conn.insert(payments).values(values).returning();
     if (!row) throw new Error('Payment could not be recorded. Please try again.');
     return { inserted: true, payment: row };
   }
 
-  const [prior] = await db
+  const [prior] = await conn
     .select().from(payments)
     .where(eq(payments.idempotencyKey, idempotencyKey))
     .limit(1);
   if (prior) return { inserted: false, payment: prior };
 
-  const inserted = await db
+  const inserted = await conn
     .insert(payments)
     .values({ ...values, idempotencyKey })
     .onConflictDoNothing()
     .returning();
   if (inserted.length > 0) return { inserted: true, payment: inserted[0] };
 
-  const [raced] = await db
+  const [raced] = await conn
     .select().from(payments)
     .where(eq(payments.idempotencyKey, idempotencyKey))
     .limit(1);
@@ -129,15 +147,17 @@ export async function approveMember(memberId: string) {
   if (!m) throw new Error('Member not found');
   if (m.status === 'approved') return;
 
-  await db.update(members).set({ status: 'approved' }).where(eq(members.id, memberId));
-  await audit(me.id, 'member-approved', `Approved ${m.nameEn || m.nameUr}`, memberId);
-  await db.insert(notifications).values({
-    recipientId: memberId,
-    titleUr: 'منظوری',
-    titleEn: 'Approved',
-    ur: 'آپ کا اکاؤنٹ منظور ہو گیا · اب آپ ایپ استعمال کر سکتے ہیں',
-    en: 'Your account has been approved · you can now use the app',
-    type: 'approved',
+  await inTransaction(async (tx) => {
+    await tx.update(members).set({ status: 'approved' }).where(eq(members.id, memberId));
+    await audit(tx, me.id, 'member-approved', `Approved ${m.nameEn || m.nameUr}`, memberId);
+    await tx.insert(notifications).values({
+      recipientId: memberId,
+      titleUr: 'منظوری',
+      titleEn: 'Approved',
+      ur: 'آپ کا اکاؤنٹ منظور ہو گیا · اب آپ ایپ استعمال کر سکتے ہیں',
+      en: 'Your account has been approved · you can now use the app',
+      type: 'approved',
+    });
   });
   // Push notification so they see it on lock screen
   runAfterResponse('approveMember.push', () => sendPushToMembers([memberId], {
@@ -168,15 +188,17 @@ export async function rejectMember(memberId: string) {
   if (!m) throw new Error('Member not found');
   if (m.status === 'rejected') return;
 
-  await db.update(members).set({ status: 'rejected' }).where(eq(members.id, memberId));
-  await audit(me.id, 'member-rejected', `Rejected ${m.nameEn || m.nameUr}`, memberId);
-  await db.insert(notifications).values({
-    recipientId: memberId,
-    titleEn: 'Application not approved',
-    titleUr: 'درخواست منظور نہیں ہوئی',
-    en: 'Your membership application was not approved at this time. Please contact the administrator for details.',
-    ur: 'آپ کی رکنیت کی درخواست اس وقت منظور نہیں ہوئی۔ تفصیل کے لیے ایڈمن سے رابطہ کریں۔',
-    type: 'rejected',
+  await inTransaction(async (tx) => {
+    await tx.update(members).set({ status: 'rejected' }).where(eq(members.id, memberId));
+    await audit(tx, me.id, 'member-rejected', `Rejected ${m.nameEn || m.nameUr}`, memberId);
+    await tx.insert(notifications).values({
+      recipientId: memberId,
+      titleEn: 'Application not approved',
+      titleUr: 'درخواست منظور نہیں ہوئی',
+      en: 'Your membership application was not approved at this time. Please contact the administrator for details.',
+      ur: 'آپ کی رکنیت کی درخواست اس وقت منظور نہیں ہوئی۔ تفصیل کے لیے ایڈمن سے رابطہ کریں۔',
+      type: 'rejected',
+    });
   });
   revalidatePath('/admin/members');
 }
@@ -214,31 +236,38 @@ export async function bulkImportMembers(input: z.infer<typeof bulkImportSchema>)
   const existingSet = new Set(existing.map((e) => e.username.toLowerCase()));
 
   const errors: string[] = [];
-  let imported = 0;
-  let skipped = 0;
-
-  for (const row of data.rows) {
+  const toInsert = data.rows.filter((row) => {
     if (existingSet.has(row.username.toLowerCase())) {
-      skipped++;
       errors.push(`Skipped "${row.username}": username already exists`);
-      continue;
+      return false;
     }
-    try {
-      await db.insert(members).values({
-        ...row,
-        status: 'approved',
-        needsSetup: true,
-      });
-      imported++;
-    } catch (e: unknown) {
-      skipped++;
-      errors.push(`Failed "${row.username}": ${e instanceof Error ? e.message : 'insert failed'}`);
-    }
+    return true;
+  });
+  const skipped = data.rows.length - toInsert.length;
+
+  // One multi-row INSERT inside one transaction, replacing a loop of up to
+  // 500 sequential inserts. Two things that fixes:
+  //
+  //  · Speed. Each insert was its own HTTP round-trip, so a large import
+  //    walked straight into the function timeout — and, being non-atomic,
+  //    left a half-imported roster behind when it did.
+  //  · Correctness. The old per-row try/catch cannot work inside a
+  //    transaction anyway: in Postgres any error aborts the enclosing
+  //    transaction, so "catch and keep going" would just fail on the next
+  //    statement. An import now either lands completely or not at all.
+  if (toInsert.length > 0) {
+    await inTransaction(async (tx) => {
+      await tx.insert(members).values(
+        toInsert.map((row) => ({ ...row, status: 'approved' as const, needsSetup: true })),
+      );
+      await audit(tx, me.id, 'bulk-import', `Imported ${toInsert.length}, skipped ${skipped}`);
+    });
+  } else {
+    await audit(db, me.id, 'bulk-import', `Imported 0, skipped ${skipped}`);
   }
 
-  await audit(me.id, 'bulk-import', `Imported ${imported}, skipped ${skipped}`);
   revalidatePath('/admin/members');
-  return { imported, skipped, errors };
+  return { imported: toInsert.length, skipped, errors };
 }
 
 /* ─── add member (admin) */
@@ -262,11 +291,14 @@ const addMemberSchema = z.object({
 export async function addMember(input: z.infer<typeof addMemberSchema>) {
   const me = await requireAdmin('Only admin can add members');
   const data = addMemberSchema.parse(input);
-  const [created] = await db
-    .insert(members)
-    .values({ ...data, status: 'approved', needsSetup: true })
-    .returning();
-  await audit(me.id, 'member-added', `Added ${created.nameEn} (${created.username})`, created.id);
+  const created = await inTransaction(async (tx) => {
+    const [row] = await tx
+      .insert(members)
+      .values({ ...data, status: 'approved', needsSetup: true })
+      .returning();
+    await audit(tx, me.id, 'member-added', `Added ${row.nameEn} (${row.username})`, row.id);
+    return row;
+  });
   revalidatePath('/admin/members');
   revalidatePath('/tree');
   return created;
@@ -298,19 +330,28 @@ const recordPaymentSchema = z.object({
 export async function recordPayment(input: z.infer<typeof recordPaymentSchema>) {
   const me = await requireFundManager('Only admin or supervisor can record payments');
   const data = recordPaymentSchema.parse(input);
-  const result = await insertPaymentOnce({
-    ...data,
-    monthStart: monthStartFromLabel(data.monthLabel),
-    pendingVerify: true,
-  }, data.idempotencyKey);
+  // The payment row and its audit entry commit together, or neither does.
+  // Notifications and email stay OUTSIDE the transaction: they are slow
+  // third-party calls that must not hold a database connection open, and a
+  // failed email must never roll back a recorded payment.
+  const result = await inTransaction(async (tx) => {
+    const r = await insertPaymentOnce(tx, {
+      ...data,
+      monthStart: monthStartFromLabel(data.monthLabel),
+      pendingVerify: true,
+    }, data.idempotencyKey);
+    if (!r.inserted) return r;
+    await audit(
+      tx,
+      me.id,
+      'payment-record',
+      `Recorded ${data.pool} ${data.amount} for ${data.monthLabel} · awaiting supervisor approval`,
+      data.memberId,
+    );
+    return r;
+  });
   if (!result.inserted) return result.payment;
   const created = result.payment;
-  await audit(
-    me.id,
-    'payment-record',
-    `Recorded ${data.pool} ${data.amount} for ${data.monthLabel} · awaiting supervisor approval`,
-    data.memberId,
-  );
   await notify(
     await fundApproverIds(me.id),
     {
@@ -359,17 +400,21 @@ export async function submitDonation(input: z.infer<typeof submitDonationSchema>
   // create a second payment. The key makes the retry converge on the
   // original row, and everything downstream (audit, notifications, emails)
   // fires only for the attempt that actually inserted.
-  const created = await insertPaymentOnce({
-    ...data,
-    memberId: me.id,
-    monthStart: monthStartFromLabel(data.monthLabel),
-    pendingVerify: true,
-  }, data.idempotencyKey);
+  const created = await inTransaction(async (tx) => {
+    const r = await insertPaymentOnce(tx, {
+      ...data,
+      memberId: me.id,
+      monthStart: monthStartFromLabel(data.monthLabel),
+      pendingVerify: true,
+    }, data.idempotencyKey);
+    if (!r.inserted) return r;
+    await audit(tx, me.id, 'payment-self-submit', `Submitted ${data.pool} ${data.amount} for ${data.monthLabel}`, me.id);
+    return r;
+  });
 
   if (!created.inserted) return created.payment;
   const payment = created.payment;
 
-  await audit(me.id, 'payment-self-submit', `Submitted ${data.pool} ${data.amount} for ${data.monthLabel}`, me.id);
   // Notify fund approvers (supervisors + admins) so the approval queue
   // doesn't sit unseen.
   await notify(
@@ -401,28 +446,33 @@ export async function supervisorApprovePayment(paymentId: string) {
   const me = await requireFundManager();
   if (!/^[0-9a-f-]{36}$/i.test(paymentId)) throw new Error('Invalid id');
   // Approval clears any prior rejection in case admin resent.
-  const updated = await db
-    .update(payments)
-    .set({
-      supervisorApprovedAt: new Date(),
-      supervisorApprovedById: me.id,
-      supervisorRejectedAt: null,
-      supervisorRejectedById: null,
-      supervisorRejectionNote: null,
-    })
-    .where(and(
-      eq(payments.id, paymentId),
-      eq(payments.pendingVerify, true),
-      isNull(payments.supervisorApprovedAt),
-    ))
-    .returning();
-  if (updated.length === 0) throw new Error('Payment not found or already verified');
-  await audit(
-    me.id,
-    'payment-supervisor-approved',
-    `Approved Rs ${updated[0].amount} ${updated[0].pool} · pending admin final verification`,
-    updated[0].memberId,
-  );
+  const updated = await inTransaction(async (tx) => {
+    const rows = await tx
+      .update(payments)
+      .set({
+        supervisorApprovedAt: new Date(),
+        supervisorApprovedById: me.id,
+        supervisorRejectedAt: null,
+        supervisorRejectedById: null,
+        supervisorRejectionNote: null,
+      })
+      .where(and(
+        eq(payments.id, paymentId),
+        eq(payments.pendingVerify, true),
+        isNull(payments.supervisorApprovedAt),
+      ))
+      .returning();
+    // Throwing rolls the transaction back, so the guard needs no cleanup.
+    if (rows.length === 0) throw new Error('Payment not found or already verified');
+    await audit(
+      tx,
+      me.id,
+      'payment-supervisor-approved',
+      `Approved Rs ${rows[0].amount} ${rows[0].pool} · pending admin final verification`,
+      rows[0].memberId,
+    );
+    return rows;
+  });
   await notify(
     await adminIds(me.id),
     {
@@ -441,28 +491,32 @@ export async function supervisorRejectPayment(paymentId: string, note?: string) 
   const me = await requireFundManager();
   if (!/^[0-9a-f-]{36}$/i.test(paymentId)) throw new Error('Invalid id');
   const trimmedNote = note?.trim().slice(0, 500) || null;
-  const updated = await db
-    .update(payments)
-    .set({
-      supervisorRejectedAt: new Date(),
-      supervisorRejectedById: me.id,
-      supervisorRejectionNote: trimmedNote,
-      // Clear any prior approval in case supervisor changes mind.
-      supervisorApprovedAt: null,
-      supervisorApprovedById: null,
-    })
-    .where(and(
-      eq(payments.id, paymentId),
-      eq(payments.pendingVerify, true),
-    ))
-    .returning();
-  if (updated.length === 0) throw new Error('Payment not found or already verified');
-  await audit(
-    me.id,
-    'payment-supervisor-rejected',
-    `Rejected Rs ${updated[0].amount} ${updated[0].pool}${trimmedNote ? ` · ${trimmedNote}` : ''}`,
-    updated[0].memberId,
-  );
+  const updated = await inTransaction(async (tx) => {
+    const rows = await tx
+      .update(payments)
+      .set({
+        supervisorRejectedAt: new Date(),
+        supervisorRejectedById: me.id,
+        supervisorRejectionNote: trimmedNote,
+        // Clear any prior approval in case supervisor changes mind.
+        supervisorApprovedAt: null,
+        supervisorApprovedById: null,
+      })
+      .where(and(
+        eq(payments.id, paymentId),
+        eq(payments.pendingVerify, true),
+      ))
+      .returning();
+    if (rows.length === 0) throw new Error('Payment not found or already verified');
+    await audit(
+      tx,
+      me.id,
+      'payment-supervisor-rejected',
+      `Rejected Rs ${rows[0].amount} ${rows[0].pool}${trimmedNote ? ` · ${trimmedNote}` : ''}`,
+      rows[0].memberId,
+    );
+    return rows;
+  });
   await notify(
     await adminIds(me.id),
     {
@@ -486,27 +540,30 @@ export async function supervisorRejectPayment(paymentId: string, note?: string) 
 export async function adminResendPaymentToSupervisor(paymentId: string) {
   const me = await requireAdmin();
   if (!/^[0-9a-f-]{36}$/i.test(paymentId)) throw new Error('Invalid id');
-  const updated = await db
-    .update(payments)
-    .set({
-      supervisorRejectedAt: null,
-      supervisorRejectedById: null,
-      supervisorRejectionNote: null,
-      supervisorApprovedAt: null,
-      supervisorApprovedById: null,
-    })
-    .where(and(
-      eq(payments.id, paymentId),
-      eq(payments.pendingVerify, true),
-    ))
-    .returning();
-  if (updated.length === 0) throw new Error('Payment not found or already verified');
-  await audit(
-    me.id,
-    'payment-resent-to-supervisor',
-    `Resent Rs ${updated[0].amount} ${updated[0].pool} back to supervisor for re-approval`,
-    updated[0].memberId,
-  );
+  await inTransaction(async (tx) => {
+    const rows = await tx
+      .update(payments)
+      .set({
+        supervisorRejectedAt: null,
+        supervisorRejectedById: null,
+        supervisorRejectionNote: null,
+        supervisorApprovedAt: null,
+        supervisorApprovedById: null,
+      })
+      .where(and(
+        eq(payments.id, paymentId),
+        eq(payments.pendingVerify, true),
+      ))
+      .returning();
+    if (rows.length === 0) throw new Error('Payment not found or already verified');
+    await audit(
+      tx,
+      me.id,
+      'payment-resent-to-supervisor',
+      `Resent Rs ${rows[0].amount} ${rows[0].pool} back to supervisor for re-approval`,
+      rows[0].memberId,
+    );
+  });
   revalidatePath('/admin/fund');
 }
 
@@ -516,13 +573,16 @@ export async function adminDeletePayment(paymentId: string) {
   if (!/^[0-9a-f-]{36}$/i.test(paymentId)) throw new Error('Invalid id');
   const [p] = await db.select().from(payments).where(eq(payments.id, paymentId)).limit(1);
   if (!p) return;
-  await db.delete(payments).where(eq(payments.id, paymentId));
-  await audit(
-    me.id,
-    'payment-deleted',
-    `Deleted Rs ${p.amount} ${p.pool} for ${p.monthLabel}`,
-    p.memberId,
-  );
+  await inTransaction(async (tx) => {
+    await tx.delete(payments).where(eq(payments.id, paymentId));
+    await audit(
+      tx,
+      me.id,
+      'payment-deleted',
+      `Deleted Rs ${p.amount} ${p.pool} for ${p.monthLabel}`,
+      p.memberId,
+    );
+  });
   revalidatePath('/admin/fund');
 }
 
@@ -580,19 +640,25 @@ export async function verifyPayment(paymentId: string) {
   // Conditional UPDATE so two admins clicking Verify at once can't both
   // "win" and double-send receipts — only the row that actually flips
   // triggers notifications.
-  const flipped = await db
-    .update(payments)
-    .set({ pendingVerify: false, verifiedById: me.id, verifiedAt })
-    .where(and(eq(payments.id, paymentId), eq(payments.pendingVerify, true)))
-    .returning({ id: payments.id });
-  if (flipped.length === 0) throw new Error('Already verified');
-  await audit(
-    me.id,
-    singleControl ? 'payment-verified-single-control' : 'payment-verified',
-    singleControl
-      ? `Verified payment ${paymentId} under SINGLE-PERSON control — no second approved admin/supervisor existed at verification time. Appoint a supervisor to restore the two-person rule.`
-      : `Verified payment ${paymentId}`,
-  );
+  // The flip and its audit row commit together. Verifying a payment is the
+  // moment money is recognised as received; a verification with no record of
+  // who verified it is exactly what the audit trail exists to prevent.
+  await inTransaction(async (tx) => {
+    const flipped = await tx
+      .update(payments)
+      .set({ pendingVerify: false, verifiedById: me.id, verifiedAt })
+      .where(and(eq(payments.id, paymentId), eq(payments.pendingVerify, true)))
+      .returning({ id: payments.id });
+    if (flipped.length === 0) throw new Error('Already verified');
+    await audit(
+      tx,
+      me.id,
+      singleControl ? 'payment-verified-single-control' : 'payment-verified',
+      singleControl
+        ? `Verified payment ${paymentId} under SINGLE-PERSON control — no second approved admin/supervisor existed at verification time. Appoint a supervisor to restore the two-person rule.`
+        : `Verified payment ${paymentId}`,
+    );
+  });
   // Notify the donor that their payment was approved (push + email receipt)
   const [p] = await db.select().from(payments).where(eq(payments.id, paymentId)).limit(1);
   if (p) {
@@ -665,40 +731,56 @@ export async function verifyPayment(paymentId: string) {
 export async function castVote(caseId: string, yes: boolean) {
   const me = await meApprovedOrThrow();
   if (!/^[0-9a-f-]{36}$/i.test(caseId)) throw new Error('Invalid case id');
-  const [c] = await db.select().from(cases).where(eq(cases.id, caseId)).limit(1);
-  if (!c) throw new Error('Case not found');
-  if (c.status !== 'voting') throw new Error('Voting closed');
-  if (c.applicantId === me.id && me.role !== 'admin') {
-    throw new Error('Cannot vote on your own request');
-  }
+  // The whole vote — record, tally, resolve — is one transaction, and it
+  // opens by taking a row lock on the case with SELECT ... FOR UPDATE.
+  //
+  // Why the lock. Previously the vote was inserted, then the tally was read
+  // in a separate query. Two members voting at the same moment could each
+  // read a tally that did not yet include the other's vote, so a case sitting
+  // exactly on the threshold could fail to auto-resolve — and then sit in
+  // 'voting' forever with the votes needed to decide it already cast. The
+  // conditional UPDATE prevented DOUBLE resolution; nothing prevented a
+  // MISSED one. Serialising voters on the same case removes the window.
+  //
+  // Locking one case row only, so votes on different cases stay concurrent.
+  await inTransaction(async (tx) => {
+    const [c] = await tx.select().from(cases).where(eq(cases.id, caseId)).limit(1).for('update');
+    if (!c) throw new Error('Case not found');
+    if (c.status !== 'voting') throw new Error('Voting closed');
+    if (c.applicantId === me.id && me.role !== 'admin') {
+      throw new Error('Cannot vote on your own request');
+    }
 
-  // Insert (ON CONFLICT · would fail naturally via PK; handle in caller)
-  await db.insert(votes).values({ caseId, memberId: me.id, vote: yes }).onConflictDoNothing();
-  await audit(me.id, 'vote-cast', `Voted ${yes ? 'YES' : 'NO'} on case ${caseId}`, c.applicantId);
+    // Composite PK (case_id, member_id) enforces one vote per member; a
+    // re-vote is a no-op rather than an error.
+    await tx.insert(votes).values({ caseId, memberId: me.id, vote: yes }).onConflictDoNothing();
+    await audit(tx, me.id, 'vote-cast', `Voted ${yes ? 'YES' : 'NO'} on case ${caseId}`, c.applicantId);
 
-  // Tally + auto-resolve
-  const allVotes = await db.select().from(votes).where(eq(votes.caseId, caseId));
-  const yesCount = allVotes.filter((v) => v.vote).length;
-  const noCount = allVotes.filter((v) => !v.vote).length;
+    // Tally now sees every committed vote, including any that landed while
+    // this transaction was waiting on the lock.
+    const allVotes = await tx.select().from(votes).where(eq(votes.caseId, caseId));
+    const yesCount = allVotes.filter((v) => v.vote).length;
+    const noCount = allVotes.filter((v) => !v.vote).length;
 
-  const eligibleCount = await db.$count(
-    members,
-    and(eq(members.deceased, false), eq(members.status, 'approved')),
-  );
-  const eligible = Math.max(0, eligibleCount - 1); // exclude applicant
-  const [cfg] = await db.select().from(configTbl).where(eq(configTbl.id, 1)).limit(1);
-  // Require at least one vote, and never auto-resolve when there are no other
-  // eligible voters (otherwise need=0 would approve a case on its first vote —
-  // even a NO · with zero real consensus).
-  const need = Math.max(1, Math.ceil(eligible * ((cfg?.voteThresholdPct ?? 50) / 100)));
+    const eligibleCount = await tx.$count(
+      members,
+      and(eq(members.deceased, false), eq(members.status, 'approved')),
+    );
+    const eligible = Math.max(0, eligibleCount - 1); // exclude applicant
+    const [cfg] = await tx.select().from(configTbl).where(eq(configTbl.id, 1)).limit(1);
+    // Require at least one vote, and never auto-resolve when there are no other
+    // eligible voters (otherwise need=0 would approve a case on its first vote —
+    // even a NO · with zero real consensus).
+    const need = Math.max(1, Math.ceil(eligible * ((cfg?.voteThresholdPct ?? 50) / 100)));
 
-  if (eligible > 0 && yesCount >= need) {
-    await db.update(cases).set({ status: 'approved', resolvedAt: new Date() }).where(and(eq(cases.id, caseId), eq(cases.status, 'voting')));
-    await audit(me.id, 'emergency-approved', `Case approved by majority`, c.applicantId);
-  } else if (eligible > 0 && noCount >= need) {
-    await db.update(cases).set({ status: 'rejected', resolvedAt: new Date() }).where(and(eq(cases.id, caseId), eq(cases.status, 'voting')));
-    await audit(me.id, 'emergency-rejected', `Case rejected by majority`, c.applicantId);
-  }
+    if (eligible > 0 && yesCount >= need) {
+      await tx.update(cases).set({ status: 'approved', resolvedAt: new Date() }).where(and(eq(cases.id, caseId), eq(cases.status, 'voting')));
+      await audit(tx, me.id, 'emergency-approved', `Case approved by majority`, c.applicantId);
+    } else if (eligible > 0 && noCount >= need) {
+      await tx.update(cases).set({ status: 'rejected', resolvedAt: new Date() }).where(and(eq(cases.id, caseId), eq(cases.status, 'voting')));
+      await audit(tx, me.id, 'emergency-rejected', `Case rejected by majority`, c.applicantId);
+    }
+  });
 
   revalidatePath('/cases');
   revalidatePath('/dashboard');
@@ -715,8 +797,10 @@ const goalSchema = z.object({
 export async function updateGoal(input: z.infer<typeof goalSchema>) {
   const me = await requireAdmin();
   const data = goalSchema.parse(input);
-  await db.update(configTbl).set(data).where(eq(configTbl.id, 1));
-  await audit(me.id, 'config-changed', `Goal updated to ${data.goalAmount}`);
+  await inTransaction(async (tx) => {
+    await tx.update(configTbl).set(data).where(eq(configTbl.id, 1));
+    await audit(tx, me.id, 'config-changed', `Goal updated to ${data.goalAmount}`);
+  });
   revalidatePath('/dashboard');
   revalidatePath('/settings');
   revalidatePath('/admin/annual-report');
@@ -739,8 +823,10 @@ const profileSchema = z.object({
 export async function updateProfile(input: z.infer<typeof profileSchema>) {
   const me = await meOrThrow();
   const data = profileSchema.parse(input);
-  await db.update(members).set({ ...data, needsSetup: false }).where(eq(members.id, me.id));
-  await audit(me.id, 'profile-updated', 'Self-edit via Settings');
+  await inTransaction(async (tx) => {
+    await tx.update(members).set({ ...data, needsSetup: false }).where(eq(members.id, me.id));
+    await audit(tx, me.id, 'profile-updated', 'Self-edit via Settings');
+  });
   revalidatePath('/settings');
   revalidatePath('/myaccount');
   revalidatePath('/dashboard');
@@ -766,8 +852,10 @@ const adminCfgSchema = z.object({
 export async function updateAdminConfig(input: z.infer<typeof adminCfgSchema>) {
   const me = await requireAdmin();
   const data = adminCfgSchema.parse(input);
-  await db.update(configTbl).set(data).where(eq(configTbl.id, 1));
-  await audit(me.id, 'config-changed', JSON.stringify(data));
+  await inTransaction(async (tx) => {
+    await tx.update(configTbl).set(data).where(eq(configTbl.id, 1));
+    await audit(tx, me.id, 'config-changed', JSON.stringify(data));
+  });
   revalidatePath('/dashboard');
   revalidatePath('/settings');
 }
@@ -837,43 +925,49 @@ export async function editMember(input: z.infer<typeof editMemberSchema>) {
     }
   }
 
-  await db.update(members).set(rest).where(eq(members.id, id));
+  // The edit and every spouse write are one unit.
+  //
+  // The spouse sync used to sit in a try/catch that logged and continued, so
+  // a failure partway through left an ASYMMETRIC marriage graph — A pointing
+  // at B while B pointed at nobody — and still reported success to the admin.
+  // Up to five unprotected writes. Inside a transaction the catch is not just
+  // unnecessary but harmful: in Postgres any error aborts the transaction, so
+  // swallowing one would only fail again on the next statement. Let it throw;
+  // the whole edit rolls back and the admin is told.
+  await inTransaction(async (tx) => {
+    await tx.update(members).set(rest).where(eq(members.id, id));
 
-  try {
     // Bidirectional spouse sync: setting A's spouse to B implies B's
     // spouse is A. Clearing breaks the link on both sides. If the
     // previous spouse was someone else (C), clear C's pointer too so
     // there's no dangling reference.
     if (spouseId !== undefined) {
-      const [prev] = await db.select({ spouseId: members.spouseId }).from(members).where(eq(members.id, id)).limit(1);
+      const [prev] = await tx.select({ spouseId: members.spouseId }).from(members).where(eq(members.id, id)).limit(1);
       const previousSpouseId = prev?.spouseId ?? null;
 
       if (previousSpouseId && previousSpouseId !== spouseId) {
         // Clear stale partner's pointer back to us.
-        await db.update(members).set({ spouseId: null }).where(eq(members.id, previousSpouseId));
+        await tx.update(members).set({ spouseId: null }).where(eq(members.id, previousSpouseId));
       }
 
       if (spouseId) {
         // If new spouse is currently married to someone else (D), clear
         // D's pointer first to maintain monogamous pairing semantics.
-        const [newPartner] = await db.select({ spouseId: members.spouseId }).from(members).where(eq(members.id, spouseId)).limit(1);
+        const [newPartner] = await tx.select({ spouseId: members.spouseId }).from(members).where(eq(members.id, spouseId)).limit(1);
         if (newPartner?.spouseId && newPartner.spouseId !== id) {
-          await db.update(members).set({ spouseId: null }).where(eq(members.id, newPartner.spouseId));
+          await tx.update(members).set({ spouseId: null }).where(eq(members.id, newPartner.spouseId));
         }
         // Set both sides.
-        await db.update(members).set({ spouseId }).where(eq(members.id, id));
-        await db.update(members).set({ spouseId: id }).where(eq(members.id, spouseId));
+        await tx.update(members).set({ spouseId }).where(eq(members.id, id));
+        await tx.update(members).set({ spouseId: id }).where(eq(members.id, spouseId));
       } else {
-        // spouseId === null · explicit divorce; already cleared own side via main update.
-        await db.update(members).set({ spouseId: null }).where(eq(members.id, id));
+        // spouseId === null · explicit divorce.
+        await tx.update(members).set({ spouseId: null }).where(eq(members.id, id));
       }
     }
-  } catch (spouseError) {
-    // Log but don't fail the whole edit · spouse link can be retried
-    console.error('[editMember] spouse sync failed:', spouseError instanceof Error ? spouseError.message : spouseError);
-  }
 
-  await audit(me.id, 'member-edited', `Edited member ${id}`, id);
+    await audit(tx, me.id, 'member-edited', `Edited member ${id}`, id);
+  });
   revalidatePath('/admin/members');
   revalidatePath('/tree');
 }
@@ -903,8 +997,10 @@ export async function softDeleteMember(memberId: string) {
     }
   }
 
-  await db.update(members).set({ deceased: true }).where(eq(members.id, memberId));
-  await audit(me.id, 'member-deceased', `Marked deceased`, memberId);
+  await inTransaction(async (tx) => {
+    await tx.update(members).set({ deceased: true }).where(eq(members.id, memberId));
+    await audit(tx, me.id, 'member-deceased', `Marked deceased`, memberId);
+  });
   revalidatePath('/admin/members');
   revalidatePath('/tree');
 }
@@ -977,14 +1073,17 @@ export async function hardDeleteMember(memberId: string) {
   // Record the identity BEFORE the row disappears, so the trail stays
   // readable once the FK nulls the target reference. No targetId here —
   // it would reference a member that no longer exists.
-  await audit(
-    me.id,
-    'member-deleted',
-    `Hard deleted member ${memberId} · username=${target.username} · name=${target.nameEn || target.nameUr}`,
-  );
-  // Single statement. spouse_id on any partner, and parent_id on any
-  // descendant, are cleared by their own ON DELETE SET NULL constraints.
-  await db.delete(members).where(eq(members.id, memberId));
+  await inTransaction(async (tx) => {
+    await audit(
+      tx,
+      me.id,
+      'member-deleted',
+      `Hard deleted member ${memberId} · username=${target.username} · name=${target.nameEn || target.nameUr}`,
+    );
+    // spouse_id on any partner, and parent_id on any descendant, are cleared
+    // by their own ON DELETE SET NULL constraints.
+    await tx.delete(members).where(eq(members.id, memberId));
+  });
   revalidatePath('/admin/members');
   revalidatePath('/tree');
 }
@@ -1039,11 +1138,14 @@ export async function createCase(input: z.infer<typeof caseSchema>) {
     returnDate: parsed.returnDate ?? null,
   };
 
-  const [created] = await db
-    .insert(cases)
-    .values({ ...data, applicantId: me.id, status: 'voting' })
-    .returning();
-  await audit(me.id, 'emergency-create', `${data.caseType} ${data.amount} for ${data.beneficiaryName}`, me.id);
+  const created = await inTransaction(async (tx) => {
+    const [row] = await tx
+      .insert(cases)
+      .values({ ...data, applicantId: me.id, status: 'voting' })
+      .returning();
+    await audit(tx, me.id, 'emergency-create', `${data.caseType} ${data.amount} for ${data.beneficiaryName}`, me.id);
+    return row;
+  });
   // Emergency cases go out on WhatsApp too — the vote is time-critical.
   if (data.emergency) {
     runAfterResponse('createCase.emergencyWhatsApp', async () => {
@@ -1129,27 +1231,31 @@ export async function issueLoan(input: z.infer<typeof issueLoanSchema>) {
   if (borrower.deceased) throw new Error('Cannot issue loan to a deceased member');
   if (borrower.status !== 'approved') throw new Error('Member must be approved to receive a loan');
 
-  const [created] = await db
-    .insert(loans)
-    .values({
-      memberId: data.memberId,
-      amount: data.amount,
-      purpose: data.purpose,
-      pool: 'qarz',
-      city: data.city,
-      expectedReturn: data.expectedReturn || null,
-      installmentAmount: data.installmentAmount ?? null,
-      caseId: data.caseId || null,
-      paid: 0,
-      active: true,
-    })
-    .returning();
-  await audit(
-    me.id,
-    'loan-issue',
-    `Issued ${data.amount} qarz: ${data.purpose}${data.installmentAmount ? ` · plan ${data.installmentAmount}/month` : ''}`,
-    data.memberId,
-  );
+  const created = await inTransaction(async (tx) => {
+    const [row] = await tx
+      .insert(loans)
+      .values({
+        memberId: data.memberId,
+        amount: data.amount,
+        purpose: data.purpose,
+        pool: 'qarz',
+        city: data.city,
+        expectedReturn: data.expectedReturn || null,
+        installmentAmount: data.installmentAmount ?? null,
+        caseId: data.caseId || null,
+        paid: 0,
+        active: true,
+      })
+      .returning();
+    await audit(
+      tx,
+      me.id,
+      'loan-issue',
+      `Issued ${data.amount} qarz: ${data.purpose}${data.installmentAmount ? ` · plan ${data.installmentAmount}/month` : ''}`,
+      data.memberId,
+    );
+    return row;
+  });
   revalidatePath('/admin/loans');
   revalidatePath('/dashboard');
   return created;
@@ -1166,54 +1272,55 @@ export async function recordRepayment(input: z.infer<typeof repaySchema>) {
   const me = await requireAdmin();
   const data = repaySchema.parse(input);
 
-  // Single guarded UPDATE: only succeeds when the loan is still active
-  // AND the new total paid wouldn't exceed the loan amount. Drizzle's
-  // neon-http driver can't wrap multi-statement transactions, so we
-  // make the UPDATE itself the race-safe gate. Two concurrent admins
-  // can't both pass · whichever loses the race gets `updated.length === 0`.
-  const updated = await db
-    .update(loans)
-    .set({
-      paid: sql`${loans.paid} + ${data.amount}`,
-      active: sql`(${loans.paid} + ${data.amount}) < ${loans.amount}`,
-    })
-    .where(
-      and(
-        eq(loans.id, data.loanId),
-        eq(loans.active, true),
-        sql`(${loans.paid} + ${data.amount}) <= ${loans.amount}`,
-      ),
-    )
-    .returning();
+  // The guarded UPDATE is still the race gate — only succeeds when the loan
+  // is active AND the new total would not exceed the principal, so two
+  // concurrent admins cannot both pass. The transaction adds the other half:
+  // the balance change, the repayment row and the audit entry now commit
+  // together, so loans.paid can no longer drift from SUM(repayments) because
+  // one of the three writes failed alone. The weekly reconcile stays as a
+  // safety net rather than the only thing that would ever notice.
+  await inTransaction(async (tx) => {
+    const rows = await tx
+      .update(loans)
+      .set({
+        paid: sql`${loans.paid} + ${data.amount}`,
+        active: sql`(${loans.paid} + ${data.amount}) < ${loans.amount}`,
+      })
+      .where(
+        and(
+          eq(loans.id, data.loanId),
+          eq(loans.active, true),
+          sql`(${loans.paid} + ${data.amount}) <= ${loans.amount}`,
+        ),
+      )
+      .returning();
 
-  if (updated.length === 0) {
-    // Either loan is already settled, doesn't exist, or the amount
-    // would push paid > amount. Surface a helpful message.
-    const [loan] = await db.select().from(loans).where(eq(loans.id, data.loanId)).limit(1);
-    if (!loan) throw new Error('Loan not found');
-    if (!loan.active) throw new Error('Loan already settled');
-    throw new Error(`Amount exceeds remaining ${loan.amount - loan.paid}`);
-  }
+    if (rows.length === 0) {
+      const [loan] = await tx.select().from(loans).where(eq(loans.id, data.loanId)).limit(1);
+      if (!loan) throw new Error('Loan not found');
+      if (!loan.active) throw new Error('Loan already settled');
+      throw new Error(`Amount exceeds remaining ${loan.amount - loan.paid}`);
+    }
 
-  const settledLoan = updated[0];
-  const fullySettled = !settledLoan.active;
+    const loanRow = rows[0];
+    const settled = !loanRow.active;
 
-  // Now-safe insert + audit; if either fails, the weekly reconcile in
-  // /api/cron/weekly-backup notices loans.paid disagreeing with
-  // SUM(repayments.amount) and writes a ledger-reconcile-mismatch audit row.
-  await db.insert(repayments).values({
-    loanId: data.loanId,
-    amount: data.amount,
-    note: data.note,
+    await tx.insert(repayments).values({
+      loanId: data.loanId,
+      amount: data.amount,
+      note: data.note,
+    });
+    await audit(
+      tx,
+      me.id,
+      'loan-repay',
+      settled
+        ? `Settled loan ${data.loanId} (final ${data.amount})`
+        : `Repayment ${data.amount} on loan ${data.loanId}`,
+      loanRow.memberId,
+    );
   });
-  await audit(
-    me.id,
-    'loan-repay',
-    fullySettled
-      ? `Settled loan ${data.loanId} (final ${data.amount})`
-      : `Repayment ${data.amount} on loan ${data.loanId}`,
-    settledLoan.memberId,
-  );
+
   revalidatePath('/admin/loans');
   revalidatePath('/dashboard');
 }
@@ -1224,46 +1331,50 @@ export async function disburseCase(caseId: string) {
   if (!/^[0-9a-f-]{36}$/i.test(caseId)) throw new Error('Invalid case id');
 
   // Atomic: only updates when status is still 'approved' · prevents TOCTOU double-disburse
-  const updated = await db
-    .update(cases)
-    .set({ status: 'disbursed', resolvedAt: new Date() })
-    .where(and(eq(cases.id, caseId), eq(cases.status, 'approved')))
-    .returning();
+  const c = await inTransaction(async (tx) => {
+    const updated = await tx
+      .update(cases)
+      .set({ status: 'disbursed', resolvedAt: new Date() })
+      .where(and(eq(cases.id, caseId), eq(cases.status, 'approved')))
+      .returning();
 
-  if (updated.length === 0) {
-    const [c] = await db.select().from(cases).where(eq(cases.id, caseId)).limit(1);
-    if (!c) throw new Error('Case not found');
-    throw new Error(`Cannot disburse · case is currently "${c.status}"`);
-  }
+    if (updated.length === 0) {
+      const [current] = await tx.select().from(cases).where(eq(cases.id, caseId)).limit(1);
+      if (!current) throw new Error('Case not found');
+      throw new Error(`Cannot disburse · case is currently "${current.status}"`);
+    }
 
-  const c = updated[0];
-  await audit(me.id, 'case-disbursed', `Disbursed ${c.amount} for ${c.beneficiaryName}`, c.applicantId);
+    const row = updated[0];
+    await audit(tx, me.id, 'case-disbursed', `Disbursed ${row.amount} for ${row.beneficiaryName}`, row.applicantId);
+
+    // A qarz disbursement creates the loan that tracks repayment. This used
+    // to be a separate write after the status flip, so a failure between the
+    // two left a disbursed case with NO loan row — untracked debt that only
+    // the weekly reconcile would eventually notice. Now it commits with the
+    // flip, and loans.case_id is UNIQUE (migration 0017), so a retry cannot
+    // create a second loan either.
+    if (row.caseType === 'qarz') {
+      await tx.insert(loans).values({
+        memberId: row.applicantId,
+        amount: row.amount,
+        purpose: row.reasonEn,
+        pool: 'qarz',
+        city: row.city,
+        caseId: row.id,
+        paid: 0,
+        active: true,
+      }).onConflictDoNothing();
+      await audit(tx, me.id, 'loan-issue', `Auto-issued ${row.amount} qarz loan from disbursed case ${row.id}`, row.applicantId);
+    }
+    return row;
+  });
   waToMember(c.applicantId, `💸 *رقم ادا کر دی گئی*
 
 ${c.beneficiaryName} کے لیے Rs ${c.amount.toLocaleString('en-PK')} ادا کر دیے گئے ہیں۔
 
 اللہ قبول فرمائے · جزاک اللہ خیر`);
 
-  // For qarz cases, auto-create the loan record so repayments can be tracked.
-  // Guard against a duplicate loan if disburse is somehow retried (no DB
-  // transaction on the neon-http driver).
-  if (c.caseType === 'qarz') {
-    const [existingLoan] = await db.select({ id: loans.id }).from(loans).where(eq(loans.caseId, c.id)).limit(1);
-    if (!existingLoan) {
-      await db.insert(loans).values({
-        memberId: c.applicantId,
-        amount: c.amount,
-        purpose: c.reasonEn,
-        pool: 'qarz',
-        city: c.city,
-        caseId: c.id,
-        paid: 0,
-        active: true,
-      });
-      await audit(me.id, 'loan-issue', `Auto-issued ${c.amount} qarz loan from disbursed case ${c.id}`, c.applicantId);
-    }
-    revalidatePath('/admin/loans');
-  }
+  if (c.caseType === 'qarz') revalidatePath('/admin/loans');
 
   revalidatePath('/cases');
   revalidatePath('/dashboard');
@@ -1284,23 +1395,26 @@ export async function adminResolveCase(caseId: string, decision: 'approved' | 'r
   // Atomic like disburseCase: only flips a case that is still voting, so a
   // concurrent vote-tally auto-resolve (or a second admin) can't be
   // silently overwritten by this veto.
-  const resolved = await db
-    .update(cases)
-    .set({ status: decision, resolvedAt: new Date() })
-    .where(and(eq(cases.id, caseId), eq(cases.status, 'voting')))
-    .returning();
-  if (resolved.length === 0) {
-    const [current] = await db.select().from(cases).where(eq(cases.id, caseId)).limit(1);
-    if (!current) throw new Error('Case not found');
-    throw new Error(`Case already ${current.status}`);
-  }
-  const c = resolved[0];
-  await audit(
-    me.id,
-    decision === 'approved' ? 'emergency-approved' : 'emergency-rejected',
-    `Admin veto: ${decision} for ${c.beneficiaryName} (${c.amount})`,
-    c.applicantId,
-  );
+  await inTransaction(async (tx) => {
+    const resolved = await tx
+      .update(cases)
+      .set({ status: decision, resolvedAt: new Date() })
+      .where(and(eq(cases.id, caseId), eq(cases.status, 'voting')))
+      .returning();
+    if (resolved.length === 0) {
+      const [current] = await tx.select().from(cases).where(eq(cases.id, caseId)).limit(1);
+      if (!current) throw new Error('Case not found');
+      throw new Error(`Case already ${current.status}`);
+    }
+    const c = resolved[0];
+    await audit(
+      tx,
+      me.id,
+      decision === 'approved' ? 'emergency-approved' : 'emergency-rejected',
+      `Admin veto: ${decision} for ${c.beneficiaryName} (${c.amount})`,
+      c.applicantId,
+    );
+  });
 
   revalidatePath('/cases');
   revalidatePath('/dashboard');
@@ -1328,9 +1442,13 @@ export async function adminDeleteCase(caseId: string) {
     }
   }
 
-  // Votes cascade-delete via FK (ON DELETE CASCADE on votes.caseId).
-  await db.delete(cases).where(eq(cases.id, caseId));
-  await audit(me.id, 'case-deleted', `Deleted case ${c.beneficiaryName} (${c.amount})`, c.applicantId);
+  await inTransaction(async (tx) => {
+    // Audit first, so the trail records the deletion even though the row it
+    // names is about to disappear. Votes cascade-delete via FK
+    // (ON DELETE CASCADE on votes.caseId).
+    await audit(tx, me.id, 'case-deleted', `Deleted case ${c.beneficiaryName} (${c.amount})`, c.applicantId);
+    await tx.delete(cases).where(eq(cases.id, caseId));
+  });
 
   revalidatePath('/cases');
   revalidatePath('/dashboard');
@@ -1349,11 +1467,14 @@ export async function createInvite(input: z.infer<typeof createInviteSchema>) {
   const data = createInviteSchema.parse(input);
   const token = generateInviteToken();
   const expiresAt = new Date(Date.now() + data.expiresInDays * 86_400_000);
-  const [created] = await db
-    .insert(memberInvites)
-    .values({ token, createdById: me.id, label: data.label, maxUses: data.maxUses, expiresAt })
-    .returning();
-  await audit(me.id, 'invite-created', `${data.label ?? 'Unnamed'} · uses=${data.maxUses} · expires=${expiresAt.toLocaleDateString('en-GB')}`);
+  const created = await inTransaction(async (tx) => {
+    const [row] = await tx
+      .insert(memberInvites)
+      .values({ token, createdById: me.id, label: data.label, maxUses: data.maxUses, expiresAt })
+      .returning();
+    await audit(tx, me.id, 'invite-created', `${data.label ?? 'Unnamed'} · uses=${data.maxUses} · expires=${expiresAt.toLocaleDateString('en-GB')}`);
+    return row;
+  });
   revalidatePath('/admin/invites');
   return created;
 }
@@ -1361,8 +1482,10 @@ export async function createInvite(input: z.infer<typeof createInviteSchema>) {
 export async function revokeInvite(inviteId: string) {
   if (!/^[0-9a-f-]{36}$/i.test(inviteId)) throw new Error('Invalid id');
   const me = await requireAdmin();
-  await db.update(memberInvites).set({ revoked: true }).where(eq(memberInvites.id, inviteId));
-  await audit(me.id, 'invite-revoked', inviteId);
+  await inTransaction(async (tx) => {
+    await tx.update(memberInvites).set({ revoked: true }).where(eq(memberInvites.id, inviteId));
+    await audit(tx, me.id, 'invite-revoked', inviteId);
+  });
   revalidatePath('/admin/invites');
 }
 
@@ -1409,17 +1532,19 @@ export async function sendMessage(input: z.infer<typeof sendMessageSchema>) {
     throw new Error('Recipient not available');
   }
 
-  await db.insert(messages).values({ ...data, fromId: me.id });
-  // Also drop a notification on the recipient so they see the badge
-  await db.insert(notifications).values({
-    recipientId: data.toId,
-    titleUr: 'نیا پیغام',
-    titleEn: 'New message',
-    ur: data.subject,
-    en: data.subject,
-    type: 'msg',
+  await inTransaction(async (tx) => {
+    await tx.insert(messages).values({ ...data, fromId: me.id });
+    // Also drop a notification on the recipient so they see the badge
+    await tx.insert(notifications).values({
+      recipientId: data.toId,
+      titleUr: 'نیا پیغام',
+      titleEn: 'New message',
+      ur: data.subject,
+      en: data.subject,
+      type: 'msg',
+    });
+    await audit(tx, me.id, 'message-sent', `Subject: ${data.subject}`);
   });
-  await audit(me.id, 'message-sent', `Subject: ${data.subject}`);
   revalidatePath('/messages');
 }
 
@@ -1448,25 +1573,27 @@ export async function openFautiCase(memberId: string) {
   if (existing) throw new Error('A fauti case already exists for this member');
 
   const name = m.nameEn || m.nameUr;
-  const [created] = await db
-    .insert(cases)
-    .values({
-      applicantId: memberId,
-      caseType: 'gift',
-      pool: 'sadaqah',
-      category: 'fauti',
-      beneficiaryName: `Family of ${name}`,
-      relation: 'family',
-      city: m.city,
-      amount,
-      reasonUr: `فوتی فنڈ · مرحوم ${m.nameUr || m.nameEn} کے اہلِ خانہ کے لیے`,
-      reasonEn: `Fauti fund payout for the family of the late ${name}`,
-      emergency: false,
-      status: 'approved',
-    })
-    .returning();
-
-  await audit(me.id, 'fauti-opened', `Fauti payout ${amount} opened for family of ${name}`, memberId);
+  const created = await inTransaction(async (tx) => {
+    const [row] = await tx
+      .insert(cases)
+      .values({
+        applicantId: memberId,
+        caseType: 'gift',
+        pool: 'sadaqah',
+        category: 'fauti',
+        beneficiaryName: `Family of ${name}`,
+        relation: 'family',
+        city: m.city,
+        amount,
+        reasonUr: `فوتی فنڈ · مرحوم ${m.nameUr || m.nameEn} کے اہلِ خانہ کے لیے`,
+        reasonEn: `Fauti fund payout for the family of the late ${name}`,
+        emergency: false,
+        status: 'approved',
+      })
+      .returning();
+    await audit(tx, me.id, 'fauti-opened', `Fauti payout ${amount} opened for family of ${name}`, memberId);
+    return row;
+  });
   revalidatePath('/cases');
   revalidatePath(`/admin/members/${memberId}`);
   return created;
@@ -1484,15 +1611,16 @@ export async function adminVerifyEmailByAddress(email: string): Promise<{ verifi
   const clean = email.trim().toLowerCase();
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(clean)) throw new Error('Invalid email address');
 
-  const updated = await db
-    .update(users)
-    .set({ emailVerified: true })
-    .where(sql`LOWER(${users.email}) = ${clean}`)
-    .returning({ id: users.id });
-  if (updated.length === 0) throw new Error('No account found with this email');
-
   // Mask the address in the audit trail — enough to trace, not to leak.
   const masked = `${clean.slice(0, 2)}***@${clean.split('@')[1]}`;
-  await audit(me.id, 'email-verified-manually', `Admin manually verified ${masked}`);
+  await inTransaction(async (tx) => {
+    const updated = await tx
+      .update(users)
+      .set({ emailVerified: true })
+      .where(sql`LOWER(${users.email}) = ${clean}`)
+      .returning({ id: users.id });
+    if (updated.length === 0) throw new Error('No account found with this email');
+    await audit(tx, me.id, 'email-verified-manually', `Admin manually verified ${masked}`);
+  });
   return { verified: true };
 }
