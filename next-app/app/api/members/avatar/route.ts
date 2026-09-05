@@ -5,7 +5,7 @@ import path from 'path';
 import { meApprovedOrThrow } from '@/lib/auth-server';
 import { db } from '@/lib/db';
 import { members, auditLog } from '@/lib/db/schema';
-import { isStorageConfigured, uploadToStorage } from '@/lib/storage';
+import { isStorageConfigured, uploadPublic, deleteStored } from '@/lib/storage';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -32,17 +32,25 @@ export async function POST(req: Request) {
     }
 
     const ext = file.type === 'image/png' ? 'png' : file.type === 'image/webp' ? 'webp' : 'jpg';
-    const filename = `${me.id}_${Date.now()}.${ext}`;
+    // No member id or timestamp in the name — uploadPublic adds a random
+    // suffix, so the URL is an unguessable capability, not an enumerable key.
+    const filename = `avatar.${ext}`;
     const bytes = new Uint8Array(await file.arrayBuffer());
 
-    // Production: Cloudflare R2 (HTTPS URL). Local dev fallback: public/uploads.
     let url: string;
     if (isStorageConfigured()) {
-      url = await uploadToStorage(`avatars/${filename}`, bytes, file.type);
+      url = await uploadPublic(`avatars/${filename}`, bytes, file.type);
+      // Replacing an avatar must kill the old public URL, or every replaced
+      // photo stays fetchable forever. Best-effort: a failed delete must not
+      // fail the upload.
+      if (me.photoUrl?.includes('.blob.vercel-storage.com')) {
+        await deleteStored(me.photoUrl).catch(() => {});
+      }
     } else if (process.env.NODE_ENV !== 'production') {
+      const localFilename = `${me.id}_${Date.now()}.${ext}`;
       await mkdir(UPLOAD_DIR, { recursive: true });
-      await writeFile(path.join(UPLOAD_DIR, filename), bytes);
-      url = `/uploads/avatars/${filename}`;
+      await writeFile(path.join(UPLOAD_DIR, localFilename), bytes);
+      url = `/uploads/avatars/${localFilename}`;
     } else {
       console.error('[avatar] BLOB_READ_WRITE_TOKEN not configured · avatar uploads unavailable in production');
       return NextResponse.json(

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { isAllowedReceiptUrl } from '@/lib/file-access';
 import { z } from 'zod';
 import { submitDonation } from '@/app/actions';
 import { errorResponse } from '@/lib/api-error';
@@ -26,7 +27,10 @@ const schema = z.object({
   monthLabel: z.string().min(3).max(40),
   note: z.string().max(200).optional(),
   // https-only · z.string().url() alone also accepts javascript:/data: schemes
-  receiptUrl: z.string().url().startsWith('https://').or(z.string().startsWith('/uploads/')).optional(),
+  // App-internal storage references only — see isAllowedReceiptUrl.
+  receiptUrl: z.string().max(500)
+    .refine(isAllowedReceiptUrl, 'Receipt must be uploaded through the app')
+    .optional(),
   idempotencyKey: z.string().min(8).max(64).optional(),
 });
 

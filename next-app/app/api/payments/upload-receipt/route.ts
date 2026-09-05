@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { writeFile, mkdir } from 'fs/promises';
 import path from 'path';
 import { meApprovedOrThrow } from '@/lib/auth-server';
-import { isStorageConfigured, uploadToStorage } from '@/lib/storage';
+import { isStorageConfigured, uploadPrivate } from '@/lib/storage';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -12,14 +12,19 @@ const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
 /**
  * Upload a payment receipt screenshot.
- *  - Production: Cloudflare R2 (returns an HTTPS URL).
- *  - Local dev (no R2 env): write to public/uploads/receipts.
+ *
+ * Receipts are bank-transfer screenshots — PRIVATE. The blob is stored with
+ * access:'private' under receipts/<memberId>/, and the returned URL is the
+ * app's own authenticated download route, never the blob store. Local dev
+ * (no blob token) falls back to public/uploads, which never leaves the
+ * developer's machine.
+ *
  * The mobile client treats a failed upload as non-fatal and still submits
  * the payment, so a 501 here never blocks a donation.
  */
 export async function POST(req: Request) {
   try {
-    await meApprovedOrThrow();
+    const me = await meApprovedOrThrow();
 
     const formData = await req.formData();
     const file = formData.get('receipt');
@@ -39,8 +44,10 @@ export async function POST(req: Request) {
     const bytes = new Uint8Array(await file.arrayBuffer());
 
     if (isStorageConfigured()) {
-      const url = await uploadToStorage(`receipts/${filename}`, bytes, file.type);
-      return NextResponse.json({ url });
+      // Owner id in the path IS the authorization record — the download
+      // route grants the member access to their own receipts by prefix.
+      const pathname = await uploadPrivate(`receipts/${me.id}/${filename}`, bytes, file.type);
+      return NextResponse.json({ url: `/api/files/${pathname}` });
     }
 
     if (process.env.NODE_ENV !== 'production') {

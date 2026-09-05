@@ -49,10 +49,21 @@ function shell(title: string, body: string, ctaLabel?: string, ctaHref?: string)
 </html>`;
 }
 
+/**
+ * Mask an email address for log output · `u***@example.com`. Logs are the
+ * one store with no access control tied to member data; they get the least
+ * information that still lets an operator correlate a support report.
+ */
+export function maskEmail(email: string): string {
+  const at = email.indexOf('@');
+  if (at <= 0) return '***';
+  return `${email[0]}***@${email.slice(at + 1)}`;
+}
+
 async function send(to: string, subject: string, html: string, text: string): Promise<void> {
   const key = process.env.RESEND_API_KEY;
   if (!key) {
-    console.warn(`[email] Skipped "${subject}" → ${to} (RESEND_API_KEY not set)`);
+    console.warn(`[email] Skipped "${subject}" → ${maskEmail(to)} (RESEND_API_KEY not set)`);
     return;
   }
   try {
@@ -60,7 +71,7 @@ async function send(to: string, subject: string, html: string, text: string): Pr
     const resend = new Resend(key);
     await resend.emails.send({ from: FROM, to, subject, html, text });
   } catch (err) {
-    console.warn(`[email] Failed "${subject}" → ${to}:`, err instanceof Error ? err.message : err);
+    console.warn(`[email] Failed "${subject}" → ${maskEmail(to)}:`, err instanceof Error ? err.message : err);
   }
 }
 
@@ -105,6 +116,49 @@ function escapeHtml(s: string): string {
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;');
+}
+
+/* ─── 0. Password reset · the URL is an account-takeover capability ─── */
+
+/**
+ * Deliver a password-reset link.
+ *
+ * SECURITY: the URL embeds a live single-use reset token. It must never be
+ * logged, stored, or echoed anywhere except the recipient's inbox. When the
+ * email provider is not configured the reset silently does not go out — the
+ * user-facing flow already says "if the account exists, an email was sent",
+ * so failing quietly here is the safe behaviour, and the log line records
+ * THAT it was skipped without recording anything sensitive.
+ */
+export async function sendResetPasswordEmail(to: string, url: string): Promise<void> {
+  const key = process.env.RESEND_API_KEY;
+  if (!key) {
+    console.warn('[auth] Password-reset email skipped: RESEND_API_KEY not set. The link was NOT delivered and was not logged.');
+    return;
+  }
+  const { Resend } = await import('resend');
+  const resend = new Resend(key);
+  const result = await resend.emails.send({
+    from: FROM,
+    to,
+    subject: 'Reset your Barakah Hub password',
+    html: shell(
+      'Reset your password',
+      `<p style="margin:0 0 8px;">We received a request to reset your Barakah Hub password.</p>
+       <p style="margin:0;">The button below works for 1 hour. If you did not ask for this, ignore this email — your password is unchanged.</p>`,
+      'Reset password',
+      url,
+    ),
+    text: `Click to reset your Barakah Hub password:
+
+${url}
+
+This link expires in 1 hour. If you did not ask for this, ignore this email.`,
+  });
+  if (result.error) {
+    // Propagate without the URL · the error object never contains it.
+    throw new Error(`Resend rejected password-reset email: ${result.error.message ?? String(result.error)}`);
+  }
 }
 
 /* ─── 1. Welcome ─── */
@@ -218,7 +272,7 @@ export async function sendPaymentReviewEmail(to: string, r: ReviewInput): Promis
         <strong style="color:#f8fafc;">Pool:</strong> ${poolLabel}<br>
         <strong style="color:#f8fafc;">For month:</strong> ${escape(r.monthLabel)}
         ${r.note ? `<br><strong style="color:#f8fafc;">Note:</strong> ${escape(r.note)}` : ''}
-        ${r.receiptUrl ? `<br><strong style="color:#f8fafc;">Receipt:</strong> <a href="${r.receiptUrl}" style="color:#10b981;">view screenshot</a>` : ''}
+        ${r.receiptUrl ? `<br><strong style="color:#f8fafc;">Receipt:</strong> <a href="${r.receiptUrl.startsWith('/') ? APP_URL + r.receiptUrl : r.receiptUrl}" style="color:#10b981;">view screenshot (login required)</a>` : ''}
       </td></tr>
     </table>
     ${r.approveUrl
