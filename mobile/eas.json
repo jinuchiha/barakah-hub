@@ -21,8 +21,7 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://barakah-hub.vercel.app",
-        "EXPO_PUBLIC_SENTRY_DSN": ""
+        "EXPO_PUBLIC_API_URL": "https://barakah-hub.vercel.app"
       }
     },
     "production": {
@@ -30,8 +29,7 @@
         "buildType": "app-bundle"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://barakah-hub.vercel.app",
-        "EXPO_PUBLIC_SENTRY_DSN": ""
+        "EXPO_PUBLIC_API_URL": "https://barakah-hub.vercel.app"
       }
     }
   },
