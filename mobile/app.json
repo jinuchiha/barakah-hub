@@ -23,7 +23,8 @@
         "NSFaceIDUsageDescription": "Use Face ID to unlock Barakah Hub",
         "NSPhotoLibraryAddUsageDescription": "Save receipts to your photo library",
         "NSLocationWhenInUseUsageDescription": "Calculate Qibla direction for your current location"
-      }
+      },
+      "buildNumber": "2"
     },
     "android": {
       "adaptiveIcon": {

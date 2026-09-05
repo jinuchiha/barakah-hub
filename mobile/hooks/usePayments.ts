@@ -24,6 +24,26 @@ async function fetchAllPayments(): Promise<Payment[]> {
   return data;
 }
 
+/** Server-computed totals for one member's donation record. */
+export interface MemberPaymentTotals {
+  verified: number;
+  pending: number;
+  count: number;
+  verifiedCount: number;
+  byPool: Record<string, number>;
+  lastPaidOn: string | null;
+}
+
+export interface MemberPaymentsResponse {
+  payments: Payment[];
+  totals: MemberPaymentTotals;
+}
+
+async function fetchMemberPayments(memberId: string): Promise<MemberPaymentsResponse> {
+  const { data } = await api.get<MemberPaymentsResponse>(`/api/members/${memberId}/payments`);
+  return data;
+}
+
 async function submitDonation(input: SubmitDonationInput): Promise<Payment> {
   const { data } = await api.post<Payment>('/api/payments/submit', input);
   return data;
@@ -60,6 +80,20 @@ export function useMyPayments() {
   return useQuery({
     queryKey: ['payments', 'mine'],
     queryFn: fetchMyPayments,
+    staleTime: 60_000,
+  });
+}
+
+/**
+ * One member's donation record (history + server-computed totals).
+ * Authorized server-side: self, admin, or supervisor — pass `enabled` so
+ * the profile screen never fires a request it knows will 403.
+ */
+export function useMemberPayments(memberId: string, enabled: boolean) {
+  return useQuery({
+    queryKey: ['payments', 'member', memberId],
+    queryFn: () => fetchMemberPayments(memberId),
+    enabled: enabled && Boolean(memberId),
     staleTime: 60_000,
   });
 }

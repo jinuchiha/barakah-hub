@@ -16,6 +16,9 @@ import { GlassCard } from '@/components/ui/GlassCard';
 import { LoadingScreen } from '@/components/ui/LoadingScreen';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { useMember } from '@/hooks/useMembers';
+import { useMemberPayments } from '@/hooks/usePayments';
+import { PaymentCard } from '@/components/PaymentCard';
+import { Skeleton } from '@/components/ui/Skeleton';
 import { useAuthStore } from '@/stores/auth.store';
 import { useTheme } from '@/lib/useTheme';
 import { formatDate, formatPKR } from '@/lib/format';
@@ -53,6 +56,11 @@ export default function MemberDetailScreen() {
   const { user } = useAuthStore();
   const { colors } = useTheme();
   const { data: member, isLoading, error, refetch, isRefetching } = useMember(id ?? '');
+  // Financial history is self / admin / supervisor only — the server enforces
+  // it, and `enabled` keeps the profile from firing a request that would 403.
+  const canSeeDonations =
+    user?.role === 'admin' || user?.role === 'supervisor' || user?.id === id;
+  const donations = useMemberPayments(id ?? '', canSeeDonations);
   const qc = useQueryClient();
   const [fautiPending, setFautiPending] = useState(false);
 
@@ -201,6 +209,64 @@ export default function MemberDetailScreen() {
           </GlassCard>
         </Animated.View>
 
+        {canSeeDonations ? (
+          <Animated.View entering={FadeInDown.duration(400).delay(isAdmin ? 300 : 220)}>
+            <SectionLabel title="DONATIONS" />
+            {donations.isLoading ? (
+              <View style={styles.donationSkeletons}>
+                <Skeleton height={72} />
+                <Skeleton height={72} />
+              </View>
+            ) : donations.isError ? (
+              <GlassCard style={styles.infoCard}>
+                <Text style={[styles.emptyInfo, { color: colors.text3 }]}>
+                  Could not load the donation record.
+                </Text>
+                <TouchableOpacity
+                  onPress={() => donations.refetch()}
+                  accessibilityRole="button"
+                  accessibilityLabel="Retry loading donations"
+                >
+                  <Text style={[styles.retryText, { color: colors.primary }]}>Retry</Text>
+                </TouchableOpacity>
+              </GlassCard>
+            ) : donations.data && donations.data.totals.count > 0 ? (
+              <>
+                <View style={styles.statsRow}>
+                  <StatCard
+                    icon="check-decagram"
+                    value={formatPKR(donations.data.totals.verified)}
+                    label={`Verified · ${donations.data.totals.verifiedCount} payments`}
+                    style={styles.stat}
+                  />
+                  <StatCard
+                    icon="clock-outline"
+                    value={formatPKR(donations.data.totals.pending)}
+                    label="Awaiting verification"
+                    style={styles.stat}
+                  />
+                </View>
+                <View style={styles.donationList}>
+                  {donations.data.payments.slice(0, 10).map((payment) => (
+                    <PaymentCard key={payment.id} payment={payment} />
+                  ))}
+                </View>
+                {donations.data.totals.count > 10 ? (
+                  <Text style={[styles.moreNote, { color: colors.text4 }]}>
+                    Showing the {10} most recent of {donations.data.totals.count} payments
+                  </Text>
+                ) : null}
+              </>
+            ) : (
+              <GlassCard style={styles.infoCard}>
+                <Text style={[styles.emptyInfo, { color: colors.text4 }]}>
+                  No donations recorded yet.
+                </Text>
+              </GlassCard>
+            )}
+          </Animated.View>
+        ) : null}
+
         {isAdmin && member.deceased ? (
           <Animated.View entering={FadeInDown.duration(400).delay(320)}>
             <SectionLabel title="FAUTI FUND" />
@@ -220,6 +286,10 @@ export default function MemberDetailScreen() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
+  donationSkeletons: { gap: spacing.sm },
+  donationList: { gap: spacing.sm, marginTop: spacing.sm },
+  moreNote: { fontSize: 12, textAlign: 'center', marginTop: spacing.sm },
+  retryText: { fontSize: 13, fontFamily: 'Inter_600SemiBold', textAlign: 'center', marginTop: spacing.sm },
   scroll: { padding: spacing.md, paddingBottom: 80 },
   profileCard: {
     alignItems: 'center',

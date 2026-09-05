@@ -51,3 +51,34 @@ Android back never traps · forced test crash appears in Sentry dashboard.
 - Watch Sentry for the release `barakah-mobile@1.1.0`.
 - OTA (JS-only) fixes may use `eas update` on the 1.1.0 runtime; anything
   touching native modules bumps versionCode again.
+
+## iOS release workflow (prepared — blocked on Apple credentials)
+
+Prerequisites the operator must have:
+1. An Apple Developer Program membership (USD 99/yr) on the account that
+   will own the app.
+2. The bundle id `com.barakah.hub` registered (EAS can do this for you).
+
+Config status (already done in this repo):
+- `ios.bundleIdentifier` = com.barakah.hub, `ios.buildNumber` = 2
+- All required Info.plist usage strings (camera, photos, Face ID, location)
+- Push: iOS APNs key is managed by EAS credentials, same as the Android
+  keystore. expo-notifications works once the key exists.
+
+Build commands (run after `npx eas-cli login`):
+- TestFlight / App Store archive (IPA):
+    npx eas-cli build --platform ios --profile production
+  First run walks you through Apple sign-in; EAS creates and stores the
+  distribution certificate + provisioning profile in your Expo account.
+- Submit the finished build to App Store Connect:
+    npx eas-cli submit --platform ios
+- Internal-device build (ad hoc, for QA phones registered on the account):
+    add an "internal" ios profile with "distribution": "internal", register
+    devices with `npx eas-cli device:create`, then build with that profile.
+
+Sentry: the same SENTRY_DISABLE_AUTO_UPLOAD=true applies until
+SENTRY_AUTH_TOKEN is configured.
+
+Reality check: an IPA cannot be produced without the Apple account — there
+is no keystore-style workaround. Everything up to that gate is committed
+and ready.
