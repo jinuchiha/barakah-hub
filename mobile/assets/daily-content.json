@@ -18,7 +18,7 @@
       "arabic": "خَيْرُ النَّاسِ أَنْفَعُهُمْ لِلنَّاسِ",
       "english": "The best of people are those most beneficial to others.",
       "urdu": "بہترین انسان وہ ہے جو لوگوں کے لیے سب سے زیادہ فائدہ مند ہو۔",
-      "reference": "Al-Mu'jam al-Awsat",
+      "reference": "Al-Mu'jam al-Awsat (Tabarani) · hasan (al-Albani)",
       "type": "hadith"
     },
     {
@@ -39,7 +39,7 @@
       "arabic": "مَنْ سَتَرَ مُسْلِمًا سَتَرَهُ اللَّهُ فِي الدُّنْيَا وَالآخِرَةِ",
       "english": "Whoever covers a Muslim's faults, Allah will cover his faults in this world and the Hereafter.",
       "urdu": "جس نے کسی مسلمان کی پردہ پوشی کی، اللہ اس کی دنیا اور آخرت میں پردہ پوشی کرے گا۔",
-      "reference": "Sahih Muslim",
+      "reference": "Sahih Muslim 2580",
       "type": "hadith"
     },
     {
@@ -53,7 +53,7 @@
       "arabic": "لَا يُؤْمِنُ أَحَدُكُمْ حَتَّى يُحِبَّ لِأَخِيهِ مَا يُحِبُّ لِنَفْسِهِ",
       "english": "None of you truly believes until he loves for his brother what he loves for himself.",
       "urdu": "تم میں سے کوئی اس وقت تک مومن نہیں ہو سکتا جب تک اپنے بھائی کے لیے وہی نہ چاہے جو اپنے لیے چاہتا ہے۔",
-      "reference": "Sahih Bukhari",
+      "reference": "Sahih al-Bukhari 13",
       "type": "hadith"
     },
     {
@@ -67,7 +67,7 @@
       "arabic": "الصَّدَقَةُ تُطْفِئُ الْخَطِيئَةَ كَمَا يُطْفِئُ الْمَاءُ النَّارَ",
       "english": "Charity extinguishes sin as water extinguishes fire.",
       "urdu": "صدقہ گناہ کو اس طرح بجھا دیتا ہے جیسے پانی آگ کو بجھاتا ہے۔",
-      "reference": "Sunan at-Tirmidhi",
+      "reference": "Jami at-Tirmidhi 614",
       "type": "hadith"
     },
     {
@@ -81,7 +81,7 @@
       "arabic": "أَحَبُّ النَّاسِ إِلَى اللهِ أَنْفَعُهُمْ لِلنَّاسِ",
       "english": "The most beloved of people to Allah are those who bring most benefit to others.",
       "urdu": "اللہ کے نزدیک سب سے پسندیدہ شخص وہ ہے جو لوگوں کو سب سے زیادہ فائدہ پہنچائے۔",
-      "reference": "Al-Mu'jam al-Awsat",
+      "reference": "Al-Mu'jam al-Awsat (Tabarani) · hasan (al-Albani)",
       "type": "hadith"
     },
     {
@@ -95,7 +95,7 @@
       "arabic": "مَا نَقَصَتْ صَدَقَةٌ مِنْ مَالٍ",
       "english": "Charity does not decrease wealth.",
       "urdu": "صدقہ سے مال کم نہیں ہوتا۔",
-      "reference": "Sahih Muslim",
+      "reference": "Sahih Muslim 2588",
       "type": "hadith"
     },
     {
@@ -116,7 +116,7 @@
       "arabic": "كُلُّ مَعْرُوفٍ صَدَقَةٌ",
       "english": "Every act of kindness is charity.",
       "urdu": "ہر نیکی صدقہ ہے۔",
-      "reference": "Sahih Bukhari",
+      "reference": "Sahih al-Bukhari 6021",
       "type": "hadith"
     },
     {
@@ -130,7 +130,7 @@
       "arabic": "مَنْ فَرَّجَ عَنْ مُؤْمِنٍ كُرْبَةً مِنْ كُرَبِ الدُّنْيَا فَرَّجَ اللَّهُ عَنْهُ كُرْبَةً مِنْ كُرَبِ الآخِرَةِ",
       "english": "Whoever relieves a believer's distress in this world, Allah will relieve his distress on the Day of Resurrection.",
       "urdu": "جس نے کسی مومن کی دنیاوی مصیبتوں میں سے کوئی مصیبت دور کی، اللہ قیامت کے دن اس کی مصیبتیں دور کرے گا۔",
-      "reference": "Sahih Muslim",
+      "reference": "Sahih Muslim 2699",
       "type": "hadith"
     },
     {
@@ -144,7 +144,7 @@
       "arabic": "الْمُسْلِمُ أَخُو الْمُسْلِمِ لَا يَظْلِمُهُ وَلَا يُسْلِمُهُ",
       "english": "A Muslim is the brother of a Muslim. He does not oppress him, nor does he abandon him.",
       "urdu": "مسلمان مسلمان کا بھائی ہے، نہ اس پر ظلم کرے اور نہ اسے رسوا کرے۔",
-      "reference": "Sahih Bukhari",
+      "reference": "Sahih al-Bukhari 2442",
       "type": "hadith"
     },
     {
@@ -155,10 +155,10 @@
       "type": "verse"
     },
     {
-      "arabic": "اتَّقِ اللَّهِ حَيْثُمَا كُنْتَ",
+      "arabic": "اتَّقِ اللَّهَ حَيْثُمَا كُنْتَ",
       "english": "Fear Allah wherever you are.",
       "urdu": "جہاں کہیں بھی ہو اللہ سے ڈرتے رہو۔",
-      "reference": "Sunan at-Tirmidhi",
+      "reference": "Sunan at-Tirmidhi 1987",
       "type": "hadith"
     },
     {
@@ -179,7 +179,7 @@
       "arabic": "ابْدَأْ بِنَفْسِكَ ثُمَّ بِمَنْ تَعُولُ",
       "english": "Begin with yourself, then with those you support.",
       "urdu": "پہلے اپنے آپ سے شروع کرو، پھر اپنے عیال سے۔",
-      "reference": "Sahih Muslim",
+      "reference": "Sahih Muslim 997",
       "type": "hadith"
     },
     {
@@ -197,10 +197,10 @@
       "type": "verse"
     },
     {
-      "arabic": "الدُّعَاءُ مُخُّ الْعِبَادَةِ",
-      "english": "Supplication is the essence of worship.",
-      "urdu": "دعا عبادت کا مغز ہے۔",
-      "reference": "Sunan at-Tirmidhi",
+      "arabic": "الدُّعَاءُ هُوَ الْعِبَادَةُ",
+      "english": "Supplication — it is worship itself.",
+      "urdu": "دعا ہی عبادت ہے۔",
+      "reference": "Sunan Abi Dawud 1479",
       "type": "hadith"
     },
     {

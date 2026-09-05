@@ -78,7 +78,7 @@ export function ZakatCalculator() {
                   </>
                 ) : (
                   <Text style={[styles.resultNote, { color: colors.text3 }]}>
-                    Below Nisab ({formatPKR(NISAB_PKR)}) — no Zakat due
+                    Below the gold Nisab ({formatPKR(NISAB_PKR)}, June 2026). Zakat may still be due on the lower silver nisab — ask a scholar.
                   </Text>
                 )}
               </>
@@ -87,7 +87,8 @@ export function ZakatCalculator() {
             )}
           </View>
           <Text style={[styles.disclaimer, { color: colors.text4 }]}>
-            * Based on approx. Nisab of 85g gold. Consult a scholar for exact ruling.
+            * Based on approx. Nisab of 85g gold (June 2026 rate — verify today&apos;s).
+            Zakat applies after one lunar year of holding (hawl). Consult a scholar for an exact ruling.
           </Text>
         </View>
       ) : null}

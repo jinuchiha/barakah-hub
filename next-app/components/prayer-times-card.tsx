@@ -7,7 +7,9 @@ import { prayerTimesFor, type PrayerTimes } from '@/lib/prayer-times';
 // Default location: Islamabad. Browser geolocation refines it if granted.
 const FALLBACK = { lat: 33.6844, lng: 73.0479, label: 'Islamabad (default)' };
 
-const PRAYERS: { key: keyof PrayerTimes; en: string; ur: string }[] = [
+type PrayerKey = Exclude<keyof PrayerTimes, 'highLatitudeUnreliable'>;
+
+const PRAYERS: { key: PrayerKey; en: string; ur: string }[] = [
   { key: 'fajr', en: 'Fajr', ur: 'فجر' },
   { key: 'sunrise', en: 'Sunrise', ur: 'طلوع' },
   { key: 'dhuhr', en: 'Dhuhr', ur: 'ظہر' },
@@ -19,7 +21,7 @@ const PRAYERS: { key: keyof PrayerTimes; en: string; ur: string }[] = [
 const fmt = (d: Date) =>
   d.toLocaleTimeString('en-GB', { hour: 'numeric', minute: '2-digit', hour12: true });
 
-function nextPrayer(times: PrayerTimes, now: Date): { key: keyof PrayerTimes; at: Date } {
+function nextPrayer(times: PrayerTimes, now: Date): { key: PrayerKey; at: Date } {
   for (const p of PRAYERS) {
     if (p.key !== 'sunrise' && times[p.key] > now) return { key: p.key, at: times[p.key] };
   }
@@ -99,6 +101,12 @@ export function PrayerTimesCard() {
         })}
       </div>
 
+      {times.highLatitudeUnreliable && (
+        <p className="mt-3 rounded-lg border border-[rgba(200,155,60,0.3)] bg-[rgba(200,155,60,0.06)] px-3 py-2 text-[11px] text-[var(--txt-2)]">
+          At this latitude, 18° twilight does not occur in this season, so Fajr
+          and Isha cannot be computed reliably — follow your local masjid timetable.
+        </p>
+      )}
       <p className="mt-3 text-[10px] italic text-[var(--txt-4)]">
         Calculated locally (±2 min) · confirm with your local masjid timetable.
       </p>

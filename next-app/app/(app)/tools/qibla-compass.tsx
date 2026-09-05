@@ -66,6 +66,8 @@ export default function QiblaCompass() {
 
       <p className="text-[10px] leading-relaxed text-[var(--txt-4)]">
         Face North with a compass (or your phone&apos;s compass app), then turn {Math.round(bearing)}° clockwise.
+        The bearing is from <em>true</em> North — set your compass app to true north, or account for local
+        magnetic declination (negligible in Pakistan, up to ~15° in North America).
       </p>
     </div>
   );

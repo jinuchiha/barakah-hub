@@ -5,9 +5,9 @@ export const metadata = { title: 'About This Fund · Barakah Hub' };
 
 const REFS = [
   {
-    arabic: 'مَّثَلُ ٱلَّذِينَ يُنفِقُونَ أَمْوَٰلَهُمْ فِى سَبِيلِ ٱللَّهِ كَمَثَلِ حَبَّةٍ أَنبَتَتْ سَبْعَ سَنَابِلَ',
-    english: 'The example of those who spend in the way of Allah is like a seed that grows seven spikes, in each spike a hundred grains.',
-    urdu: 'جو لوگ اللہ کی راہ میں اپنا مال خرچ کرتے ہیں ان کی مثال اس دانے کی سی ہے جس سے سات بالیاں اگیں',
+    arabic: 'مَّثَلُ ٱلَّذِينَ يُنفِقُونَ أَمْوَٰلَهُمْ فِى سَبِيلِ ٱللَّهِ كَمَثَلِ حَبَّةٍ أَنبَتَتْ سَبْعَ سَنَابِلَ فِى كُلِّ سُنۢبُلَةٍ مِّا۟ئَةُ حَبَّةٍ…',
+    english: 'The example of those who spend in the way of Allah is like a seed that grows seven ears; in every ear a hundred grains…',
+    urdu: 'جو لوگ اللہ کی راہ میں اپنا مال خرچ کرتے ہیں ان کی مثال اس دانے کی سی ہے جس سے سات بالیاں اگیں، ہر بالی میں سو دانے…',
     ref: 'Al-Baqarah 2:261',
     topic: 'Sadaqah',
   },
@@ -26,16 +26,16 @@ const REFS = [
     topic: 'Zakat',
   },
   {
-    arabic: 'مَن ذَا ٱلَّذِى يُقْرِضُ ٱللَّهَ قَرْضًا حَسَنًا فَيُضَٰعِفَهُۥ لَهُۥٓ أَضْعَافًا كَثِيرَةً',
+    arabic: 'مَن ذَا ٱلَّذِى يُقْرِضُ ٱللَّهَ قَرْضًا حَسَنًا فَيُضَٰعِفَهُۥ لَهُۥٓ أَضْعَافًا كَثِيرَةً…',
     english: 'Who is it that would loan Allah a goodly loan so He may multiply it for him many times over?',
     urdu: 'کون ہے جو اللہ کو قرض حسنہ دے تاکہ اللہ اسے کئی گنا بڑھا کر لوٹائے؟',
     ref: 'Al-Baqarah 2:245',
     topic: 'Qarz-e-Hasana',
   },
   {
-    arabic: 'وَإِن كَانَ ذُو عُسْرَةٍ فَنَظِرَةٌ إِلَىٰ مَيْسَرَةٍ',
-    english: 'If the debtor is in hardship, let there be postponement until ease. And if you remit it as charity, it is better for you.',
-    urdu: 'اگر قرض لینے والا تنگدست ہو تو اسے آسانی تک مہلت دو، اور معاف کر دو تو تمہارے لیے بہتر ہے۔',
+    arabic: 'وَإِن كَانَ ذُو عُسْرَةٍ فَنَظِرَةٌ إِلَىٰ مَيْسَرَةٍ ۚ وَأَن تَصَدَّقُوا۟ خَيْرٌ لَّكُمْ ۖ إِن كُنتُمْ تَعْلَمُونَ',
+    english: 'If the debtor is in hardship, let there be postponement until ease. And if you remit it as charity, it is better for you — if you only knew.',
+    urdu: 'اگر قرض لینے والا تنگدست ہو تو اسے آسانی تک مہلت دو، اور معاف کر دو تو تمہارے لیے بہتر ہے، اگر تم جانو۔',
     ref: 'Al-Baqarah 2:280',
     topic: 'Qarz-e-Hasana',
   },
@@ -52,8 +52,9 @@ export default async function AboutPage() {
   return (
     <div className="mx-auto w-full max-w-3xl">
       <header className="mb-8 border-b border-[var(--border)] pb-5">
-        <h1 className="font-[var(--font-arabic)] text-3xl text-[var(--color-gold-2)]">اس فنڈ کے بارے میں</h1>
-        <p className="mt-1 font-[var(--font-en)] text-sm italic text-[var(--color-gold-4)]">Islamic basis of this family fund</p>
+        <h1 className="text-[28px] font-semibold tracking-[-0.5px] text-[var(--color-cream)]">About This Fund</h1>
+        <p dir="rtl" className="font-[var(--font-arabic)] text-[15px] leading-8 text-[var(--color-gold-2)] [text-align:start]">اس فنڈ کے بارے میں</p>
+        <p className="mt-1 text-sm text-[var(--txt-3)]">Islamic basis of this family fund</p>
       </header>
 
       <Card className="mb-6">
@@ -75,7 +76,8 @@ export default async function AboutPage() {
                 </span>
                 <span className="text-[10px] text-[var(--txt-4)]">{r.ref}</span>
               </div>
-              <p dir="rtl" className="mb-3 font-[var(--font-arabic)] text-[15px] leading-8 text-[var(--color-gold-2)] overflow-hidden" style={{ display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical' }}>
+              {/* Scripture is never visually truncated — the full quoted text renders. */}
+              <p dir="rtl" lang="ar" className="mb-3 font-[var(--font-quran)] text-[15px] leading-8 text-[var(--color-gold-2)]">
                 {r.arabic}
               </p>
               <p className="text-[12px] italic text-[var(--txt-3)]">&ldquo;{r.english}&rdquo;</p>

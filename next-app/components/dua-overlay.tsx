@@ -2,7 +2,7 @@
 import { useEffect, useMemo } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { X } from 'lucide-react';
-import { randomDua } from '@/lib/duas';
+import { randomDua, DUA_KIND_LABEL } from '@/lib/duas';
 
 interface DuaOverlayProps {
   open: boolean;
@@ -80,14 +80,14 @@ export function DuaOverlay({ open, onClose, pool = 'sadaqah' }: DuaOverlayProps)
             </button>
 
             <motion.div {...fadeUp(0.1)} className="text-[10px] font-bold uppercase tracking-[3px] text-[var(--color-gold-4)]">
-              {pool === 'zakat' ? 'Zakat qubool ho · تقبل الله' : 'Sadqa qubool ho · تقبل الله'}
+              {pool === 'zakat' ? 'Zakat qubool ho · تَقَبَّلَ اللهُ مِنكَ' : 'Sadqa qubool ho · تَقَبَّلَ اللهُ مِنكَ'}
             </motion.div>
 
             <motion.p
               {...fadeUp(0.35)}
               dir="rtl"
               lang="ar"
-              className="mx-auto mt-7 max-w-lg font-[var(--font-arabic)] text-2xl leading-[2.3] text-[var(--color-gold-3)] md:text-[27px]"
+              className="mx-auto mt-7 max-w-lg font-[var(--font-quran)] text-2xl leading-[2.3] text-[var(--color-gold-3)] md:text-[27px]"
             >
               {dua.arabic}
             </motion.p>
@@ -107,7 +107,11 @@ export function DuaOverlay({ open, onClose, pool = 'sadaqah' }: DuaOverlayProps)
 
             <motion.div {...fadeUp(1.1)} className="mt-7 flex items-center justify-center gap-3">
               <span aria-hidden className="h-px w-10 bg-[rgba(200,155,60,0.35)]" />
-              <span className="text-[10.5px] font-semibold tracking-[1.5px] text-[var(--color-gold-4)]">{dua.source}</span>
+              <span className="text-[10.5px] font-semibold tracking-[1.5px] text-[var(--color-gold-4)]">
+                {/* Label what kind of text this is — Qur'an, hadith, and dua
+                    must never be visually interchangeable. */}
+                {DUA_KIND_LABEL[dua.type].en} · {dua.source}
+              </span>
               <span aria-hidden className="h-px w-10 bg-[rgba(200,155,60,0.35)]" />
             </motion.div>
           </motion.div>

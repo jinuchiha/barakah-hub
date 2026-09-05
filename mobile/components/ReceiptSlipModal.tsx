@@ -6,7 +6,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import type { Payment } from '@/types';
 import { formatPKR, formatDate } from '@/lib/format';
-import { randomDua } from '@/lib/duas';
+import { DUA_KIND_LABEL, randomDua } from '@/lib/duas';
 import { haptic } from '@/lib/haptics';
 
 const BASE = process.env.EXPO_PUBLIC_API_URL ?? 'https://barakah-hub.vercel.app';
@@ -71,7 +71,7 @@ export function ReceiptSlipModal({ payment, onClose }: { payment: Payment | null
               <Text style={styles.ornament}>۞</Text>
               <Text style={styles.duaArabic}>{dua.arabic}</Text>
               <Text style={styles.duaUrdu}>{dua.urdu}</Text>
-              <Text style={styles.duaSource}>{dua.source}</Text>
+              <Text style={styles.duaSource}>{DUA_KIND_LABEL[dua.type].en} · {dua.source}</Text>
             </View>
 
             <View style={styles.actions}>

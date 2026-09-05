@@ -123,6 +123,7 @@ export const DICT = {
   'tools.prayer':     ['اوقاتِ نماز', 'Prayer Times'],
   'tools.zakat':      ['زکوٰۃ کیلکولیٹر', 'Zakat Calculator'],
   'tools.verse':      ['آج کی آیت', 'Daily Verse'],
+  'tools.hadith':     ['آج کی حدیث', 'Daily Hadith'],
   'tools.fitrana':    ['فطرانہ کیلکولیٹر', 'Fitrana Calculator'],
   'tools.qibla':      ['سمتِ قبلہ', 'Qibla Direction'],
   'tools.tasbeeh':    ['تسبیح کاؤنٹر', 'Tasbeeh Counter'],
@@ -263,10 +264,15 @@ export function tWith(key: DictKey, locale: Locale, suffix: string): string {
   return `${t(key, locale)} · ${suffix}`;
 }
 
-/** Currency formatter · Pakistani Rupees (South Asian 2-2-3 grouping: 1,00,000). */
+/**
+ * Currency formatter · Pakistani Rupees, en-PK grouping (100,000) — matching
+ * AnimatedNumber and every email/WhatsApp/notification string. Previously
+ * en-IN lakh grouping, which put two different groupings of the same currency
+ * side by side on the dashboard.
+ */
 export function fmtRs(n: number): string {
   const abs = Math.abs(n || 0);
-  const fmt = new Intl.NumberFormat('en-IN', {
+  const fmt = new Intl.NumberFormat('en-PK', {
     maximumFractionDigits: 0,
   }).format(abs);
   return (n < 0 ? '-' : '') + 'Rs. ' + fmt;

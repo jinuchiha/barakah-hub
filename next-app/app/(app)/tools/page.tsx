@@ -30,8 +30,8 @@ export default async function ToolsPage() {
   return (
     <div className="mx-auto w-full max-w-4xl lg:max-w-6xl">
       <header className="mb-8 border-b border-[var(--border)] pb-5">
-        <h1 className="font-[var(--font-arabic)] text-3xl text-[var(--color-gold-2)]">اسلامی ٹولز</h1>
-        <p className="mt-1 font-[var(--font-en)] text-sm italic text-[var(--color-gold-4)]">Islamic Tools</p>
+        <h1 className="text-[28px] font-semibold tracking-[-0.5px] text-[var(--color-cream)]">Islamic Tools</h1>
+        <p dir="rtl" className="font-[var(--font-arabic)] text-[15px] leading-8 text-[var(--color-gold-2)] [text-align:start]">اسلامی ٹولز</p>
       </header>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -47,6 +47,9 @@ export default async function ToolsPage() {
             </div>
             <div className="mt-1 text-xs text-[var(--txt-4)]">
               {today.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
+            </div>
+            <div className="mt-2 text-[10px] text-[var(--txt-4)]">
+              Umm al-Qura calendar · may differ ±1 day from local moon sighting
             </div>
           </CardBody>
         </Card>
@@ -101,20 +104,22 @@ export default async function ToolsPage() {
           </CardBody>
         </Card>
 
-        {/* Daily Verse */}
+        {/* Daily Verse / Hadith — the heading must match the content type:
+            calling a hadith "today's ayah" misstates what the text is. */}
         <Card>
           <CardHeader>
-            <CardTitle>{t('tools.verse', locale)}</CardTitle>
+            <CardTitle>{t(verse.type === 'hadith' ? 'tools.hadith' : 'tools.verse', locale)}</CardTitle>
           </CardHeader>
           <CardBody>
             <div
               dir="rtl"
-              className="mb-3 font-[var(--font-arabic)] text-xl leading-relaxed text-[var(--color-gold-2)]"
+              lang="ar"
+              className="mb-3 font-[var(--font-quran)] text-xl leading-relaxed text-[var(--color-gold-2)]"
             >
               {verse.arabic}
             </div>
             <p className="mb-2 text-sm italic text-[var(--txt-2)]">&ldquo;{verse.english}&rdquo;</p>
-            <div className="text-xs text-[var(--color-gold-4)]">{verse.reference}</div>
+            <div className="text-xs text-[var(--color-gold-4)]">{verse.type === 'hadith' ? 'Hadith' : "Qur'an"} · {verse.reference}</div>
           </CardBody>
         </Card>
       </div>

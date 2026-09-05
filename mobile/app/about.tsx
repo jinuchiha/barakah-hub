@@ -19,9 +19,9 @@ interface ScriptureRef {
 
 const REFS: ScriptureRef[] = [
   {
-    arabic: 'مَّثَلُ ٱلَّذِينَ يُنفِقُونَ أَمْوَٰلَهُمْ فِى سَبِيلِ ٱللَّهِ كَمَثَلِ حَبَّةٍ أَنبَتَتْ سَبْعَ سَنَابِلَ',
-    english: 'The example of those who spend in the way of Allah is like a seed that grows seven spikes, in each spike a hundred grains.',
-    urdu: 'جو لوگ اللہ کی راہ میں اپنا مال خرچ کرتے ہیں ان کی مثال اس دانے کی سی ہے جس سے سات بالیاں اگیں',
+    arabic: 'مَّثَلُ ٱلَّذِينَ يُنفِقُونَ أَمْوَٰلَهُمْ فِى سَبِيلِ ٱللَّهِ كَمَثَلِ حَبَّةٍ أَنبَتَتْ سَبْعَ سَنَابِلَ فِى كُلِّ سُنۢبُلَةٍ مِّا۟ئَةُ حَبَّةٍ…',
+    english: 'The example of those who spend in the way of Allah is like a seed that grows seven ears; in every ear a hundred grains…',
+    urdu: 'جو لوگ اللہ کی راہ میں اپنا مال خرچ کرتے ہیں ان کی مثال اس دانے کی سی ہے جس سے سات بالیاں اگیں، ہر بالی میں سو دانے…',
     ref: 'Al-Baqarah 2:261',
     topic: 'Sadaqah',
   },
@@ -35,21 +35,21 @@ const REFS: ScriptureRef[] = [
   {
     arabic: 'وَأَقِيمُوا الصَّلَاةَ وَآتُوا الزَّكَاةَ وَأَطِيعُوا الرَّسُولَ لَعَلَّكُمْ تُرْحَمُونَ',
     english: 'Establish prayer and give zakah and obey the Messenger that you may receive mercy.',
-    urdu: 'نماز قائم کرو، زکوٰة دو، اور رسول کی اطاعت کرو · تاکہ تم پر رحم کیا جائے۔',
+    urdu: 'نماز قائم کرو، زکوٰة دو، اور رسول کی اطاعت کرو تاکہ تم پر رحم کیا جائے۔',
     ref: 'An-Nur 24:56',
     topic: 'Zakat',
   },
   {
-    arabic: 'مَن ذَا ٱلَّذِى يُقْرِضُ ٱللَّهَ قَرْضًا حَسَنًا فَيُضَٰعِفَهُۥ لَهُۥٓ أَضْعَافًا كَثِيرَةً',
+    arabic: 'مَن ذَا ٱلَّذِى يُقْرِضُ ٱللَّهَ قَرْضًا حَسَنًا فَيُضَٰعِفَهُۥ لَهُۥٓ أَضْعَافًا كَثِيرَةً…',
     english: 'Who is it that would loan Allah a goodly loan so He may multiply it for him many times over?',
     urdu: 'کون ہے جو اللہ کو قرض حسنہ دے تاکہ اللہ اسے کئی گنا بڑھا کر لوٹائے؟',
     ref: 'Al-Baqarah 2:245',
     topic: 'Qarz-e-Hasana',
   },
   {
-    arabic: 'وَإِن كَانَ ذُو عُسْرَةٍ فَنَظِرَةٌ إِلَىٰ مَيْسَرَةٍ',
-    english: 'If the debtor is in hardship, let there be postponement until ease. And if you remit it as charity, it is better for you.',
-    urdu: 'اگر قرض لینے والا تنگدست ہو تو اسے آسانی تک مہلت دو، اور معاف کر دو تو تمہارے لیے بہتر ہے۔',
+    arabic: 'وَإِن كَانَ ذُو عُسْرَةٍ فَنَظِرَةٌ إِلَىٰ مَيْسَرَةٍ ۚ وَأَن تَصَدَّقُوا۟ خَيْرٌ لَّكُمْ ۖ إِن كُنتُمْ تَعْلَمُونَ',
+    english: 'If the debtor is in hardship, let there be postponement until ease. And if you remit it as charity, it is better for you — if you only knew.',
+    urdu: 'اگر قرض لینے والا تنگدست ہو تو اسے آسانی تک مہلت دو، اور معاف کر دو تو تمہارے لیے بہتر ہے، اگر تم جانو۔',
     ref: 'Al-Baqarah 2:280',
     topic: 'Qarz-e-Hasana',
   },
@@ -89,7 +89,9 @@ function ScriptureCard({ item }: { item: ScriptureRef }) {
         <TopicBadge topic={item.topic} />
         <Text style={[styles.refText, { color: colors.text4 }]}>{item.ref}</Text>
       </View>
-      <Text style={[styles.arabic, { color: colors.gold }]} accessibilityLanguage="ar">{item.arabic}…</Text>
+      {/* The data carries its own ellipsis where a quotation is partial —
+          never append one blindly to complete quotes. */}
+      <Text style={[styles.arabic, { color: colors.gold }]} accessibilityLanguage="ar">{item.arabic}</Text>
       <Text style={[styles.english, { color: colors.text3 }]}>"{item.english}"</Text>
       <Text style={[styles.urdu, { color: colors.text4 }]}>{item.urdu}</Text>
     </GlassCard>
@@ -167,6 +169,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 28,
     textAlign: 'right',
+    writingDirection: 'rtl',
     marginBottom: spacing.sm,
     fontWeight: '400',
   },

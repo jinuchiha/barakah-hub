@@ -4,7 +4,7 @@ import Animated, {
   useSharedValue, useAnimatedStyle, withSpring, withTiming, withDelay, FadeInDown,
 } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
-import { randomDua } from '@/lib/duas';
+import { randomDua, DUA_KIND_LABEL } from '@/lib/duas';
 import { haptic } from '@/lib/haptics';
 
 interface DuaOverlayProps {
@@ -54,9 +54,16 @@ export function DuaOverlay({ visible, onDone }: DuaOverlayProps) {
           <Text style={styles.jazak}>جزاك الله خيرا</Text>
           <Text style={styles.arabic}>{dua.arabic}</Text>
           <Text style={styles.urdu}>{dua.urdu}</Text>
-          <Text style={styles.source}>{dua.source}</Text>
-          <TouchableOpacity style={styles.ameenBtn} onPress={onDone} accessibilityRole="button">
-            <Text style={styles.ameenText}>آمين</Text>
+          <Text style={styles.source}>{DUA_KIND_LABEL[dua.type].en} · {dua.source}</Text>
+          {/* "Ameen" is the response to a supplication. A Qur'anic ayah or a
+              hadith is not one — closing those says alhamdulillah instead. */}
+          <TouchableOpacity
+            style={styles.ameenBtn}
+            onPress={onDone}
+            accessibilityRole="button"
+            accessibilityLabel={dua.type === 'dua' ? 'Ameen — close' : 'Alhamdulillah — close'}
+          >
+            <Text style={styles.ameenText}>{dua.type === 'dua' ? 'آمين' : 'اَلْحَمْدُ لِلّٰهِ'}</Text>
           </TouchableOpacity>
         </Animated.View>
       </Animated.View>

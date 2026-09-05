@@ -6,7 +6,9 @@ import { normalizePkPhone } from '@/lib/utils';
 import { fmtRs } from '@/lib/i18n/dict';
 import type { Member } from '@/lib/db/schema';
 
-const BISMILLAH = 'بسم اللہ الرحمن الرحیم';
+// The Basmala is Arabic (Qur'an 1:1) — written in Arabic orthography with
+// diacritics, not in Urdu letterforms, even inside an Urdu message.
+const BISMILLAH = 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ';
 const CLOSING = '\n\nجزاک اللہ خیر · بَرَكَة ہب · Barakah Hub';
 
 export function waUrl(phone: string | null | undefined, message: string): string | null {
@@ -26,7 +28,9 @@ export function buildPaymentReminder(member: Member, monthLabel: string): string
     '',
     `ماہانہ حصہ: *${fmtRs(monthly)}*`,
     '',
-    'صدقہ بلاؤں کو ٹال دیتا ہے',
+    // Sourced, sahih encouragement — never an unattributed or weak narration,
+    // least of all in a message that asks a member for money.
+    'صدقہ مال کو کبھی کم نہیں کرتا۔ (صحیح مسلم 2588)',
     CLOSING.trim(),
   ].join('\n');
 }

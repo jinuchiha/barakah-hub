@@ -39,6 +39,16 @@ function sunAngleHours(angle: number, lat: number, decl: number): number {
   return Math.acos(Math.min(1, Math.max(-1, cosH))) / DEG / 15;
 }
 
+/** True when the sun never reaches `angle` below the horizon that day —
+ *  at high latitudes in summer, 18° twilight never occurs and Fajr/Isha
+ *  cannot be computed by depression angle. */
+function angleUnreachable(angle: number, lat: number, decl: number): boolean {
+  const cosH =
+    (-Math.sin(angle * DEG) - Math.sin(lat * DEG) * Math.sin(decl * DEG)) /
+    (Math.cos(lat * DEG) * Math.cos(decl * DEG));
+  return cosH > 1 || cosH < -1;
+}
+
 export interface PrayerTimes {
   fajr: Date;
   sunrise: Date;
@@ -46,6 +56,10 @@ export interface PrayerTimes {
   asr: Date;
   maghrib: Date;
   isha: Date;
+  /** Fajr/Isha not reliably computable today at this latitude (18° twilight
+   *  never occurs). The dates are clamped placeholders — the UI must warn
+   *  and defer to the local masjid instead of presenting them as accurate. */
+  highLatitudeUnreliable: boolean;
 }
 
 export function prayerTimesFor(date: Date, lat: number, lng: number): PrayerTimes {
@@ -70,5 +84,6 @@ export function prayerTimesFor(date: Date, lat: number, lng: number): PrayerTime
     asr: toDate(dhuhr + sunAngleHours(asrAngle, lat, decl)),
     maghrib: toDate(dhuhr + sunAngleHours(0.833, lat, decl)),
     isha: toDate(dhuhr + sunAngleHours(18, lat, decl)),
+    highLatitudeUnreliable: angleUnreachable(18, lat, decl),
   };
 }

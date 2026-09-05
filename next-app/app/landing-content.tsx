@@ -57,8 +57,11 @@ export default function LandingContent() {
           <CrescentMark className="size-7 text-[var(--color-ink)]" title="" />
         </motion.span>
 
-        <motion.p {...fadeUp(0.12)} dir="rtl" lang="ar" className="font-[var(--font-arabic)] text-lg leading-[2.2] text-[var(--color-gold-2)]">
-          وَتَعَاوَنُوا عَلَى الْبِرِّ وَالتَّقْوَىٰ
+        <motion.p {...fadeUp(0.12)} dir="rtl" lang="ar" className="font-[var(--font-quran)] text-lg leading-[2.2] text-[var(--color-gold-2)]">
+          وَتَعَاوَنُوا عَلَى الْبِرِّ وَالتَّقْوَىٰ…
+        </motion.p>
+        <motion.p {...fadeUp(0.18)} className="mt-1 text-[10.5px] tracking-[1px] text-[var(--txt-4)]">
+          Al-Ma&rsquo;idah 5:2
         </motion.p>
 
         <motion.h1 {...fadeUp(0.24)} className="mt-4 font-[var(--font-display)] text-5xl leading-[1.02] tracking-[-1px] text-[var(--color-cream)] sm:text-6xl md:text-7xl">
@@ -131,12 +134,14 @@ export default function LandingContent() {
 
       {/* ── Closing ayah + footer ── */}
       <footer className="relative z-10 border-t border-[var(--border)] px-6 py-14 text-center">
-        <p dir="rtl" lang="ar" className="mx-auto max-w-lg font-[var(--font-arabic)] text-base leading-[2.3] text-[var(--color-gold-4)]">
-          مَّثَلُ الَّذِينَ يُنفِقُونَ أَمْوَالَهُمْ فِي سَبِيلِ اللَّهِ كَمَثَلِ حَبَّةٍ أَنبَتَتْ سَبْعَ سَنَابِلَ
+        <p dir="rtl" lang="ar" className="mx-auto max-w-lg font-[var(--font-quran)] text-base leading-[2.3] text-[var(--color-gold-4)]">
+          مَّثَلُ الَّذِينَ يُنفِقُونَ أَمْوَالَهُمْ فِي سَبِيلِ اللَّهِ كَمَثَلِ حَبَّةٍ أَنبَتَتْ سَبْعَ سَنَابِلَ…
         </p>
         <p className="mt-3 text-[11px] italic text-[var(--txt-4)]">Like a seed that grows seven ears · Al-Baqarah 2:261</p>
         <p className="mt-8 text-[10.5px] tracking-wide text-[var(--txt-4)]">
           © {new Date().getFullYear()} Barakah Hub · <Link href="/login" className="hover:text-[var(--color-gold-2)]">Sign in</Link>
+          {' · '}<Link href="/terms" className="hover:text-[var(--color-gold-2)]">Terms</Link>
+          {' · '}<Link href="/privacy" className="hover:text-[var(--color-gold-2)]">Privacy</Link>
         </p>
       </footer>
     </main>

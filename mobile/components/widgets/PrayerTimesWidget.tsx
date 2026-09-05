@@ -38,10 +38,12 @@ const FALLBACK_CITY = 'Karachi';
 const FALLBACK_COUNTRY = 'Pakistan';
 
 function formatTime(t: string): string {
-  const [h, m] = t.split(':').map(Number);
+  // AlAdhan returns timings like "05:11 (PKT)" — parseInt tolerates the
+  // timezone suffix where Number() would yield NaN.
+  const [h, m] = t.split(':').map((part) => parseInt(part, 10));
   const ampm = (h ?? 0) >= 12 ? 'PM' : 'AM';
   const hour = (h ?? 0) % 12 || 12;
-  return `${hour}:${String(m).padStart(2, '0')} ${ampm}`;
+  return `${hour}:${String(Number.isFinite(m) ? m : 0).padStart(2, '0')} ${ampm}`;
 }
 
 /**
@@ -61,8 +63,11 @@ async function resolveLocation(profileCity: string | null | undefined): Promise<
   const y = today.getFullYear();
   const datePath = `${d}-${mo}-${y}`;
 
-  // Method 1 (Karachi-style ISNA). Could be made user-configurable later.
+  // AlAdhan method 1 = University of Islamic Sciences, Karachi (18°/18°);
+  // school 1 = Hanafi Asr — the same convention the web app computes locally,
+  // so both clients show one Asr time. (Method 2 would be ISNA — different.)
   const method = 1;
+  const school = 1;
 
   // Try GPS first if permission is already granted (don't prompt — that
   // belongs in a settings flow, not on every dashboard render).
@@ -73,7 +78,7 @@ async function resolveLocation(profileCity: string | null | undefined): Promise<
       if (pos) {
         const { latitude, longitude } = pos.coords;
         return {
-          url: `https://api.aladhan.com/v1/timings/${datePath}?latitude=${latitude}&longitude=${longitude}&method=${method}`,
+          url: `https://api.aladhan.com/v1/timings/${datePath}?latitude=${latitude}&longitude=${longitude}&method=${method}&school=${school}`,
           label: 'Current location',
         };
       }
@@ -84,7 +89,7 @@ async function resolveLocation(profileCity: string | null | undefined): Promise<
 
   const city = profileCity?.trim() || FALLBACK_CITY;
   return {
-    url: `https://api.aladhan.com/v1/timingsByCity/${datePath}?city=${encodeURIComponent(city)}&country=${FALLBACK_COUNTRY}&method=${method}`,
+    url: `https://api.aladhan.com/v1/timingsByCity/${datePath}?city=${encodeURIComponent(city)}&country=${FALLBACK_COUNTRY}&method=${method}&school=${school}`,
     label: city,
   };
 }
@@ -158,6 +163,9 @@ export function PrayerTimesWidget() {
           </View>
         ))}
       </View>
+      <Text style={[styles.methodNote, { color: colors.text4 }]}>
+        Karachi method · Hanafi Asr · confirm with your local masjid
+      </Text>
     </View>
   );
 }
@@ -186,4 +194,5 @@ const styles = StyleSheet.create({
   prayerName: { fontSize: 11, fontFamily: 'Inter_400Regular' },
   prayerTime: { fontSize: 12, fontFamily: 'Inter_600SemiBold' },
   errorText: { fontSize: 13, fontFamily: 'Inter_400Regular', textAlign: 'center', padding: spacing.sm },
+  methodNote: { fontSize: 10, fontFamily: 'Inter_400Regular', textAlign: 'center', marginTop: spacing.sm },
 });

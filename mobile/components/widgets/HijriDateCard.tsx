@@ -12,9 +12,22 @@ const HIJRI_MONTHS = [
 ];
 
 function toHijri(date: Date): { day: number; month: number; year: number } {
-  // Approximation using epoch offset (good to ±1 day)
-  const jd = Math.floor(date.getTime() / 86400000) + 2440587.5;
-  const l = Math.floor(jd) - 1948440 + 10632;
+  // Prefer the Umm al-Qura calendar via Intl — the same calendar the web app
+  // and the server's annual report use, so all surfaces show one date.
+  try {
+    const parts = new Intl.DateTimeFormat('en-u-ca-islamic-umalqura', {
+      day: 'numeric', month: 'numeric', year: 'numeric',
+    }).formatToParts(date);
+    const get = (t: string) => Number(parts.find((p) => p.type === t)?.value);
+    const day = get('day'); const month = get('month'); const year = get('year');
+    if (day && month && year) return { day, month, year };
+  } catch { /* engine lacks islamic-umalqura → tabular fallback below */ }
+
+  // Tabular (Kuwaiti) fallback — ±1-2 days vs Umm al-Qura.
+  // JDN at noon for the Unix epoch is 2440588 (not 2440587.5-then-floor,
+  // which lands one day early).
+  const jd = Math.floor(date.getTime() / 86400000) + 2440588;
+  const l = jd - 1948440 + 10632;
   const n = Math.floor((l - 1) / 10631);
   const ll = l - 10631 * n + 354;
   const j = Math.floor((10985 - ll) / 5316) * Math.floor((50 * ll) / 17719)
@@ -30,7 +43,7 @@ function toHijri(date: Date): { day: number; month: number; year: number } {
 export function HijriDateCard() {
   const { colors } = useTheme();
   const hijri = useMemo(() => toHijri(new Date()), []);
-  const monthName = HIJRI_MONTHS[(hijri.month - 1) % 12];
+  const monthName = HIJRI_MONTHS[Math.min(Math.max(hijri.month, 1), 12) - 1];
 
   return (
     <View style={[styles.card, { borderColor: colors.goldDim }]}>
@@ -43,7 +56,7 @@ export function HijriDateCard() {
       <MaterialCommunityIcons name="calendar-star" size={20} color={colors.gold} />
       <View>
         <Text style={[styles.day, { color: colors.gold }]}>{hijri.day} {monthName}</Text>
-        <Text style={[styles.year, { color: colors.text3 }]}>{hijri.year} AH</Text>
+        <Text style={[styles.year, { color: colors.text3 }]}>{hijri.year} AH · ±1 day by moon sighting</Text>
       </View>
     </View>
   );

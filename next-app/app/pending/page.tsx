@@ -23,7 +23,7 @@ export default async function PendingPage() {
     <div className="flex min-h-screen flex-col items-center justify-center gap-6 bg-[var(--color-ink)] px-4 py-12">
       {/* Header */}
       <div className="text-center">
-        <div className="mb-2 text-[32px]">☾</div>
+        <div aria-hidden className="mb-2 text-[32px]">☾</div>
         <h2 className="font-[var(--font-arabic)] text-xl text-[var(--color-gold-2)]">{cfg?.orgNameUr ?? 'بَرَكَة ہب'}</h2>
         <p className="text-[11px] uppercase tracking-[2px] text-[var(--txt-4)]">{cfg?.orgNameEn ?? 'Barakah Hub'}</p>
       </div>
@@ -31,7 +31,7 @@ export default async function PendingPage() {
       {/* Status card */}
       <div className="w-full max-w-md rounded-2xl border border-[rgba(200,155,60,0.20)] bg-[rgba(200,155,60,0.04)] p-8 text-center shadow-xl">
         <div className="mx-auto mb-4 flex size-16 items-center justify-center rounded-full bg-[rgba(200,155,60,0.12)]">
-          <span className="text-2xl">⏳</span>
+          <span aria-hidden className="text-2xl">⏳</span>
         </div>
         <h1 className="mb-1 font-[var(--font-arabic)] text-2xl text-[var(--color-gold-2)]">منظوری زیر التواء</h1>
         <p className="font-semibold uppercase tracking-widest text-[10px] text-[var(--color-gold-4)]">Awaiting Admin Approval</p>
@@ -45,23 +45,27 @@ export default async function PendingPage() {
         </div>
         <div className="mt-4 flex justify-center gap-3">
           <div className="rounded-full border border-[var(--border)] bg-[rgba(255,255,255,0.02)] px-3 py-1.5 text-[11px] text-[var(--txt-3)]">
-            ✓ Registered
+            <span aria-hidden>✓</span> Registered
           </div>
           <div className="rounded-full border border-[rgba(200,155,60,0.35)] bg-[rgba(200,155,60,0.08)] px-3 py-1.5 text-[11px] text-[var(--color-gold)]">
-            ⏳ Pending approval
+            <span aria-hidden>⏳</span> Pending approval
           </div>
           <div className="rounded-full border border-[var(--border)] bg-[rgba(255,255,255,0.02)] px-3 py-1.5 text-[11px] text-[var(--txt-4)]">
-            ○ Active
+            <span aria-hidden>○</span> Active
           </div>
         </div>
+        <a href="/pending" className="mt-5 inline-block rounded-full border border-[var(--border-accent)] bg-[rgba(200,155,60,0.08)] px-5 py-2 text-[12px] font-semibold text-[var(--color-gold-2)] hover:bg-[rgba(200,155,60,0.16)]">
+          Check status again · دوبارہ چیک کریں
+        </a>
+
       </div>
 
       {/* Daily verse — give them something meaningful to read while they wait */}
       <div className="w-full max-w-md rounded-2xl border border-[var(--border)] bg-[rgba(214,210,199,0.02)] p-6 text-center">
         <p className="mb-1 text-[9px] uppercase tracking-[2px] text-[var(--txt-4)]">Daily Reflection</p>
-        <p dir="rtl" className="mb-3 font-[var(--font-arabic)] text-[15px] leading-8 text-[var(--color-gold-2)]">{verse.arabic}</p>
+        <p dir="rtl" lang="ar" className="mb-3 font-[var(--font-quran)] text-[15px] leading-8 text-[var(--color-gold-2)]">{verse.arabic}</p>
         <p className="text-[12.5px] italic leading-5 text-[var(--txt-3)]">&ldquo;{verse.english}&rdquo;</p>
-        <p className="mt-1.5 text-[10px] text-[var(--txt-4)]">{verse.reference}</p>
+        <p className="mt-1.5 text-[10px] text-[var(--txt-4)]">{verse.type === 'hadith' ? 'Hadith' : 'Qur’an'} · {verse.reference}</p>
       </div>
 
       <form action="/api/auth/sign-out" method="POST">

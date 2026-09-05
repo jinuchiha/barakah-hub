@@ -4,10 +4,15 @@ import { useState } from 'react';
 // Fitrana (Sadaqat al-Fitr) is owed per household member. The rate follows
 // the local staple-food price, so it changes every Ramadan — editable with
 // common presets rather than hardcoded as truth.
+//
+// Quantities differ by staple: wheat is conventionally half a sa'
+// (~1.75kg), while barley, dates and raisins are a full sa' (~3.5kg) —
+// which is why the preset prices are not four prices for the same amount.
 const RATE_PRESETS = [
-  { label: 'Wheat · گندم', amount: 350 },
-  { label: 'Barley · جو', amount: 700 },
-  { label: 'Dates · کھجور', amount: 2800 },
+  { label: 'Wheat (½ saʿ) · گندم', amount: 350 },
+  { label: 'Barley (1 saʿ) · جو', amount: 700 },
+  { label: 'Dates (1 saʿ) · کھجور', amount: 2800 },
+  { label: 'Raisins (1 saʿ) · کشمش', amount: 4400 },
 ];
 
 function fmt(n: number) {
@@ -79,7 +84,8 @@ export default function FitranaCalc({ familyCount }: { familyCount: number }) {
 
       <p className="text-[10px] leading-relaxed text-[var(--txt-4)]">
         Rates track local staple prices and change each Ramadan — confirm the current rate with your local
-        masjid or a reliable scholar. Pay before Eid prayer.
+        masjid or a reliable scholar. Quantities differ by staple: wheat is half a saʿ; barley, dates and
+        raisins a full saʿ. Pay before Eid prayer.
       </p>
     </div>
   );

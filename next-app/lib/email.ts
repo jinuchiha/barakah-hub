@@ -135,7 +135,7 @@ export async function sendApprovalEmail(to: string, name: string): Promise<void>
  * QR is served from our own domain because mail clients block data: URIs. */
 export interface ReceiptInput { name: string; amount: number; pool: string; monthLabel: string; paymentId: string; verifiedAt: Date }
 export async function sendPaymentReceiptEmail(to: string, r: ReceiptInput): Promise<void> {
-  const { randomDua } = await import('./duas');
+  const { randomDua, DUA_KIND_LABEL } = await import('./duas');
   const dua = randomDua();
   const formatted = r.amount.toLocaleString('en-PK');
   const poolLabel = r.pool === 'sadaqah' ? 'Sadaqah / صدقہ' : r.pool === 'zakat' ? 'Zakat / زکوٰۃ' : 'Qarz pool';
@@ -178,13 +178,13 @@ export async function sendPaymentReceiptEmail(to: string, r: ReceiptInput): Prom
         <div style="font-size:13px;color:#d9b04c;letter-spacing:6px;">۞ ۞ ۞</div>
         <div dir="rtl" style="margin-top:10px;font-size:17px;line-height:2;color:#e8c563;font-family:'Amiri','Times New Roman',serif;">${escape(dua.arabic)}</div>
         <div style="margin-top:6px;font-size:12px;font-style:italic;color:#cbd5e1;">${escape(dua.english)}</div>
-        <div style="margin-top:6px;font-size:10px;letter-spacing:1.5px;color:#a08748;">${escape(dua.source)}</div>
+        <div style="margin-top:6px;font-size:10px;letter-spacing:1.5px;color:#a08748;">${escape(DUA_KIND_LABEL[dua.type].en)} · ${escape(dua.source)}</div>
       </td></tr>
     </table>
 
     <p style="font-size:12px;color:#64748b;">This receipt is tamper-evident and recorded in the audit log · scan the QR (or tap it) any time to verify authenticity.</p>
   `;
-  const text = `BARAKAH HUB · OFFICIAL RECEIPT\nReceipt #${receiptNo}\n\nAmount: Rs ${formatted}\nPool: ${poolLabel}\nFor: ${r.monthLabel}\nVerified: ${r.verifiedAt.toLocaleDateString('en-GB')}\n\nVerify: ${verifyUrl}\n\n"${dua.english}" — ${dua.source}\n\nJazak Allahu Khairan.`;
+  const text = `BARAKAH HUB · OFFICIAL RECEIPT\nReceipt #${receiptNo}\n\nAmount: Rs ${formatted}\nPool: ${poolLabel}\nFor: ${r.monthLabel}\nVerified: ${r.verifiedAt.toLocaleDateString('en-GB')}\n\nVerify: ${verifyUrl}\n\n"${dua.english}" — ${DUA_KIND_LABEL[dua.type].en} · ${dua.source}\n\nJazak Allahu Khairan.`;
   await send(to, `🧾 Receipt #${receiptNo}: Rs ${formatted} ${r.pool}`, shell('Payment Verified', body, 'View history', `${APP_URL}/myaccount`), text);
 }
 
