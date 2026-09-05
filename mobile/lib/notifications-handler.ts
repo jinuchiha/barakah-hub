@@ -14,6 +14,9 @@ export function resolveRoute(data: NotificationPayload): string {
   // member-pending, msg, approved, case, vote-*.
   if (type.startsWith('pledge-reminder')) return '/(tabs)/payments';
   if (type.startsWith('loan-reminder')) return '/(tabs)/loans';
+  // Local reminders (lib/reminders.ts): the daily verse and prayer alerts
+  // both land on the dashboard, which hosts the verse card and prayer widget.
+  if (type === 'daily-verse' || type === 'prayer') return '/(tabs)';
   if (type.startsWith('payment')) return '/(tabs)/payments';
   if (type.startsWith('case') || type.startsWith('vote') || type.startsWith('emergency')) return '/(tabs)/cases';
   if (type === 'member-pending') return '/admin/approve-members';

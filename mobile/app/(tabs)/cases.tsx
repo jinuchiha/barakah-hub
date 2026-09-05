@@ -328,6 +328,9 @@ function CasesScreen() {
 
   const handleVoteConfirm = async () => {
     if (!voteTarget || voteDir === null) return;
+    // Hard double-tap guard on an irreversible action — the modal's disabled
+    // button is the soft one; this stops a second in-flight mutateAsync.
+    if (voteMutation.isPending) return;
     try {
       await voteMutation.mutateAsync({ caseId: voteTarget.id, yes: voteDir });
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);

@@ -27,10 +27,13 @@ function PendingMemberCard({
   member,
   onApprove,
   onReject,
+  busy = false,
 }: {
   member: Member;
   onApprove: () => void;
   onReject: () => void;
+  /** True while an approve/reject mutation is in flight — blocks double-taps. */
+  busy?: boolean;
 }) {
   const { t } = useTranslation();
   const { colors } = useTheme();
@@ -67,8 +70,8 @@ function PendingMemberCard({
       </View>
 
       <View style={styles.actionRow}>
-        <Button label={t('admin.reject')} onPress={onReject} variant="danger" size="md" style={styles.actionBtn} />
-        <Button label={t('admin.approve')} onPress={onApprove} variant="solid" size="md" style={styles.actionBtn} />
+        <Button label={t('admin.reject')} onPress={onReject} variant="danger" size="md" style={styles.actionBtn} disabled={busy} />
+        <Button label={t('admin.approve')} onPress={onApprove} variant="solid" size="md" style={styles.actionBtn} disabled={busy} />
       </View>
     </GlassCard>
   );
@@ -145,7 +148,12 @@ export default function ApproveMembersScreen() {
             <EmptyState icon="account-check-outline" title={t('admin.noPendingMembers')} subtitle={t('admin.allReviewed')} />
           }
           renderItem={({ item }) => (
-            <PendingMemberCard member={item} onApprove={() => handleApprove(item)} onReject={() => handleReject(item)} />
+            <PendingMemberCard
+              member={item}
+              onApprove={() => handleApprove(item)}
+              onReject={() => handleReject(item)}
+              busy={approveMutation.isPending || rejectMutation.isPending}
+            />
           )}
         />
       )}

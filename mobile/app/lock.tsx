@@ -17,8 +17,7 @@ import { useRouter } from 'expo-router';
 import { useTheme } from '@/lib/useTheme';
 import { authenticateWithBiometric, getBiometricCapability, getBiometricLabel } from '@/lib/biometric';
 import { isBiometricEnabled } from '@/lib/security';
-import { isPinEnabled } from '@/lib/pin';
-import { verifyPin, getPinAttempts } from '@/lib/pin';
+import { isPinEnabled, verifyPin, getPinAttempts, resetPinAttempts } from '@/lib/pin';
 import { markUnlocked } from '@/lib/lock-state';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/hooks/useAuth';
@@ -45,6 +44,7 @@ export default function LockScreen() {
   const [pinError, setPinError] = useState('');
   const [biometricLabel, setBiometricLabel] = useState('Biometric');
   const [biometricAvailable, setBiometricAvailable] = useState(false);
+  const [pinAvailable, setPinAvailable] = useState(false);
   const shakeX = useSharedValue(0);
 
   useEffect(() => {
@@ -60,6 +60,7 @@ export default function LockScreen() {
       return;
     }
     setBiometricAvailable(biometric);
+    setPinAvailable(pinEnabled);
     if (!biometric) {
       setView('pin');
       return;
@@ -72,6 +73,9 @@ export default function LockScreen() {
   const attemptBiometric = useCallback(async () => {
     const success = await authenticateWithBiometric('Unlock Barakah Hub');
     if (success) {
+      // A successful unlock clears any stale PIN attempt counter — fumbled
+      // taps must not accumulate across sessions toward a lockout.
+      await resetPinAttempts().catch(() => undefined);
       markUnlocked();
       router.replace('/(tabs)' as any);
     }
@@ -104,6 +108,11 @@ export default function LockScreen() {
       if (result === 'ok') {
         markUnlocked();
         router.replace('/(tabs)' as any);
+      } else if (result === 'not-set') {
+        // Shouldn't be reachable now that the PIN view is hidden without a
+        // PIN, but if it is: send the user back to biometric, don't punish.
+        setPinError('');
+        setView('biometric');
       } else if (result === 'locked') {
         Alert.alert(
           t('auth.tooManyAttempts'),
@@ -196,9 +205,12 @@ export default function LockScreen() {
                 {biometricLabel}
               </Text>
             </TouchableOpacity>
+            {/* Offering a PIN entry when no PIN exists is a lockout trap. */}
+            {pinAvailable && (
             <TouchableOpacity onPress={() => setView('pin')} style={styles.switchBtn}>
               <Text style={[styles.switchText, { color: colors.text3 }]}>{t('auth.usePinInstead')}</Text>
             </TouchableOpacity>
+            )}
           </View>
         )}
       </Animated.View>

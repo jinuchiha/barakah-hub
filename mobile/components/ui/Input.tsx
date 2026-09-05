@@ -127,6 +127,10 @@ export function Input({
             secureTextEntry={isPassword && !showPassword}
             autoCapitalize={isPassword ? 'none' : textInputProps.autoCapitalize}
             autoCorrect={isPassword ? false : textInputProps.autoCorrect}
+            // The floating label is a sibling Text, invisible to the screen
+            // reader as a *label* — announce it (and any error) explicitly.
+            accessibilityLabel={label}
+            accessibilityHint={error || undefined}
             {...textInputProps}
           />
         </View>
@@ -140,7 +144,15 @@ export function Input({
           </TouchableOpacity>
         ) : null}
       </Animated.View>
-      {error ? <Text style={[styles.errorText, { color: colors.danger }]}>{error}</Text> : null}
+      {error ? (
+        <Text
+          style={[styles.errorText, { color: colors.danger }]}
+          accessibilityLiveRegion="polite"
+          accessibilityRole="alert"
+        >
+          {error}
+        </Text>
+      ) : null}
     </View>
   );
 }

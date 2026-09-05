@@ -14,9 +14,11 @@ export function PushManager() {
   useRealtimeNotifications();
 
   useEffect(() => {
-    // Schedule reminders on every launch so the daily verse is set even for
-    // users who never opened the reminders screen, and the verse rotates.
-    applyReminderPrefs(loadReminderPrefs()).catch(() => undefined);
+    // Re-schedule reminders on every launch so the daily verse rotates and
+    // prayer one-shots stay current — but never pop the OS permission dialog
+    // here: launch-time permission demands with no rationale are hostile UX
+    // and a store-review risk. The dialog belongs in the reminders settings.
+    applyReminderPrefs(loadReminderPrefs(), { requestPermission: false }).catch(() => undefined);
   }, []);
 
   return null;

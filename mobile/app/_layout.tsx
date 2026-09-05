@@ -187,7 +187,6 @@ export default function RootLayout() {
                   <Stack.Screen name="settings/help" options={{ animation: 'slide_from_right' }} />
                   <Stack.Screen name="settings/contact-admin" options={{ animation: 'slide_from_right' }} />
                   <Stack.Screen name="tools/index" options={{ animation: 'slide_from_right' }} />
-                  <Stack.Screen name="search" options={{ animation: 'fade' }} />
                   <Stack.Screen name="about" options={{ animation: 'fade_from_bottom' }} />
                   <Stack.Screen name="messages" options={{ animation: 'slide_from_right' }} />
                 </Stack>

@@ -86,13 +86,20 @@ export function Button({
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
       disabled={isDisabled}
+      // The app's primary interactive primitive: role/state/label here fix
+      // announcement for every Button in the app at once. The label stays as
+      // accessibilityLabel while loading, when the visible text is replaced
+      // by a spinner — otherwise a mid-submit button announces nothing.
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ disabled: isDisabled, busy: loading }}
       style={[containerStyle, style, { overflow: 'hidden' }]}
     >
       <Animated.View style={[animStyle, { alignItems: 'center', justifyContent: 'center', flexDirection: 'row' }]}>
         {loading ? (
           <ActivityIndicator size="small" color={getSpinnerColor(variant, colors)} />
         ) : (
-          <Text style={textStyle}>{label}</Text>
+          <Text style={textStyle} maxFontSizeMultiplier={1.4}>{label}</Text>
         )}
       </Animated.View>
     </Pressable>

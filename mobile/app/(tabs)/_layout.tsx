@@ -8,7 +8,6 @@ import { BottomNav, type TabRoute } from '@/components/BottomNav';
 import { useRouter, usePathname } from 'expo-router';
 import { useAppLock } from '@/hooks/useAppLock';
 import { LoadingScreen } from '@/components/ui/LoadingScreen';
-import { canManageFunds } from '@/lib/roles';
 
 function CustomTabBar() {
   const router = useRouter();
@@ -41,7 +40,10 @@ function CustomTabBar() {
       activeTab={activeTab}
       onTabPress={handleTabPress}
       notificationCount={notificationCount}
-      isAdmin={canManageFunds(user?.role)}
+      // Analytics (the only adminOnly tab) walls out non-admins at
+      // analytics.tsx — showing the tab to supervisors via canManageFunds
+      // gave them a tab that only ever said "admin only, go back".
+      isAdmin={user?.role === 'admin'}
     />
   );
 }

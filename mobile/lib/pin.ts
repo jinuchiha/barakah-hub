@@ -22,14 +22,16 @@ export async function isPinEnabled(): Promise<boolean> {
   return v === 'true';
 }
 
-export async function verifyPin(pin: string): Promise<'ok' | 'wrong' | 'locked'> {
+export async function verifyPin(pin: string): Promise<'ok' | 'wrong' | 'locked' | 'not-set'> {
   const attemptsRaw = await SecureStore.getItemAsync(PIN_ATTEMPTS_KEY);
   const attempts = attemptsRaw ? parseInt(attemptsRaw, 10) : 0;
 
   if (attempts >= MAX_ATTEMPTS) return 'locked';
 
   const stored = await SecureStore.getItemAsync(PIN_HASH_KEY);
-  if (!stored) return 'wrong';
+  // No PIN configured is not a wrong guess — it must not consume attempts,
+  // or a biometric-only user fumbling onto this path locks themselves out.
+  if (!stored) return 'not-set';
 
   const hash = await hashPin(pin);
   if (hash === stored) {
