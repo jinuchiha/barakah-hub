@@ -884,7 +884,19 @@ const profileSchema = z.object({
   province: z.string().max(40).optional().nullable(),
   color: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional(),
   photoUrl: z.string()
-    .refine(v => !v || v.startsWith('https://') || v.startsWith('/uploads/'), 'Invalid photo URL')
+    // Only the app's own storage hosts. Anything else now renders as a
+    // broken image anyway (next/image validates against remotePatterns),
+    // and an arbitrary external URL was never a legitimate avatar source.
+    .refine((v) => {
+      if (!v) return true;
+      if (v.startsWith('/uploads/')) return true;
+      try {
+        const { protocol, hostname } = new URL(v);
+        return protocol === 'https:' && hostname.endsWith('.public.blob.vercel-storage.com');
+      } catch {
+        return false;
+      }
+    }, 'Photo must be uploaded through the app')
     .nullable()
     .optional(),
 });
