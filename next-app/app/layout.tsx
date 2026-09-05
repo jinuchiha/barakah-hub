@@ -1,7 +1,22 @@
 import type { Metadata, Viewport } from 'next';
+import { Inter, JetBrains_Mono, Cormorant_Garamond, Noto_Nastaliq_Urdu, Amiri } from 'next/font/google';
 import './globals.css';
 import { Toaster } from 'sonner';
 import { ServiceWorkerRegister } from '@/components/sw-register';
+
+/**
+ * Fonts are self-hosted via next/font: no render-blocking third-party
+ * stylesheet, no preconnect round-trips, and automatic size-adjust fallback
+ * metrics (less CLS). Each exposes a CSS variable consumed by the font
+ * tokens in globals.css.
+ */
+const inter = Inter({ subsets: ['latin'], weight: ['400', '500', '600', '700'], variable: '--font-inter-v', display: 'swap' });
+const jetbrains = JetBrains_Mono({ subsets: ['latin'], weight: ['400', '500', '600'], variable: '--font-mono-v', display: 'swap' });
+const cormorant = Cormorant_Garamond({ subsets: ['latin'], weight: ['400', '500', '600'], style: ['normal', 'italic'], variable: '--font-display-v', display: 'swap' });
+const nastaliq = Noto_Nastaliq_Urdu({ subsets: ['arabic'], weight: ['400', '500', '600', '700'], variable: '--font-urdu-v', display: 'swap' });
+const amiri = Amiri({ subsets: ['arabic'], weight: ['400', '700'], variable: '--font-naskh-v', display: 'swap' });
+
+const FONT_VARS = `${inter.variable} ${jetbrains.variable} ${cormorant.variable} ${nastaliq.variable} ${amiri.variable}`;
 
 export const metadata: Metadata = {
   // Template applies a crescent to every sub-page title automatically.
@@ -23,6 +38,14 @@ export const metadata: Metadata = {
   },
   manifest: '/manifest.webmanifest',
   applicationName: 'Barakah Hub',
+  // Inherited by every route: approve/invite links travel over WhatsApp, and
+  // without OG tags each shared link rendered a blank preview card.
+  openGraph: {
+    siteName: 'Barakah Hub',
+    type: 'website',
+    title: 'Barakah Hub',
+    description: 'Islamic family fund: sadaqah, qarz-e-hasana, emergency vote, audit trail.',
+  },
   appleWebApp: { capable: true, title: 'Barakah Hub', statusBarStyle: 'black-translucent' },
 };
 
@@ -38,18 +61,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" dir="ltr" className="theme-gold dark" suppressHydrationWarning>
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        {/* Root layout applies to every route — the single-page caveat behind
-            no-page-custom-font doesn't apply in the App Router. */}
-        {/* eslint-disable-next-line @next/next/no-page-custom-font */}
-        <link
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Noto+Nastaliq+Urdu:wght@400;500;600;700&family=Amiri:wght@400;700&display=swap"
-          rel="stylesheet"
-        />
-      </head>
+    <html lang="en" dir="ltr" className={`dark ${FONT_VARS}`} suppressHydrationWarning>
       <body>
         {/* Apply the saved light/dark choice before first paint — without
             this the mode reset on every reload ("theme change nahi hoti"). */}

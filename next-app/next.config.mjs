@@ -6,10 +6,15 @@ const nextConfig = {
   // Next 16: typedRoutes moved out of experimental
   typedRoutes: true,
   experimental: {
-    optimizePackageImports: ['lucide-react', 'date-fns'],
+    optimizePackageImports: ['lucide-react'],
   },
   images: {
-    unoptimized: true,
+    // Deployment target is Vercel (see vercel.json — crons, buildCommand),
+    // where the image optimizer is available. The old `unoptimized: true`
+    // was justified by a Cloudflare/OpenNext target that no longer applies;
+    // it made every full-resolution phone-camera avatar download into a
+    // 28-56px circle.
+    unoptimized: false,
     remotePatterns: [
       // Vercel Blob — avatar + receipt uploads
       { protocol: 'https', hostname: '*.public.blob.vercel-storage.com' },

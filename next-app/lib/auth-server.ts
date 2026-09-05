@@ -1,3 +1,4 @@
+import { cache } from 'react';
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { eq } from 'drizzle-orm';
@@ -10,12 +11,22 @@ import { members, type Member } from '@/lib/db/schema';
  * server components, server actions, and route handlers.
  *
  * Replaces the previous `lib/supabase/server.ts createClient()` pattern.
+ *
+ * `getSession` and the member lookup are wrapped in React.cache: the layout
+ * and every page both call getMeOrRedirect, so without memoisation each
+ * request paid the Better-Auth session query and the members SELECT at least
+ * twice. React.cache scopes to one request — no cross-request staleness.
  */
 
-export async function getSession() {
+export const getSession = cache(async () => {
   const session = await auth.api.getSession({ headers: await headers() });
   return session; // null if unauthenticated
-}
+});
+
+const memberByAuthId = cache(async (authId: string): Promise<Member | null> => {
+  const [m] = await db.select().from(members).where(eq(members.authId, authId)).limit(1);
+  return m ?? null;
+});
 
 export async function getUser() {
   const session = await getSession();
@@ -35,11 +46,7 @@ export async function getMeOrRedirect(): Promise<Member> {
   const session = await getSession();
   if (!session?.user) redirect('/login');
 
-  const [me] = await db
-    .select()
-    .from(members)
-    .where(eq(members.authId, session.user.id))
-    .limit(1);
+  const me = await memberByAuthId(session.user.id);
 
   if (!me) redirect('/onboarding');
   // Unapproved members must not reach protected app routes
@@ -56,7 +63,7 @@ export async function getMeOrRedirect(): Promise<Member> {
 export async function meOrThrow(): Promise<Member> {
   const session = await getSession();
   if (!session?.user) throw new Error('Not authenticated');
-  const [m] = await db.select().from(members).where(eq(members.authId, session.user.id)).limit(1);
+  const m = await memberByAuthId(session.user.id);
   if (!m) throw new Error('Member record not found');
   return m;
 }
