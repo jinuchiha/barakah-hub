@@ -63,7 +63,8 @@
     "otpCode": "Verification code",
     "verify": "Verify",
     "resendCode": "Resend code",
-    "verified": "Email verified. Please sign in."
+    "verified": "Email verified. Please sign in.",
+    "lockedTemporarily": "Too many wrong attempts. Try again in {{minutes}} min, use your fingerprint, or sign in again."
   },
   "nav": {
     "dashboard": "Home",

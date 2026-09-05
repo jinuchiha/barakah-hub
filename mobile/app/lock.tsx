@@ -17,7 +17,7 @@ import { useRouter } from 'expo-router';
 import { useTheme } from '@/lib/useTheme';
 import { authenticateWithBiometric, getBiometricCapability, getBiometricLabel } from '@/lib/biometric';
 import { isBiometricEnabled } from '@/lib/security';
-import { isPinEnabled, verifyPin, getPinAttempts, resetPinAttempts } from '@/lib/pin';
+import { isPinEnabled, verifyPin, getPinAttempts, resetPinAttempts, getPinLockoutSeconds, MAX_ATTEMPTS_BEFORE_LOCK } from '@/lib/pin';
 import { markUnlocked } from '@/lib/lock-state';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/hooks/useAuth';
@@ -114,17 +114,24 @@ export default function LockScreen() {
         setPinError('');
         setView('biometric');
       } else if (result === 'locked') {
+        // Timed backoff, not a dead end: waiting works, biometric works,
+        // and signing in again always works.
+        const seconds = await getPinLockoutSeconds();
+        const minutes = Math.max(1, Math.ceil(seconds / 60));
         Alert.alert(
           t('auth.tooManyAttempts'),
-          t('auth.lockedOut'),
-          [{
-            text: t('auth.signIn'),
-            onPress: () => { void logout(); router.replace('/(auth)/login'); },
-          }],
+          t('auth.lockedTemporarily', { minutes }),
+          [
+            { text: t('common.close'), style: 'cancel' },
+            {
+              text: t('auth.signIn'),
+              onPress: () => { void logout(); router.replace('/(auth)/login'); },
+            },
+          ],
         );
       } else {
         const attempts = await getPinAttempts();
-        const remaining = 3 - attempts;
+        const remaining = Math.max(0, MAX_ATTEMPTS_BEFORE_LOCK - attempts);
         setPinError(t('auth.incorrectPin', { count: remaining, plural: remaining !== 1 ? 's' : '' }));
         shake();
       }

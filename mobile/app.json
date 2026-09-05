@@ -2,7 +2,7 @@
   "expo": {
     "name": "Barakah Hub",
     "slug": "barakah-hub",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "barakah",
@@ -83,7 +83,8 @@
             "DEFAULT"
           ]
         }
-      ]
+      ],
+      "versionCode": 2
     },
     "web": {
       "bundler": "metro",
@@ -120,6 +121,13 @@
         "expo-local-authentication",
         {
           "faceIDPermission": "Allow Barakah Hub to use Face ID for fast, secure authentication."
+        }
+      ],
+      [
+        "@sentry/react-native/expo",
+        {
+          "organization": "SENTRY_ORG_PLACEHOLDER",
+          "project": "barakah-mobile"
         }
       ]
     ],

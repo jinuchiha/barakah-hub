@@ -30,6 +30,10 @@ import { setupDeepLinkListener, handleInitialURL } from '@/lib/deep-link';
 import { initQueryPersister } from '@/lib/query-persist';
 import { queryClient } from '@/lib/query-client';
 import { isScreenshotProtectionEnabled, enableScreenCapturePrevention } from '@/lib/security';
+import { initSentry } from '@/lib/sentry';
+
+// Crash reporting first — a crash during startup is exactly what it is for.
+initSentry();
 
 SplashScreen.preventAutoHideAsync().catch(() => undefined);
 

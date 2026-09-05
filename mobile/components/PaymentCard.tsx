@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Pressable, Linking } from 'react-native';
+import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import type { Payment } from '@/types';
 import { ReceiptSlipModal } from './ReceiptSlipModal';
+import { ReceiptImageModal } from './ReceiptImageModal';
 import { Badge } from './ui/Badge';
 import { formatPKR, formatDate } from '@/lib/format';
 import { useTheme } from '@/lib/useTheme';
@@ -30,6 +31,7 @@ function getStatusInfo(payment: Payment) {
 
 export function PaymentCard({ payment }: PaymentCardProps) {
   const [showSlip, setShowSlip] = useState(false);
+  const [showReceipt, setShowReceipt] = useState(false);
   const { colors } = useTheme();
   const status = getStatusInfo(payment);
   const accentColor = poolColor(payment.pool, colors);
@@ -62,11 +64,9 @@ export function PaymentCard({ payment }: PaymentCardProps) {
       {payment.receiptUrl ? (
         <Pressable
           style={[styles.receiptStrip, { borderTopColor: colors.border1 }]}
-          onPress={() => {
-            const raw = payment.receiptUrl!;
-            const uri = raw.startsWith('/') ? `${process.env.EXPO_PUBLIC_API_URL ?? ''}${raw}` : raw;
-            void Linking.openURL(uri);
-          }}
+          accessibilityRole="button"
+          accessibilityLabel="View receipt image"
+          onPress={() => setShowReceipt(true)}
         >
           <MaterialCommunityIcons name="file-image-outline" size={14} color={colors.text3} />
           <Text style={[styles.receiptLabel, { color: colors.text3 }]}>View receipt</Text>
@@ -84,6 +84,9 @@ export function PaymentCard({ payment }: PaymentCardProps) {
         </Pressable>
       ) : null}
       {showSlip ? <ReceiptSlipModal payment={payment} onClose={() => setShowSlip(false)} /> : null}
+      {showReceipt && payment.receiptUrl ? (
+        <ReceiptImageModal url={payment.receiptUrl} onClose={() => setShowReceipt(false)} />
+      ) : null}
     </View>
   );
 }
