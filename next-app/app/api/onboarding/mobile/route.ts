@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { and, eq, lt, sql } from 'drizzle-orm';
 import { z } from 'zod';
 import { getUser } from '@/lib/auth-server';
-import { db } from '@/lib/db';
+import { db, inTransaction } from '@/lib/db';
 import { members, auditLog, memberInvites } from '@/lib/db/schema';
 import { notifyMembers, adminIds, alertAdminsNewMember } from '@/lib/notify';
 
@@ -84,38 +84,50 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const [created] = await db
-      .insert(members)
-      .values({
-        authId: authUser.id,
-        username,
-        nameEn: data.nameEn,
-        nameUr: data.nameUr || data.nameEn,
-        fatherName: data.fatherName?.trim() ?? '',
-        fatherDeceased: data.fatherDeceased ?? false,
-        phone: data.phone,
-        city: data.city,
-        province: data.province,
-        monthlyPledge: data.monthlyPledge ?? 1000,
-        status: 'pending',
-        role: 'member',
-      })
-      .returning();
+    // Member row, invite consumption and audit entry commit or fail as ONE
+    // unit. Previously the member was created first and the invite update
+    // ran unchecked afterwards — a crash in between left an admitted member
+    // on an unconsumed invite, and an exhausted invite was silently ignored.
+    const created = await inTransaction(async (tx) => {
+      if (validInvite) {
+        const consumed = await tx
+          .update(memberInvites)
+          .set({ usedCount: sql`${memberInvites.usedCount} + 1` })
+          .where(and(eq(memberInvites.id, validInvite.id), lt(memberInvites.usedCount, memberInvites.maxUses)))
+          .returning({ id: memberInvites.id });
+        // Rowcount checked: a concurrent signup taking the last use makes
+        // THIS one fail loudly instead of admitting past the cap.
+        if (consumed.length === 0) {
+          throw new Error('INVITE_EXHAUSTED');
+        }
+      }
 
-    // Atomically increment the invite usedCount · the usedCount < maxUses
-    // condition makes concurrent signups unable to exceed the cap.
-    if (validInvite) {
-      await db
-        .update(memberInvites)
-        .set({ usedCount: sql`${memberInvites.usedCount} + 1` })
-        .where(and(eq(memberInvites.id, validInvite.id), lt(memberInvites.usedCount, memberInvites.maxUses)));
-    }
+      const [row] = await tx
+        .insert(members)
+        .values({
+          authId: authUser.id,
+          username,
+          nameEn: data.nameEn,
+          nameUr: data.nameUr || data.nameEn,
+          fatherName: data.fatherName?.trim() ?? '',
+          fatherDeceased: data.fatherDeceased ?? false,
+          phone: data.phone,
+          city: data.city,
+          province: data.province,
+          monthlyPledge: data.monthlyPledge ?? 1000,
+          status: 'pending',
+          role: 'member',
+        })
+        .returning();
 
-    await db.insert(auditLog).values({
-      actorId: created.id,
-      action: 'member-added',
-      detail: `Mobile signup: ${data.nameEn} (${authUser.email}) · awaiting approval`,
+      await tx.insert(auditLog).values({
+        actorId: row.id,
+        action: 'member-added',
+        detail: `Mobile signup: ${data.nameEn} (${authUser.email}) · awaiting approval`,
+      });
+      return row;
     });
+
 
     // Tell admins a new member is waiting for approval.
     await notifyMembers(
@@ -133,6 +145,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(created, { status: 201 });
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'Bad request';
+    if (msg === 'INVITE_EXHAUSTED') {
+      return NextResponse.json(
+        { error: 'This invite link has reached its usage limit. Ask for a new one.' },
+        { status: 409 },
+      );
+    }
     return NextResponse.json({ error: msg }, { status: 400 });
   }
 }

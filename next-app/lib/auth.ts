@@ -2,8 +2,8 @@ import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import { bearer, username, emailOTP } from 'better-auth/plugins';
 import { db } from '@/lib/db';
-import { users, sessions, accounts, verifications } from '@/lib/db/schema';
-import { sendOtpEmail } from '@/lib/email';
+import { users, sessions, accounts, verifications, rateLimits } from '@/lib/db/schema';
+import { sendOtpEmail, sendResetPasswordEmail } from '@/lib/email';
 
 /**
  * Better-Auth server instance for Barakah Hub.
@@ -41,6 +41,7 @@ export const auth = betterAuth({
       session: sessions,
       account: accounts,
       verification: verifications,
+      rateLimit: rateLimits,
     },
   }),
 
@@ -56,21 +57,16 @@ export const auth = betterAuth({
       process.env.REQUIRE_EMAIL_VERIFICATION === 'true' && Boolean(process.env.RESEND_API_KEY),
     minPasswordLength: 8,
     autoSignIn: true,
+    // The URL is a live account-takeover capability. sendResetPasswordEmail
+    // guarantees it is never logged — when Resend is unconfigured it skips
+    // delivery with a non-PII warning instead of printing the link.
     sendResetPassword: async ({ user, url }) => {
-      const apiKey = process.env.RESEND_API_KEY;
-      if (!apiKey) {
-        console.warn(`[auth] Reset link for ${user.email}: ${url} (Resend not configured)`);
-        return;
-      }
-      const { Resend } = await import('resend');
-      const resend = new Resend(apiKey);
-      await resend.emails.send({
-        from: process.env.RESEND_FROM ?? 'Barakah Hub <noreply@barakahhub.app>',
-        to: user.email,
-        subject: 'Reset your Barakah Hub password',
-        text: `Click to reset your password:\n\n${url}\n\nThis link expires in 1 hour.`,
-      });
+      await sendResetPasswordEmail(user.email, url);
     },
+    // A password reset means the credential may have been compromised.
+    // Every existing session (web cookie AND mobile bearer token) dies with
+    // the old password; the attacker cannot ride out a stolen session.
+    revokeSessionsOnPasswordReset: true,
   },
 
   // Session lasts 30 days, sliding window — refreshed on every request
@@ -83,11 +79,14 @@ export const auth = betterAuth({
   // Trusted origins for CORS / CSRF (same-origin in our case).
   trustedOrigins: [baseURL],
 
-  // Brute-force protection. In-memory storage is per-lambda on Vercel, so
-  // the cap is per-instance rather than global — still enough to make
-  // credential-stuffing impractical without a schema change.
+  // Brute-force protection, enforced globally via the rate_limits table.
   rateLimit: {
     enabled: true,
+    // DATABASE, not memory — Vercel runs many concurrent lambdas and an
+    // in-memory counter is per-instance, which multiplies every cap by the
+    // number of warm instances. One Neon row per (ip, path) makes it global.
+    storage: 'database',
+    modelName: 'rateLimit',
     window: 60,
     max: 30,
     customRules: {
@@ -109,6 +108,10 @@ export const auth = betterAuth({
     emailOTP({
       otpLength: 6,
       expiresIn: 600,
+      // A 6-digit code has a million combinations; without an attempt cap
+      // the 10-minute validity window is enough to brute-force one online.
+      // Five wrong guesses invalidates the code — request a fresh one.
+      allowedAttempts: 5,
       sendVerificationOnSignUp: true,
       async sendVerificationOTP({ email, otp, type }) {
         await sendOtpEmail(email, otp, type);

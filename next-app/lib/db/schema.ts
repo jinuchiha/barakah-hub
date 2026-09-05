@@ -9,7 +9,7 @@
  *  - `audit_log` is append-only (DB triggers in migration 0002 enforce this).
  *  - Soft-delete via `deceased` flag on members.
  */
-import { pgTable, pgEnum, uuid, text, integer, timestamp, boolean, jsonb, index, primaryKey, date, type AnyPgColumn } from 'drizzle-orm/pg-core';
+import { pgTable, pgEnum, uuid, text, integer, bigint, timestamp, boolean, jsonb, index, primaryKey, date, type AnyPgColumn } from 'drizzle-orm/pg-core';
 import { relations, sql } from 'drizzle-orm';
 
 /* ─── BETTER-AUTH TABLES ─── */
@@ -63,6 +63,48 @@ export const verifications = pgTable('verifications', {
   expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+/**
+ * Better-Auth rate-limit counters (rateLimit.storage: 'database' in
+ * lib/auth.ts). One row per (client-ip, endpoint) window. In-memory
+ * counting is per-lambda on Vercel, which silently multiplies every cap
+ * by the number of warm instances; a shared table makes the cap global.
+ */
+export const rateLimits = pgTable('rate_limits', {
+  id: text('id').primaryKey(),
+  key: text('key').notNull(),
+  count: integer('count').notNull().default(0),
+  lastRequest: bigint('last_request', { mode: 'number' }).notNull().default(0),
+}, (t) => [
+  index('rate_limits_key_idx').on(t.key),
+]);
+
+/**
+ * Consumed one-tap approve tokens (lib/approve-token.ts). A token's jti
+ * lands here the moment its approve/reject action runs, which makes every
+ * token single-action: replaying a leaked link can re-VIEW the status page
+ * but can never act twice.
+ */
+export const approveTokenUses = pgTable('approve_token_uses', {
+  jti: text('jti').primaryKey(),
+  paymentId: uuid('payment_id').notNull(),
+  usedById: uuid('used_by_id').notNull(),
+  decision: text('decision').notNull(),
+  usedAt: timestamp('used_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+/**
+ * Liveness ledger for scheduled jobs (see lib/cron-heartbeat.ts). The outbox
+ * cron is the sole notification delivery path; if CRON_SECRET is wrong every
+ * run 401s silently. Each successful run upserts its row, and the health
+ * endpoint alerts on a stale heartbeat — queue-empty or not.
+ */
+export const cronHeartbeats = pgTable('cron_heartbeats', {
+  job: text('job').primaryKey(),
+  lastRunAt: timestamp('last_run_at', { withTimezone: true }).notNull().defaultNow(),
+  lastStatus: text('last_status').notNull().default('ok'),
+  detail: text('detail'),
 });
 
 /* ─── ENUMS ─── */

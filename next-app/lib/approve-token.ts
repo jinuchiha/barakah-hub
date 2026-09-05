@@ -1,4 +1,4 @@
-import { createHmac, timingSafeEqual } from 'crypto';
+import { createHmac, timingSafeEqual, randomUUID } from 'crypto';
 
 /**
  * One-tap approve links for supervisors: a signed, expiring token that
@@ -16,9 +16,15 @@ export interface ApproveTokenPayload {
   a: string;
   /** unix ms expiry */
   exp: number;
+  /** token id — recorded in approve_token_uses at action time, making the
+   *  token single-action. Tokens without one (pre-jti links) are invalid. */
+  jti: string;
 }
 
-const TTL_MS = 7 * 24 * 60 * 60 * 1000;
+// 48 hours, down from 7 days. The link authorizes a money decision without
+// a login; supervisors act on these within hours, and every extra day of
+// validity is a day a forwarded email or leaked chat can still act.
+const TTL_MS = 48 * 60 * 60 * 1000;
 
 function secret(): string {
   const s = process.env.BETTER_AUTH_SECRET;
@@ -32,7 +38,7 @@ function hmac(data: string): string {
 
 export function signApproveToken(paymentId: string, approverId: string, now = Date.now()): string {
   const body = Buffer.from(
-    JSON.stringify({ p: paymentId, a: approverId, exp: now + TTL_MS } satisfies ApproveTokenPayload),
+    JSON.stringify({ p: paymentId, a: approverId, exp: now + TTL_MS, jti: randomUUID() } satisfies ApproveTokenPayload),
   ).toString('base64url');
   return `${body}.${hmac(body)}`;
 }
@@ -54,6 +60,7 @@ export function verifyApproveToken(token: string, now = Date.now()): ApproveToke
   try {
     const payload = JSON.parse(Buffer.from(body, 'base64url').toString()) as ApproveTokenPayload;
     if (typeof payload.p !== 'string' || typeof payload.a !== 'string' || typeof payload.exp !== 'number') return null;
+    if (typeof payload.jti !== 'string' || payload.jti.length < 16) return null;
     if (payload.exp < now) return null;
     return payload;
   } catch {

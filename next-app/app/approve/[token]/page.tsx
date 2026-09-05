@@ -1,7 +1,7 @@
 import { and, eq, isNull } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 import { db } from '@/lib/db';
-import { payments, members, auditLog } from '@/lib/db/schema';
+import { payments, members, auditLog, approveTokenUses } from '@/lib/db/schema';
 import { verifyApproveToken } from '@/lib/approve-token';
 import { notifyMembers, adminIds } from '@/lib/notify';
 import { fmtRs } from '@/lib/i18n/dict';
@@ -27,10 +27,15 @@ async function loadState(token: string) {
   const eligible = approver.status === 'approved' && !approver.deceased
     && (approver.role === 'admin' || approver.role === 'supervisor');
   if (!eligible) return { kind: 'invalid' as const };
-  const [donor] = await db.select().from(members).where(eq(members.id, p.memberId)).limit(1);
+  // A consumed token can still SEE the outcome (the supervisor lands back
+  // here after acting) but no longer names the donor — a forwarded or
+  // leaked link stops disclosing member data the moment it has been used.
+  const [used] = await db.select().from(approveTokenUses).where(eq(approveTokenUses.jti, payload.jti)).limit(1);
+  const donor = used ? undefined : (await db.select().from(members).where(eq(members.id, p.memberId)).limit(1))[0];
   if (p.status === 'verified') return { kind: 'verified' as const, p, donor };
   if (p.supervisorRejectedAt) return { kind: 'rejected' as const, p, donor };
   if (p.supervisorApprovedAt) return { kind: 'approved' as const, p, donor };
+  if (used) return { kind: 'invalid' as const };
   return { kind: 'ready' as const, p, donor, approver };
 }
 
@@ -41,6 +46,18 @@ async function actViaToken(token: string, decision: 'approve' | 'reject') {
   const [approver] = await db.select().from(members).where(eq(members.id, payload.a)).limit(1);
   if (!approver || approver.status !== 'approved' || approver.deceased) return;
   if (approver.role !== 'admin' && approver.role !== 'supervisor') return;
+
+  // Claim the token. The jti's PRIMARY KEY makes this the single gate: a
+  // replayed link (or the same link after a reject) inserts nothing and
+  // acts on nothing. Without this, a link that had REJECTED a payment
+  // could later be replayed to approve it — the UPDATE guards below only
+  // check supervisorApprovedAt.
+  const claimed = await db
+    .insert(approveTokenUses)
+    .values({ jti: payload.jti, paymentId: payload.p, usedById: approver.id, decision })
+    .onConflictDoNothing()
+    .returning();
+  if (claimed.length === 0) return;
 
   if (decision === 'approve') {
     const updated = await db

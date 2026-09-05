@@ -150,10 +150,17 @@ export async function onboardSelf(input: z.infer<typeof schema>) {
     // use it had actually spent and could exceed its cap. The
     // usedCount < maxUses condition remains the concurrency gate.
     if (validInvite) {
-      await tx
+      const consumed = await tx
         .update(memberInvites)
         .set({ usedCount: sql`${memberInvites.usedCount} + 1` })
-        .where(and(eq(memberInvites.id, validInvite.id), lt(memberInvites.usedCount, memberInvites.maxUses)));
+        .where(and(eq(memberInvites.id, validInvite.id), lt(memberInvites.usedCount, memberInvites.maxUses)))
+        .returning({ id: memberInvites.id });
+      // Rowcount checked: if a concurrent signup took the last use between
+      // validation and here, THIS signup rolls back (member row included)
+      // instead of silently admitting past the cap.
+      if (consumed.length === 0) {
+        throw new Error('This invite link has reached its usage limit. Ask for a new one.');
+      }
     }
     return row;
   });
