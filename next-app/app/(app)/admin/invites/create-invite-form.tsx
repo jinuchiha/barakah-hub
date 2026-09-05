@@ -2,7 +2,7 @@
 import { useState, useTransition } from 'react';
 import { toast } from 'sonner';
 import { createInvite } from '@/app/actions';
-import { Input, Label } from '@/components/ui/input';
+import { Field, Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 
 export default function CreateInviteForm() {
@@ -28,18 +28,15 @@ export default function CreateInviteForm() {
 
   return (
     <form onSubmit={submit} className="grid gap-3 md:grid-cols-3">
-      <div className="md:col-span-3">
-        <Label>Label (optional)</Label>
+      <Field className="md:col-span-3" label="Label (optional)">
         <Input value={label} onChange={(e) => setLabel(e.target.value)} placeholder="e.g. Khan family · Eid drive" maxLength={60} />
-      </div>
-      <div>
-        <Label>Max uses</Label>
+      </Field>
+      <Field label="Max uses">
         <Input type="number" min={1} max={100} value={maxUses} onChange={(e) => setMaxUses(parseInt(e.target.value, 10) || 1)} />
-      </div>
-      <div>
-        <Label>Expires in (days)</Label>
+      </Field>
+      <Field label="Expires in (days)">
         <Input type="number" min={1} max={365} value={expiresInDays} onChange={(e) => setExpiresInDays(parseInt(e.target.value, 10) || 14)} />
-      </div>
+      </Field>
       <div className="flex items-end">
         <Button type="submit" variant="gold" className="w-full" disabled={pending}>
           {pending ? 'Creating…' : 'Generate Invite'}

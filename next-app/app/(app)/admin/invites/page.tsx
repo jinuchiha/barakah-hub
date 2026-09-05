@@ -25,8 +25,9 @@ export default async function InvitesPage() {
   return (
     <div className="mx-auto max-w-[1400px]">
       <header className="mb-8 border-b border-[var(--border)] pb-5">
-        <h1 className="font-[var(--font-arabic)] text-3xl text-[var(--color-gold-2)]">دعوت نامے</h1>
-        <p className="mt-1 font-[var(--font-en)] text-sm italic text-[var(--color-gold-4)]">Generate shareable invite links / QR codes for new members</p>
+        <h1 className="text-[28px] font-semibold tracking-[-0.5px] text-[var(--color-cream)]">Invites</h1>
+        <p dir="rtl" className="font-[var(--font-arabic)] text-[15px] leading-8 text-[var(--color-gold-2)] [text-align:start]">دعوت نامے</p>
+        <p className="mt-1 text-sm text-[var(--txt-3)]">Generate shareable invite links / QR codes for new members</p>
       </header>
 
       <Card className="mb-4">

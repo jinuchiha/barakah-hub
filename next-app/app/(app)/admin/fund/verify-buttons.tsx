@@ -152,8 +152,8 @@ export default function VerifyButtons({
   if (mode === 'admin-history') {
     return (
       <>
-        <button type="button" onClick={() => setDialog({ kind: 'delete-confirm' })} disabled={pending} title="Delete verified payment" className="rounded-md border border-[var(--border-2)] bg-transparent px-2 py-1 text-[11px] text-[var(--txt-4)] hover:border-[#dc5252]/40 hover:bg-red-500/10 hover:text-[#f08585] disabled:opacity-50">
-          ✕
+        <button type="button" onClick={() => setDialog({ kind: 'delete-confirm' })} disabled={pending} title="Void verified payment" aria-label="Void verified payment" className="rounded-md border border-[var(--border-2)] bg-transparent px-2 py-1.5 text-[11px] text-[var(--txt-4)] hover:border-[#dc5252]/40 hover:bg-red-500/10 hover:text-[#f08585] disabled:opacity-50">
+          <span aria-hidden>✕</span>
         </button>
         <DeleteConfirm open={dialog.kind === 'delete-confirm'} onClose={() => setDialog({ kind: 'none' })} onConfirm={() => call(() => adminDeletePayment(paymentId), 'Deleted')} />
       </>

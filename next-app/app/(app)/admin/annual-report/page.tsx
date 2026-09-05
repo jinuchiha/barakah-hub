@@ -98,8 +98,8 @@ export default async function AnnualReportPage({ searchParams }: Props) {
         </div>
         <div className="flex items-center gap-2 print:hidden">
           <form method="get">
-            <label className="text-xs text-[var(--color-gold-4)]">Year:</label>
-            <input type="number" name="year" defaultValue={safeYear} min={1300} max={1600} className="ml-2 w-24 rounded-md border border-[var(--border)] bg-[var(--surf-3)] px-2 py-1.5 text-sm text-[var(--color-cream)]" />
+            <label htmlFor="report-year" className="text-xs text-[var(--color-gold-4)]">Year:</label>
+            <input id="report-year" type="number" name="year" defaultValue={safeYear} min={1300} max={1600} className="ml-2 w-24 rounded-md border border-[var(--border)] bg-[var(--surf-3)] px-2 py-1.5 text-sm text-[var(--color-cream)]" />
             <button type="submit" className="ml-2 rounded-md bg-[var(--color-gold)] px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-[var(--color-ink)]">Load</button>
           </form>
           <PrintButton />

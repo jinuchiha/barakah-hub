@@ -19,6 +19,8 @@ import {
   UserPlus,
   Megaphone,
   ScrollText,
+  BookOpen,
+  Sparkles,
 } from 'lucide-react';
 
 interface PaletteItem {
@@ -37,6 +39,8 @@ const NAV_ITEMS: PaletteItem[] = [
   { label: 'Islamic Tools', href: '/tools', icon: Wrench },
   { label: 'Settings', href: '/settings', icon: Settings },
   { label: 'Notifications', href: '/notifications', icon: Bell },
+  { label: 'AI Assistant', href: '/ai', icon: Sparkles },
+  { label: 'About This Fund', href: '/about', icon: BookOpen },
 ];
 
 const ADMIN_ITEMS: PaletteItem[] = [

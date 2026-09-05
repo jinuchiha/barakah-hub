@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { getUser } from '@/lib/auth-server';
 import { Card, CardBody } from '@/components/ui/card';
@@ -5,9 +6,10 @@ import RegisterForm from './register-form';
 
 export const metadata = { title: 'Register · Barakah Hub' };
 
-export default async function RegisterPage() {
+export default async function RegisterPage({ searchParams }: { searchParams: Promise<{ invite?: string }> }) {
   const user = await getUser();
   if (user) redirect('/dashboard');
+  const { invite } = await searchParams;
 
   return (
     <main className="grid min-h-svh place-items-center px-4 py-10">
@@ -19,9 +21,9 @@ export default async function RegisterPage() {
             <div className="mt-1 font-[var(--font-en)] text-[11px] uppercase tracking-[3px] text-[var(--color-gold-4)]">Create your account</div>
           </div>
           <CardBody>
-            <RegisterForm />
+            <RegisterForm inviteToken={invite ?? null} />
             <p className="mt-4 text-center text-[11px] text-[var(--txt-3)]">
-              Already registered? <a href="/login" className="text-[var(--color-gold)] hover:underline">Sign in</a>
+              Already registered? <Link href="/login" className="text-[var(--color-gold)] hover:underline">Sign in</Link>
             </p>
           </CardBody>
         </Card>

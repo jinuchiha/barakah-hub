@@ -4,6 +4,8 @@ import { Crescent as CrescentMark } from '@/components/icons/crescent';
 import LoginForm from './login-form';
 import LoginScene from './login-scene';
 
+export const metadata = { title: 'Sign In · Barakah Hub' };
+
 export default async function LoginPage({ searchParams }: { searchParams: Promise<{ next?: string }> }) {
   const user = await getUser();
   if (user) redirect('/dashboard');

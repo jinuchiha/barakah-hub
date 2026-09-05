@@ -28,9 +28,9 @@ export default function RejectButton({ memberId, name }: { memberId: string; nam
         type="button"
         disabled={pending || rejected}
         onClick={() => setOpen(true)}
-        className={`rounded-md bg-[rgba(220,50,47,0.08)] px-3 py-1 text-xs font-bold text-[var(--color-ruby-2)] transition-transform duration-150 ease-out active:scale-[0.98] disabled:opacity-50 hover:bg-[rgba(220,50,47,0.15)] ${rejected ? 'scale-[0.98]' : ''}`}
+        className={`rounded-md bg-[rgba(220,50,47,0.08)] px-3 py-1 text-xs font-bold text-[#f08585] transition-transform duration-150 ease-out active:scale-[0.98] disabled:opacity-50 hover:bg-[rgba(220,50,47,0.15)] ${rejected ? 'scale-[0.98]' : ''}`}
       >
-        {rejected ? '✓ Rejected' : '✕ Reject'}
+        {rejected ? 'Rejected' : 'Reject'}
       </button>
       <ConfirmDialog
         open={open}

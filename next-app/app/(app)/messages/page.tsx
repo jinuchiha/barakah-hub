@@ -3,12 +3,48 @@ import { getMeOrRedirect } from '@/lib/auth-server';
 import { db } from '@/lib/db';
 import { members, messages } from '@/lib/db/schema';
 import { Card, CardHeader, CardTitle, CardBody } from '@/components/ui/card';
+import { PageHeader } from '@/components/ui/page-header';
 import MessageForm from './message-form';
 import MarkAllRead from './mark-all-read';
 import { t } from '@/lib/i18n/dict';
+import { fmtDate } from '@/lib/format';
 import { getLocale } from '@/lib/i18n/server';
 
 export const metadata = { title: 'Messages · Barakah Hub' };
+
+/**
+ * One message row. `<details>` lets the full body expand in place — the old
+ * `line-clamp-2` preview had no detail view at all, so anything longer than
+ * two lines was permanently unreadable in the product.
+ */
+function MessageItem({
+  heading,
+  date,
+  subject,
+  body,
+  unread = false,
+}: {
+  heading: string;
+  date: Date | string;
+  subject: string;
+  body: string;
+  unread?: boolean;
+}) {
+  return (
+    <details className={`group border-b border-[var(--border)] ${unread ? 'border-l-2 border-l-[rgba(200,155,60,0.55)] bg-[rgba(200,155,60,0.06)]' : ''}`}>
+      <summary className="cursor-pointer list-none p-3 [&::-webkit-details-marker]:hidden">
+        <div className="flex items-center justify-between">
+          <span className="text-sm font-semibold text-[var(--color-cream)]">{heading}</span>
+          <span className="text-[10px] text-[var(--color-gold-4)]">{fmtDate(date)}</span>
+        </div>
+        <div className="text-sm text-[var(--color-gold)]">{subject}</div>
+        <p className="mt-1 line-clamp-2 text-xs text-[var(--txt-2)] group-open:hidden">{body}</p>
+        <span className="mt-1 hidden text-[10px] text-[var(--txt-4)] group-open:inline">Tap to collapse</span>
+      </summary>
+      <p className="whitespace-pre-wrap px-3 pb-3 text-xs leading-relaxed text-[var(--txt-2)]">{body}</p>
+    </details>
+  );
+}
 
 export default async function MessagesPage() {
   const me = await getMeOrRedirect();
@@ -40,7 +76,9 @@ export default async function MessagesPage() {
   const unread = inbox.filter((m) => !m.read).length;
 
   return (
-    <div className="mx-auto grid w-full max-w-5xl gap-4 lg:grid-cols-2">
+    <div className="mx-auto w-full max-w-5xl">
+    <PageHeader title="Messages" titleUr="پیغامات" subtitle="Contact the admin team, and read replies here" />
+    <div className="grid gap-4 lg:grid-cols-2">
       <Card>
         <CardHeader><CardTitle>{t('msg.send', locale)} · پیغام بھیجیں</CardTitle></CardHeader>
         <CardBody>
@@ -56,7 +94,7 @@ export default async function MessagesPage() {
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1.5 rounded-full border border-[rgba(45,138,95,0.4)] bg-[rgba(45,138,95,0.10)] px-3 py-1.5 text-xs font-semibold text-[#4ec38d] transition-colors hover:bg-[rgba(45,138,95,0.18)]"
                 >
-                  🟢 WhatsApp · {r.nameUr || r.nameEn}
+                  WhatsApp · {r.nameUr || r.nameEn}
                 </a>
               ))}
             </div>
@@ -80,14 +118,14 @@ export default async function MessagesPage() {
             {inbox.map((m) => {
               const sender = memById.get(m.fromId);
               return (
-                <div key={m.id} className={`border-b border-[var(--border)] p-3 ${m.read ? '' : 'border-l-2 border-l-[rgba(200,155,60,0.55)] bg-[rgba(200,155,60,0.06)]'}`}>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-semibold text-[var(--color-cream)]">{sender?.nameEn || sender?.nameUr || '?'}</span>
-                    <span className="text-[10px] text-[var(--color-gold-4)]">{new Date(m.createdAt).toLocaleDateString('en-GB')}</span>
-                  </div>
-                  <div className="text-sm text-[var(--color-gold)]">{m.subject}</div>
-                  <p className="mt-1 line-clamp-2 text-xs text-[var(--txt-2)]">{m.body}</p>
-                </div>
+                <MessageItem
+                  key={m.id}
+                  heading={sender?.nameEn || sender?.nameUr || '?'}
+                  date={m.createdAt}
+                  subject={m.subject}
+                  body={m.body}
+                  unread={!m.read}
+                />
               );
             })}
           </CardBody>
@@ -105,14 +143,13 @@ export default async function MessagesPage() {
               {sent.map((m) => {
                 const recipient = memById.get(m.toId);
                 return (
-                  <div key={m.id} className="border-b border-[var(--border)] p-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-semibold text-[var(--color-cream)]">To: {recipient?.nameEn || recipient?.nameUr || '?'}</span>
-                      <span className="text-[10px] text-[var(--color-gold-4)]">{new Date(m.createdAt).toLocaleDateString('en-GB')}</span>
-                    </div>
-                    <div className="text-sm text-[var(--color-gold)]">{m.subject}</div>
-                    <p className="mt-1 line-clamp-2 text-xs text-[var(--txt-2)]">{m.body}</p>
-                  </div>
+                  <MessageItem
+                    key={m.id}
+                    heading={`To: ${recipient?.nameEn || recipient?.nameUr || '?'}`}
+                    date={m.createdAt}
+                    subject={m.subject}
+                    body={m.body}
+                  />
                 );
               })}
             </CardBody>
@@ -129,23 +166,19 @@ export default async function MessagesPage() {
             </CardHeader>
             <CardBody className="max-h-[420px] overflow-y-auto p-0">
               {allRecent.map((m) => (
-                <div key={`all-${m.id}`} className="border-b border-[var(--border)] p-3">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="min-w-0 truncate text-[12.5px] text-[var(--color-cream)]">
-                      <span className="font-semibold">{nameById.get(m.fromId) ?? '?'}</span>
-                      <span className="text-[var(--txt-4)]"> to </span>
-                      <span className="text-[var(--txt-2)]">{nameById.get(m.toId) ?? '?'}</span>
-                    </span>
-                    <span className="shrink-0 text-[10px] text-[var(--color-gold-4)]">{new Date(m.createdAt).toLocaleDateString('en-GB')}</span>
-                  </div>
-                  <div className="text-xs text-[var(--color-gold)]">{m.subject}</div>
-                  <p className="mt-0.5 line-clamp-2 text-xs text-[var(--txt-3)]">{m.body}</p>
-                </div>
+                <MessageItem
+                  key={`all-${m.id}`}
+                  heading={`${nameById.get(m.fromId) ?? '?'} → ${nameById.get(m.toId) ?? '?'}`}
+                  date={m.createdAt}
+                  subject={m.subject}
+                  body={m.body}
+                />
               ))}
             </CardBody>
           </Card>
         )}
       </div>
+    </div>
     </div>
   );
 }

@@ -4,7 +4,7 @@ import { t as tr } from '@/lib/i18n/dict';
 import { useState, useTransition } from 'react';
 import { toast } from 'sonner';
 import { sendMessage } from '@/app/actions';
-import { Input, Label } from '@/components/ui/input';
+import { Field, Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 
 interface Recipient { id: string; nameEn: string; nameUr: string }
@@ -34,18 +34,15 @@ export default function MessageForm({ recipients }: { recipients: Recipient[] })
 
   return (
     <form onSubmit={submit}>
-      <div className="mb-3">
-        <Label>{tr('msg.toAdminLabel', locale)}</Label>
+      <Field className="mb-3" label={tr('msg.toAdminLabel', locale)}>
         <select value={toId} onChange={(e) => setToId(e.target.value)} className="w-full rounded-md border border-[var(--border)] bg-[var(--surf-3)] px-3 py-2.5 text-sm text-[var(--color-cream)]">
           {recipients.map((r) => <option key={r.id} value={r.id}>{r.nameEn || r.nameUr}</option>)}
         </select>
-      </div>
-      <div className="mb-3">
-        <Label>{tr('msg.subjectLabel', locale)}</Label>
+      </Field>
+      <Field className="mb-3" label={tr('msg.subjectLabel', locale)}>
         <Input value={subject} onChange={(e) => setSubject(e.target.value)} required />
-      </div>
-      <div className="mb-3">
-        <Label>Message *</Label>
+      </Field>
+      <Field className="mb-3" label="Message *">
         <textarea
           value={body}
           onChange={(e) => setBody(e.target.value)}
@@ -53,7 +50,7 @@ export default function MessageForm({ recipients }: { recipients: Recipient[] })
           rows={5}
           className="w-full rounded-md border border-[var(--border)] bg-[var(--surf-3)] p-3 text-sm text-[var(--color-cream)] outline-none focus:border-[var(--color-gold)]"
         />
-      </div>
+      </Field>
       <Button type="submit" variant="gold" disabled={pending || !subject || !body}>
         {pending ? 'Sending…' : 'Send'}
       </Button>

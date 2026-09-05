@@ -44,8 +44,9 @@ export default async function TreePage() {
   return (
     <div className="mx-auto w-full max-w-[1400px]">
       <header className="mb-6 border-b border-[var(--border)] pb-4">
-        <h1 className="font-[var(--font-arabic)] text-3xl text-[var(--color-gold-2)]">خاندانی درخت</h1>
-        <p className="mt-1 font-[var(--font-en)] text-sm italic text-[var(--color-gold-4)]">Family tree · click any node to expand. Father names + sibling counters auto-detected.</p>
+        <h1 className="text-[28px] font-semibold tracking-[-0.5px] text-[var(--color-cream)]">Family Tree</h1>
+        <p dir="rtl" className="font-[var(--font-arabic)] text-[15px] leading-8 text-[var(--color-gold-2)] [text-align:start]">خاندانی درخت</p>
+        <p className="mt-1 text-sm text-[var(--txt-3)]">Click any node to expand. Father names and sibling counters are auto-detected.</p>
       </header>
 
       <Card>

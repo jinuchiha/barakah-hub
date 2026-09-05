@@ -117,11 +117,15 @@ export default async function AuditPage({ searchParams }: PageProps) {
     <div className="mx-auto max-w-[1400px]">
       <header className="mb-8 flex flex-wrap items-start justify-between gap-3 border-b border-[var(--border)] pb-5">
         <div>
-          <h1 className="font-[var(--font-arabic)] text-3xl text-[var(--color-gold-2)]">آڈٹ لاگ</h1>
-          <p className="mt-1 font-[var(--font-en)] text-sm italic text-[var(--color-gold-4)]">Tamper-evident activity journal · INSERT-only at DB layer</p>
+          <h1 className="text-[28px] font-semibold tracking-[-0.5px] text-[var(--color-cream)]">Audit Log</h1>
+          <p dir="rtl" className="font-[var(--font-arabic)] text-[15px] leading-8 text-[var(--color-gold-2)] [text-align:start]">آڈٹ لاگ</p>
+          <p className="mt-1 text-sm text-[var(--txt-3)]">Tamper-evident activity journal · INSERT-only at DB layer</p>
         </div>
         <div className="flex items-center gap-3">
-          <div className="text-xs text-[var(--color-gold-4)]">Showing {entries.length} entries {filtersActive && '(filtered)'}</div>
+          <div className="text-xs text-[var(--color-gold-4)]">
+            {/* Never imply this is everything — the query caps at 300. */}
+            Showing the latest {entries.length} entries{entries.length === 300 ? ' (older entries exist — narrow with the filters)' : ''} {filtersActive && '(filtered)'}
+          </div>
           <ExportLink href={exportHref as Route}>Export CSV</ExportLink>
         </div>
       </header>

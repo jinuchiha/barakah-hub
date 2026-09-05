@@ -1,8 +1,8 @@
 'use client';
-import { useMemo, useState, useTransition } from 'react';
+import { useId, useMemo, useState, useTransition } from 'react';
 import { toast } from 'sonner';
 import { addMember, editMember } from '@/app/actions';
-import { Input, Label } from '@/components/ui/input';
+import { Field, Input, Label } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -84,6 +84,7 @@ function fromMember(m: Member): FormState {
 }
 
 export default function MemberDialog({ mode, allMembers, onClose }: Props) {
+  const childrenLabelId = useId();
   // For the spouse dropdown — exclude the member themselves and (when
   // editing) anyone already married to someone else (keeps pairing 1:1 and
   // avoids accidentally breaking another couple). Marhoom members ARE
@@ -235,8 +236,9 @@ export default function MemberDialog({ mode, allMembers, onClose }: Props) {
         <form onSubmit={submit} className="grid gap-3 p-5 md:grid-cols-2">
           {mode.kind === 'add' && (
             <div className="md:col-span-2">
-              <Label>Username *</Label>
-              <Input value={form.username} onChange={(e) => set('username', e.target.value)} placeholder="e.g. ahmad_baloch" required />
+              <Field label="Username *">
+                <Input value={form.username} onChange={(e) => set('username', e.target.value)} placeholder="e.g. ahmad_baloch" required />
+              </Field>
               <p className="mt-1 text-[10.5px] text-[var(--txt-3)]">
                 For a living member without an account yet: use their future email&apos;s prefix
                 (e.g. <span className="text-[var(--color-gold-4)]">ahmadkhan</span> for ahmadkhan@gmail.com) —
@@ -244,23 +246,24 @@ export default function MemberDialog({ mode, allMembers, onClose }: Props) {
               </p>
             </div>
           )}
-          <div><Label>English Name *</Label><Input value={form.nameEn} onChange={(e) => set('nameEn', e.target.value)} required /></div>
-          <div><Label>Urdu Name</Label><Input value={form.nameUr} onChange={(e) => set('nameUr', e.target.value)} dir="rtl" /></div>
-          <div className="md:col-span-2"><Label>Father&apos;s Name *</Label><Input value={form.fatherName} onChange={(e) => set('fatherName', e.target.value)} required /></div>
+          <Field label="English Name *"><Input value={form.nameEn} onChange={(e) => set('nameEn', e.target.value)} required /></Field>
+          <Field label="Urdu Name"><Input value={form.nameUr} onChange={(e) => set('nameUr', e.target.value)} dir="rtl" /></Field>
+          <Field className="md:col-span-2" label={<>Father&apos;s Name *</>}><Input value={form.fatherName} onChange={(e) => set('fatherName', e.target.value)} required /></Field>
           <div className="md:col-span-2">
-            <Label>Link to parent (optional)</Label>
-            <select
-              value={form.parentId}
-              onChange={(e) => set('parentId', e.target.value)}
-              className="w-full rounded-md border border-[var(--border)] bg-[var(--surf-3)] px-3 py-2.5 text-sm text-[var(--color-cream)]"
-            >
-              <option value="">Not linked · father&apos;s name above is text only</option>
-              {parentCandidates.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.nameEn || c.nameUr}{c.deceased ? ' (marhoom)' : ''}
-                </option>
-              ))}
-            </select>
+            <Field label="Link to parent (optional)">
+              <select
+                value={form.parentId}
+                onChange={(e) => set('parentId', e.target.value)}
+                className="w-full rounded-md border border-[var(--border)] bg-[var(--surf-3)] px-3 py-2.5 text-sm text-[var(--color-cream)]"
+              >
+                <option value="">Not linked · father&apos;s name above is text only</option>
+                {parentCandidates.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.nameEn || c.nameUr}{c.deceased ? ' (marhoom)' : ''}
+                  </option>
+                ))}
+              </select>
+            </Field>
             {suggestedParent && (
               <button
                 type="button"
@@ -282,11 +285,10 @@ export default function MemberDialog({ mode, allMembers, onClose }: Props) {
             <input type="checkbox" checked={form.deceased} onChange={(e) => set('deceased', e.target.checked)} />
             This member is marhoom — tree record only, no login account needed
           </label>
-          <div><Label>Relation</Label><Input value={form.relation} onChange={(e) => set('relation', e.target.value)} placeholder="e.g. Son of / Daughter of" /></div>
-          <div><Label>Phone</Label><Input value={form.phone} onChange={(e) => set('phone', e.target.value)} placeholder="03xx-xxxxxxx" /></div>
-          <div><Label>City</Label><Input value={form.city} onChange={(e) => set('city', e.target.value)} /></div>
-          <div>
-            <Label>Province</Label>
+          <Field label="Relation"><Input value={form.relation} onChange={(e) => set('relation', e.target.value)} placeholder="e.g. Son of / Daughter of" /></Field>
+          <Field label="Phone"><Input value={form.phone} onChange={(e) => set('phone', e.target.value)} placeholder="03xx-xxxxxxx" /></Field>
+          <Field label="City"><Input value={form.city} onChange={(e) => set('city', e.target.value)} /></Field>
+          <Field label="Province">
             <select
               value={form.province}
               onChange={(e) => set('province', e.target.value)}
@@ -294,49 +296,47 @@ export default function MemberDialog({ mode, allMembers, onClose }: Props) {
             >
               {PROVINCES.map((p) => <option key={p} value={p}>{p || 'Select province'}</option>)}
             </select>
-          </div>
-          <div>
-            <Label>Monthly pledge</Label>
+          </Field>
+          <Field label="Monthly pledge">
             <Input type="number" min={0} value={form.monthlyPledge} onChange={(e) => set('monthlyPledge', parseInt(e.target.value, 10) || 0)} />
-          </div>
+          </Field>
           {mode.kind === 'edit' && (
             <>
-              <div>
-                <Label>Role</Label>
+              <Field label="Role">
                 <select value={form.role} onChange={(e) => set('role', e.target.value as FormState['role'])} className="w-full rounded-md border border-[var(--border)] bg-[var(--surf-3)] px-3 py-2.5 text-sm text-[var(--color-cream)]">
                   <option value="member">Member</option>
                   <option value="supervisor">Supervisor (fund collector)</option>
                   <option value="admin">Admin</option>
                 </select>
-              </div>
-              <div>
-                <Label>Status</Label>
+              </Field>
+              <Field label="Status">
                 <select value={form.status} onChange={(e) => set('status', e.target.value as FormState['status'])} className="w-full rounded-md border border-[var(--border)] bg-[var(--surf-3)] px-3 py-2.5 text-sm text-[var(--color-cream)]">
                   <option value="pending">Pending</option>
                   <option value="approved">Approved</option>
                   <option value="rejected">Rejected</option>
                 </select>
-              </div>
+              </Field>
               <div className="md:col-span-2">
-                <Label>Spouse (husband/wife)</Label>
-                <select
-                  value={form.spouseId}
-                  onChange={(e) => set('spouseId', e.target.value)}
-                  className="w-full rounded-md border border-[var(--border)] bg-[var(--surf-3)] px-3 py-2.5 text-sm text-[var(--color-cream)]"
-                >
-                  <option value="">None</option>
-                  {spouseCandidates.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.nameEn || c.nameUr}{c.deceased ? ' (marhoom)' : ''}{c.fatherName && c.fatherName !== '—' ? ` · s/o ${c.fatherName}` : ''}
-                    </option>
-                  ))}
-                </select>
+                <Field label="Spouse (husband/wife)">
+                  <select
+                    value={form.spouseId}
+                    onChange={(e) => set('spouseId', e.target.value)}
+                    className="w-full rounded-md border border-[var(--border)] bg-[var(--surf-3)] px-3 py-2.5 text-sm text-[var(--color-cream)]"
+                  >
+                    <option value="">None</option>
+                    {spouseCandidates.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.nameEn || c.nameUr}{c.deceased ? ' (marhoom)' : ''}{c.fatherName && c.fatherName !== '—' ? ` · s/o ${c.fatherName}` : ''}
+                      </option>
+                    ))}
+                  </select>
+                </Field>
                 <p className="mt-1 text-[10.5px] text-[var(--txt-3)]">
                   Setting a spouse links both members automatically. Family tree will show them paired.
                 </p>
               </div>
-              <div className="md:col-span-2 rounded-md border border-[var(--border)] bg-[var(--surf-3)] p-3">
-                <Label>Children — tree only (no account, e.g. under 18)</Label>
+              <div role="group" aria-labelledby={childrenLabelId} className="md:col-span-2 rounded-md border border-[var(--border)] bg-[var(--surf-3)] p-3">
+                <Label id={childrenLabelId}>Children — tree only (no account, e.g. under 18)</Label>
                 {(existingKids.length > 0 || addedKids.length > 0) && (
                   <div className="mb-2 mt-1 flex flex-wrap gap-1.5">
                     {existingKids.map((k) => (

@@ -1,4 +1,5 @@
 'use client';
+import Link from 'next/link';
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import type { Route } from 'next';
@@ -142,11 +143,11 @@ export default function LoginForm({ next }: { next?: string }) {
         </Button>
       </motion.div>
       <div className="mt-4 flex flex-col items-center gap-2 text-xs">
-        <a href="/forgot-password" className="text-[var(--color-gold)] underline-offset-2 hover:underline">
+        <Link href="/forgot-password" className="text-[var(--color-gold)] underline-offset-2 hover:underline">
           Forgot password? · پاس ورڈ بھول گئے؟
-        </a>
+        </Link>
         <span className="text-[var(--color-gold-4)]">
-          New here? <a href="/register" className="text-[var(--color-gold)] underline-offset-2 hover:underline">Create an account</a>
+          New here? <Link href="/register" className="text-[var(--color-gold)] underline-offset-2 hover:underline">Create an account</Link>
         </span>
       </div>
     </form>

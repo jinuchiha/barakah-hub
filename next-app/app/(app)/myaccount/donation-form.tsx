@@ -1,7 +1,7 @@
 'use client';
 import { useLocale } from '@/lib/i18n/use-locale';
 import { t as tr } from '@/lib/i18n/dict';
-import { useRef, useState, useTransition } from 'react';
+import { useId, useRef, useState, useTransition } from 'react';
 import { toast } from 'sonner';
 import { ImagePlus, X } from 'lucide-react';
 import { submitDonation } from '@/app/actions';
@@ -23,13 +23,13 @@ interface DonationFormProps {
   easyPaiseNumber?: string | null;
 }
 
-function PoolToggle({ pool, onChange }: { pool: 'sadaqah' | 'zakat'; onChange: (p: 'sadaqah' | 'zakat') => void }) {
+function PoolToggle({ pool, onChange, labelledBy }: { pool: 'sadaqah' | 'zakat'; onChange: (p: 'sadaqah' | 'zakat') => void; labelledBy?: string }) {
   const opts = [
     { key: 'sadaqah' as const, label: 'Sadaqah · صدقہ' },
     { key: 'zakat' as const, label: 'Zakat · زکوٰۃ' },
   ];
   return (
-    <div role="radiogroup" aria-label="Pool" className="grid grid-cols-2 gap-1 rounded-xl border border-[var(--border)] bg-[var(--surf-3)] p-1">
+    <div role="radiogroup" aria-label={labelledBy ? undefined : 'Pool'} aria-labelledby={labelledBy} className="grid grid-cols-2 gap-1 rounded-xl border border-[var(--border)] bg-[var(--surf-3)] p-1">
       {opts.map((o) => (
         <button
           key={o.key}
@@ -108,6 +108,7 @@ export default function DonationForm({ easyPaiseName, easyPaiseNumber }: Donatio
   // returns the original payment instead of creating a duplicate. Rotated
   // only after a submission actually lands.
   const idempotencyKey = useRef<string>(crypto.randomUUID());
+  const poolLabelId = useId();
 
   function reset() {
     setAmount(0);
@@ -211,8 +212,8 @@ export default function DonationForm({ easyPaiseName, easyPaiseNumber }: Donatio
       </div>
 
       <div>
-        <Label>{tr('don.pool', locale)}</Label>
-        <PoolToggle pool={pool} onChange={setPool} />
+        <Label id={poolLabelId}>{tr('don.pool', locale)}</Label>
+        <PoolToggle pool={pool} onChange={setPool} labelledBy={poolLabelId} />
       </div>
 
       <div>

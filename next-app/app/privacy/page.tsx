@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 export const metadata = { title: 'Privacy Policy · Barakah Hub' };
 
 /**
@@ -9,6 +11,7 @@ export const metadata = { title: 'Privacy Policy · Barakah Hub' };
 export default function PrivacyPage() {
   return (
     <main className="mx-auto max-w-2xl px-6 py-16 text-[var(--txt-2)]">
+      <Link href="/" className="mb-6 inline-block text-xs text-[var(--color-gold-4)] underline-offset-2 hover:underline">← Back to Barakah Hub</Link>
       <p className="mb-2 text-xs uppercase tracking-[2px] text-[var(--color-gold-4)]">Last updated July 2026</p>
       <h1 className="mb-8 text-3xl font-semibold text-[var(--color-cream)]">Privacy Policy</h1>
 

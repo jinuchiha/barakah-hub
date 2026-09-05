@@ -36,7 +36,6 @@ const NAV: { href: string; label: string; labelUr: string; icon: React.Component
 interface NavProps {
   isAdmin?: boolean;
   isSupervisor?: boolean;
-  locale?: 'ur' | 'en';
   onNavigate?: () => void;
   layoutIdSuffix?: string;
   badges?: Record<string, number>;
@@ -87,8 +86,10 @@ const collapseStore = {
   getServerSnapshot: () => false,
 };
 
-export function Sidebar({ isAdmin = false, isSupervisor = false, locale = 'en', badges = {} }: {
-  isAdmin?: boolean; isSupervisor?: boolean; locale?: 'ur' | 'en'; badges?: Record<string, number>;
+// locale is read via useLocale() inside SidebarNav — a locale prop here was
+// accepted, threaded, and silently discarded.
+export function Sidebar({ isAdmin = false, isSupervisor = false, badges = {} }: {
+  isAdmin?: boolean; isSupervisor?: boolean; badges?: Record<string, number>;
 }) {
   const collapsed = useSyncExternalStore(collapseStore.subscribe, collapseStore.getSnapshot, collapseStore.getServerSnapshot);
   const toggle = () => {
@@ -104,7 +105,7 @@ export function Sidebar({ isAdmin = false, isSupervisor = false, locale = 'en', 
       {/* Gold top accent line */}
       <div aria-hidden className="h-px w-full" style={{ background: 'linear-gradient(90deg, transparent, rgba(200,155,60,0.35), transparent)' }} />
 
-      <SidebarNav isAdmin={isAdmin} isSupervisor={isSupervisor} locale={locale} layoutIdSuffix="desktop" badges={badges} collapsed={collapsed} />
+      <SidebarNav isAdmin={isAdmin} isSupervisor={isSupervisor} layoutIdSuffix="desktop" badges={badges} collapsed={collapsed} />
 
       {/* ── FOOTER: collapse toggle + version ── */}
       <div

@@ -25,3 +25,42 @@ export const Label = React.forwardRef<HTMLLabelElement, React.LabelHTMLAttribute
   ),
 );
 Label.displayName = 'Label';
+
+/**
+ * Label + control, associated automatically.
+ *
+ * The bare `Label` renders a `<label>` with no `htmlFor`, and the omission is
+ * silent — which is how 62 of the app's 78 labels ended up unassociated
+ * (screen readers announce "edit text, blank"; clicking the label does
+ * nothing). `Field` generates the id once and wires both sides, so the
+ * association cannot be forgotten:
+ *
+ *   <Field label="Amount (Rs)">
+ *     <Input name="amount" type="number" />
+ *   </Field>
+ *
+ * Works with any single element that takes an `id` — Input, select, textarea.
+ */
+export function Field({
+  label,
+  hint,
+  className,
+  labelClassName,
+  children,
+}: {
+  label: React.ReactNode;
+  /** Small helper text under the control. */
+  hint?: React.ReactNode;
+  className?: string;
+  labelClassName?: string;
+  children: React.ReactElement<{ id?: string }>;
+}) {
+  const id = React.useId();
+  return (
+    <div className={className}>
+      <Label htmlFor={id} className={labelClassName}>{label}</Label>
+      {React.cloneElement(children, { id: children.props.id ?? id })}
+      {hint ? <p className="mt-1 text-[10.5px] text-[var(--txt-4)]">{hint}</p> : null}
+    </div>
+  );
+}

@@ -18,72 +18,93 @@ import { fmtRs, t } from '@/lib/i18n/dict';
 import { getLocale } from '@/lib/i18n/server';
 import { ini } from '@/lib/utils';
 
+export const metadata = { title: 'Dashboard · Barakah Hub' };
+
 export default async function DashboardPage() {
-  const locale = await getLocale();
-  const me = await getMeOrRedirect();
+  const [locale, me] = await Promise.all([getLocale(), getMeOrRedirect()]);
   const isAdmin = me.role === 'admin';
 
-  const [totalRow] = await db
-    .select({ total: sql<number>`COALESCE(SUM(${payments.amount}),0)::int` })
-    .from(payments)
-    .where(eq(payments.status, 'verified'));
+  // One parallel batch: these ten queries are independent of each other, and
+  // running them serially made the dashboard pay ~13 sequential round-trips
+  // before first byte. Only the votes lookup below depends on a result here.
+  const [
+    [totalRow],
+    [pendingRow],
+    [memberCountRow],
+    outstandingLoans,
+    pendingVotes,
+    [cfg],
+    series,
+    openCases,
+    poolBreakdown,
+    caseBreakdown,
+  ] = await Promise.all([
+    db
+      .select({ total: sql<number>`COALESCE(SUM(${payments.amount}),0)::int` })
+      .from(payments)
+      .where(eq(payments.status, 'verified')),
+    // Total Rs sitting in the supervisor/admin approval flow — shown to
+    // admin as a 5th stat card so they can see workload at a glance.
+    isAdmin
+      ? db
+          .select({ total: sql<number>`COALESCE(SUM(${payments.amount}),0)::int` })
+          .from(payments)
+          .where(eq(payments.pendingVerify, true))
+      : Promise.resolve([{ total: 0 }]),
+    db
+      .select({ c: sql<number>`COUNT(*)::int` })
+      .from(members)
+      .where(and(eq(members.deceased, false), eq(members.status, 'approved'))),
+    db
+      .select({ owed: sql<number>`COALESCE(SUM(${loans.amount} - ${loans.paid}),0)::int` })
+      .from(loans)
+      .where(eq(loans.active, true)),
+    db.$count(cases, eq(cases.status, 'voting')),
+    db.select().from(configTbl).where(eq(configTbl.id, 1)).limit(1),
+    db
+      .select({ monthStart: payments.monthStart, total: sql<number>`SUM(${payments.amount})::int` })
+      .from(payments)
+      .where(eq(payments.status, 'verified'))
+      .groupBy(payments.monthStart)
+      .orderBy(desc(payments.monthStart))
+      .limit(6),
+    db
+      .select()
+      .from(cases)
+      .where(eq(cases.status, 'voting'))
+      .orderBy(desc(cases.createdAt))
+      .limit(5),
+    isAdmin
+      ? db
+          .select({ pool: payments.pool, total: sql<number>`SUM(${payments.amount})::int` })
+          .from(payments)
+          .where(eq(payments.status, 'verified'))
+          .groupBy(payments.pool)
+      : Promise.resolve([]),
+    isAdmin
+      ? db
+          .select({ category: cases.category, total: sql<number>`SUM(${cases.amount})::int` })
+          .from(cases)
+          .where(eq(cases.status, 'disbursed'))
+          .groupBy(cases.category)
+      : Promise.resolve([]),
+  ]);
+
   const totalFund = Number(totalRow?.total ?? 0);
-
-  // Total Rs sitting in the supervisor/admin approval flow — shown to
-  // admin as a 5th stat card so they can see workload at a glance.
-  const [pendingRow] = isAdmin
-    ? await db
-        .select({ total: sql<number>`COALESCE(SUM(${payments.amount}),0)::int` })
-        .from(payments)
-        .where(eq(payments.pendingVerify, true))
-    : [{ total: 0 }];
   const pendingAmount = Number(pendingRow?.total ?? 0);
-
-  const [memberCountRow] = await db
-    .select({ c: sql<number>`COUNT(*)::int` })
-    .from(members)
-    .where(and(eq(members.deceased, false), eq(members.status, 'approved')));
   const memberCount = memberCountRow?.c ?? 0;
-
-  const outstandingLoans = await db
-    .select({ owed: sql<number>`COALESCE(SUM(${loans.amount} - ${loans.paid}),0)::int` })
-    .from(loans)
-    .where(eq(loans.active, true));
-
-  const pendingVotes = await db.$count(cases, eq(cases.status, 'voting'));
-  const [cfg] = await db.select().from(configTbl).where(eq(configTbl.id, 1)).limit(1);
   const daysRemaining = computeDaysRemaining(cfg?.goalDeadline ?? null);
-
-  const series = await db
-    .select({ monthStart: payments.monthStart, total: sql<number>`SUM(${payments.amount})::int` })
-    .from(payments)
-    .where(eq(payments.status, 'verified'))
-    .groupBy(payments.monthStart)
-    .orderBy(desc(payments.monthStart))
-    .limit(6);
   const sparkValues = series.map((s) => Number(s.total)).reverse();
 
-  const openCases = await db
-    .select()
-    .from(cases)
-    .where(eq(cases.status, 'voting'))
-    .orderBy(desc(cases.createdAt))
-    .limit(5);
   const openCaseIds = openCases.map((c) => c.id);
   const openVotes = openCaseIds.length
     ? await db.select().from(votes).where(inArray(votes.caseId, openCaseIds))
     : [];
 
-  const eligibleCount = Math.max(0, (await db.$count(members, and(eq(members.deceased, false), eq(members.status, 'approved')))) - 1);
+  // Eligible voters = approved living members minus the requester — the same
+  // population memberCount already counted; no second COUNT query needed.
+  const eligibleCount = Math.max(0, memberCount - 1);
   const need = Math.ceil(eligibleCount * ((cfg?.voteThresholdPct ?? 50) / 100));
-
-  const poolBreakdown = isAdmin
-    ? await db
-        .select({ pool: payments.pool, total: sql<number>`SUM(${payments.amount})::int` })
-        .from(payments)
-        .where(eq(payments.status, 'verified'))
-        .groupBy(payments.pool)
-    : [];
   const POOL_META: Record<string, { label: string; color: string }> = {
     sadaqah: { label: 'Sadaqah',  color: '#c89b3c' },
     zakat:   { label: 'Zakat',    color: '#2d8a5f' },
@@ -96,13 +117,6 @@ export default async function DashboardPage() {
     color: POOL_META[p.pool]?.color ?? '#7d7768',
   }));
 
-  const caseBreakdown = isAdmin
-    ? await db
-        .select({ category: cases.category, total: sql<number>`SUM(${cases.amount})::int` })
-        .from(cases)
-        .where(eq(cases.status, 'disbursed'))
-        .groupBy(cases.category)
-    : [];
   const CATEGORY_PALETTE = ['#c89b3c', '#2d8a5f', '#8b6ec9', '#b9556a', '#608dd7', '#4ab8d6', '#7d7768'];
   const caseSlices: DonutSlice[] = caseBreakdown.map((c, i) => ({
     key: c.category,
@@ -518,7 +532,7 @@ async function CommunityActivity({ meId, isAdmin }: { meId: string; isAdmin: boo
    * The viewer always sees their own activity un-masked so they can
    * recognise their own contributions in the feed.
    */
-  function maskedActor(memberId: string, _pool: string) {
+  function maskedActor(memberId: string) {
     const isSelf = memberId === meId;
     if (isSelf || isAdmin) {
       return memMap.get(memberId) ?? { nameEn: 'Member', color: '#475569' };
@@ -541,7 +555,7 @@ async function CommunityActivity({ meId, isAdmin }: { meId: string; isAdmin: boo
         ts: new Date(p.createdAt).getTime(),
         pool: p.pool,
         amount: p.amount,
-        actor: maskedActor(p.memberId, p.pool),
+        actor: maskedActor(p.memberId),
         monthLabel: p.monthLabel,
         anon: isPrivate,
       };

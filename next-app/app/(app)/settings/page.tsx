@@ -18,8 +18,8 @@ export default async function SettingsPage() {
   return (
     <div className="mx-auto w-full max-w-2xl lg:max-w-[1400px]">
       <header className="mb-8 border-b border-[var(--border)] pb-5">
-        <h1 className="font-[var(--font-arabic)] text-3xl text-[var(--color-gold-2)]">ترتیبات</h1>
-        <p className="mt-1 font-[var(--font-en)] text-sm italic text-[var(--color-gold-4)]">Settings & Preferences</p>
+        <h1 className="text-[28px] font-semibold tracking-[-0.5px] text-[var(--color-cream)]">Settings &amp; Preferences</h1>
+        <p dir="rtl" className="font-[var(--font-arabic)] text-[15px] leading-8 text-[var(--color-gold-2)] [text-align:start]">ترتیبات</p>
       </header>
 
       {/* One continuous section grid — profile, family, contact, appearance,

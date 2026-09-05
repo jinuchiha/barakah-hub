@@ -102,7 +102,7 @@ export default async function FundPage() {
           <CardBody className="p-0">
             {awaitingSupervisor.length === 0 ? (
               <div className="py-14 text-center">
-                <div className="mx-auto mb-2 text-[var(--color-gold)] opacity-30 text-3xl">✓</div>
+                <div aria-hidden className="mx-auto mb-2 text-[var(--color-gold)] opacity-30 text-3xl">✓</div>
                 <div className="text-sm text-[var(--txt-3)]">All caught up · no pending payments</div>
                 <div className="font-[var(--font-arabic)] mt-1 text-xs text-[var(--txt-4)]">الحمدللہ</div>
               </div>
@@ -135,8 +135,10 @@ export default async function FundPage() {
     );
   }
 
-  // Admin: full view.
-  const [allMembers, history, awaitingSupervisor, awaitingAdmin, rejectedBySupervisor] = await Promise.all([
+  // Admin: full view — one parallel batch; nothing below depends on another
+  // query's result, so nothing here should run serially.
+  const nowLabel = currentMonthLabel();
+  const [allMembers, history, awaitingSupervisor, awaitingAdmin, rejectedBySupervisor, pools, monthly, monthPayments] = await Promise.all([
     db.select().from(members),
     db.select().from(payments).where(eq(payments.status, 'verified')).orderBy(desc(payments.paidOn)).limit(50),
     // Awaiting supervisor: still in their initial queue (not approved, not rejected)
@@ -155,6 +157,30 @@ export default async function FundPage() {
     db.select().from(payments)
       .where(and(eq(payments.pendingVerify, true), isNotNull(payments.supervisorRejectedAt)))
       .orderBy(desc(payments.supervisorRejectedAt)),
+    db
+      .select({
+        pool: payments.pool,
+        total: sql<number>`COALESCE(SUM(${payments.amount}),0)::int`,
+      })
+      .from(payments)
+      .where(eq(payments.status, 'verified'))
+      .groupBy(payments.pool),
+    db
+      .select({
+        monthStart: payments.monthStart,
+        monthLabel: payments.monthLabel,
+        pool: payments.pool,
+        total: sql<number>`SUM(${payments.amount})::int`,
+      })
+      .from(payments)
+      .where(eq(payments.status, 'verified'))
+      .groupBy(payments.monthStart, payments.monthLabel, payments.pool)
+      .orderBy(desc(payments.monthStart)),
+    // This-month contribution board — who has paid, who is pending.
+    db
+      .select({ memberId: payments.memberId, status: payments.status })
+      .from(payments)
+      .where(eq(payments.monthLabel, nowLabel)),
   ]);
   const memById = new Map(allMembers.map((m) => [m.id, m]));
   // Exclude supervisor-rejected from the headline total — those amounts are
@@ -162,31 +188,11 @@ export default async function FundPage() {
   const pendingTotal = [...awaitingSupervisor, ...awaitingAdmin]
     .reduce((s, p) => s + p.amount, 0);
 
-  const pools = await db
-    .select({
-      pool: payments.pool,
-      total: sql<number>`COALESCE(SUM(${payments.amount}),0)::int`,
-    })
-    .from(payments)
-    .where(eq(payments.status, 'verified'))
-    .groupBy(payments.pool);
   const poolTotals = {
     sadaqah: pools.find((p) => p.pool === 'sadaqah')?.total ?? 0,
     zakat: pools.find((p) => p.pool === 'zakat')?.total ?? 0,
     qarz: pools.find((p) => p.pool === 'qarz')?.total ?? 0,
   };
-
-  const monthly = await db
-    .select({
-      monthStart: payments.monthStart,
-      monthLabel: payments.monthLabel,
-      pool: payments.pool,
-      total: sql<number>`SUM(${payments.amount})::int`,
-    })
-    .from(payments)
-    .where(eq(payments.status, 'verified'))
-    .groupBy(payments.monthStart, payments.monthLabel, payments.pool)
-    .orderBy(desc(payments.monthStart));
 
   const bucketMap = new Map<string, MonthBucket>();
   for (const r of monthly) {
@@ -201,11 +207,6 @@ export default async function FundPage() {
   const chartBuckets = [...bucketMap.values()].slice(0, 12).reverse();
 
   // This-month contribution board — who has paid, who is pending, who hasn't.
-  const nowLabel = currentMonthLabel();
-  const monthPayments = await db
-    .select({ memberId: payments.memberId, status: payments.status })
-    .from(payments)
-    .where(eq(payments.monthLabel, nowLabel));
   const monthStatus = new Map<string, 'paid' | 'pending'>();
   for (const p of monthPayments) {
     const prev = monthStatus.get(p.memberId);
@@ -235,7 +236,7 @@ export default async function FundPage() {
         <ExportLink href={'/api/exports/fund' as Route}>Export CSV</ExportLink>
       </header>
 
-      <div className="mb-6 grid gap-3 grid-cols-3">
+      <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
         <StatCard label={t('fund.sadaqahPool', locale)} value={Number(poolTotals.sadaqah)} money tone="gold"     hint="Voluntary charity" />
         <StatCard label={t('fund.zakatPool', locale)}   value={Number(poolTotals.zakat)} money  tone="emerald"  hint="Obligatory alms" />
         <StatCard label={t('fund.qarzPool', locale)}    value={Number(poolTotals.qarz)} money   tone="sapphire" hint="Interest-free loans" />
@@ -303,7 +304,7 @@ export default async function FundPage() {
       {awaitingAdmin.length > 0 && (
         <Card className="mb-4 border-[var(--color-gold)]/40 ring-1 ring-[var(--color-gold)]/20">
           <CardHeader>
-            <CardTitle>✓ Supervisor-Approved · Awaiting Your Final ({awaitingAdmin.length})</CardTitle>
+            <CardTitle>Supervisor-Approved · Awaiting Your Final ({awaitingAdmin.length})</CardTitle>
             <span className="text-[10px] uppercase tracking-[1.5px] text-[var(--color-gold-4)]">
               Verify to release into the fund
             </span>
@@ -339,7 +340,7 @@ export default async function FundPage() {
       {rejectedBySupervisor.length > 0 && (
         <Card className="mb-4 border-[#dc5252]/30 ring-1 ring-[#dc5252]/15">
           <CardHeader>
-            <CardTitle>✗ Supervisor Rejected · Your Decision ({rejectedBySupervisor.length})</CardTitle>
+            <CardTitle>Supervisor Rejected · Your Decision ({rejectedBySupervisor.length})</CardTitle>
             <span className="text-[10px] uppercase tracking-[1.5px] text-[#f08585]">
               Resend for re-approval or delete
             </span>
@@ -393,7 +394,7 @@ export default async function FundPage() {
       {awaitingSupervisor.length > 0 && (
         <Card className="mb-4">
           <CardHeader>
-            <CardTitle>⏳ Pending Supervisor ({awaitingSupervisor.length})</CardTitle>
+            <CardTitle>Pending Supervisor ({awaitingSupervisor.length})</CardTitle>
             <span className="text-[10px] uppercase tracking-[1.5px] text-[var(--color-gold-4)]">
               Waiting for supervisor&apos;s first review
             </span>

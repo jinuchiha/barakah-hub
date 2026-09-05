@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import type { Route } from 'next';
 import { signOut } from '@/lib/auth-client';
-import { ini } from '@/lib/utils';
+import { Avatar } from './ui/avatar';
 import { Crescent as CrescentMark } from '@/components/icons/crescent';
 import { MobileNav } from '@/components/mobile-nav';
 import { COMMAND_PALETTE_OPEN_EVENT } from '@/components/command-palette';
@@ -175,17 +175,11 @@ export function Topbar({ user, unreadCount = 0, isAdmin = false, isSupervisor = 
               aria-label={`Account menu for ${user.name}`}
               className="ml-1 flex items-center gap-2 rounded-lg px-1.5 py-1 outline-none transition-colors hover:bg-[var(--surf-3)] focus-visible:ring-2 focus-visible:ring-[var(--color-gold)]/40"
             >
-              <span
-                className="grid size-7 place-items-center overflow-hidden rounded-full text-[10px] font-semibold text-white ring-1 ring-[var(--border)]"
-                style={{ background: user.color || '#475569' }}
-                aria-hidden="true"
-              >
-                {user.photoUrl ? (
-                  <img src={user.photoUrl} alt="" className="size-full object-cover" />
-                ) : (
-                  ini(user.name)
-                )}
-              </span>
+              <Avatar
+                member={{ photoUrl: user.photoUrl, color: user.color || '#475569', nameEn: user.name }}
+                size="xs"
+                className="ring-1 ring-[var(--border)]"
+              />
               <span className="hidden flex-col items-start leading-tight sm:flex">
                 <span className="text-[12px] font-medium text-[var(--color-cream)]">{user.name}</span>
                 <span className="text-[10px] text-[var(--txt-3)]">{user.role}</span>

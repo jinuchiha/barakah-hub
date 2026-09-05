@@ -99,10 +99,26 @@ export default async function SearchPage({ searchParams }: Props) {
   return (
     <div className="mx-auto w-full max-w-3xl lg:max-w-4xl">
       <header className="mb-8 border-b border-[var(--border)] pb-5">
-        <h1 className="font-[var(--font-arabic)] text-3xl text-[var(--color-gold-2)]">تلاش</h1>
-        <p className="mt-1 font-[var(--font-en)] text-sm italic text-[var(--color-gold-4)]">
+        <h1 className="text-[28px] font-semibold tracking-[-0.5px] text-[var(--color-cream)]">Search</h1>
+        <p dir="rtl" className="font-[var(--font-arabic)] text-[15px] leading-8 text-[var(--color-gold-2)] [text-align:start]">تلاش</p>
+        <p className="mt-1 text-sm text-[var(--txt-3)]">
           {totalHits} result{totalHits === 1 ? '' : 's'} for &quot;{term}&quot;
         </p>
+        {/* Refine in place — the topbar search box is hidden below md, so
+            without this form a phone user could not change the query. */}
+        <form method="get" action="/search" className="mt-4 flex max-w-md gap-2">
+          <input
+            type="search"
+            name="q"
+            defaultValue={term}
+            aria-label="Search members, cases, payments, loans"
+            placeholder="Search members, cases, payments…"
+            className="w-full rounded-md border border-[var(--border)] bg-[var(--surf-3)] px-3 py-2 text-sm text-[var(--color-cream)] outline-none focus:border-[var(--color-gold)]"
+          />
+          <button type="submit" className="rounded-md border border-[var(--border-accent)] bg-[rgba(200,155,60,0.10)] px-4 py-2 text-xs font-semibold text-[var(--color-gold-2)] hover:bg-[rgba(200,155,60,0.18)]">
+            Search
+          </button>
+        </form>
       </header>
 
       {memberHits.length > 0 && (

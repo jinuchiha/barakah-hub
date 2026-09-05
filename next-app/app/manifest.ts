@@ -5,12 +5,16 @@ export default function manifest(): MetadataRoute.Manifest {
     name: 'Barakah Hub',
     short_name: 'Barakah Hub',
     description: 'Barakah Hub · Islamic family fund: sadqa, qarz-e-hasana, emergency vote, audit trail',
+    id: '/',
     start_url: '/',
     scope: '/',
     display: 'standalone',
     orientation: 'any',
-    background_color: '#14171c',
-    theme_color: '#1e2a4a',
+    // Match the app's actual body background (globals.css) and the viewport
+    // themeColor in layout.tsx — the install splash and address bar used to
+    // flash colors the app never renders.
+    background_color: '#060b13',
+    theme_color: '#0a0f1a',
     lang: 'en',
     dir: 'ltr',
     categories: ['finance', 'lifestyle', 'social'],

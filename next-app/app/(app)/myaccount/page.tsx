@@ -6,9 +6,13 @@ import { payments, loans, config as configTbl } from '@/lib/db/schema';
 import { Card, CardHeader, CardTitle, CardBody } from '@/components/ui/card';
 import { Breadcrumb } from '@/components/breadcrumb';
 import { fmtRs, t } from '@/lib/i18n/dict';
+import { fmtDate } from '@/lib/format';
+import { PaymentStatusPill } from '@/components/payment-status-pill';
 import { getLocale } from '@/lib/i18n/server';
 import { ini } from '@/lib/utils';
 import DonationForm from './donation-form';
+
+export const metadata = { title: 'My Account · Barakah Hub' };
 
 export default async function MyAccountPage() {
   const me = await getMeOrRedirect();
@@ -143,6 +147,7 @@ export default async function MyAccountPage() {
               {t('empty.payments', locale)}
             </div>
           ) : (
+            <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <caption className="sr-only">Payment history</caption>
               <thead>
@@ -161,21 +166,16 @@ export default async function MyAccountPage() {
                     <td className="px-4 py-2.5 capitalize">{p.pool}</td>
                     <td className="px-4 py-2.5 text-right font-bold text-[var(--color-gold)]">{fmtRs(p.amount)}</td>
                     <td className="px-4 py-2.5">
-                      {p.pendingVerify && p.supervisorRejectedAt ? (
-                        <span className="rounded-full bg-red-500/10 px-2.5 py-0.5 text-xs text-red-300">❌ Rejected</span>
-                      ) : p.pendingVerify ? (
-                        <span className="rounded-full bg-yellow-500/10 px-2.5 py-0.5 text-xs text-yellow-300">⏳ Pending</span>
-                      ) : (
-                        <span className="rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs text-emerald-300">✓ Verified</span>
-                      )}
+                      <PaymentStatusPill status={p.status} />
                     </td>
                     <td className="px-4 py-2.5 text-xs text-[var(--txt-3)]">
-                      {new Date(p.paidOn).toLocaleDateString('en-GB')}
+                      {fmtDate(p.paidOn)}
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
+            </div>
           )}
         </CardBody>
       </Card>

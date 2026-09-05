@@ -1,5 +1,5 @@
 'use client';
-import { useState, useTransition } from 'react';
+import { useEffect, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import type { Route } from 'next';
 import { toast } from 'sonner';
@@ -7,12 +7,26 @@ import { signUp } from '@/lib/auth-client';
 import { Input, Label } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 
-export default function RegisterForm() {
+/** localStorage key that carries the invite token across the registration →
+ *  email-verification → onboarding hops (the token arrives on /register but
+ *  is consumed by onboardSelf several pages later). */
+export const INVITE_TOKEN_KEY = 'bh_invite_token';
+
+export default function RegisterForm({ inviteToken = null }: { inviteToken?: string | null }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [pending, start] = useTransition();
   const router = useRouter();
+
+  // Persist the invite immediately: verify-email and onboarding are separate
+  // pages and the query param does not survive the redirects. Without this,
+  // invites were generated and validated but could never be redeemed —
+  // usedCount stayed at 0 forever.
+  useEffect(() => {
+    if (!inviteToken) return;
+    try { localStorage.setItem(INVITE_TOKEN_KEY, inviteToken); } catch { /* storage blocked — invite becomes optional */ }
+  }, [inviteToken]);
 
   function submit(e: React.FormEvent) {
     e.preventDefault();

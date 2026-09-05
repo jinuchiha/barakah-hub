@@ -7,8 +7,9 @@ import { Card, CardHeader, CardTitle, CardBody } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
+import { Avatar } from '@/components/ui/avatar';
 import { fmtRs } from '@/lib/i18n/dict';
-import { ini, normalizePkPhone } from '@/lib/utils';
+import { normalizePkPhone } from '@/lib/utils';
 import { hardDeleteMember } from '@/app/actions';
 import { toast } from 'sonner';
 import type { Member } from '@/lib/db/schema';
@@ -112,7 +113,7 @@ export default function MembersTable({ initial }: Props) {
   function whatsapp(m: Member) {
     const p = normalizePkPhone(m.phone);
     if (!p) { toast.error('No phone'); return; }
-    const text = `بسم اللہ الرحمن الرحیم\n\nالسلام علیکم ${m.nameUr}\nماہانہ ادائیگی یاد دہانی\n\nجزاک اللہ خیر`;
+    const text = `بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ\n\nالسلام علیکم ${m.nameUr}\nماہانہ ادائیگی یاد دہانی\n\nجزاک اللہ خیر`;
     window.open(`https://wa.me/${p}?text=${encodeURIComponent(text)}`, '_blank');
   }
 
@@ -140,15 +141,15 @@ export default function MembersTable({ initial }: Props) {
             <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-[var(--txt-4)]" />
             <Input className="pl-9" placeholder="Search name, father, city, phone..." value={q} onChange={(e) => setQ(e.target.value)} />
           </div>
-          <Select value={status} onChange={setStatus} options={[
+          <Select label="Filter by status" value={status} onChange={setStatus} options={[
             { value: '', label: 'All Status' },
             { value: 'admin', label: 'Admin' },
             { value: 'approved', label: 'Approved' },
             { value: 'pending', label: 'Pending' },
           ]} />
-          <Select value={province} onChange={setProvince} options={PROVINCES.map(p => ({ value: p.key, label: p.label }))} />
-          <Select value={city} onChange={setCity} options={[{ value: '', label: 'All Cities' }, ...cities.map(c => ({ value: c, label: c }))]} />
-          <Button variant="ghost" size="sm" onClick={reset}>↺</Button>
+          <Select label="Filter by province" value={province} onChange={setProvince} options={PROVINCES.map(p => ({ value: p.key, label: p.label }))} />
+          <Select label="Filter by city" value={city} onChange={setCity} options={[{ value: '', label: 'All Cities' }, ...cities.map(c => ({ value: c, label: c }))]} />
+          <Button variant="ghost" size="sm" onClick={reset} aria-label="Reset filters" title="Reset filters"><span aria-hidden>↺</span></Button>
         </div>
         {living.length === 0 ? (
           <EmptyState icon={<Users />} title="No members match these filters" />
@@ -189,9 +190,7 @@ export default function MembersTable({ initial }: Props) {
                       <td className="px-4 py-2 font-[var(--font-en)] text-xs text-[var(--color-gold-4)]">{i + 1}</td>
                       <td className="px-4 py-2">
                         <Link href={`/admin/members/${m.id}` as Route} className="group/name flex items-center gap-2.5">
-                          <div className="grid size-7 shrink-0 place-items-center overflow-hidden rounded-full text-[10px] font-bold text-white" style={{ background: m.color }}>
-                            {m.photoUrl ? <img src={m.photoUrl} alt={m.nameEn || m.nameUr || 'Member photo'} className="size-full rounded-full object-cover" /> : ini(m.nameEn || m.nameUr)}
-                          </div>
+                          <Avatar member={m} size="xs" />
                           <div>
                             <div className="text-sm font-semibold text-[var(--color-cream)] transition-colors group-hover/name:text-[var(--color-gold-2)]">{m.nameEn || m.nameUr}</div>
                             {m.relation ? <div className="text-[10px] text-[var(--txt-3)]">{m.relation}</div> : null}
@@ -237,12 +236,7 @@ export default function MembersTable({ initial }: Props) {
         <CardBody className="p-0">
           {dependents.map((m) => (
             <div key={m.id} className="flex items-center gap-3 border-b border-[var(--border)] px-5 py-3 last:border-b-0 hover:bg-[var(--surf-3)] transition-colors">
-              <div
-                className="grid size-8 shrink-0 place-items-center overflow-hidden rounded-full text-[10px] font-bold text-white"
-                style={{ background: m.color }}
-              >
-                {m.photoUrl ? <img src={m.photoUrl} alt="" className="size-full rounded-full object-cover" /> : ini(m.nameEn || m.nameUr)}
-              </div>
+              <Avatar member={m} size="sm" />
               <div className="min-w-0 flex-1">
                 <div className="truncate text-[13.5px] font-semibold text-[var(--color-cream)]">{m.nameUr || m.nameEn}</div>
                 <div className="mt-0.5 text-[11px] text-[var(--txt-3)]">
@@ -283,12 +277,7 @@ export default function MembersTable({ initial }: Props) {
         <CardBody className="p-0">
           {marhoom.map((m) => (
             <div key={m.id} className="flex items-center gap-3 border-b border-[var(--border)] px-5 py-3 last:border-b-0 hover:bg-[var(--surf-3)] transition-colors">
-              <div
-                className="grid size-8 shrink-0 place-items-center overflow-hidden rounded-full text-[10px] font-bold text-white"
-                style={{ background: m.color, filter: 'grayscale(0.8) brightness(0.9)' }}
-              >
-                {m.photoUrl ? <img src={m.photoUrl} alt="" className="size-full rounded-full object-cover" /> : ini(m.nameEn || m.nameUr)}
-              </div>
+              <Avatar member={m} size="sm" className="[filter:grayscale(0.8)_brightness(0.9)]" />
               <div className="min-w-0 flex-1">
                 <div className="truncate text-[13.5px] font-semibold text-[var(--color-cream)]">{m.nameUr || m.nameEn}</div>
                 <div className="mt-0.5 text-[11px] text-[var(--txt-3)]">
@@ -341,11 +330,11 @@ export default function MembersTable({ initial }: Props) {
   );
 }
 
-function Select<T extends string>({ value, onChange, options }: {
-  value: T; onChange: (v: T) => void; options: { value: string; label: string }[];
+function Select<T extends string>({ value, onChange, options, label }: {
+  value: T; onChange: (v: T) => void; options: { value: string; label: string }[]; label: string;
 }) {
   return (
-    <select value={value} onChange={(e) => onChange(e.target.value as T)} className="rounded-md border border-[var(--border)] bg-[var(--surf-3)] px-3 py-2.5 text-sm text-[var(--color-cream)] outline-none focus:border-[var(--color-gold)]">
+    <select aria-label={label} value={value} onChange={(e) => onChange(e.target.value as T)} className="rounded-md border border-[var(--border)] bg-[var(--surf-3)] px-3 py-2.5 text-sm text-[var(--color-cream)] outline-none focus:border-[var(--color-gold)]">
       {options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
     </select>
   );
@@ -357,20 +346,22 @@ function SortTh({ label, col, sortKey, dir, onSort, right }: {
 }) {
   const active = sortKey === col;
   const Icon = active ? (dir === 'asc' ? ChevronUp : ChevronDown) : ChevronsUpDown;
+  // A real <button> inside the th — a focusable th with onClick is reachable
+  // by keyboard but never announced as actionable by screen readers.
   return (
     <th
       className={`px-4 py-3 ${right ? 'text-right' : 'text-left'}`}
-      style={{ cursor: 'pointer', userSelect: 'none' }}
-      tabIndex={0}
-      onClick={() => onSort(col)}
-      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSort(col); } }}
       aria-sort={active ? (dir === 'asc' ? 'ascending' : 'descending') : 'none'}
     >
-      <span className={`inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-[1.5px] transition-colors ${active ? 'text-[var(--color-gold)]' : 'text-[var(--txt-4)] hover:text-[var(--txt-2)]'}`}>
+      <button
+        type="button"
+        onClick={() => onSort(col)}
+        className={`inline-flex cursor-pointer select-none items-center gap-1 border-0 bg-transparent p-0 text-[10px] font-bold uppercase tracking-[1.5px] transition-colors ${active ? 'text-[var(--color-gold)]' : 'text-[var(--txt-4)] hover:text-[var(--txt-2)]'}`}
+      >
         {right && <Icon className="size-3" aria-hidden />}
         {label}
         {!right && <Icon className="size-3" aria-hidden />}
-      </span>
+      </button>
     </th>
   );
 }
@@ -433,9 +424,7 @@ function MemberCard({ member: m, index, pending, onEdit, onWhatsapp, onDelete }:
     <div className="p-4">
       <Link href={`/admin/members/${m.id}` as Route} className="group/name mb-3 flex items-center gap-2.5">
         <span className="font-[var(--font-en)] text-[10px] text-[var(--color-gold-4)]">{index + 1}</span>
-        <div className="grid size-8 shrink-0 place-items-center overflow-hidden rounded-full text-[10px] font-bold text-white" style={{ background: m.color }}>
-          {m.photoUrl ? <img src={m.photoUrl} alt={m.nameEn || m.nameUr || 'Member photo'} className="size-full rounded-full object-cover" /> : ini(m.nameEn || m.nameUr)}
-        </div>
+        <Avatar member={m} size="sm" />
         <div className="min-w-0 flex-1">
           <div className="truncate text-sm font-semibold text-[var(--color-cream)] transition-colors group-hover/name:text-[var(--color-gold-2)]">{m.nameEn || m.nameUr}</div>
           {m.relation ? <div className="text-[10px] text-[var(--txt-3)]">{m.relation}</div> : null}

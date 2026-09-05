@@ -2,7 +2,7 @@
 import { useRef, useState, useTransition } from 'react';
 import { toast } from 'sonner';
 import { recordPayment } from '@/app/actions';
-import { Input, Label } from '@/components/ui/input';
+import { Field, Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
@@ -37,30 +37,26 @@ export default function RecordPaymentForm({ members }: { members: { id: string; 
 
   return (
     <form onSubmit={submit}>
-      <div className="mb-3">
-        <Label>Member *</Label>
+      <Field className="mb-3" label="Member *">
         <select value={memberId} onChange={(e) => setMemberId(e.target.value)} className="w-full rounded-md border border-[var(--border)] bg-[var(--surf-3)] px-3 py-2.5 text-sm text-[var(--color-cream)]">
           {members.map((m) => <option key={m.id} value={m.id}>{m.nameEn}</option>)}
         </select>
-      </div>
+      </Field>
       <div className="grid gap-3 md:grid-cols-2">
-        <div><Label>Amount *</Label><Input type="number" value={amount || ''} onChange={(e) => setAmount(parseInt(e.target.value) || 0)} /></div>
-        <div>
-          <Label>Pool</Label>
+        <Field label="Amount *"><Input type="number" value={amount || ''} onChange={(e) => setAmount(parseInt(e.target.value) || 0)} /></Field>
+        <Field label="Pool">
           <select value={pool} onChange={(e) => setPool(e.target.value as 'sadaqah' | 'zakat' | 'qarz')} className="w-full rounded-md border border-[var(--border)] bg-[var(--surf-3)] px-3 py-2.5 text-sm text-[var(--color-cream)]">
             <option value="sadaqah">Sadaqah / صدقہ</option>
             <option value="zakat">Zakat / زکوٰۃ</option>
             <option value="qarz">Qarz pool</option>
           </select>
-        </div>
-        <div className="md:col-span-2">
-          <Label>Month</Label>
+        </Field>
+        <Field className="md:col-span-2" label="Month">
           <Input value={month} onChange={(e) => setMonth(e.target.value)} placeholder="e.g. May 2026" />
-        </div>
-        <div className="md:col-span-2">
-          <Label>Note (optional)</Label>
+        </Field>
+        <Field className="md:col-span-2" label="Note (optional)">
           <Input value={note} onChange={(e) => setNote(e.target.value)} placeholder="e.g. JazzCash transfer" />
-        </div>
+        </Field>
       </div>
       <div className="mt-4 flex flex-wrap items-center gap-3">
         <Button type="submit" variant="gold" disabled={pending}>

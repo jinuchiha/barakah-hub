@@ -46,7 +46,7 @@ export default async function LoansPage() {
         <ExportLink href={'/api/exports/loans' as Route}>Export CSV</ExportLink>
       </header>
 
-      <div className="mb-6 grid grid-cols-3 gap-3">
+      <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
         <StatCard label="Active Loans"    value={active.length}      icon={<FileText />}    tone="sapphire" hint={`${fmtRs(outstanding)} outstanding`} />
         <StatCard label="Fully Repaid"    value={repaid.length}      icon={<CheckCircle2 />} tone="emerald"  hint="Completed" />
         <StatCard label="Total Disbursed" value={all.reduce((s,l) => s + l.amount, 0)} money icon={<AlertCircle />} tone="gold" hint="All time" />

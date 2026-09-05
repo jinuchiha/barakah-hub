@@ -87,6 +87,7 @@ export function PromptDialog({
             value={value}
             onChange={(e) => setValue(e.target.value)}
             placeholder={placeholder}
+            aria-label={title}
             onKeyDown={(e) => { if (e.key === 'Enter') submit(); }}
           />
         </div>

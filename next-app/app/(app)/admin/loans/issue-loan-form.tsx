@@ -2,7 +2,7 @@
 import { useState, useTransition } from 'react';
 import { toast } from 'sonner';
 import { issueLoan } from '@/app/actions';
-import { Input, Label } from '@/components/ui/input';
+import { Field, Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 
 interface Props {
@@ -61,8 +61,7 @@ export default function IssueLoanForm({ members }: Props) {
 
   return (
     <form onSubmit={submit} className="grid gap-3 md:grid-cols-2">
-      <div className="md:col-span-2">
-        <Label>Borrower *</Label>
+      <Field className="md:col-span-2" label="Borrower *">
         <select
           value={memberId}
           onChange={(e) => setMemberId(e.target.value)}
@@ -70,38 +69,35 @@ export default function IssueLoanForm({ members }: Props) {
         >
           {members.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
         </select>
-      </div>
-      <div>
-        <Label>Amount (Rs.) *</Label>
+      </Field>
+      <Field label="Amount (Rs.) *">
         <Input type="number" min={1} value={amount || ''} onChange={(e) => setAmount(parseInt(e.target.value, 10) || 0)} required />
-      </div>
-      <div>
-        <Label>Expected return</Label>
+      </Field>
+      <Field label="Expected return">
         <Input type="date" value={expectedReturn} onChange={(e) => setExpectedReturn(e.target.value)} />
-      </div>
+      </Field>
       <div className="md:col-span-2">
-        <Label>Monthly installment (Rs., optional)</Label>
-        <Input
-          type="number"
-          min={0}
-          value={installment || ''}
-          onChange={(e) => setInstallment(parseInt(e.target.value, 10) || 0)}
-          placeholder="e.g. 500 per month"
-        />
+        <Field label="Monthly installment (Rs., optional)">
+          <Input
+            type="number"
+            min={0}
+            value={installment || ''}
+            onChange={(e) => setInstallment(parseInt(e.target.value, 10) || 0)}
+            placeholder="e.g. 500 per month"
+          />
+        </Field>
         {installment > 0 && amount > 0 && (
           <p className="mt-1 text-[11px] text-[var(--txt-3)]">
             ≈ {Math.ceil(amount / installment)} months to settle
           </p>
         )}
       </div>
-      <div className="md:col-span-2">
-        <Label>Purpose *</Label>
+      <Field className="md:col-span-2" label="Purpose *">
         <Input value={purpose} onChange={(e) => setPurpose(e.target.value)} placeholder="e.g. Hospital bill · son's surgery" required />
-      </div>
-      <div className="md:col-span-2">
-        <Label>City</Label>
+      </Field>
+      <Field className="md:col-span-2" label="City">
         <Input value={city} onChange={(e) => setCity(e.target.value)} />
-      </div>
+      </Field>
       <div className="flex gap-2 md:col-span-2">
         <Button type="submit" variant="gold" disabled={pending}>
           {pending ? 'Issuing…' : 'Issue Loan'}

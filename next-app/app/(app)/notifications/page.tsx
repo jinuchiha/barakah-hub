@@ -30,8 +30,9 @@ export default async function NotificationsPage() {
     <div className="mx-auto w-full max-w-2xl lg:max-w-3xl">
       <header className="mb-8 flex flex-wrap items-start justify-between gap-3 border-b border-[var(--border)] pb-5">
         <div>
-          <h1 className="font-[var(--font-arabic)] text-3xl text-[var(--color-gold-2)]">اطلاعات</h1>
-          <p className="mt-1 font-[var(--font-en)] text-sm italic text-[var(--color-gold-4)]">{unread} unread of {list.length}</p>
+          <h1 className="text-[28px] font-semibold tracking-[-0.5px] text-[var(--color-cream)]">Notifications</h1>
+          <p dir="rtl" className="font-[var(--font-arabic)] text-[15px] leading-8 text-[var(--color-gold-2)] [text-align:start]">اطلاعات</p>
+          <p className="mt-1 text-sm text-[var(--txt-3)]">{unread} unread of {list.length}</p>
         </div>
         {unread > 0 && <MarkAllReadButton />}
       </header>

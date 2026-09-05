@@ -180,7 +180,10 @@ export function AIChatClient({ userName }: Props) {
         @keyframes bounce { 0%,60%,100%{transform:translateY(0)} 30%{transform:translateY(-5px)} }
       `}</style>
 
-      <div className="mx-auto flex h-full w-full max-w-4xl flex-col">
+      {/* Explicit viewport-based height: `h-full` had no containing block to
+          resolve against (template.tsx wraps pages in an auto-height div), so
+          the pinned-composer layout collapsed to content height. */}
+      <div className="mx-auto flex h-[calc(100dvh-130px)] w-full max-w-4xl flex-col md:h-[calc(100dvh-150px)]">
         {/* Header */}
         <header
           className="flex items-center justify-between border-b px-6 py-4"
@@ -197,9 +200,10 @@ export function AIChatClient({ userName }: Props) {
             />
             {messages.length > 0 && (
               <button
-                onClick={clearChat}
+                onClick={() => { if (window.confirm('Clear this conversation? It is not saved anywhere.')) clearChat(); }}
                 className="grid h-8 w-8 place-items-center rounded-xl transition-colors hover:bg-[var(--surf-2)]"
                 title="Clear chat"
+                aria-label="Clear chat"
               >
                 <Trash2 className="size-3.5 text-[var(--txt-3)]" />
               </button>
@@ -207,8 +211,8 @@ export function AIChatClient({ userName }: Props) {
           </div>
         </header>
 
-        {/* Messages area */}
-        <div className="flex-1 overflow-y-auto px-4 py-5">
+        {/* Messages area — aria-live so screen readers hear streamed replies */}
+        <div className="flex-1 overflow-y-auto px-4 py-5" aria-live="polite">
           {isEmpty ? (
             <div className="flex h-full flex-col items-center justify-center gap-5 text-center">
               <div

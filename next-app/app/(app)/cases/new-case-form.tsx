@@ -4,7 +4,7 @@ import { toast } from 'sonner';
 import { createCase } from '@/app/actions';
 import { t as tr } from '@/lib/i18n/dict';
 import { useLocale } from '@/lib/i18n/use-locale';
-import { Input, Label } from '@/components/ui/input';
+import { Field, Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 
 /**
@@ -56,45 +56,37 @@ export default function NewCaseForm() {
 
   return (
     <form onSubmit={submit} className="grid grid-cols-1 gap-3 md:grid-cols-2">
-      <div>
-        <Label>{tr('case.type', locale)}</Label>
+      <Field label={tr('case.type', locale)}>
         <select className="w-full rounded-md border border-[var(--border)] bg-[var(--surf-3)] px-3 py-2.5 text-sm text-[var(--color-cream)]" value={form.caseType} onChange={(e) => set('caseType', e.target.value as 'gift' | 'qarz')}>
           <option value="gift">Gift / صدقہ</option>
           <option value="qarz">Qarz-e-Hasana</option>
         </select>
-      </div>
-      <div>
-        <Label>{tr('case.pool', locale)}</Label>
+      </Field>
+      <Field label={tr('case.pool', locale)}>
         <select className="w-full rounded-md border border-[var(--border)] bg-[var(--surf-3)] px-3 py-2.5 text-sm text-[var(--color-cream)]" value={form.pool} onChange={(e) => set('pool', e.target.value as 'sadaqah' | 'zakat' | 'qarz')}>
           <option value="sadaqah">Sadaqah</option>
           <option value="zakat">Zakat</option>
           <option value="qarz">Qarz</option>
         </select>
-      </div>
+      </Field>
       {form.caseType === 'qarz' && (
-        <div>
-          <Label>{tr('case.returnDate', locale)}</Label>
+        <Field label={tr('case.returnDate', locale)}>
           <Input type="date" value={form.returnDate} onChange={(e) => set('returnDate', e.target.value)} />
-        </div>
+        </Field>
       )}
-      <div>
-        <Label>{tr('case.beneficiary', locale)} *</Label>
+      <Field label={<>{tr('case.beneficiary', locale)} *</>}>
         <Input value={form.beneficiaryName} onChange={(e) => set('beneficiaryName', e.target.value)} required />
-      </div>
-      <div>
-        <Label>{tr('case.relation', locale)}</Label>
+      </Field>
+      <Field label={tr('case.relation', locale)}>
         <Input value={form.relation} onChange={(e) => set('relation', e.target.value)} placeholder={tr('case.relationPh', locale)} />
-      </div>
-      <div>
-        <Label>{tr('case.city', locale)}</Label>
+      </Field>
+      <Field label={tr('case.city', locale)}>
         <Input value={form.city} onChange={(e) => set('city', e.target.value)} />
-      </div>
-      <div>
-        <Label>{tr('case.amountNeeded', locale)} *</Label>
+      </Field>
+      <Field label={<>{tr('case.amountNeeded', locale)} *</>}>
         <Input type="number" value={form.amount || ''} onChange={(e) => set('amount', parseInt(e.target.value) || 0)} required />
-      </div>
-      <div className="md:col-span-2">
-        <Label>{tr('case.reason', locale)} *</Label>
+      </Field>
+      <Field className="md:col-span-2" label={<>{tr('case.reason', locale)} *</>}>
         <textarea
           className="w-full rounded-md border border-[var(--border)] bg-[var(--surf-3)] px-3 py-2.5 text-sm text-[var(--color-cream)]"
           value={form.reason}
@@ -103,7 +95,7 @@ export default function NewCaseForm() {
           required
           placeholder={tr('case.reasonPh', locale)}
         />
-      </div>
+      </Field>
       <label className="flex cursor-pointer items-center gap-2 text-sm md:col-span-2">
         <input type="checkbox" checked={form.emergency} onChange={(e) => set('emergency', e.target.checked)} className="size-4 accent-red-500" />
         {tr('case.markUrgent', locale)}

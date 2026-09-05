@@ -64,6 +64,10 @@ export default function VerifyForm({ email: initialEmail }: { email: string }) {
       >
         Resend code · دوبارہ کوڈ بھیجیں
       </button>
+      {/* An escape hatch — without it, a user who gives up here is stuck. */}
+      <a href="/login" className="mt-3 block w-full text-center text-xs text-[var(--txt-4)] underline-offset-2 hover:underline">
+        Back to sign in
+      </a>
     </form>
   );
 }
