@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { recordHeartbeat } from '@/lib/cron-heartbeat';
 import { and, eq, isNull, sql } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { members, payments, loans, notifications } from '@/lib/db/schema';
@@ -142,6 +143,7 @@ export async function GET(req: Request) {
     waSent += results.filter((r) => r.status === 'fulfilled' && r.value).length;
   }
 
+  await recordHeartbeat('reminders', 'ok');
   return NextResponse.json({
     reminded: defaulters.length,
     paid: paid.length,

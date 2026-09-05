@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { claimDue, markSent, markFailed, outboxHealth, pruneSent } from '@/lib/outbox';
 import { deliver } from '@/lib/outbox-deliver';
+import { recordHeartbeat } from '@/lib/cron-heartbeat';
+import * as Sentry from '@sentry/nextjs';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -87,11 +89,25 @@ export async function GET(req: Request) {
 
   const health = await outboxHealth();
 
-  // A non-zero `dead` count is the signal that something needs a human —
-  // most likely a missing WHATSAPP_TEMPLATE_* or RESEND_API_KEY.
+  // A non-zero `dead` count means members are silently not receiving
+  // notifications — most likely a missing WHATSAPP_TEMPLATE_* or
+  // RESEND_API_KEY. Raised through Sentry so it becomes an alert someone
+  // sees, not a log line nobody reads. Counts only — no recipient data.
   if (health.dead > 0) {
     console.error(`[outbox] ${health.dead} message(s) in dead state — investigate`);
+    Sentry.captureMessage(`Outbox has ${health.dead} dead notification(s)`, 'error');
   }
+  if (health.oldestPendingMinutes !== null && health.oldestPendingMinutes > 60) {
+    Sentry.captureMessage(
+      `Outbox backlog stalled: oldest pending message is ${health.oldestPendingMinutes} minutes old`,
+      'error',
+    );
+  }
+
+  // Liveness ledger — /api/health flags this heartbeat going stale, which is
+  // the ONLY way a wrong CRON_SECRET (perpetual 401, this handler never
+  // runs) becomes visible.
+  await recordHeartbeat('outbox', dead > 0 ? 'error' : 'ok', `sent=${sent} retry=${retrying} dead=${dead}`);
 
   return NextResponse.json({
     ok: true,

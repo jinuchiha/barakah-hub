@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { recordHeartbeat } from '@/lib/cron-heartbeat';
 import { desc } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { members, payments, loans, cases, auditLog, repayments, config as configTbl } from '@/lib/db/schema';
@@ -136,5 +137,6 @@ export async function GET(req: Request) {
     console.warn('[weekly-backup] email send failed');
   }
 
+  await recordHeartbeat('weekly-backup', 'ok');
   return NextResponse.json({ ok: true, summary });
 }

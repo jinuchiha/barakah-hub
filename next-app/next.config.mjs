@@ -1,8 +1,17 @@
 import { withSentryConfig } from '@sentry/nextjs';
+import { buildSecurityHeaders } from './lib/security-headers.mjs';
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: buildSecurityHeaders(process.env.NODE_ENV !== 'production'),
+      },
+    ];
+  },
   // Next 16: typedRoutes moved out of experimental
   typedRoutes: true,
   experimental: {

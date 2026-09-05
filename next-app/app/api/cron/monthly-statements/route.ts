@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { recordHeartbeat } from '@/lib/cron-heartbeat';
 import { and, eq, sql, inArray } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { members, payments, cases, loans, users, notifications } from '@/lib/db/schema';
@@ -131,5 +132,6 @@ export async function GET(req: Request) {
     );
   }
 
+  await recordHeartbeat('monthly-statements', 'ok');
   return NextResponse.json({ sent, failed: failed.length, skipped: sentSet.size, monthLabel, fundTotal });
 }
