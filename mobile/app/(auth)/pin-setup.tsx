@@ -74,7 +74,7 @@ export default function PinSetupScreen() {
         }
       }
     }
-  }, [current, step, firstPin, router, shake]);
+  }, [current, step, firstPin, router, shake, t]);
 
   const handleDelete = useCallback(() => {
     setCurrent((p) => p.slice(0, -1));

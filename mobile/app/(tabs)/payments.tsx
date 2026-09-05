@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import {
-  View, Text, StyleSheet, RefreshControl, TouchableOpacity, Alert,
+  Text, StyleSheet, RefreshControl, TouchableOpacity,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { FlashList } from '@shopify/flash-list';

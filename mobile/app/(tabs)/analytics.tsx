@@ -18,7 +18,6 @@ import { PoolDonutChart } from '@/components/charts/PoolDonutChart';
 import { PaymentBarChart } from '@/components/charts/PaymentBarChart';
 import { spacing } from '@/lib/theme';
 import { format } from 'date-fns';
-import { formatPKR } from '@/lib/format';
 import { AnimatedNumber, fmtRsWorklet } from '@/components/ui/AnimatedNumber';
 
 function SectionTitle({ label }: { label: string }) {

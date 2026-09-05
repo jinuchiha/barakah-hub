@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
   View, Text, StyleSheet, Alert, RefreshControl, ScrollView,
-  Modal, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform,
+  Modal, TextInput, KeyboardAvoidingView, Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';

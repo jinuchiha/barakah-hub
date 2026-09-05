@@ -18,7 +18,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/hooks/useAuth';
 import { EmailNotVerifiedError } from '@/lib/auth';
 import { useTheme } from '@/lib/useTheme';
-import { spacing, radius } from '@/lib/theme';
+import { spacing } from '@/lib/theme';
 
 const schema = z.object({
   name: z.string().min(2, 'Full name required'),
@@ -90,7 +90,7 @@ export default function RegisterScreen() {
     defaultValues: { monthlyPledge: 1000, fatherDeceased: false },
   });
 
-  const stepFields: Array<Array<keyof FormData>> = [
+  const stepFields: (keyof FormData)[][] = [
     ['name', 'fatherName', 'phone'],
     ['monthlyPledge'],
     ['email', 'password', 'confirmPassword'],

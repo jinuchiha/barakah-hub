@@ -37,7 +37,7 @@ function AnimatedBar({ value, maxValue, color, height, index }: AnimatedBarProps
       index * 80,
       withSpring(targetHeight, { damping: 12, stiffness: 120 }),
     );
-  }, [targetHeight, index]); // barHeight is a stable shared value ref
+  }, [targetHeight, index, barHeight]); // shared value has stable identity
 
   const style = useAnimatedStyle(() => ({
     height: barHeight.value,

@@ -14,14 +14,28 @@ an OTA update. A new signed build is required. runtimeVersion policy is
 3. Signing: EAS manages the keystore (`eas credentials`). NEVER commit one.
 
 ## Builds
-- QA build (installable APK, production env):
-    eas build --platform android --profile preview
-- Store build (AAB for Play Console):
-    eas build --platform android --profile production
-  For a direct-distribution SIGNED APK instead of an AAB, temporarily use
-  the preview profile (buildType apk) — it signs with the same credentials.
 
-Do NOT distribute a debug/development-client build.
+Signing: the repo does NOT track android/ (local prebuild artifact only),
+so EAS builds run the MANAGED workflow and sign with the EAS-managed
+release keystore — generated and stored in the Expo account on the first
+build. The local android/ folder's debug-keystore release config never
+applies to EAS builds; do not distribute anything built from it.
+
+- QA / direct-install build (signed release APK, production env):
+    eas build --platform android --profile preview
+- Store build (signed AAB for Play Console):
+    eas build --platform android --profile production
+
+Both need one interactive `eas login` first (account: jinuchiha). On the
+very first build, answer "yes" to letting EAS generate the keystore, and
+never lose that account — it holds the app's signing identity.
+
+Do NOT distribute a debug/development-client build, and do not
+re-distribute the old barakah-hub-final.apk (it is debug-signed).
+
+Dependency note: @sentry/react-native must stay on the SDK 52-compatible
+line (~6.10.0). `npx expo install --check` guards this; 8.x fails the
+native build.
 
 ## Physical-device test matrix (before release)
 fresh install · upgrade install over 1.0.0 · signup → pending state · login ·

@@ -54,7 +54,7 @@ export function SuccessOverlay({ visible, type = 'success', message, onDone, aut
     }
 
     return () => { if (timerRef.current) clearTimeout(timerRef.current); };
-  }, [visible, autoDismissMs, onDone]);
+  }, [visible, autoDismissMs, onDone, opacity, scale]);
 
   const overlayStyle = useAnimatedStyle(() => ({ opacity: opacity.value }));
   const cardStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));

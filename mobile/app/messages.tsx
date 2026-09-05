@@ -3,7 +3,7 @@ import {
   View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity,
   Alert, RefreshControl, Modal, KeyboardAvoidingView, Platform, FlatList,
 } from 'react-native';
-import { useRouter, Stack } from 'expo-router';
+import { Stack } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';

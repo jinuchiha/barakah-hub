@@ -17,7 +17,7 @@ import { isAdminOnly, canManageFunds } from '@/lib/roles';
 import { Redirect } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/lib/useTheme';
-import { spacing, radius } from '@/lib/theme';
+import { spacing } from '@/lib/theme';
 
 interface AdminStats {
   pendingMembers: number;

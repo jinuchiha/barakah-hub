@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, RefreshControl,
+  View, Text, StyleSheet, ScrollView, Alert, RefreshControl,
 } from 'react-native';
 import { Redirect, Stack } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -17,7 +17,7 @@ import { LoadingScreen } from '@/components/ui/LoadingScreen';
 import { shareText } from '@/lib/share';
 import { formatDate } from '@/lib/format';
 import { useTheme } from '@/lib/useTheme';
-import { spacing, radius } from '@/lib/theme';
+import { spacing } from '@/lib/theme';
 
 function InviteCard({ invite, onRevoke }: { invite: MemberInvite; onRevoke: () => void }) {
   const { colors } = useTheme();

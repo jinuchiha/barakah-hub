@@ -176,7 +176,7 @@ export const desertColors = {
   info: '#4dabf7',
 } as const;
 
-export type ColorScheme = { [K in keyof typeof darkColors]: string };
+export type ColorScheme = Record<keyof typeof darkColors, string>;
 
 export type ThemeName = 'dark' | 'light' | 'amoled' | 'cyberpunk' | 'desert';
 

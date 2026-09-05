@@ -5,14 +5,12 @@ import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withSpring,
-  withTiming,
   runOnJS,
   interpolate,
   Extrapolation,
 } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useTheme } from '@/lib/useTheme';
 
 interface SwipeAction {
   icon: keyof typeof MaterialCommunityIcons.glyphMap;
@@ -32,7 +30,6 @@ const THRESHOLD = 80;
 const FULL_OPEN = 100;
 
 export function SwipeableRow({ children, leftAction, rightAction, style }: SwipeableRowProps) {
-  const { colors } = useTheme();
   const translateX = useSharedValue(0);
   const hapticFired = useSharedValue(false);
 

@@ -81,6 +81,10 @@ export default function MemberFormScreen() {
     setRole(existing.role ?? 'member');
     setStatus(existing.status ?? 'approved');
     setSpouseId(existing.spouseId ?? null);
+    // Keyed on the id on purpose: reset the form only when a DIFFERENT
+    // member loads. Depending on the object would wipe unsaved edits every
+    // time a background refetch returns the same member.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [existing?.id]);
 
   const spouse = members?.find((m) => m.id === spouseId);

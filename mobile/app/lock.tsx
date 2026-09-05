@@ -49,6 +49,10 @@ export default function LockScreen() {
 
   useEffect(() => {
     void initLock();
+    // Mount-only by design: the lock method is decided once per cold open.
+    // Re-running on dependency changes would re-trigger the biometric prompt
+    // mid-interaction.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function initLock() {
@@ -136,7 +140,7 @@ export default function LockScreen() {
         shake();
       }
     }
-  }, [pin, router, logout, shake]);
+  }, [pin, router, logout, shake, t]);
 
   const handleDelete = useCallback(() => {
     setPin((p) => p.slice(0, -1));

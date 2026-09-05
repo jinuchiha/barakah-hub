@@ -22,7 +22,7 @@ function getProjectId(): string | undefined {
 export async function setupAndroidChannels(): Promise<void> {
   if (Platform.OS !== 'android') return;
 
-  const channels: Array<{ id: NotificationChannel; name: string; color: string }> = [
+  const channels: { id: NotificationChannel; name: string; color: string }[] = [
     { id: 'payments', name: 'Payments', color: '#00e676' },
     { id: 'cases', name: 'Emergency Cases', color: '#ffd740' },
     { id: 'messages', name: 'Messages', color: '#448aff' },

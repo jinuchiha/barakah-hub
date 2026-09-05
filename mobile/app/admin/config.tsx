@@ -28,7 +28,7 @@ interface FundConfig {
 export default function AdminConfigScreen() {
   const { colors } = useTheme();
   const { user, isLoading: authLoading } = useAuthStore();
-  const [config, setConfig] = useState<FundConfig>({});
+  const [, setConfig] = useState<FundConfig>({});
   const [thresh, setThresh] = useState(50);
   const [pledge, setPledge] = useState('1000');
   const [goalAmount, setGoalAmount] = useState('');

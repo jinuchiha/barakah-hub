@@ -4,6 +4,12 @@
  * never be locked out by the PIN pad).
  */
 import { createHash } from 'crypto';
+// jest.mock factories are hoisted above imports by babel-jest, so these
+// mocks are active before lib/pin loads.
+import {
+  setPin, verifyPin, isPinEnabled, clearPin, getPinAttempts,
+  getPinLockoutSeconds, resetPinAttempts, MAX_ATTEMPTS_BEFORE_LOCK,
+} from '../lib/pin';
 
 // ── In-memory SecureStore ──
 const mockStore = new Map<string, string>();
@@ -25,11 +31,6 @@ jest.mock('expo-crypto', () => {
     getRandomBytesAsync: jest.fn(async (n: number) => Uint8Array.from(nodeCrypto.randomBytes(n))),
   };
 });
-
-import {
-  setPin, verifyPin, isPinEnabled, clearPin, getPinAttempts,
-  getPinLockoutSeconds, resetPinAttempts, MAX_ATTEMPTS_BEFORE_LOCK,
-} from '../lib/pin';
 
 beforeEach(() => {
   mockStore.clear();

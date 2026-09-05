@@ -7,8 +7,8 @@ import { useIsFocused } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Animated, {
-  FadeInDown, FadeInRight, useSharedValue, useAnimatedStyle,
-  withRepeat, withTiming, withSequence, withSpring, cancelAnimation,
+  FadeInDown, useSharedValue, useAnimatedStyle,
+  withRepeat, withTiming, withSequence, cancelAnimation,
 } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -354,7 +354,6 @@ function CommunityFeed() {
 
 function AIFab() {
   const router = useRouter();
-  const { colors } = useTheme();
   const pulse = useSharedValue(1);
 
   useEffect(() => {
@@ -429,7 +428,6 @@ function DashboardScreen() {
 
   const displayName = user?.nameEn ?? user?.nameUr ?? 'Member';
   const isAdmin = user?.role === 'admin';
-  const total = (data?.fund?.sadaqah ?? 0) + (data?.fund?.zakat ?? 0) + (data?.fund?.qarz ?? 0);
 
   const handleAction = (key: string) => {
     if (key === 'pay') router.push('/(tabs)/payments');

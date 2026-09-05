@@ -44,7 +44,7 @@ function ArcSlice({ path, color, delay }: { path: string; color: string; delay: 
   const prog = useSharedValue(0);
   useEffect(() => {
     prog.value = withDelay(delay, withTiming(1, { duration: 550, easing: Easing.out(Easing.cubic) }));
-  }, [path, delay]); // prog is a stable shared value, not a reactive dep
+  }, [path, delay, prog]); // shared value has stable identity
   const style = useAnimatedStyle(() => ({
     opacity: prog.value,
     transform: [{ scale: interpolate(prog.value, [0, 1], [0.92, 1]) }],

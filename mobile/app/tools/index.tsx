@@ -5,7 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useTheme } from '@/lib/useTheme';
-import { spacing, radius } from '@/lib/theme';
+import { spacing } from '@/lib/theme';
 import { HijriDateCard } from '@/components/widgets/HijriDateCard';
 import { PrayerTimesWidget } from '@/components/widgets/PrayerTimesWidget';
 import { QiblaCompass } from '@/components/widgets/QiblaCompass';

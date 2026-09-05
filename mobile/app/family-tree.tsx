@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity,
+  View, Text, StyleSheet, TouchableOpacity,
   Dimensions, TextInput,
 } from 'react-native';
 import { useRouter } from 'expo-router';
@@ -19,7 +19,6 @@ import { buildFamilyTreeNodes } from '@/lib/family-tree';
 import { TreeNodeComponent } from '@/components/tree/TreeNode';
 import { TreeConnector } from '@/components/tree/TreeConnector';
 import { useMembers } from '@/hooks/useMembers';
-import { GlassCard } from '@/components/ui/GlassCard';
 
 const { width: SW, height: SH } = Dimensions.get('window');
 
@@ -117,7 +116,7 @@ export default function FamilyTreeScreen() {
 
   useEffect(() => {
     if (treeW > 0) translateX.value = -treeW / 2;
-  }, [treeW]);
+  }, [treeW, translateX]);
 
   const allNodes = useMemo(() => flattenTree(roots), [roots]);
   const edges = useMemo(() => buildEdges(roots), [roots]);

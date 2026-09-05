@@ -6,7 +6,7 @@ import { useRouter } from 'expo-router';
 import { FlashList } from '@shopify/flash-list';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import Animated, { FadeInDown, useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { Avatar } from '@/components/ui/Avatar';
 import { Badge } from '@/components/ui/Badge';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -67,19 +67,6 @@ export default function MembersScreen() {
   const [searchFocused, setSearchFocused] = useState(false);
   const { data, isLoading, refetch, isRefetching } = useMembers();
 
-  const inputWidth = useSharedValue(0);
-  const inputOpacity = useSharedValue(0);
-
-  const searchExpandStyle = useAnimatedStyle(() => ({
-    width: inputWidth.value,
-    opacity: inputOpacity.value,
-  }));
-
-  const expandSearch = () => {
-    setSearchFocused(true);
-    inputWidth.value = withTiming(1, { duration: 250 });
-    inputOpacity.value = withTiming(1, { duration: 250 });
-  };
 
   const filtered = useMemo(() => {
     if (!data) return [];
@@ -102,7 +89,7 @@ export default function MembersScreen() {
             placeholderTextColor={colors.text4}
             value={search}
             onChangeText={setSearch}
-            onFocus={expandSearch}
+            onFocus={() => setSearchFocused(true)}
             onBlur={() => setSearchFocused(false)}
             autoCapitalize="none"
             autoCorrect={false}

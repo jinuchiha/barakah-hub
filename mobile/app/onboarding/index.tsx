@@ -1,7 +1,6 @@
 import React, { useRef, useState, useCallback } from 'react';
 import {
   View,
-  ScrollView,
   Text,
   StyleSheet,
   TouchableOpacity,
@@ -12,7 +11,9 @@ import Animated, {
   useAnimatedScrollHandler,
   useAnimatedStyle,
   interpolate,
-  withSpring,
+  interpolateColor,
+  Extrapolation,
+  type SharedValue,
 } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -55,6 +56,31 @@ const SLIDES: SlideData[] = [
   },
 ];
 
+/**
+ * Pagination dot that tracks the swipe itself: width and emphasis follow
+ * scrollX continuously instead of snapping when momentum ends.
+ */
+function PagerDot({ index, scrollX, activeColor, inactiveColor }: {
+  index: number;
+  scrollX: SharedValue<number>;
+  activeColor: string;
+  inactiveColor: string;
+}) {
+  const style = useAnimatedStyle(() => {
+    const input = [(index - 1) * W, index * W, (index + 1) * W];
+    return {
+      width: interpolate(scrollX.value, input, [8, 24, 8], Extrapolation.CLAMP),
+      opacity: interpolate(scrollX.value, input, [0.5, 1, 0.5], Extrapolation.CLAMP),
+      backgroundColor: interpolateColor(scrollX.value, input, [inactiveColor, activeColor, inactiveColor]),
+    };
+  });
+  return <Animated.View style={[stylesDot.dot, style]} />;
+}
+
+const stylesDot = StyleSheet.create({
+  dot: { height: 8, borderRadius: 4 },
+});
+
 export default function OnboardingScreen() {
   const { colors } = useTheme();
   const router = useRouter();
@@ -81,11 +107,6 @@ export default function OnboardingScreen() {
     await markOnboardingComplete();
     router.replace('/(auth)/login');
   }, [router]);
-
-  const dotStyle = useAnimatedStyle(() => {
-    const width = interpolate(scrollX.value, [0, W], [24, 8]);
-    return { width: withSpring(width) };
-  });
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.bg0 }]}>
@@ -130,21 +151,9 @@ export default function OnboardingScreen() {
 
       <View style={styles.bottom}>
         <View style={styles.dots}>
-          {SLIDES.map((_, i) => {
-            const isActive = i === currentIndex;
-            return (
-              <View
-                key={i}
-                style={[
-                  styles.dot,
-                  {
-                    backgroundColor: isActive ? colors.primary : colors.border2,
-                    width: isActive ? 24 : 8,
-                  },
-                ]}
-              />
-            );
-          })}
+          {SLIDES.map((_, i) => (
+            <PagerDot key={i} index={i} scrollX={scrollX} activeColor={colors.primary} inactiveColor={colors.border2} />
+          ))}
         </View>
 
         <TouchableOpacity

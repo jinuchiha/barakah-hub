@@ -50,7 +50,6 @@ function StatusDot({ status, size }: { status: 'online' | 'offline'; size: numbe
 }
 
 export function Avatar({ name, size = 'md', color, imageUrl, showStatus, style }: AvatarProps) {
-  const { colors } = useTheme();
   const numericSize = typeof size === 'number' ? size : SIZE_MAP[size];
   const ringColor = color ?? RING_COLORS[hashIndex(name)] ?? '#00e676';
   const initials = getInitials(name);

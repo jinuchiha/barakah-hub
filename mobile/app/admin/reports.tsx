@@ -20,7 +20,7 @@ import { spacing, radius } from '@/lib/theme';
 const MIN_YEAR = 2020;
 const AUDIT_FILTERS = ['All', 'payment', 'member', 'case', 'loan'] as const;
 
-const EXPORTS: Array<{ kind: 'members' | 'fund' | 'loans' | 'audit'; label: string }> = [
+const EXPORTS: { kind: 'members' | 'fund' | 'loans' | 'audit'; label: string }[] = [
   { kind: 'fund', label: 'Fund' },
   { kind: 'members', label: 'Members' },
   { kind: 'loans', label: 'Loans' },

@@ -14,7 +14,7 @@ import { GlassCard } from './ui/GlassCard';
 import { formatPKR, formatDate } from '@/lib/format';
 import { planStatus, monthsRemaining } from '@/lib/loan-math';
 import { useTheme } from '@/lib/useTheme';
-import { spacing, radius } from '@/lib/theme';
+import { spacing } from '@/lib/theme';
 import { useLoanRepayments } from '@/hooks/useLoans';
 
 interface LoanCardProps {

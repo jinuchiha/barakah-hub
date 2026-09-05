@@ -10,7 +10,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { AvatarUpload } from '@/components/AvatarUpload';
 import { LinearGradient } from 'expo-linear-gradient';
-import { AnimatedNumber, fmtRsWorklet } from '@/components/ui/AnimatedNumber';
+import { fmtRsWorklet } from '@/components/ui/AnimatedNumber';
 import { Badge } from '@/components/ui/Badge';
 import { StatCard } from '@/components/ui/StatCard';
 import { Button } from '@/components/ui/Button';
@@ -25,7 +25,7 @@ import { useTheme } from '@/lib/useTheme';
 import { formatDate, formatPKR } from '@/lib/format';
 import { LoadingScreen } from '@/components/ui/LoadingScreen';
 import { canManageFunds, isAdminOnly, roleLabel } from '@/lib/roles';
-import { spacing, radius } from '@/lib/theme';
+import { spacing } from '@/lib/theme';
 import { isScreenshotProtectionEnabled, setScreenshotProtection } from '@/lib/security';
 import { isPinEnabled } from '@/lib/pin';
 import { getCacheSize } from '@/lib/query-persist';
@@ -83,7 +83,7 @@ function SettingsGroup({ title, children }: { title: string; children: React.Rea
 
 function ProfileScreen() {
   const router = useRouter();
-  const { user, logout, language, switchLanguage } = useAuth();
+  const { user, logout, language } = useAuth();
   const setUser = useAuthStore((s) => s.setUser);
   const { colors } = useTheme();
   const { t } = useTranslation();

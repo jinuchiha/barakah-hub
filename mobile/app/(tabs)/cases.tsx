@@ -19,7 +19,6 @@ import { BrandedEmptyState } from '@/components/ui/BrandedEmptyState';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { GlassCard } from '@/components/ui/GlassCard';
-import { Badge } from '@/components/ui/Badge';
 import { useCases, useCastVote, useCreateCase, useAdminResolveCase, useDeleteCase, useDisburseCase } from '@/hooks/useCases';
 import { AnimatedNumber } from '@/components/ui/AnimatedNumber';
 import { LinearGradient } from 'expo-linear-gradient';
