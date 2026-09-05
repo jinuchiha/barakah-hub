@@ -291,7 +291,7 @@ export default ProfileScreen;
 const styles = StyleSheet.create({
   identityBand: { borderRadius: 22, marginBottom: 4, borderWidth: 1, borderColor: 'rgba(200,155,60,0.14)' },
   safe: { flex: 1 },
-  scroll: { padding: spacing.md, paddingBottom: 120 },
+  scroll: { padding: spacing.md, paddingBottom: 136 },
   profileHeader: {
     alignItems: 'center',
     paddingVertical: spacing.xl,

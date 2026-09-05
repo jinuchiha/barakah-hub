@@ -16,15 +16,22 @@ export function formatPKRFull(amount: number | null | undefined): string {
   return `₨${n.toLocaleString('en-PK', { maximumFractionDigits: 0 })}`;
 }
 
+const MONTHS_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+/**
+ * Date for display — locale-PROOF, never blank.
+ *
+ * toLocaleDateString('en-PK', …) returns an empty or wrong string on Android
+ * builds whose ICU data lacks the locale, which rendered dates as blank on
+ * real devices. Dates are money-audit data here; they are formatted by hand
+ * ("05 Sep 2026") so every device shows the same thing.
+ */
 export function formatDate(dateStr: string | null | undefined): string {
   if (!dateStr) return '—';
   const date = new Date(dateStr);
   if (Number.isNaN(date.getTime())) return '—';
-  return date.toLocaleDateString('en-PK', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-  });
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${day} ${MONTHS_SHORT[date.getMonth()]} ${date.getFullYear()}`;
 }
 
 export function formatRelativeTime(dateStr: string | null | undefined): string {
@@ -64,7 +71,14 @@ export function hashColor(str: string): string {
   return colors[Math.abs(hash) % colors.length] ?? '#1a7a4a';
 }
 
+const MONTHS_LONG = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+/**
+ * "September 2026" — hand-built for the same reason as formatDate: this
+ * string is SUBMITTED with every payment (monthLabel), so a locale-dependent
+ * blank here would corrupt payment data, not just display.
+ */
 export function currentMonthLabel(): string {
   const now = new Date();
-  return now.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  return `${MONTHS_LONG[now.getMonth()]} ${now.getFullYear()}`;
 }

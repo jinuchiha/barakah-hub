@@ -42,8 +42,10 @@ export function StatCard({ icon, value, label, iconColor, style, trend, onPress,
       style={[style, { borderRadius: radius.lg, overflow: 'hidden' }]}
     >
       <Animated.View style={[animStyle, { borderRadius: radius.lg, overflow: 'hidden' }]}>
-        <View style={[styles.card, { backgroundColor: colors.bg1, borderColor: `${color}22` }]}>
-          <LinearGradient colors={[`${color}15`, 'transparent']} start={{ x: 0, y: 0 }} end={{ x: 1.5, y: 1.5 }} style={StyleSheet.absoluteFillObject} />
+        <View style={[styles.card, { borderColor: `${color}26` }]}>
+          <LinearGradient colors={[colors.surfaceGradA, colors.surfaceGradB]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFillObject} />
+          <LinearGradient colors={[`${color}18`, 'transparent']} start={{ x: 0, y: 0 }} end={{ x: 1.5, y: 1.5 }} style={StyleSheet.absoluteFillObject} />
+          <View style={[styles.sheen, { backgroundColor: colors.sheen }]} pointerEvents="none" />
           <View style={styles.header}>
             <Text style={[styles.label, { color: colors.text3 }]} numberOfLines={1}>{label}</Text>
             <View style={[styles.iconPill, { backgroundColor: `${color}18`, borderColor: `${color}28` }]}>
@@ -69,7 +71,11 @@ export function StatCard({ icon, value, label, iconColor, style, trend, onPress,
 }
 
 const styles = StyleSheet.create({
-  card: { minHeight: 96, borderRadius: radius.lg, borderWidth: 1, padding: 14, overflow: 'hidden', position: 'relative' },
+  card: {
+    minHeight: 96, borderRadius: radius.lg, borderWidth: 1, padding: 14, overflow: 'hidden', position: 'relative',
+    shadowColor: '#000', shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.18, shadowRadius: 8, elevation: 6,
+  },
+  sheen: { position: 'absolute', top: 0, left: 10, right: 10, height: StyleSheet.hairlineWidth * 2 },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 },
   label: { fontSize: 10.5, fontFamily: 'Inter_600SemiBold', letterSpacing: 0.8, textTransform: 'uppercase', flex: 1 },
   iconPill: { width: 24, height: 24, borderRadius: 7, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },

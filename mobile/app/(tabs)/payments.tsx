@@ -236,7 +236,7 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
   },
   chipText: { fontSize: 13, fontFamily: 'Inter_600SemiBold' },
-  list: { padding: spacing.md, paddingTop: spacing.sm, paddingBottom: 100 },
+  list: { padding: spacing.md, paddingTop: spacing.sm, paddingBottom: 128 },
   fab: {
     position: 'absolute',
     bottom: 90,

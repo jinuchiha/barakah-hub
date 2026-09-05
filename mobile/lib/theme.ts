@@ -1,39 +1,49 @@
 // Modern fintech palette — mirrors the web (Linear/Mercury school).
 // Deep ink, NEUTRAL hairlines, gold used like an accent (CTAs, totals,
 // active rail), not as paint on every border.
+// v2 — "midnight vault": a deeper blue-black ink ramp with real elevation
+// separation (each step visibly lighter AND slightly bluer, so stacked
+// surfaces read as depth even without iOS blur), champagne-gold accent ramp,
+// and luminous hairlines. surfaceGradA/B + sheen are what give every card a
+// lit, dimensional face on Android, where BlurView never renders.
 export const darkColors = {
-  bg0: '#0a0f1a',           // page
-  bg1: '#0f1626',           // card
-  bg2: '#18223a',           // elevated
-  bg3: '#1f2a45',           // higher elevation
-  bg4: '#28344e',           // top elevation
+  bg0: '#060a14',           // page — near-black with blue depth
+  bg1: '#0d1424',           // card
+  bg2: '#16203a',           // elevated
+  bg3: '#1e2b4d',           // higher elevation
+  bg4: '#28375f',           // top elevation
   glass1: 'rgba(255,255,255,0.03)',
   glass2: 'rgba(255,255,255,0.05)',
   glass3: 'rgba(255,255,255,0.09)',
-  glassBorder: 'rgba(255,255,255,0.10)',
-  primary: '#c89b3c',       // burnished gold — CTAs, totals, rails
-  primaryMuted: '#7d7768',
-  primaryDim: 'rgba(200,155,60,0.12)',
-  primaryGlow: 'rgba(200,155,60,0.22)',
-  gold: '#d9b04c',
-  goldMuted: '#7d7768',
-  goldDim: 'rgba(217,176,76,0.13)',
-  accent: '#2d8a5f',        // money green — verified, paid, success
-  accentDim: 'rgba(45,138,95,0.13)',
-  danger: '#dc5252',
-  dangerDim: 'rgba(220,82,82,0.13)',
-  text1: '#ecebe6',
-  text2: 'rgba(236,235,230,0.82)',
-  text3: 'rgba(236,235,230,0.60)',
-  text4: 'rgba(236,235,230,0.40)',
-  border1: 'rgba(255,255,255,0.10)',     // neutral hairline
-  border2: 'rgba(255,255,255,0.16)',     // emphasized
-  shadowGreen: 'rgba(45,138,95,0.22)',
-  shadowBlue: 'rgba(96,141,215,0.20)',
-  shadowGold: 'rgba(200,155,60,0.22)',
-  success: '#2d8a5f',
-  warning: '#c89b3c',
-  info: '#608dd7',
+  glassBorder: 'rgba(255,255,255,0.12)',
+  primary: '#d4a94c',       // champagne gold — CTAs, totals, rails
+  primaryMuted: '#8a8272',
+  primaryDim: 'rgba(212,169,76,0.14)',
+  primaryGlow: 'rgba(212,169,76,0.32)',
+  gold: '#e8c56b',
+  goldMuted: '#8a8272',
+  goldDim: 'rgba(232,197,107,0.14)',
+  accent: '#34a06f',        // money green — verified, paid, success
+  accentDim: 'rgba(52,160,111,0.14)',
+  danger: '#e05e5e',
+  dangerDim: 'rgba(224,94,94,0.14)',
+  text1: '#f2f0ea',
+  text2: 'rgba(242,240,234,0.84)',
+  text3: 'rgba(242,240,234,0.62)',
+  text4: 'rgba(242,240,234,0.42)',
+  border1: 'rgba(255,255,255,0.12)',     // neutral hairline
+  border2: 'rgba(255,255,255,0.20)',     // emphasized
+  /** Top-edge light line on cards/docks — the "lit surface" cue. */
+  sheen: 'rgba(255,255,255,0.10)',
+  /** Card face gradient stops (top-left → bottom-right). */
+  surfaceGradA: '#131c33',
+  surfaceGradB: '#0b111f',
+  shadowGreen: 'rgba(52,160,111,0.25)',
+  shadowBlue: 'rgba(96,141,215,0.22)',
+  shadowGold: 'rgba(212,169,76,0.28)',
+  success: '#34a06f',
+  warning: '#d4a94c',
+  info: '#6d97e0',
 } as const;
 
 export const lightColors = {
@@ -63,6 +73,9 @@ export const lightColors = {
   text4: '#94a3b8',
   border1: 'rgba(0,0,0,0.06)',
   border2: 'rgba(0,0,0,0.10)',
+  sheen: 'rgba(255,255,255,0.85)',
+  surfaceGradA: '#ffffff',
+  surfaceGradB: '#f2f6fa',
   shadowGreen: 'rgba(26,122,74,0.15)',
   shadowBlue: 'rgba(59,130,246,0.15)',
   shadowGold: 'rgba(245,158,11,0.15)',
@@ -98,6 +111,9 @@ export const amoledColors = {
   text4: 'rgba(255,255,255,0.38)',
   border1: 'rgba(255,255,255,0.10)',
   border2: 'rgba(255,255,255,0.16)',
+  sheen: 'rgba(255,255,255,0.08)',
+  surfaceGradA: '#101010',
+  surfaceGradB: '#050505',
   shadowGreen: 'rgba(0,230,118,0.20)',
   shadowBlue: 'rgba(68,138,255,0.20)',
   shadowGold: 'rgba(255,215,64,0.20)',
@@ -133,6 +149,9 @@ export const cyberpunkColors = {
   text4: 'rgba(240,232,255,0.28)',
   border1: 'rgba(255,0,255,0.12)',
   border2: 'rgba(255,0,255,0.22)',
+  sheen: 'rgba(255,0,255,0.14)',
+  surfaceGradA: '#1c0033',
+  surfaceGradB: '#10001c',
   shadowGreen: 'rgba(0,255,204,0.30)',
   shadowBlue: 'rgba(255,45,120,0.25)',
   shadowGold: 'rgba(255,0,255,0.28)',
@@ -168,6 +187,9 @@ export const desertColors = {
   text4: 'rgba(254,243,220,0.42)',
   border1: 'rgba(255,220,130,0.13)',
   border2: 'rgba(255,220,130,0.22)',
+  sheen: 'rgba(255,220,130,0.12)',
+  surfaceGradA: '#2a2010',
+  surfaceGradB: '#1c1509',
   shadowGreen: 'rgba(46,213,115,0.25)',
   shadowBlue: 'rgba(77,171,247,0.20)',
   shadowGold: 'rgba(245,200,66,0.28)',

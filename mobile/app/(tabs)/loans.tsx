@@ -204,7 +204,7 @@ const styles = StyleSheet.create({
     gap: spacing.sm, marginBottom: spacing.sm,
   },
   stat: { flex: 1 },
-  list: { padding: spacing.md, paddingTop: spacing.sm, paddingBottom: 100 },
+  list: { padding: spacing.md, paddingTop: spacing.sm, paddingBottom: 128 },
   sheetBackdrop: {
     ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.7)',
     justifyContent: 'flex-end', zIndex: 100,

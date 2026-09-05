@@ -449,7 +449,7 @@ const styles = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center',
   },
   filterBadgeText: { fontSize: 10, fontFamily: 'Inter_700Bold', color: '#0a0a0f' },
-  list: { padding: spacing.md, paddingTop: spacing.sm, paddingBottom: 100 },
+  list: { padding: spacing.md, paddingTop: spacing.sm, paddingBottom: 128 },
   sheetBackdrop: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.72)',

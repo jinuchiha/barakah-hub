@@ -152,7 +152,7 @@ export default function LoginScreen() {
     <View style={styles.root}>
       {/* Full-bleed deep background */}
       <LinearGradient
-        colors={['#06090f', '#0a0f1a', '#0d1525']}
+        colors={['#03050b', '#060a14', '#0c1426']}
         style={StyleSheet.absoluteFillObject}
         start={{ x: 0.3, y: 0 }}
         end={{ x: 0.7, y: 1 }}

@@ -66,7 +66,7 @@ function TabItem({ tab, active, badge, onPress }: TabItemProps) {
   // Active icon floats up ~2px with a spring — the whole bar feels alive
   // without anything protruding out of it.
   const floatStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: interpolate(progress.value, [0, 1], [0, -2.5]) }],
+    transform: [{ translateY: interpolate(progress.value, [0, 1], [0, -3]) }],
   }));
   const glowStyle = useAnimatedStyle(() => ({
     shadowOpacity: 0.2 + progress.value * 0.35,
@@ -91,7 +91,7 @@ function TabItem({ tab, active, badge, onPress }: TabItemProps) {
         accessibilityState={{ selected: active }}
         accessibilityLabel={t(tab.labelKey)}
       >
-        <Animated.View style={[styles.iconArea, scaleStyle, floatStyle]}>
+        <Animated.View style={[styles.iconAreaCenter, scaleStyle, floatStyle]}>
           <Animated.View style={[styles.centerBtn, glowStyle]}>
             <LinearGradient
               colors={active ? ['#e8c563', '#b8893a'] : ['#d9b04c', '#a87d33']}
@@ -99,7 +99,7 @@ function TabItem({ tab, active, badge, onPress }: TabItemProps) {
               end={{ x: 0.8, y: 1 }}
               style={StyleSheet.absoluteFillObject}
             />
-            <MaterialCommunityIcons name={iconName} size={20} color="#0a0f1a" />
+            <MaterialCommunityIcons name={iconName} size={22} color="#0a0f1a" />
           </Animated.View>
         </Animated.View>
         <Text style={[styles.tabLabel, { color: active ? colors.primary : colors.text4 }]} numberOfLines={1}>
@@ -163,52 +163,71 @@ export function BottomNav({ activeTab, onTabPress, notificationCount = 0, isAdmi
   const visibleTabs = TABS.filter((t) => !t.adminOnly || isAdmin);
 
   return (
-    // Outer container stays overflow-visible so the raised center button
-    // (and its gold glow) can float above the bar; the blur/gradient
-    // chrome is clipped inside its own absolute layer instead.
-    <View style={[styles.container, { paddingBottom: Math.max(insets.bottom, 6) }]}>
-      <View style={styles.chrome} pointerEvents="none">
-        {Platform.OS === 'ios' ? (
-          <BlurView intensity={60} tint="dark" style={StyleSheet.absoluteFillObject} />
-        ) : (
-          <View style={[StyleSheet.absoluteFillObject, { backgroundColor: `${colors.bg2}F5` }]} />
-        )}
-        <View style={[styles.topBorder, { backgroundColor: colors.glassBorder }]} />
-        <LinearGradient
-          colors={['rgba(200,155,60,0.06)', 'transparent']}
-          start={{ x: 0.5, y: 0 }}
-          end={{ x: 0.5, y: 1 }}
-          style={StyleSheet.absoluteFillObject}
-        />
-      </View>
-      <View style={styles.row}>
-        {visibleTabs.map((tab) => (
-          <TabItem
-            key={tab.name}
-            tab={tab}
-            active={activeTab === tab.name}
-            badge={tab.name === 'profile' ? notificationCount : undefined}
-            onPress={() => onTabPress(tab.name)}
+    // v2 — a floating dock, not a full-width bar. Detached from the screen
+    // edges with real elevation, a lit gradient face and a top sheen, it
+    // reads as a physical object on every platform; iOS additionally gets
+    // blur behind the gradient. The outer container stays overflow-visible
+    // so the raised gold center button can float above the dock.
+    <View style={[styles.container, { paddingBottom: Math.max(insets.bottom, 10) }]} pointerEvents="box-none">
+      <View style={[styles.dock, { borderColor: colors.border1, shadowColor: '#000' }]}>
+        <View style={styles.chrome} pointerEvents="none">
+          {Platform.OS === 'ios' ? (
+            <BlurView intensity={50} tint="dark" style={StyleSheet.absoluteFillObject} />
+          ) : null}
+          <LinearGradient
+            colors={[`${colors.bg3}FA`, `${colors.bg1}FA`]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 0, y: 1 }}
+            style={StyleSheet.absoluteFillObject}
           />
-        ))}
+          <LinearGradient
+            colors={[`${colors.primary}14`, 'transparent']}
+            start={{ x: 0.5, y: 0 }}
+            end={{ x: 0.5, y: 0.7 }}
+            style={StyleSheet.absoluteFillObject}
+          />
+          <View style={[styles.dockSheen, { backgroundColor: colors.sheen }]} />
+        </View>
+        <View style={styles.row}>
+          {visibleTabs.map((tab) => (
+            <TabItem
+              key={tab.name}
+              tab={tab}
+              active={activeTab === tab.name}
+              badge={tab.name === 'profile' ? notificationCount : undefined}
+              onPress={() => onTabPress(tab.name)}
+            />
+          ))}
+        </View>
       </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { position: 'absolute', bottom: 0, left: 0, right: 0 },
-  chrome: { ...StyleSheet.absoluteFillObject, overflow: 'hidden' },
-  topBorder: { height: 0.5 },
-  row: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 6, paddingTop: 8 },
+  container: { position: 'absolute', bottom: 0, left: 0, right: 0, paddingHorizontal: 12 },
+  dock: {
+    borderRadius: 28,
+    borderWidth: 1,
+    // Depth: dual-platform. elevation carries Android; shadow* carries iOS.
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.45,
+    shadowRadius: 24,
+    elevation: 16,
+  },
+  chrome: { ...StyleSheet.absoluteFillObject, overflow: 'hidden', borderRadius: 27 },
+  dockSheen: { position: 'absolute', top: 0, left: 22, right: 22, height: StyleSheet.hairlineWidth * 2 },
+  row: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 8, paddingTop: 8, paddingBottom: 6 },
   centerBtn: {
-    width: 34, height: 34, borderRadius: 17,
+    width: 44, height: 44, borderRadius: 22,
     alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
-    shadowColor: '#d9b04c', shadowRadius: 8,
-    shadowOffset: { width: 0, height: 2 }, elevation: 4,
+    borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.22)',
+    shadowColor: '#e8c56b', shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.5, elevation: 10,
   },
   tabItem: { flex: 1, alignItems: 'center', paddingVertical: 5, paddingHorizontal: 2 },
   iconArea: { alignItems: 'center', justifyContent: 'center', width: 46, height: 32, marginBottom: 3 },
+  iconAreaCenter: { alignItems: 'center', justifyContent: 'center', width: 52, height: 40, marginTop: -14, marginBottom: 1 },
   activePill: { ...StyleSheet.absoluteFillObject, borderRadius: 14, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(200,155,60,0.15)' },
   iconWrap: { position: 'relative' },
   badge: { position: 'absolute', top: -5, right: -7, borderRadius: 8, minWidth: 15, height: 15, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 3 },

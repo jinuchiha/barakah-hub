@@ -180,7 +180,7 @@ export default function AnalyticsScreen() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
-  scroll: { padding: spacing.md, paddingBottom: 120 },
+  scroll: { padding: spacing.md, paddingBottom: 136 },
   header: { marginBottom: spacing.lg },
   title: {
     fontSize: 26,
