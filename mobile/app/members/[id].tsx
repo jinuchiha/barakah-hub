@@ -17,7 +17,7 @@ import { LoadingScreen } from '@/components/ui/LoadingScreen';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { useMember } from '@/hooks/useMembers';
 import { useMemberPayments } from '@/hooks/usePayments';
-import { PaymentCard } from '@/components/PaymentCard';
+import { TransactionRow } from '@/components/TransactionRow';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { useAuthStore } from '@/stores/auth.store';
 import { useTheme } from '@/lib/useTheme';
@@ -248,7 +248,7 @@ export default function MemberDetailScreen() {
                 </View>
                 <View style={styles.donationList}>
                   {donations.data.payments.slice(0, 10).map((payment) => (
-                    <PaymentCard key={payment.id} payment={payment} />
+                    <TransactionRow key={payment.id} payment={payment} />
                   ))}
                 </View>
                 {donations.data.totals.count > 10 ? (

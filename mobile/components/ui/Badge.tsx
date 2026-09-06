@@ -61,10 +61,12 @@ type Colors = ReturnType<typeof useTheme>['colors'];
 
 function getVariantMap(c: Colors) {
   return {
-    success: { bg: c.primaryDim, border: c.primary, text: c.primary },
-    warning: { bg: c.goldDim, border: c.gold, text: c.gold },
+    // Semantic, not decorative: verified money is GREEN, not brand gold.
+    // Gold stays reserved for the 'gold' variant (deliberate brand moments).
+    success: { bg: c.accentDim, border: c.success, text: c.success },
+    warning: { bg: c.goldDim, border: c.warning, text: c.warning },
     danger: { bg: c.dangerDim, border: c.danger, text: c.danger },
-    info: { bg: c.accentDim, border: c.accent, text: c.accent },
+    info: { bg: 'rgba(109,151,224,0.14)', border: c.info, text: c.info },
     neutral: { bg: c.glass2, border: c.border1, text: c.text3 },
     gold: { bg: c.goldDim, border: c.gold, text: c.gold },
   };

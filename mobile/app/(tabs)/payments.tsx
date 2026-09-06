@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import {
-  Text, StyleSheet, RefreshControl, TouchableOpacity,
+  View, Text, StyleSheet, RefreshControl, TouchableOpacity,
   FlatList,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
@@ -9,7 +9,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
-import { PaymentCard } from '@/components/PaymentCard';
+import { TransactionRow } from '@/components/TransactionRow';
 import { SuccessOverlay } from '@/components/ui/SuccessOverlay';
 import { PaymentSubmitModal } from '@/components/PaymentSubmitModal';
 import { DuaOverlay } from '@/components/DuaOverlay';
@@ -156,11 +156,24 @@ function PaymentsScreen() {
         <EmptyState icon="loading" title={t('common.loading')} />
       ) : (
         <FlatList
+          style={styles.flex1}
           data={filtered}
           keyExtractor={(item: Payment) => item.id}
-          renderItem={({ item }) => <PaymentCard payment={item} />}
+          renderItem={({ item }) => <TransactionRow payment={item} />}
           contentContainerStyle={styles.list}
           refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={colors.primary} />}
+          // A short history must still read as a composed screen, not a
+          // card floating in a void: close the timeline explicitly.
+          ListFooterComponent={
+            filtered.length > 0 ? (
+              <View style={styles.timelineEnd}>
+                <View style={[styles.timelineEndLine, { backgroundColor: colors.border1 }]} />
+                <Text style={[styles.timelineEndText, { color: colors.text4 }]}>
+                  {filtered.length} payment{filtered.length === 1 ? '' : 's'} · beginning of your record
+                </Text>
+              </View>
+            ) : null
+          }
           ListEmptyComponent={
             <BrandedEmptyState
               type="payments"
@@ -209,6 +222,10 @@ export default PaymentsScreen;
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
+  flex1: { flex: 1 },
+  timelineEnd: { alignItems: 'center', paddingTop: spacing.md, paddingBottom: spacing.sm, gap: spacing.sm },
+  timelineEndLine: { width: 48, height: 1 },
+  timelineEndText: { fontSize: 12, fontFamily: 'Inter_400Regular' },
   heroGradient: {
     paddingHorizontal: spacing.md, paddingTop: spacing.lg, paddingBottom: spacing.md,
   },

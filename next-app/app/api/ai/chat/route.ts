@@ -91,7 +91,9 @@ export async function POST(req: Request) {
       streamOpenAICompatible({
         baseUrl: 'https://api.groq.com/openai/v1',
         apiKey: process.env.GROQ_API_KEY!,
-        model: process.env.GROQ_MODEL ?? 'llama-3.3-70b-versatile',
+        // llama-3.3-70b-versatile was deprecated by Groq in June 2026;
+        // openai/gpt-oss-120b is their recommended replacement.
+        model: process.env.GROQ_MODEL ?? 'openai/gpt-oss-120b',
         system,
         messages,
         onDelta: push,

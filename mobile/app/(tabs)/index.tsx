@@ -39,8 +39,8 @@ import { SkeletonCard, Skeleton } from '@/components/ui/Skeleton';
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
-function TopBar({ displayName, notifCount, onBell, onSearch }: {
-  displayName: string; notifCount: number; onBell: () => void; onSearch: () => void;
+function TopBar({ displayName, notifCount, onBell, onSearch, onAssistant }: {
+  displayName: string; notifCount: number; onBell: () => void; onSearch: () => void; onAssistant: () => void;
 }) {
   const { colors } = useTheme();
   const today = format(new Date(), 'EEE, d MMM');
@@ -52,6 +52,13 @@ function TopBar({ displayName, notifCount, onBell, onSearch }: {
         <Text style={[styles.topDate, { color: colors.text4 }]}>{today}</Text>
       </View>
       <View style={styles.topActions}>
+        <TouchableOpacity
+          style={[styles.iconBtn, { backgroundColor: colors.glass2, borderColor: colors.border1 }]}
+          onPress={onAssistant}
+          accessibilityLabel="Barakah Assistant"
+        >
+          <MaterialCommunityIcons name="robot-happy-outline" size={19} color={colors.text2} />
+        </TouchableOpacity>
         <TouchableOpacity
           style={[styles.iconBtn, { backgroundColor: colors.glass2, borderColor: colors.border1 }]}
           onPress={onSearch}
@@ -352,34 +359,6 @@ function CommunityFeed() {
   );
 }
 
-function AIFab() {
-  const router = useRouter();
-  const pulse = useSharedValue(1);
-
-  useEffect(() => {
-    pulse.value = withRepeat(
-      withSequence(withTiming(1.15, { duration: 900 }), withTiming(1, { duration: 900 })),
-      -1, false,
-    );
-    return () => { cancelAnimation(pulse); pulse.value = 1; };
-  }, [pulse]);
-
-  const glowStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: pulse.value }],
-    opacity: 0.3 + (pulse.value - 1) * 2.5,
-  }));
-
-  return (
-    <TouchableOpacity
-      style={styles.fab}
-      onPress={() => { void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); router.push('/ai-assistant'); }}
-      activeOpacity={0.85}
-    >
-      <Animated.View style={[StyleSheet.absoluteFillObject, styles.fabGlow, glowStyle]} pointerEvents="none" />
-      <MaterialCommunityIcons name="robot-outline" size={24} color="#0a0f1a" />
-    </TouchableOpacity>
-  );
-}
 
 // ── Main Screen ───────────────────────────────────────────────────────────────
 
@@ -392,6 +371,7 @@ function DashboardScreen() {
   const qc = useQueryClient();
   const { data, isLoading, error, refetch, isRefetching } = useDashboard();
   const [searchVisible, setSearchVisible] = useState(false);
+  const [activityOpen, setActivityOpen] = useState(true);
   // Tabs keep visited screens mounted — without this gate the star field,
   // aurora, LIVE dot and FAB pulse (30+ infinite UI-thread loops) keep
   // burning battery while the user is on another tab.
@@ -442,7 +422,6 @@ function DashboardScreen() {
       {isFocused ? <BarakahField dimmed /> : null}
       {welcome !== null ? <WelcomeWipe name={welcome} onDone={() => setWelcome(null)} /> : null}
       <GlobalSearch visible={searchVisible} onClose={() => setSearchVisible(false)} />
-      {isFocused ? <AIFab /> : null}
 
       <ScrollView
         contentContainerStyle={styles.scroll}
@@ -456,6 +435,7 @@ function DashboardScreen() {
             notifCount={notificationCount}
             onBell={() => router.push('/notifications')}
             onSearch={() => setSearchVisible(true)}
+            onAssistant={() => router.push('/ai-assistant' as never)}
           />
         </Animated.View>
 
@@ -489,15 +469,29 @@ function DashboardScreen() {
         {/* Quick actions */}
         <QuickActions isAdmin={isAdmin} onAction={handleAction} />
 
-        {/* Recent activity */}
+        {/* Recent activity — collapsible so history never dominates the
+            dashboard; capped at 4 rows with See All for the rest. */}
         <Animated.View entering={FadeInDown.duration(400).delay(200)}>
-          <SectionHead
-            title={t('dashboard.recentActivity')}
-            onSeeAll={() => router.push('/notifications')}
-          />
-          <GlassCard style={styles.activityCard}>
-            <ActivityFeed items={data?.recentActivity ?? []} />
-          </GlassCard>
+          <View style={styles.activityHeadRow}>
+            <TouchableOpacity
+              style={styles.activityToggle}
+              onPress={() => setActivityOpen((v) => !v)}
+              accessibilityRole="button"
+              accessibilityState={{ expanded: activityOpen }}
+              accessibilityLabel={activityOpen ? 'Collapse recent activity' : 'Expand recent activity'}
+            >
+              <Text style={[styles.activityTitle, { color: colors.text3 }]}>{t('dashboard.recentActivity').toUpperCase()}</Text>
+              <MaterialCommunityIcons name={activityOpen ? 'chevron-up' : 'chevron-down'} size={18} color={colors.text3} />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => router.push('/notifications')} accessibilityRole="button" accessibilityLabel="See all activity">
+              <Text style={[styles.activitySeeAll, { color: colors.primary }]}>{t('dashboard.seeAll')}</Text>
+            </TouchableOpacity>
+          </View>
+          {activityOpen ? (
+            <GlassCard style={styles.activityCard}>
+              <ActivityFeed items={(data?.recentActivity ?? []).slice(0, 4)} />
+            </GlassCard>
+          ) : null}
         </Animated.View>
 
         {/* Community feed */}
@@ -515,6 +509,10 @@ export default DashboardScreen;
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
+  activityHeadRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 4, marginBottom: 8 },
+  activityToggle: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingVertical: 4 },
+  activityTitle: { fontSize: 12, fontFamily: 'Inter_700Bold', letterSpacing: 1.2 },
+  activitySeeAll: { fontSize: 13, fontFamily: 'Inter_600SemiBold' },
   scroll: { paddingHorizontal: spacing.md, paddingBottom: 150 },
   // Top bar
   topBar: {
