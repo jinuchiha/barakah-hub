@@ -83,6 +83,30 @@ CREATE INDEX IF NOT EXISTS payments_pending_idx ON payments(pending_verify);
 -- contradictions, not the completeness. A row cannot claim to be freshly
 -- submitted while carrying an approval, cannot be approved and rejected at
 -- once, and cannot carry a verification unless it is verified or was.
+
+-- First, clear the contradictions the backfill above knowingly leaves behind.
+-- The CASE at step 1 says so itself — "a rejected payment may also carry an
+-- old approval timestamp, and a verified one may carry both" — and the
+-- constraint below forbids exactly that shape. Without this, a single legacy
+-- row of that kind aborts the whole migration.
+--
+-- Nothing is lost that the status does not already say: the timestamps being
+-- cleared are the ones the row's own resolved status contradicts, and the
+-- audit log holds the history regardless.
+UPDATE payments SET supervisor_approved_at = NULL, supervisor_approved_by_id = NULL
+  WHERE status = 'supervisor_rejected' AND supervisor_approved_at IS NOT NULL;
+
+UPDATE payments SET supervisor_rejected_at = NULL, supervisor_rejected_by_id = NULL
+  WHERE status = 'supervisor_approved' AND supervisor_rejected_at IS NOT NULL;
+
+UPDATE payments SET supervisor_approved_at = NULL, supervisor_approved_by_id = NULL,
+                    supervisor_rejected_at = NULL, supervisor_rejected_by_id = NULL
+  WHERE status = 'submitted'
+    AND (supervisor_approved_at IS NOT NULL OR supervisor_rejected_at IS NOT NULL);
+
+UPDATE payments SET verified_at = NULL, verified_by_id = NULL
+  WHERE status NOT IN ('verified', 'voided') AND verified_at IS NOT NULL;
+
 ALTER TABLE payments DROP CONSTRAINT IF EXISTS payments_status_shape;
 ALTER TABLE payments ADD CONSTRAINT payments_status_shape CHECK (
   NOT (status = 'submitted'
