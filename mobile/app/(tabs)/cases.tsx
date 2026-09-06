@@ -418,7 +418,7 @@ export default CasesScreen;
 
 const styles = StyleSheet.create({
   heroBand: { borderRadius: 18, marginHorizontal: 12, marginTop: 6, paddingBottom: 4 },
-  titleUr: { fontSize: 13, fontFamily: 'NotoNastaliqUrdu_600SemiBold', lineHeight: 28 },
+  titleUr: { fontSize: 13, fontFamily: 'NotoNastaliqUrdu_600SemiBold', lineHeight: 34, paddingTop: 4 },
   titleRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   liveCountPill: {
     flexDirection: 'row', alignItems: 'baseline', gap: 4,

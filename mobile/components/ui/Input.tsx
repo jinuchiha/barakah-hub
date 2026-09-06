@@ -87,6 +87,7 @@ export function Input({
   const [showPassword, setShowPassword] = useState(false);
   const inputRef = useRef<TextInput>(null);
 
+  const labelFloated = focused || !!(value && value.length > 0);
   const { animatedLabelStyle, onFocus, onBlur } = useFloatingLabel(!!(value && value.length > 0));
   const { shake, animStyle } = useShakeAnimation();
 
@@ -132,6 +133,11 @@ export function Input({
             accessibilityLabel={label}
             accessibilityHint={error || undefined}
             {...textInputProps}
+            // After the spread so it always wins: the at-rest floating label
+            // occupies the same line, so showing a placeholder underneath it
+            // printed both on top of each other. Placeholder appears only
+            // once the label has floated up.
+            placeholder={labelFloated ? textInputProps.placeholder : undefined}
           />
         </View>
         {isPassword ? (

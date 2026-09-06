@@ -1063,7 +1063,10 @@ export async function editMember(input: z.infer<typeof editMemberSchema>) {
       }
     }
 
-    await audit(tx, me.id, 'member-edited', `Edited member ${id}`, id);
+    // Audit lines are read by humans in the activity feed — name the member,
+    // never the raw id. targetId still carries the machine reference.
+    const [edited] = await tx.select({ nameEn: members.nameEn, nameUr: members.nameUr }).from(members).where(eq(members.id, id)).limit(1);
+    await audit(tx, me.id, 'member-edited', `Edited ${edited?.nameEn || edited?.nameUr || 'member'}'s profile`, id);
   });
   revalidatePath('/admin/members');
   revalidatePath('/tree');

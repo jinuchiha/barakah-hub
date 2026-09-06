@@ -1,3 +1,7 @@
+// RN's global fetch has NO response-body streams — res.body is always null
+// on device, which surfaced to users as a raw "No response body" error and a
+// dead assistant. expo/fetch (SDK 52+, WinterCG-compliant) streams properly.
+import { fetch as expoFetch } from 'expo/fetch';
 import { getSessionToken } from './storage';
 import type { SupportedLanguage } from './i18n';
 
@@ -47,7 +51,7 @@ export async function sendChatMessage(
   onChunk: (chunk: string) => void,
 ): Promise<void> {
   const token = await getSessionToken();
-  const res = await fetch(`${BASE_URL}/api/ai/chat`, {
+  const res = await expoFetch(`${BASE_URL}/api/ai/chat`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -59,8 +63,12 @@ export async function sendChatMessage(
     }),
   });
 
-  if (!res.ok) throw new Error(`AI request failed: ${res.status}`);
-  if (!res.body) throw new Error('No response body');
+  if (!res.ok) {
+    throw new Error(res.status === 401
+      ? 'Please sign in again to use the assistant.'
+      : 'The assistant is unavailable right now. Please try again in a moment.');
+  }
+  if (!res.body) throw new Error('The assistant is unavailable right now. Please try again in a moment.');
 
   const reader = res.body.getReader();
   const decoder = new TextDecoder();

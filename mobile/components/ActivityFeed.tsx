@@ -27,11 +27,15 @@ interface ActivityFeedProps {
   items: ActivityItem[];
 }
 
+const UUID_RE = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi;
+
 function cleanSubtitle(s: string | undefined): string | undefined {
   if (!s) return undefined;
   if (s.startsWith('{') || s.startsWith('[')) return 'Settings updated';
   if (s.startsWith('https://') || s.startsWith('http://')) return 'File updated';
-  return s;
+  // Historical audit rows carry raw ids ("Edited member 1d189b6c-…").
+  // Ids are for machines; people get a short reference.
+  return s.replace(UUID_RE, (m) => `#${m.slice(0, 8).toUpperCase()}`);
 }
 
 function ActivityItemRow({
