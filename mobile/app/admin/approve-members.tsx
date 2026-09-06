@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import {
   View, Text, StyleSheet, Alert, RefreshControl,
+  FlatList,
 } from 'react-native';
-import { FlashList } from '@shopify/flash-list';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -135,10 +135,9 @@ export default function ApproveMembersScreen() {
       {isLoading ? (
         <EmptyState icon="loading" title={t('common.loading')} />
       ) : (
-        <FlashList
+        <FlatList
           data={pending}
           keyExtractor={(item: Member) => item.id}
-          estimatedItemSize={160}
           contentContainerStyle={styles.list}
           refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={colors.primary} />}
           ListHeaderComponent={

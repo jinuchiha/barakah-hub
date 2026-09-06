@@ -2,9 +2,9 @@ import React, { useState, useMemo, useEffect, useRef } from 'react';
 import {
   View, Text, StyleSheet, RefreshControl, ScrollView, Alert,
   KeyboardAvoidingView, Platform, TouchableOpacity, Switch, Modal,
+  FlatList,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { FlashList } from '@shopify/flash-list';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Animated, { FadeInDown } from 'react-native-reanimated';
@@ -377,7 +377,7 @@ function CasesScreen() {
       ) : isLoading ? (
         <EmptyState icon="loading" title={t('common.loading')} />
       ) : (
-        <FlashList
+        <FlatList
           data={data ?? []}
           keyExtractor={(item: EmergencyCase) => item.id}
           renderItem={({ item }) => (
@@ -393,7 +393,6 @@ function CasesScreen() {
               onAdminDisburse={isAdmin && item.status === 'approved' ? () => confirmDisburse(item.id, item.beneficiaryName, item.amount) : undefined}
             />
           )}
-          estimatedItemSize={280}
           contentContainerStyle={styles.list}
           refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={colors.primary} />}
           ListEmptyComponent={<BrandedEmptyState type="cases" title={t('cases.noCasesFound')} subtitle={t('cases.noEmergencyCases')} />}

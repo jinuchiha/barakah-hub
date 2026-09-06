@@ -2,9 +2,9 @@ import React, { useState } from 'react';
 import {
   View, Text, StyleSheet, RefreshControl, TouchableOpacity, Pressable,
   Alert, KeyboardAvoidingView, Platform,
+  FlatList,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { FlashList } from '@shopify/flash-list';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -159,7 +159,7 @@ function LoansScreen() {
       ) : activeQuery.isLoading ? (
         <EmptyState icon="loading" title={t('common.loading')} />
       ) : (
-        <FlashList
+        <FlatList
           data={loans}
           keyExtractor={(item: Loan) => item.id}
           renderItem={({ item }) => (
@@ -174,7 +174,6 @@ function LoansScreen() {
               <LoanCard loan={item} />
             </SwipeableRow>
           )}
-          estimatedItemSize={180}
           contentContainerStyle={styles.list}
           refreshControl={<RefreshControl refreshing={activeQuery.isRefetching} onRefresh={activeQuery.refetch} tintColor={colors.primary} />}
           ListEmptyComponent={<BrandedEmptyState type="loans" title={t('loans.noLoans')} subtitle={t('loans.noActiveLoans')} />}

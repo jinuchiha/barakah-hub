@@ -1,10 +1,10 @@
 import React from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, RefreshControl,
+  FlatList,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { FlashList } from '@shopify/flash-list';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Animated, { FadeInDown } from 'react-native-reanimated';
@@ -64,11 +64,10 @@ export default function NotificationsScreen() {
       {isLoading ? (
         <EmptyState icon="loading" title={t('common.loading')} />
       ) : (
-        <FlashList
+        <FlatList
           data={data ?? []}
           keyExtractor={(item: Notification) => item.id}
           renderItem={({ item }) => <NotificationItem notification={item} onPress={() => openNotification(item)} />}
-          estimatedItemSize={80}
           contentContainerStyle={{ paddingBottom: spacing.xl }}
           refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={colors.primary} />}
           ListEmptyComponent={

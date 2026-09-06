@@ -1,9 +1,9 @@
 import React, { useState, useMemo } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, TextInput, RefreshControl, Pressable,
+  FlatList,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { FlashList } from '@shopify/flash-list';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Animated, { FadeInDown } from 'react-native-reanimated';
@@ -120,7 +120,7 @@ export default function MembersScreen() {
       {isLoading ? (
         <EmptyState icon="loading" title={t('common.loading')} />
       ) : (
-        <FlashList
+        <FlatList
           data={filtered}
           keyExtractor={(item: Member) => item.id}
           renderItem={({ item }) => (
@@ -130,7 +130,6 @@ export default function MembersScreen() {
               onPress={() => router.push(`/members/${item.id}`)}
             />
           )}
-          estimatedItemSize={76}
           contentContainerStyle={styles.list}
           refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={colors.primary} />}
           ListHeaderComponent={
