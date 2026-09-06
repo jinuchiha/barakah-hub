@@ -291,12 +291,12 @@ function QuickActions({ isAdmin, onAction }: {
   const { colors } = useTheme();
   const { t } = useTranslation();
   const items = [
-    { key: 'pay',       icon: 'cash-plus' as const,            label: t('dashboard.payNow'),           color: colors.primary },
-    { key: 'emergency', icon: 'alert-circle-outline' as const,  label: t('dashboard.requestEmergency'), color: colors.gold },
-    { key: 'loans',     icon: 'handshake-outline' as const,     label: t('dashboard.viewLoans'),        color: colors.accent },
+    { key: 'pay',       icon: 'cash-plus' as const,             label: t('dashboard.payNow'),           primary: true },
+    { key: 'emergency', icon: 'alert-circle-outline' as const,  label: t('dashboard.requestEmergency'), primary: false },
+    { key: 'loans',     icon: 'handshake-outline' as const,     label: t('dashboard.viewLoans'),        primary: false },
     isAdmin
-      ? { key: 'admin',   icon: 'shield-crown-outline' as const, label: t('profile.admin'),      color: colors.danger }
-      : { key: 'members', icon: 'account-group-outline' as const, label: t('dashboard.totalMembers'), color: '#ea80fc' },
+      ? { key: 'admin',   icon: 'shield-crown-outline' as const,  label: t('profile.admin'),          primary: false }
+      : { key: 'members', icon: 'account-group-outline' as const, label: t('dashboard.totalMembers'), primary: false },
   ];
 
   return (
@@ -309,8 +309,19 @@ function QuickActions({ isAdmin, onAction }: {
           accessibilityLabel={item.label}
           accessibilityRole="button"
         >
-          <View style={[styles.quickIcon, { backgroundColor: `${item.color}18` }]}>
-            <MaterialCommunityIcons name={item.icon} size={24} color={item.color} />
+          <View
+            style={[
+              styles.quickIcon,
+              item.primary
+                ? { backgroundColor: colors.actionPrimary, borderColor: colors.actionPrimary }
+                : { backgroundColor: 'transparent', borderColor: colors.border2 },
+            ]}
+          >
+            <MaterialCommunityIcons
+              name={item.icon}
+              size={22}
+              color={item.primary ? colors.onAction : colors.text2}
+            />
           </View>
           <Text style={[styles.quickLabel, { color: colors.text2 }]} numberOfLines={2}>{item.label}</Text>
         </TouchableOpacity>
@@ -610,7 +621,7 @@ const styles = StyleSheet.create({
   },
   quickItem: { alignItems: 'center', flex: 1, gap: 6 },
   quickIcon: {
-    width: 54, height: 54, borderRadius: 17,
+    width: 52, height: 52, borderRadius: 26, borderWidth: 1,
     alignItems: 'center', justifyContent: 'center',
   },
   quickLabel: {

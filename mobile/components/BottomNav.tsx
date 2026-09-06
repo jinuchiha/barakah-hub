@@ -97,9 +97,9 @@ function TabItem({ tab, active, badge, onPress }: TabItemProps) {
       <Animated.View style={[styles.iconArea, scaleStyle, floatStyle]}>
         <Animated.View style={[styles.activePill, pillStyle]}>
           <LinearGradient
-            colors={[`${colors.primary}22`, `${colors.primary}10`]}
+            colors={[`${colors.brandGold}30`, `${colors.brandGold}1A`]}
             start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
+            end={{ x: 0, y: 1 }}
             style={StyleSheet.absoluteFillObject}
           />
         </Animated.View>
@@ -139,11 +139,15 @@ export function BottomNav({ activeTab, onTabPress, notificationCount = 0, isAdmi
   const visibleTabs = TABS.filter((t) => !t.adminOnly || isAdmin);
 
   return (
-    // v2 — a floating dock, not a full-width bar. Detached from the screen
-    // edges with real elevation, a lit gradient face and a top sheen, it
-    // reads as a physical object on every platform; iOS additionally gets
-    // blur behind the gradient. The outer container stays overflow-visible
-    // so the raised gold center button can float above the dock.
+    // A floating dock, not a full-width bar. Detached from the screen edges
+    // with real elevation, a lit gradient face and a top sheen, it reads as a
+    // physical object on every platform; iOS additionally gets blur behind the
+    // gradient.
+    //
+    // Labels stay under every icon. Icon-only bars look cleaner in a mockup,
+    // but this app is used by a family who are not all fluent in app
+    // conventions, and a bar that requires you to already know what a glyph
+    // means is not cleaner for them — it is just quieter about failing.
     <View style={[styles.container, { paddingBottom: Math.max(insets.bottom, 10) }]} pointerEvents="box-none">
       <View style={[styles.dock, { borderColor: colors.border1, shadowColor: '#000' }]}>
         <View style={styles.chrome} pointerEvents="none">
@@ -196,7 +200,11 @@ const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 8, paddingTop: 8, paddingBottom: 6 },
   tabItem: { flex: 1, alignItems: 'center', paddingVertical: 5, paddingHorizontal: 2 },
   iconArea: { alignItems: 'center', justifyContent: 'center', width: 46, height: 32, marginBottom: 3 },
-  activePill: { ...StyleSheet.absoluteFillObject, borderRadius: 14, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)' },
+  activePill: {
+    ...StyleSheet.absoluteFillObject,
+    borderRadius: 13, overflow: 'hidden',
+    borderWidth: 1, borderColor: 'rgba(212,169,76,0.30)',
+  },
   iconWrap: { position: 'relative' },
   badge: { position: 'absolute', top: -5, right: -7, borderRadius: 8, minWidth: 15, height: 15, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 3 },
   badgeText: { color: '#fff', fontSize: 8, fontFamily: 'Inter_700Bold' },
