@@ -295,7 +295,7 @@ const styles = StyleSheet.create({
   taglineText: { fontSize: 11, fontFamily: 'Inter_600SemiBold', color: 'rgba(200,155,60,0.80)', letterSpacing: 1.2, textTransform: 'uppercase' },
   // Heading
   headingBlock: { paddingBottom: 28 },
-  greeting: { fontSize: 16, fontFamily: 'NotoNastaliqUrdu_600SemiBold', marginBottom: 6, lineHeight: 36 },
+  greeting: { fontSize: 16, fontFamily: 'NotoNastaliqUrdu_600SemiBold', marginBottom: 6, lineHeight: 44, paddingTop: 6, includeFontPadding: true },
   heading: { fontSize: 30, fontFamily: 'Inter_700Bold', color: '#ecebe6', letterSpacing: -0.8, lineHeight: 36 },
   subheading: { fontSize: 15, fontFamily: 'Inter_400Regular', marginTop: 6 },
   // Form
