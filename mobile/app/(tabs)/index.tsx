@@ -559,7 +559,8 @@ const styles = StyleSheet.create({
   topDate: { fontSize: 12, fontFamily: 'Inter_400Regular', marginTop: 2 },
   topActions: { flexDirection: 'row', gap: 8, marginTop: 4, flexShrink: 0 },
   iconBtn: {
-    width: 40, height: 40, borderRadius: 12,
+    // 44dp: the platform minimum for a target you are expected to hit.
+    width: 44, height: 44, borderRadius: 13,
     alignItems: 'center', justifyContent: 'center', borderWidth: 1,
   },
   notifDot: {

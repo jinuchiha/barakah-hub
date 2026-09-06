@@ -278,7 +278,7 @@ const styles = StyleSheet.create({
   memberName: { fontSize: 14, fontFamily: 'Inter_600SemiBold' },
   month: { fontSize: 12, fontFamily: 'Inter_400Regular', marginTop: 2 },
   amountBlock: { alignItems: 'flex-end' },
-  amount: { fontSize: 16, fontFamily: 'SpaceMono_400Regular', fontWeight: '700' },
+  amount: { fontSize: 16, fontFamily: 'SpaceMono_400Regular', fontWeight: '700', fontVariant: ['tabular-nums'] },
   poolLabel: { fontSize: 10, fontFamily: 'Inter_600SemiBold', letterSpacing: 0.5 },
   noteRow: {
     flexDirection: 'row', alignItems: 'flex-start', gap: 4,

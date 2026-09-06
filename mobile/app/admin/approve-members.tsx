@@ -81,7 +81,7 @@ export default function ApproveMembersScreen() {
   const { t } = useTranslation();
   const { colors } = useTheme();
   const { user, isLoading: authLoading } = useAuthStore();
-  const { data: members, isLoading, refetch, isRefetching } = useMembers();
+  const { data: members, isLoading, isError, refetch, isRefetching } = useMembers();
   const approveMutation = useApproveMember();
   const rejectMutation = useRejectMember();
   const [showSuccess, setShowSuccess] = useState(false);
@@ -132,7 +132,15 @@ export default function ApproveMembersScreen() {
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.bg1 }]} edges={['bottom']}>
       <SuccessOverlay visible={showSuccess} type="success" message="Approved!" onDone={() => setShowSuccess(false)} />
-      {isLoading ? (
+      {isError ? (
+        <EmptyState
+          icon="alert-circle-outline"
+          title="Could not load"
+          subtitle="We could not reach the server, so this list may be incomplete."
+          actionLabel="Retry"
+          onAction={() => void refetch()}
+        />
+      ) : isLoading ? (
         <EmptyState icon="loading" title={t('common.loading')} />
       ) : (
         <FlatList

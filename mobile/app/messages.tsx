@@ -57,7 +57,7 @@ export default function MessagesScreen() {
   const { t } = useTranslation();
   const { user } = useAuthStore();
   const isAdmin = isAdminOnly(user?.role);
-  const { data, isLoading, refetch, isRefetching } = useMessages();
+  const { data, isLoading, isError, refetch, isRefetching } = useMessages();
   const { data: members } = useMembers();
   const toAdmin = useSendToAdmin();
   const reply = useReplyMessage();
@@ -139,7 +139,15 @@ export default function MessagesScreen() {
         </View>
       )}
 
-      {isLoading ? (
+      {isError ? (
+        <EmptyState
+          icon="alert-circle-outline"
+          title="Could not load messages"
+          subtitle="We could not reach the server. Your messages are safe — this is only the view."
+          actionLabel="Retry"
+          onAction={() => void refetch()}
+        />
+      ) : isLoading ? (
         <EmptyState icon={'loading'} title={t('messages.loading')} />
       ) : (
         <ScrollView

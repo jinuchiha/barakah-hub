@@ -57,7 +57,7 @@ function InviteCard({ invite, onRevoke }: { invite: MemberInvite; onRevoke: () =
 export default function InvitesScreen() {
   const { colors } = useTheme();
   const { user, isLoading: authLoading } = useAuthStore();
-  const { data, isLoading, refetch, isRefetching } = useInvites();
+  const { data, isLoading, isError, refetch, isRefetching } = useInvites();
   const create = useCreateInvite();
   const revoke = useRevokeInvite();
   const [creating, setCreating] = useState(false);
@@ -102,7 +102,15 @@ export default function InvitesScreen() {
           fullWidth
         />
       </View>
-      {isLoading ? (
+      {isError ? (
+        <EmptyState
+          icon="alert-circle-outline"
+          title="Could not load"
+          subtitle="We could not reach the server, so this list may be incomplete."
+          actionLabel="Retry"
+          onAction={() => void refetch()}
+        />
+      ) : isLoading ? (
         <EmptyState icon="loading" title="Loading invites..." />
       ) : (
         <ScrollView

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Redirect } from 'expo-router';
 import { useAuthStore } from '@/stores/auth.store';
+import { LoadingScreen } from '@/components/ui/LoadingScreen';
 import { isOnboardingComplete } from '@/lib/onboarding';
 
 export default function IndexRedirect() {
@@ -11,7 +12,8 @@ export default function IndexRedirect() {
     isOnboardingComplete().then(setOnboarded).catch(() => setOnboarded(true));
   }, []);
 
-  if (isLoading || onboarded === null) return null;
+  // Never a blank frame between the brand moment and the first screen.
+  if (isLoading || onboarded === null) return <LoadingScreen />;
 
   if (isAuthenticated) return <Redirect href={'/(tabs)' as any} />;
   // First launch: show the intro carousel once, then always go to login.

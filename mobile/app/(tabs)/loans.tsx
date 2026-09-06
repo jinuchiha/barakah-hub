@@ -192,7 +192,7 @@ const styles = StyleSheet.create({
   heroGradient: { paddingHorizontal: spacing.md, paddingTop: spacing.lg, paddingBottom: spacing.md },
   heroRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' },
   heroLabel: { fontSize: 11, fontFamily: 'Inter_700Bold', letterSpacing: 1.8 },
-  heroValue: { fontSize: 28, fontFamily: 'Inter_700Bold', marginTop: 4 },
+  heroValue: { fontSize: 28, fontFamily: 'Inter_700Bold', marginTop: 4, fontVariant: ['tabular-nums'] },
   heroSub: { fontSize: 12, fontFamily: 'Inter_400Regular', marginTop: 4 },
   toggleBtn: {
     paddingHorizontal: 14, paddingVertical: 8, borderRadius: radius.full, borderWidth: 1.5,

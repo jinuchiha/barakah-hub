@@ -4,6 +4,7 @@ import Animated, {
   useSharedValue, useAnimatedStyle, withTiming, withDelay, withSequence, Easing,
 } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
+import { duration } from '@/lib/motion';
 
 const { height: H } = Dimensions.get('window');
 
@@ -18,13 +19,13 @@ export function WelcomeWipe({ name, onDone }: { name?: string; onDone: () => voi
   const lift = useSharedValue(0);
 
   useEffect(() => {
-    veil.value = withTiming(1, { duration: 320, easing: Easing.out(Easing.cubic) });
-    text.value = withDelay(260, withSequence(
-      withTiming(1, { duration: 420, easing: Easing.out(Easing.cubic) }),
-      withDelay(520, withTiming(2, { duration: 60 })),
+    veil.value = withTiming(1, { duration: duration.standard, easing: Easing.out(Easing.cubic) });
+    text.value = withDelay(120, withSequence(
+      withTiming(1, { duration: duration.emphasized, easing: Easing.out(Easing.cubic) }),
+      withDelay(180, withTiming(2, { duration: duration.instant })),
     ));
-    lift.value = withDelay(1250, withTiming(1, { duration: 420, easing: Easing.in(Easing.cubic) }));
-    const id = setTimeout(onDone, 1700);
+    lift.value = withDelay(620, withTiming(1, { duration: duration.emphasized, easing: Easing.in(Easing.cubic) }));
+    const id = setTimeout(onDone, 940);
     return () => clearTimeout(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

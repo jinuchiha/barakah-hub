@@ -52,10 +52,13 @@ function DetailLine({ label, value }: { label: string; value: string }) {
   );
 }
 
-function TransactionDetailSheet({ payment, onClose }: { payment: Payment; onClose: () => void }) {
+function TransactionDetailSheet({ payment, onClose, onOpenSlip, onOpenReceipt }: {
+  payment: Payment;
+  onClose: () => void;
+  onOpenSlip: () => void;
+  onOpenReceipt: () => void;
+}) {
   const { colors } = useTheme();
-  const [showSlip, setShowSlip] = useState(false);
-  const [showReceipt, setShowReceipt] = useState(false);
   const status = statusOf(payment);
   const accent = poolColor(payment.pool, colors);
   const poolLabel = payment.pool.charAt(0).toUpperCase() + payment.pool.slice(1);
@@ -84,7 +87,7 @@ function TransactionDetailSheet({ payment, onClose }: { payment: Payment; onClos
           {payment.receiptUrl ? (
             <TouchableOpacity
               style={[styles.actionRow, { borderColor: colors.border1 }]}
-              onPress={() => setShowReceipt(true)}
+              onPress={onOpenReceipt}
               accessibilityRole="button"
               accessibilityLabel="View uploaded receipt image"
             >
@@ -96,7 +99,7 @@ function TransactionDetailSheet({ payment, onClose }: { payment: Payment; onClos
           {payment.verifiedAt ? (
             <TouchableOpacity
               style={[styles.actionRow, { borderColor: colors.border1 }]}
-              onPress={() => setShowSlip(true)}
+              onPress={onOpenSlip}
               accessibilityRole="button"
               accessibilityLabel="Open verified digital receipt"
             >
@@ -106,10 +109,6 @@ function TransactionDetailSheet({ payment, onClose }: { payment: Payment; onClos
             </TouchableOpacity>
           ) : null}
 
-          {showSlip ? <ReceiptSlipModal payment={payment} onClose={() => setShowSlip(false)} /> : null}
-          {showReceipt && payment.receiptUrl ? (
-            <ReceiptImageModal url={payment.receiptUrl} onClose={() => setShowReceipt(false)} />
-          ) : null}
         </Pressable>
       </Pressable>
     </Modal>
@@ -119,6 +118,10 @@ function TransactionDetailSheet({ payment, onClose }: { payment: Payment; onClos
 export function TransactionRow({ payment }: { payment: Payment }) {
   const { colors } = useTheme();
   const [open, setOpen] = useState(false);
+  // Viewer state lives here, one level above the sheet, so the sheet and the
+  // viewer are siblings rather than one inside the other.
+  const [showSlip, setShowSlip] = useState(false);
+  const [showReceipt, setShowReceipt] = useState(false);
   const status = statusOf(payment);
   const accent = poolColor(payment.pool, colors);
   const paidLine = payment.paidOn ? formatDate(payment.paidOn) : 'Awaiting payment';
@@ -159,7 +162,18 @@ export function TransactionRow({ payment }: { payment: Payment }) {
           ) : null}
         </View>
       </Pressable>
-      {open ? <TransactionDetailSheet payment={payment} onClose={() => setOpen(false)} /> : null}
+      {open ? (
+        <TransactionDetailSheet
+          payment={payment}
+          onClose={() => setOpen(false)}
+          onOpenSlip={() => setShowSlip(true)}
+          onOpenReceipt={() => setShowReceipt(true)}
+        />
+      ) : null}
+      {showSlip ? <ReceiptSlipModal payment={payment} onClose={() => setShowSlip(false)} /> : null}
+      {showReceipt && payment.receiptUrl ? (
+        <ReceiptImageModal url={payment.receiptUrl} onClose={() => setShowReceipt(false)} />
+      ) : null}
     </>
   );
 }
