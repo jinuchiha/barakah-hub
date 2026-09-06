@@ -78,11 +78,20 @@ function QueuePaymentCard({
 
         <Text style={[styles.submitDate, { color: colors.text4 }]}>Submitted {formatDate(payment.createdAt)}</Text>
 
-        {/* Awaiting supervisor → supervisor (or admin) approves/rejects */}
+        {/* Fresh from the member. An admin finishes it here in one action —
+            the server records the approval and the verification together, so
+            there is no second officer to wait for. A supervisor still only
+            approves, and an admin picks it up from the state below. */}
         {state === 'awaiting-supervisor' ? (
           <View style={styles.actionRow}>
             <Button label={t('admin.reject')} onPress={actions.onSupervisorReject} variant="danger" size="sm" style={styles.actionBtn} />
-            <Button label={t('admin.approve')} onPress={actions.onApprove} variant="solid" size="sm" style={styles.actionBtn} />
+            <Button
+              label={isAdmin ? t('admin.verify') : t('admin.approve')}
+              onPress={isAdmin ? actions.onVerify : actions.onApprove}
+              variant="solid"
+              size="sm"
+              style={styles.actionBtn}
+            />
           </View>
         ) : null}
 

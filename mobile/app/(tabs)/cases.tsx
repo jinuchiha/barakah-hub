@@ -430,7 +430,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
     paddingHorizontal: spacing.md, paddingTop: spacing.md, paddingBottom: spacing.sm,
   },
-  title: { fontSize: 22, fontFamily: 'Inter_700Bold' },
+  // Large and light rather than small and bold: it anchors the screen without
+  // a heavy bar competing with the content underneath.
+  title: { fontSize: 30, lineHeight: 36, fontFamily: 'Inter_400Regular', letterSpacing: -1.1 },
   createBtn: {
     flexDirection: 'row', alignItems: 'center', gap: 4,
     paddingHorizontal: 14, paddingVertical: 8, borderRadius: radius.full, borderWidth: 1.5,

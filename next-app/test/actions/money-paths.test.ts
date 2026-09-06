@@ -136,14 +136,42 @@ describe('castVote — vote integrity', () => {
   });
 });
 
-describe('verifyPayment — two-person rule', () => {
-  it('admin cannot verify before the supervisor pre-approves', async () => {
+describe('verifyPayment — single-approver flow', () => {
+  // One admin completes a member's submission on their own. The row still
+  // travels submitted → supervisor_approved → verified, because the database
+  // trigger only permits those hops, but both happen in one transaction under
+  // one actor's name.
+  it('a single admin can approve and verify a submitted payment in one step', async () => {
     asAdmin();
-    dbMock.instance = makeDbMock({
-      selectQueue: [[admin], [{ id: UUID, status: 'submitted', supervisorApprovedAt: null, supervisorRejectedAt: null }]],
+    const inserted: unknown[] = [];
+    const db = makeDbMock({
+      selectQueue: [
+        [admin],
+        [{
+          id: UUID, status: 'submitted', supervisorApprovedAt: null, supervisorRejectedAt: null,
+          memberId: 'member-1', amount: 500, pool: 'sadaqah', monthLabel: 'May 2026',
+        }],
+        [{ id: UUID, memberId: 'member-1', amount: 500, pool: 'sadaqah', monthLabel: 'May 2026' }],
+      ],
+      updateResult: [{ id: UUID }],
     });
+    const origInsert = db.insert;
+    db.insert = ((...args: unknown[]) => {
+      const chain = origInsert(...(args as []));
+      const origValues = chain.values as (v: unknown) => unknown;
+      chain.values = (v: unknown) => { inserted.push(v); return origValues(v); };
+      return chain;
+    }) as typeof db.insert;
+    dbMock.instance = db;
+
     const { verifyPayment } = await import('@/app/actions');
-    await expect(verifyPayment(UUID)).rejects.toThrow(/supervisor must approve/i);
+    await expect(verifyPayment(UUID)).resolves.toBeUndefined();
+
+    // Both steps are named in the trail. Losing the second officer must not
+    // mean losing the record of who did what.
+    const actions = inserted.map((v) => (v as { action?: string }).action).filter(Boolean);
+    expect(actions).toContain('payment-supervisor-approved');
+    expect(actions).toContain('payment-verified');
   });
 
   it('a payment cannot be verified twice', async () => {
@@ -164,75 +192,22 @@ describe('verifyPayment — two-person rule', () => {
     await expect(verifyPayment(UUID)).rejects.toThrow(/rejected/i);
   });
 
-  it('the supervisor approver cannot also be the verifier (same-actor bypass)', async () => {
+  // Two officers racing the same submission must not both win: whoever's
+  // conditional UPDATE misses gets told, rather than silently double-crediting
+  // the ledger or double-sending a receipt.
+  it('a second actor racing the same submission is rejected, not silently ignored', async () => {
     asAdmin();
     dbMock.instance = makeDbMock({
       selectQueue: [[admin], [{
-        id: UUID, status: 'supervisor_approved',
-        supervisorApprovedAt: new Date(), supervisorRejectedAt: null,
-        supervisorApprovedById: 'admin-1',
+        id: UUID, status: 'submitted', supervisorApprovedAt: null, supervisorRejectedAt: null,
+        memberId: 'member-1', amount: 500, pool: 'sadaqah', monthLabel: 'May 2026',
       }]],
-      // Two eligible approvers exist, so two-person control is achievable
-      // and must be enforced.
-      countResult: 2,
+      updateResult: [], // someone else flipped it first
     });
     const { verifyPayment } = await import('@/app/actions');
-    await expect(verifyPayment(UUID)).rejects.toThrow(/two-person/i);
+    await expect(verifyPayment(UUID)).rejects.toThrow(/already actioned|already verified/i);
   });
 
-  // Regression: BH-05. Enforcing the two-person rule unconditionally
-  // deadlocked every single-admin install — the founder could supervisor-
-  // approve but never verify, so no payment could ever reach the fund total
-  // and the product's core loop was dead on arrival. The rule now degrades
-  // when a second approver does not exist, and the degradation is recorded.
-  it('allows self-verification when no second approver exists, and records it', async () => {
-    asAdmin();
-    const inserted: unknown[] = [];
-    const db = makeDbMock({
-      selectQueue: [
-        [admin],
-        // verifyPayment now credits the ledger and queues the receipt from
-        // this row, so the fixture has to carry the money fields.
-        [{
-          id: UUID, status: 'supervisor_approved', supervisorApprovedAt: new Date(),
-          supervisorRejectedAt: null, supervisorApprovedById: 'admin-1',
-          memberId: 'member-1', amount: 500, pool: 'sadaqah', monthLabel: 'May 2026',
-        }],
-        [{ id: UUID, memberId: 'member-1', amount: 500, pool: 'sadaqah', monthLabel: 'May 2026' }],
-      ],
-      updateResult: [{ id: UUID }],
-      countResult: 1, // the founder is the ONLY eligible approver
-    });
-    const origInsert = db.insert;
-    db.insert = ((...args: unknown[]) => {
-      const chain = origInsert(...(args as []));
-      const origValues = chain.values as (v: unknown) => unknown;
-      chain.values = (v: unknown) => { inserted.push(v); return origValues(v); };
-      return chain;
-    }) as typeof db.insert;
-    dbMock.instance = db;
-
-    const { verifyPayment } = await import('@/app/actions');
-    await expect(verifyPayment(UUID)).resolves.toBeUndefined();
-
-    const actions = inserted.map((v) => (v as { action?: string }).action).filter(Boolean);
-    expect(actions).toContain('payment-verified-single-control');
-    expect(actions).not.toContain('payment-verified');
-  });
-
-  it('still refuses self-verification when a second approver exists', async () => {
-    asAdmin();
-    dbMock.instance = makeDbMock({
-      selectQueue: [[admin], [{
-        id: UUID, status: 'supervisor_approved',
-        supervisorApprovedAt: new Date(), supervisorRejectedAt: null,
-        supervisorApprovedById: 'admin-1',
-      }]],
-      countResult: 3,
-    });
-    const { verifyPayment } = await import('@/app/actions');
-    await expect(verifyPayment(UUID)).rejects.toThrow(/two-person/i);
-  });
 
   it('a concurrent verify that loses the conditional UPDATE throws instead of double-sending receipts', async () => {
     asAdmin();

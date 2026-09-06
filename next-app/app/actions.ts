@@ -670,47 +670,36 @@ export async function verifyPayment(paymentId: string) {
   if (existing.status === 'supervisor_rejected') {
     throw new Error('Supervisor rejected this payment · resend it for re-approval first, or delete it.');
   }
-  if (existing.status !== 'supervisor_approved') {
-    throw new Error('Supervisor must approve this payment first before admin can verify.');
+  const needsApprovalStep = existing.status === 'submitted';
+  if (existing.status !== 'supervisor_approved' && !needsApprovalStep) {
+    throw new Error('This payment is not in a state that can be verified.');
   }
-  // Two-person rule, enforced in role logic (not just UI): the person who
-  // supervisor-approved the cash cannot also be the one who verifies it.
-  //
-  // The rule needs two eligible humans to exist. On a single-admin install
-  // (the bootstrap founder, before any supervisor is appointed) there is only
-  // one, so enforcing it strictly made EVERY payment unverifiable — the fund
-  // total could never leave zero and the product's core loop was dead on
-  // arrival. Silently waiving the rule would be worse: a financial control
-  // that disappears without a trace is not a control.
-  //
-  // So: enforce it whenever two-person control is actually possible, and when
-  // it is not, allow the verification but record the degraded control as its
-  // own audit action so the exception is visible to anyone reading the trail.
-  const selfApproved = existing.supervisorApprovedById === me.id;
-  let singleControl = false;
-  if (selfApproved) {
-    const eligibleApprovers = await db.$count(
-      members,
-      and(
-        eq(members.status, 'approved'),
-        eq(members.deceased, false),
-        inArray(members.role, ['admin', 'supervisor']),
-      ),
-    );
-    if (eligibleApprovers > 1) {
-      throw new Error('Two-person rule: you approved this payment as supervisor, so a different admin must verify it.');
-    }
-    singleControl = true;
-  }
-
   const verifiedAt = new Date();
-  // Conditional UPDATE so two admins clicking Verify at once can't both
-  // "win" and double-send receipts — only the row that actually flips
-  // triggers notifications.
   // The flip and its audit row commit together. Verifying a payment is the
   // moment money is recognised as received; a verification with no record of
   // who verified it is exactly what the audit trail exists to prevent.
   await inTransaction(async (tx) => {
+    // Straight from the member's submission: record the approval step first,
+    // under this admin's name, so the row passes through the state machine
+    // the database enforces instead of jumping it.
+    if (needsApprovalStep) {
+      const approved = await tx
+        .update(payments)
+        .set({
+          status: 'supervisor_approved',
+          supervisorApprovedAt: verifiedAt,
+          supervisorApprovedById: me.id,
+          supervisorRejectedAt: null,
+          supervisorRejectedById: null,
+          supervisorRejectionNote: null,
+        })
+        .where(and(eq(payments.id, paymentId), eq(payments.status, 'submitted')))
+        .returning({ id: payments.id });
+      // Someone else got there first; their flow owns it now.
+      if (approved.length === 0) throw new Error('Payment was already actioned by someone else');
+      await audit(tx, me.id, 'payment-supervisor-approved', `Approved payment ${paymentId}`);
+    }
+
     const flipped = await tx
       .update(payments)
       .set({ status: 'verified', verifiedById: me.id, verifiedAt })
@@ -720,9 +709,9 @@ export async function verifyPayment(paymentId: string) {
     await audit(
       tx,
       me.id,
-      singleControl ? 'payment-verified-single-control' : 'payment-verified',
-      singleControl
-        ? `Verified payment ${paymentId} under SINGLE-PERSON control — no second approved admin/supervisor existed at verification time. Appoint a supervisor to restore the two-person rule.`
+      'payment-verified',
+      needsApprovalStep
+        ? `Approved and verified payment ${paymentId} in one step`
         : `Verified payment ${paymentId}`,
     );
     // Verification is the moment the money is recognised as received, so

@@ -7,6 +7,7 @@ import { Badge } from './ui/Badge';
 import { GlassCard } from './ui/GlassCard';
 import { Avatar } from './ui/Avatar';
 import { formatPKR, formatDate } from '@/lib/format';
+import { SegmentedProgress } from './ui/SegmentedProgress';
 import { useTheme } from '@/lib/useTheme';
 import { spacing, radius } from '@/lib/theme';
 
@@ -67,19 +68,22 @@ function VoteProgress({ yes, no, total, colors }: {
   yes: number; no: number; total: number;
   colors: ReturnType<typeof useTheme>['colors'];
 }) {
-  const pct = Math.round((yes / total) * 100);
   return (
     <View style={styles.voteProgress}>
       <View style={styles.voteCountRow}>
-        <Text style={[styles.voteCount, { color: colors.primary }]}>{yes} Yes</Text>
+        <Text style={[styles.voteCount, { color: colors.success }]}>{yes} Yes</Text>
         <Text style={[styles.voteCount, { color: colors.text3 }]}> · </Text>
         <Text style={[styles.voteCount, { color: colors.danger }]}>{no} No</Text>
         <Text style={[styles.voteCount, { color: colors.text3 }]}> · {total - yes - no} Pending</Text>
       </View>
-      {/* Simple static bar — no animation, no layout thrash */}
-      <View style={[styles.barTrack, { backgroundColor: colors.bg4 }]}>
-        <View style={[styles.barFill, { backgroundColor: colors.primary, width: `${pct}%` as any }]} />
-      </View>
+      <SegmentedProgress
+        value={yes}
+        total={total}
+        segments={Math.min(total, 12)}
+        color={colors.success}
+        height={9}
+        accessibilityLabel={`${yes} of ${total} eligible members have voted to approve`}
+      />
     </View>
   );
 }
