@@ -65,7 +65,7 @@ export default function MembersScreen() {
   const [search, setSearch] = useState('');
   const [filterMode, setFilterMode] = useState<FilterMode>('all');
   const [searchFocused, setSearchFocused] = useState(false);
-  const { data, isLoading, refetch, isRefetching } = useMembers();
+  const { data, isLoading, isError, refetch, isRefetching } = useMembers();
 
 
   const filtered = useMemo(() => {
@@ -117,7 +117,14 @@ export default function MembersScreen() {
         ))}
       </Animated.View>
 
-      {isLoading ? (
+      {isError ? (
+        <EmptyState
+          icon="alert-circle-outline"
+          title={t('common.error')}
+          actionLabel={t('common.retry')}
+          onAction={() => void refetch()}
+        />
+      ) : isLoading ? (
         <EmptyState icon="loading" title={t('common.loading')} />
       ) : (
         <FlatList

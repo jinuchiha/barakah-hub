@@ -28,7 +28,7 @@ export default function QRPayScreen() {
 
   const handleShare = async () => {
     try {
-      await Share.share({ message: `Barakah Hub Member: ${user?.nameEn ?? ''}\nID: ${user?.id ?? ''}` });
+      await Share.share({ message: `Barakah Member: ${user?.nameEn ?? ''}\nID: ${user?.id ?? ''}` });
     } catch {
       // dismissed
     }
@@ -37,7 +37,7 @@ export default function QRPayScreen() {
   const handleScan = (data: string) => {
     const decoded = decodeQR(data);
     if (!decoded) {
-      Alert.alert('Invalid QR', 'This QR code is not from Barakah Hub.');
+      Alert.alert('Invalid QR', 'This QR code is not from Barakah.');
       return;
     }
     void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);

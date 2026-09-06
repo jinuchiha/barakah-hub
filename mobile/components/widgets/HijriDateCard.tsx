@@ -46,7 +46,7 @@ export function HijriDateCard() {
   const monthName = HIJRI_MONTHS[Math.min(Math.max(hijri.month, 1), 12) - 1];
 
   return (
-    <View style={[styles.card, { borderColor: colors.goldDim }]}>
+    <View style={[styles.card, { borderColor: colors.border2 }]}>
       <LinearGradient
         colors={[colors.goldDim, 'transparent']}
         style={StyleSheet.absoluteFillObject}

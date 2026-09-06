@@ -42,8 +42,22 @@ export const darkColors = {
   shadowBlue: 'rgba(96,141,215,0.22)',
   shadowGold: 'rgba(212,169,76,0.28)',
   success: '#34a06f',
-  warning: '#d4a94c',
+  // Amber, deliberately OFF the gold ramp. Until now `warning` was the exact
+  // same hex as `primary`, so a pending payment and a primary CTA rendered in
+  // the same colour — the root cause of gold reading as "everything".
+  warning: '#e08a3c',
   info: '#6d97e0',
+
+  // --- Semantic split ----------------------------------------------------
+  /** Brand identity accent. Rare and intentional — never the default text or
+   *  icon colour, and never a status. */
+  brandGold: '#d4a94c',
+  /** Primary action. The same value as brandGold today by choice, but a
+   *  separate token so the two can diverge without a sweep, and so intent is
+   *  legible at the call site. */
+  actionPrimary: '#d4a94c',
+  /** Ink for text/icons sitting ON actionPrimary. */
+  onAction: '#0b0f19',
 } as const;
 
 export const lightColors = {
@@ -80,8 +94,13 @@ export const lightColors = {
   shadowBlue: 'rgba(59,130,246,0.15)',
   shadowGold: 'rgba(245,158,11,0.15)',
   success: '#1a7a4a',
-  warning: '#f59e0b',
+  warning: '#b45309',            // amber-700 — readable on a light ground
   info: '#3b82f6',
+  // Light-theme gold is contrast-corrected: #d4a94c on #f4f2ec measures
+  // 1.96:1, below the 3:1 required of meaningful non-text graphics.
+  brandGold: '#9c7a2e',
+  actionPrimary: '#0d5a3a',
+  onAction: '#ffffff',
 } as const;
 
 export const amoledColors = {
@@ -118,8 +137,11 @@ export const amoledColors = {
   shadowBlue: 'rgba(68,138,255,0.20)',
   shadowGold: 'rgba(255,215,64,0.20)',
   success: '#00e676',
-  warning: '#ffd740',
+  warning: '#ff9100',
   info: '#448aff',
+  brandGold: '#ffd740',
+  actionPrimary: '#00e676',
+  onAction: '#000000',
 } as const;
 
 export const cyberpunkColors = {
@@ -156,8 +178,11 @@ export const cyberpunkColors = {
   shadowBlue: 'rgba(255,45,120,0.25)',
   shadowGold: 'rgba(255,0,255,0.28)',
   success: '#00ffcc',
-  warning: '#ff00ff',
+  warning: '#ff9100',
   info: '#ff2d78',
+  brandGold: '#ff00ff',
+  actionPrimary: '#00ffcc',
+  onAction: '#0d0015',
 } as const;
 
 export const desertColors = {
@@ -194,8 +219,11 @@ export const desertColors = {
   shadowBlue: 'rgba(77,171,247,0.20)',
   shadowGold: 'rgba(245,200,66,0.28)',
   success: '#2ed573',
-  warning: '#f5c842',
+  warning: '#e07b39',
   info: '#4dabf7',
+  brandGold: '#f5c842',
+  actionPrimary: '#2ed573',
+  onAction: '#1a1208',
 } as const;
 
 export type ColorScheme = Record<keyof typeof darkColors, string>;

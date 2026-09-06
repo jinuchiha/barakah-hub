@@ -145,8 +145,7 @@ const styles = StyleSheet.create({
     fontFamily: 'SpaceMono_400Regular',
     fontWeight: '600',
     letterSpacing: -0.2,
-    marginTop: 2,
-  },
+    marginTop: 2, fontVariant: ['tabular-nums'] },
   time: {
     fontSize: 11,
     fontFamily: 'Inter_400Regular',

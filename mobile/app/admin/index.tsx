@@ -104,7 +104,7 @@ export default function AdminDashboard() {
           <View>
             <Text style={[styles.pageTitle, { color: colors.text1 }]}>{isAdmin ? t('admin.title') : t('admin2.supervisorPanel')}</Text>
             <Text style={[styles.pageSub, { color: colors.text3 }]}>
-              {isAdmin ? 'Manage Barakah Hub' : t('admin2.approveFundCollections')}
+              {isAdmin ? 'Manage Barakah' : t('admin2.approveFundCollections')}
             </Text>
           </View>
         </Animated.View>

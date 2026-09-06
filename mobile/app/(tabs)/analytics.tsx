@@ -114,7 +114,7 @@ export default function AnalyticsScreen() {
         </Animated.View>
 
         {isError ? (
-          <EmptyState icon="alert-circle-outline" title={t('common.error')} />
+          <EmptyState icon="alert-circle-outline" title={t('common.error')} actionLabel={t('common.retry')} onAction={() => void refetch()} />
         ) : isLoading ? (
           <>
             <SkeletonCard style={{ margin: 16 }} />

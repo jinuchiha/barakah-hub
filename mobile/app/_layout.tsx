@@ -1,6 +1,6 @@
 import '../global.css';
 import React, { useEffect, useState, useCallback } from 'react';
-import { Stack } from 'expo-router';
+import { Stack, useRouter, useSegments } from 'expo-router';
 import { View, Text } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
@@ -41,7 +41,22 @@ const THEME_KEY = 'bh_theme';
 const CACHE_MAX_AGE = 1000 * 60 * 60 * 24; // 24h — stale financial data expires
 
 function AuthInitializer({ children }: { children: React.ReactNode }) {
-  const { refreshSession, isLoading } = useAuth();
+  const { refreshSession, isLoading, isAuthenticated } = useAuth();
+  const segments = useSegments();
+  const router = useRouter();
+
+  // A 401 clears the session from inside the API layer, but only the tab and
+  // admin groups had redirect guards. On every other screen — notifications,
+  // messages, a member profile, settings, the assistant — an expired session
+  // left the user sitting on stale private data with no way to know. Watching
+  // the flag here covers every route at once instead of bolting a guard onto
+  // each one.
+  useEffect(() => {
+    if (isLoading || isAuthenticated) return;
+    const group = segments[0];
+    if (group === '(auth)' || group === 'onboarding') return;
+    router.replace('/(auth)/login');
+  }, [isAuthenticated, isLoading, segments, router]);
 
   useEffect(() => {
     initI18n()

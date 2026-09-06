@@ -1,15 +1,15 @@
 {
   "expo": {
-    "name": "Barakah Hub",
+    "name": "Barakah",
     "slug": "barakah-hub",
-    "version": "1.1.0",
+    "version": "1.2.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "barakah",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/images/splash.png",
+      "image": "./assets/images/splash-icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#06090f"
     },
@@ -20,16 +20,17 @@
       "infoPlist": {
         "NSCameraUsageDescription": "Upload payment screenshots, scan receipts, and scan QR codes",
         "NSPhotoLibraryUsageDescription": "Select payment proof from gallery",
-        "NSFaceIDUsageDescription": "Use Face ID to unlock Barakah Hub",
+        "NSFaceIDUsageDescription": "Use Face ID to unlock Barakah",
         "NSPhotoLibraryAddUsageDescription": "Save receipts to your photo library",
         "NSLocationWhenInUseUsageDescription": "Calculate Qibla direction for your current location"
       },
-      "buildNumber": "2"
+      "buildNumber": "3"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#06090f"
+        "backgroundColor": "#06090f",
+        "monochromeImage": "./assets/images/monochrome-icon.png"
       },
       "package": "com.barakah.hub",
       "permissions": [
@@ -85,7 +86,7 @@
           ]
         }
       ],
-      "versionCode": 2
+      "versionCode": 3
     },
     "web": {
       "bundler": "metro",
@@ -99,7 +100,7 @@
       [
         "expo-notifications",
         {
-          "icon": "./assets/images/icon.png",
+          "icon": "./assets/images/notification-icon.png",
           "color": "#d9b04c",
           "sounds": [],
           "mode": "production"
@@ -108,20 +109,20 @@
       [
         "expo-camera",
         {
-          "cameraPermission": "Allow Barakah Hub to use camera to capture payment receipts."
+          "cameraPermission": "Allow Barakah to use camera to capture payment receipts."
         }
       ],
       [
         "expo-image-picker",
         {
-          "photosPermission": "Allow Barakah Hub to access your photos for payment proof.",
-          "cameraPermission": "Allow Barakah Hub to use camera to capture payment proof."
+          "photosPermission": "Allow Barakah to access your photos for payment proof.",
+          "cameraPermission": "Allow Barakah to use camera to capture payment proof."
         }
       ],
       [
         "expo-local-authentication",
         {
-          "faceIDPermission": "Allow Barakah Hub to use Face ID for fast, secure authentication."
+          "faceIDPermission": "Allow Barakah to use Face ID for fast, secure authentication."
         }
       ],
       [

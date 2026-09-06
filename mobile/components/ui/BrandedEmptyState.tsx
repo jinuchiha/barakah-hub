@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, type ViewStyle } from 'react-native';
 import Svg, { Path, Circle, Line } from 'react-native-svg';
 import Animated, {
-  useSharedValue, useAnimatedStyle, withRepeat, withSequence, withTiming,
+  useSharedValue, useAnimatedStyle,
 } from 'react-native-reanimated';
 import { Button } from './Button';
 import { useTheme } from '@/lib/useTheme';
@@ -83,14 +83,9 @@ export function BrandedEmptyState({
   const pulse = useSharedValue(0.85);
 
   useEffect(() => {
-    pulse.value = withRepeat(
-      withSequence(
-        withTiming(1, { duration: 2000 }),
-        withTiming(0.85, { duration: 2000 }),
-      ),
-      -1,
-      false,
-    );
+    // Was a 4s breathing loop. An empty state is a resting state; it should
+    // hold still and let the copy do the work.
+    pulse.value = 1;
   }, [pulse]);
 
   const pulseStyle = useAnimatedStyle(() => ({

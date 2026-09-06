@@ -26,7 +26,7 @@ export function ReceiptSlipModal({ payment, onClose }: { payment: Payment | null
     void haptic.tap();
     try {
       await Share.share({
-        message: `Barakah Hub receipt #${receiptNo} · ${formatPKR(payment.amount)} (${payment.pool}) · ${payment.monthLabel}\nVerify: ${verifyUrl}`,
+        message: `Barakah receipt #${receiptNo} · ${formatPKR(payment.amount)} (${payment.pool}) · ${payment.monthLabel}\nVerify: ${verifyUrl}`,
       });
     } catch {
       // user dismissed the share sheet

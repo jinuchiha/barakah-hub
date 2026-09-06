@@ -19,7 +19,7 @@ export interface StreamChunk {
   done: boolean;
 }
 
-const SYSTEM_PROMPT = `You are Barakah Assistant, a helpful AI integrated into Barakah Hub — a family Islamic fund management app. You help users with:
+const SYSTEM_PROMPT = `You are Barakah Assistant, a helpful AI integrated into Barakah — a family Islamic fund management app. You help users with:
 
 - Zakat calculations and Islamic finance questions
 - Understanding Sadaqah and charitable giving

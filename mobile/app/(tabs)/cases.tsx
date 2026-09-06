@@ -353,7 +353,7 @@ function CasesScreen() {
               <Text style={[styles.titleUr, { color: colors.gold }]}>ایمرجنسی کیسز</Text>
               <View style={styles.titleRow}>
                 <Text style={[styles.title, { color: colors.text1 }]}>{t('cases.title')}</Text>
-                <View style={[styles.liveCountPill, { borderColor: colors.goldMuted }]}>
+                <View style={[styles.liveCountPill, { borderColor: colors.border2 }]}>
                   <AnimatedNumber value={activeCaseCount} style={[styles.liveCount, { color: colors.gold }]} />
                   <Text style={[styles.liveCountLabel, { color: colors.text4 }]}>{t('cases.active').toLowerCase()}</Text>
                 </View>
@@ -373,7 +373,7 @@ function CasesScreen() {
       <FilterTabs active={statusFilter} onChange={setStatusFilter} activeCaseCount={activeCaseCount} />
 
       {isError ? (
-        <EmptyState icon="alert-circle-outline" title={t('common.error')} />
+        <EmptyState icon="alert-circle-outline" title={t('common.error')} actionLabel={t('common.retry')} onAction={() => void refetch()} />
       ) : isLoading ? (
         <EmptyState icon="loading" title={t('common.loading')} />
       ) : (

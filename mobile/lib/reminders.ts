@@ -58,7 +58,7 @@ export async function schedulePaymentReminder(day: number, requestPermission = t
     identifier: 'payment-reminder',
     content: {
       title: 'Monthly Payment Due',
-      body: 'Your Barakah Hub monthly contribution is due. Tap to pay now.',
+      body: 'Your Barakah monthly contribution is due. Tap to pay now.',
       // resolveRoute (notifications-handler.ts) branches on `type`, not
       // `screen` — without it this reminder dead-ends on /notifications.
       data: { screen: '/payments', type: 'pledge-reminder' },

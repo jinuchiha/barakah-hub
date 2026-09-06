@@ -32,6 +32,8 @@ import { Button } from '@/components/ui/Button';
 import { DailyVerseCard } from '@/components/DailyVerseCard';
 import { GlobalSearch } from '@/components/GlobalSearch';
 import { useTheme } from '@/lib/useTheme';
+import { loop } from '@/lib/motion';
+import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { spacing } from '@/lib/theme';
 import { formatPKR, formatPKRFull } from '@/lib/format';
 import { format } from 'date-fns';
@@ -85,11 +87,9 @@ function TopBar({ displayName, notifCount, onBell, onSearch, onAssistant }: {
 
 /** Diagonal light sweep drifting across the hero — the web's aurora. */
 function AuroraSweep() {
-  const x = useSharedValue(-1);
-  useEffect(() => {
-    x.value = withRepeat(withTiming(1, { duration: 5200 }), -1, false);
-    return () => { cancelAnimation(x); };
-  }, [x]);
+  // Static. This used to sweep on a 5200ms infinite loop; the depth it adds
+  // is worth keeping, the perpetual movement is not.
+  const x = useSharedValue(0);
   const style = useAnimatedStyle(() => ({
     transform: [{ translateX: x.value * 420 }, { rotate: '18deg' }],
   }));
@@ -106,14 +106,18 @@ function AuroraSweep() {
 }
 
 function LiveDot() {
+  // Kept: this communicates live state rather than decorating. Gated, because
+  // every surviving loop in the app must stop when the OS asks for less motion.
+  const reduced = useReducedMotion();
   const pulse = useSharedValue(0);
   useEffect(() => {
+    if (reduced) { pulse.value = 1; return; }
     pulse.value = withRepeat(
-      withSequence(withTiming(1, { duration: 800 }), withTiming(0, { duration: 800 })),
+      withSequence(withTiming(1, { duration: loop.pending / 2 }), withTiming(0, { duration: loop.pending / 2 })),
       -1, false,
     );
     return () => { cancelAnimation(pulse); };
-  }, [pulse]);
+  }, [pulse, reduced]);
   const style = useAnimatedStyle(() => ({ opacity: 0.45 + pulse.value * 0.55 }));
   return (
     <View style={styles.liveWrap}>

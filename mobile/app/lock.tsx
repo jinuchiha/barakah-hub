@@ -75,7 +75,7 @@ export default function LockScreen() {
   }
 
   const attemptBiometric = useCallback(async () => {
-    const success = await authenticateWithBiometric('Unlock Barakah Hub');
+    const success = await authenticateWithBiometric('Unlock Barakah');
     if (success) {
       // A successful unlock clears any stale PIN attempt counter — fumbled
       // taps must not accumulate across sessions toward a lockout.

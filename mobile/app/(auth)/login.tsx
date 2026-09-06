@@ -7,7 +7,7 @@ import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, {
   FadeInDown, FadeInUp, useSharedValue, useAnimatedStyle,
-  withRepeat, withTiming, withSpring, withDelay, Easing, cancelAnimation,
+  withSpring, withDelay,
 } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Circle, Path, G } from 'react-native-svg';
@@ -53,9 +53,10 @@ function AnimatedBrand() {
 
   React.useEffect(() => {
     enter.value = withDelay(120, withSpring(1, { damping: 12, stiffness: 130 }));
-    orbit.value = withRepeat(withTiming(1, { duration: 9000, easing: Easing.linear }), -1, false);
-    breathe.value = withRepeat(withTiming(1, { duration: 2400, easing: Easing.inOut(Easing.sin) }), -1, true);
-    return () => { cancelAnimation(orbit); cancelAnimation(breathe); };
+    // Were a 9000ms rotation and a 2400ms sine pulse, both looping forever.
+    // The sign-in screen is the first thing a member sees; it should be still.
+    orbit.value = 0;
+    breathe.value = 0;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -94,8 +95,9 @@ function AnimatedBrand() {
 function ButtonShine() {
   const x = useSharedValue(-1);
   React.useEffect(() => {
-    x.value = withRepeat(withDelay(1200, withTiming(1.6, { duration: 1600, easing: Easing.inOut(Easing.cubic) })), -1, false);
-    return () => { cancelAnimation(x); };
+    // Was a shine sweep repeating every 2.8s. Removed — a repeating glint on
+    // a login button is decoration, not feedback.
+    x.value = -1;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const style = useAnimatedStyle(() => ({
@@ -171,8 +173,8 @@ export default function LoginScreen() {
             {/* ── Brand section ── */}
             <Animated.View entering={FadeInDown.duration(500)} style={styles.brandSection}>
               <AnimatedBrand />
-              <Text style={styles.appName}>Barakah Hub</Text>
-              <Text style={styles.appNameAr}>بَرَكَة ہب</Text>
+              <Text style={styles.appName}>Barakah</Text>
+              <Text style={styles.appNameAr}>بَرَكَة</Text>
               <View style={styles.taglinePill}>
                 <Text style={styles.taglineText}>Family Treasury</Text>
               </View>

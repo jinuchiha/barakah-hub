@@ -22,14 +22,20 @@ interface TabDef {
   activeIcon?: keyof typeof MaterialCommunityIcons.glyphMap;
   labelKey: string;
   adminOnly?: boolean;
-  center?: boolean;
 }
 
+// Order follows how often a member actually reaches for each surface.
+// Payments sits second because it is the most-used one — not because it is
+// decorated. It used to be a raised, glowing gold circle in the middle, which
+// made the navigation bar read as a promotional CTA and gave the app two
+// competing primary actions on the Payments screen itself. Discoverability
+// now comes from position and a calm selected state; the primary action lives
+// inside Payments, where the user is already looking for it.
+// Non-admins therefore see exactly five tabs.
 const TABS: TabDef[] = [
   { name: 'index', icon: 'view-dashboard-outline', activeIcon: 'view-dashboard', labelKey: 'nav.dashboard' },
+  { name: 'payments', icon: 'cash-multiple', activeIcon: 'cash-multiple', labelKey: 'nav.payments' },
   { name: 'cases', icon: 'alert-circle-outline', activeIcon: 'alert-circle', labelKey: 'nav.cases' },
-  // The most important action lives in the middle, raised and gold.
-  { name: 'payments', icon: 'cash-plus', labelKey: 'nav.payments', center: true },
   { name: 'loans', icon: 'handshake-outline', activeIcon: 'handshake', labelKey: 'nav.loans' },
   { name: 'analytics', icon: 'chart-line', labelKey: 'nav.analytics', adminOnly: true },
   { name: 'profile', icon: 'account-circle-outline', activeIcon: 'account-circle', labelKey: 'nav.profile' },
@@ -68,9 +74,6 @@ function TabItem({ tab, active, badge, onPress }: TabItemProps) {
   const floatStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: interpolate(progress.value, [0, 1], [0, -3]) }],
   }));
-  const glowStyle = useAnimatedStyle(() => ({
-    shadowOpacity: 0.2 + progress.value * 0.35,
-  }));
 
   const handlePress = () => {
     scale.value = withSpring(0.85, { damping: 10, stiffness: 500 }, () => {
@@ -81,33 +84,6 @@ function TabItem({ tab, active, badge, onPress }: TabItemProps) {
   };
 
   const iconName = (active ? (tab.activeIcon ?? tab.icon) : tab.icon) as keyof typeof MaterialCommunityIcons.glyphMap;
-
-  if (tab.center) {
-    return (
-      <Pressable
-        style={styles.tabItem}
-        onPress={handlePress}
-        accessibilityRole="tab"
-        accessibilityState={{ selected: active }}
-        accessibilityLabel={t(tab.labelKey)}
-      >
-        <Animated.View style={[styles.iconAreaCenter, scaleStyle, floatStyle]}>
-          <Animated.View style={[styles.centerBtn, glowStyle]}>
-            <LinearGradient
-              colors={active ? ['#e8c563', '#b8893a'] : ['#d9b04c', '#a87d33']}
-              start={{ x: 0.2, y: 0 }}
-              end={{ x: 0.8, y: 1 }}
-              style={StyleSheet.absoluteFillObject}
-            />
-            <MaterialCommunityIcons name={iconName} size={22} color="#0a0f1a" />
-          </Animated.View>
-        </Animated.View>
-        <Text style={[styles.tabLabel, { color: active ? colors.primary : colors.text4 }]} numberOfLines={1}>
-          {t(tab.labelKey)}
-        </Text>
-      </Pressable>
-    );
-  }
 
   return (
     <Pressable
@@ -218,17 +194,9 @@ const styles = StyleSheet.create({
   chrome: { ...StyleSheet.absoluteFillObject, overflow: 'hidden', borderRadius: 27 },
   dockSheen: { position: 'absolute', top: 0, left: 22, right: 22, height: StyleSheet.hairlineWidth * 2 },
   row: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 8, paddingTop: 8, paddingBottom: 6 },
-  centerBtn: {
-    width: 44, height: 44, borderRadius: 22,
-    alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
-    borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.22)',
-    shadowColor: '#e8c56b', shadowRadius: 12,
-    shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.5, elevation: 10,
-  },
   tabItem: { flex: 1, alignItems: 'center', paddingVertical: 5, paddingHorizontal: 2 },
   iconArea: { alignItems: 'center', justifyContent: 'center', width: 46, height: 32, marginBottom: 3 },
-  iconAreaCenter: { alignItems: 'center', justifyContent: 'center', width: 52, height: 40, marginTop: -14, marginBottom: 1 },
-  activePill: { ...StyleSheet.absoluteFillObject, borderRadius: 14, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(200,155,60,0.15)' },
+  activePill: { ...StyleSheet.absoluteFillObject, borderRadius: 14, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)' },
   iconWrap: { position: 'relative' },
   badge: { position: 'absolute', top: -5, right: -7, borderRadius: 8, minWidth: 15, height: 15, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 3 },
   badgeText: { color: '#fff', fontSize: 8, fontFamily: 'Inter_700Bold' },

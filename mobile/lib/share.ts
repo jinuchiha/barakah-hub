@@ -39,7 +39,7 @@ export async function shareCaseSummary(params: {
 }): Promise<void> {
   const link = `${APP_DOMAIN}/case/${params.id}`;
   const text = [
-    `Barakah Hub - Emergency Case`,
+    `Barakah - Emergency Case`,
     `Beneficiary: ${params.beneficiaryName}`,
     `Amount: PKR ${params.amount.toLocaleString()}`,
     `Type: ${params.caseType}`,
@@ -65,7 +65,7 @@ export async function sharePaymentReceipt(params: {
 
   const link = `${APP_DOMAIN}/payment/${params.id}`;
   const text = [
-    `Barakah Hub - Payment Receipt`,
+    `Barakah - Payment Receipt`,
     `Amount: PKR ${params.amount.toLocaleString()}`,
     `Month: ${params.monthLabel}`,
     ``,
@@ -76,7 +76,7 @@ export async function sharePaymentReceipt(params: {
 
 export async function shareMemberReferral(joinCode: string): Promise<void> {
   const text = [
-    `Join Barakah Hub - Our Family Fund`,
+    `Join Barakah - Our Family Fund`,
     `Use my join code: ${joinCode}`,
     ``,
     `${APP_DOMAIN}/join?code=${joinCode}`,

@@ -21,7 +21,7 @@ export default function NotificationsScreen() {
   const router = useRouter();
   const { t } = useTranslation();
   const { colors } = useTheme();
-  const { data, isLoading, refetch, isRefetching, markAllRead, isMarkingRead, markOneRead } = useNotifications();
+  const { data, isLoading, isError, refetch, isRefetching, markAllRead, isMarkingRead, markOneRead } = useNotifications();
 
   const unreadCount = data?.filter((n) => !n.read).length ?? 0;
 
@@ -61,7 +61,14 @@ export default function NotificationsScreen() {
         </Animated.View>
       ) : null}
 
-      {isLoading ? (
+      {isError ? (
+        <EmptyState
+          icon="alert-circle-outline"
+          title={t('common.error')}
+          actionLabel={t('common.retry')}
+          onAction={() => void refetch()}
+        />
+      ) : isLoading ? (
         <EmptyState icon="loading" title={t('common.loading')} />
       ) : (
         <FlatList

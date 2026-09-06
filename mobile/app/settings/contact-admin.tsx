@@ -39,7 +39,7 @@ export default function ContactAdminScreen() {
   const openWhatsApp = () => {
     if (!waAdmin?.phone) return;
     const num = waAdmin.phone.replace(/[^0-9]/g, '').replace(/^0/, '92');
-    void Linking.openURL(`whatsapp://send?phone=${num}&text=${encodeURIComponent('السلام علیکم · Barakah Hub')}`)
+    void Linking.openURL(`whatsapp://send?phone=${num}&text=${encodeURIComponent('السلام علیکم · Barakah')}`)
       .catch(() => Linking.openURL(`https://wa.me/${num}`));
   };
   const { colors } = useTheme();
@@ -76,7 +76,7 @@ export default function ContactAdminScreen() {
           {
             text: 'Open Email',
             onPress: () => {
-              const mailto = `mailto:?subject=${encodeURIComponent('[Barakah Hub] ' + data.subject)}&body=${encodeURIComponent(`From: ${user?.nameEn ?? ''}\n\n${data.body}`)}`;
+              const mailto = `mailto:?subject=${encodeURIComponent('[Barakah] ' + data.subject)}&body=${encodeURIComponent(`From: ${user?.nameEn ?? ''}\n\n${data.body}`)}`;
               Linking.openURL(mailto).catch(() => {});
             },
           },

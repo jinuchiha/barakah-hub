@@ -27,7 +27,7 @@ function InviteCard({ invite, onRevoke }: { invite: MemberInvite; onRevoke: () =
   const dead = invite.revoked || expired || exhausted;
 
   const share = async () => {
-    await shareText(`Join Barakah Hub · our family fund:\n\n${url}`);
+    await shareText(`Join Barakah · our family fund:\n\n${url}`);
   };
 
   return (

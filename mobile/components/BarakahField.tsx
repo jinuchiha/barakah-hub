@@ -1,8 +1,7 @@
 import React, { useEffect, useMemo } from 'react';
 import { View, StyleSheet, Dimensions, AccessibilityInfo } from 'react-native';
 import Animated, {
-  useSharedValue, useAnimatedStyle, withRepeat, withTiming,
-  withDelay, withSequence, Easing, cancelAnimation,
+  useSharedValue, useAnimatedStyle,
 } from 'react-native-reanimated';
 
 const { width: W, height: H } = Dimensions.get('window');
@@ -25,22 +24,15 @@ function Star({ index }: { index: number }) {
   const size = 1 + seeded(index, 2) * 2.2;
   const left = seeded(index, 3) * W;
   const top = seeded(index, 4) * H;
-  const twinkleMs = 1800 + seeded(index, 5) * 2600;
-  const driftMs = 14000 + seeded(index, 6) * 12000;
 
   useEffect(() => {
-    opacity.value = withDelay(
-      seeded(index, 7) * 2000,
-      withRepeat(
-        withSequence(
-          withTiming(0.75, { duration: twinkleMs, easing: Easing.inOut(Easing.sin) }),
-          withTiming(0.15, { duration: twinkleMs, easing: Easing.inOut(Easing.sin) }),
-        ),
-        -1, false,
-      ),
-    );
-    drift.value = withRepeat(withTiming(1, { duration: driftMs, easing: Easing.linear }), -1, false);
-    return () => { cancelAnimation(opacity); cancelAnimation(drift); };
+    // Each particle used to run two infinite animations — a twinkle and a
+    // drift — so the backdrop kept dozens of loops alive behind every screen
+    // it rendered on. The field is now a still starfield: the same depth,
+    // none of the perpetual movement or the battery it costs. The seeded
+    // values below still vary each particle, so it does not look uniform.
+    opacity.value = 0.18 + seeded(index, 7) * 0.42;
+    drift.value = seeded(index, 8);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -65,14 +57,10 @@ function FloatingWord({ word, index }: { word: string; index: number }) {
   const t = useSharedValue(0);
   const left = 20 + seeded(index, 11) * (W - 100);
   const startTop = H * 0.35 + seeded(index, 12) * H * 0.5;
-  const riseMs = 26000 + seeded(index, 13) * 14000;
 
   useEffect(() => {
-    t.value = withDelay(
-      index * 3500,
-      withRepeat(withTiming(1, { duration: riseMs, easing: Easing.linear }), -1, false),
-    );
-    return () => { cancelAnimation(t); };
+    // Was a 26-40s rise repeating forever. Held at a seeded position instead.
+    t.value = 0.2 + seeded(index, 14) * 0.5;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

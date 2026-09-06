@@ -181,6 +181,9 @@ export function PaymentSubmitModal({ visible, onClose, onSubmit, easyPaiseNumber
                             { borderColor: num === amt ? colors.primary : colors.border1, backgroundColor: num === amt ? colors.primaryDim : colors.glass2 },
                           ]}
                           onPress={() => onChange(amt)}
+                          accessibilityRole="button"
+                          accessibilityState={{ selected: num === amt }}
+                          accessibilityLabel={`Set amount to ${amt} rupees`}
                         >
                           <Text style={[styles.presetText, { color: num === amt ? colors.primary : colors.text3 }]}>
                             {amt >= 1000 ? `₨${amt / 1000}K` : `₨${amt}`}
@@ -233,6 +236,9 @@ export function PaymentSubmitModal({ visible, onClose, onSubmit, easyPaiseNumber
                       key={p.value}
                       style={[styles.poolChip, value === p.value && styles.poolChipActive]}
                       onPress={() => onChange(p.value)}
+                      accessibilityRole="button"
+                      accessibilityState={{ selected: value === p.value }}
+                      accessibilityLabel={`Contribute to ${p.label}`}
                     >
                       <Text style={[styles.poolChipText, value === p.value && styles.poolChipTextActive]}>
                         {p.label}
@@ -273,7 +279,12 @@ export function PaymentSubmitModal({ visible, onClose, onSubmit, easyPaiseNumber
             />
 
             <Text style={styles.fieldLabel}>Payment Screenshot (optional)</Text>
-            <TouchableOpacity style={styles.uploadBox} onPress={pickImage}>
+            <TouchableOpacity
+              style={styles.uploadBox}
+              onPress={pickImage}
+              accessibilityRole="button"
+              accessibilityLabel={screenshotUri ? 'Payment screenshot attached. Tap to replace it.' : 'Upload a payment screenshot. Optional.'}
+            >
               {screenshotUri ? (
                 <Image
                   source={{ uri: screenshotUri }}
@@ -289,7 +300,7 @@ export function PaymentSubmitModal({ visible, onClose, onSubmit, easyPaiseNumber
             </TouchableOpacity>
 
             {receiptUploadFailed ? (
-              <View style={[styles.uploadWarn, { backgroundColor: colors.goldDim, borderColor: colors.gold }]}>
+              <View style={[styles.uploadWarn, { backgroundColor: colors.glass2, borderColor: colors.warning }]}>
                 <MaterialCommunityIcons name="alert-outline" size={14} color={colors.gold} />
                 <Text style={[styles.uploadWarnText, { color: colors.gold }]}>
                   Receipt upload failed — payment will be submitted without it. Admin may request the slip later.

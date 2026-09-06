@@ -1,6 +1,6 @@
 {
   "greeting": "Assalamu Alaikum",
-  "appName": "Barakah Hub",
+  "appName": "Barakah",
   "auth": {
     "login": "Login",
     "register": "Register",
@@ -470,7 +470,7 @@
   },
   "help": {
     "title": "Help & FAQ",
-    "intro": "Common questions about Barakah Hub. Still stuck? Tap Contact Admin below.",
+    "intro": "Common questions about Barakah. Still stuck? Tap Contact Admin below.",
     "aboutFund": "About This Fund",
     "contactAdmin": "Contact Admin",
     "faq": [

@@ -236,8 +236,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: 'SpaceMono_400Regular',
     fontWeight: '700',
-    marginBottom: spacing.sm,
-  },
+    marginBottom: spacing.sm, fontVariant: ['tabular-nums'] },
   voteProgress: {
     marginBottom: spacing.sm,
   },

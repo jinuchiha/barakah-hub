@@ -6,8 +6,19 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTheme } from '@/lib/useTheme';
 import { spacing, radius } from '@/lib/theme';
 
-// Nisab threshold: approx 85g gold × PKR ~27,000/g = ~2,295,000 PKR
-const NISAB_PKR = 2295000;
+/**
+ * Nisab tracks the gold price; it is not a constant.
+ *
+ * This figure was correct in June 2026 and was hardcoded with its date living
+ * only in UI prose, so nothing in the code — and no test — could tell that it
+ * had gone stale. It is now an editable default that states when it was taken,
+ * so a user can put today's figure in rather than trusting ours.
+ *
+ * Basis is 85g of gold. The silver nisab is lower and some scholars hold that
+ * it is the one to use; this calculator does not settle that for the user.
+ */
+const NISAB_DEFAULT_PKR = 2295000;
+const NISAB_AS_OF = 'June 2026';
 const ZAKAT_RATE = 0.025;
 
 function formatPKR(n: number): string {
@@ -18,15 +29,23 @@ export function ZakatCalculator() {
   const { colors } = useTheme();
   const [wealth, setWealth] = useState('');
   const [debts, setDebts] = useState('');
+  const [nisab, setNisab] = useState('');
   const [expanded, setExpanded] = useState(false);
+
+  const nisabValue = useMemo(() => {
+    const parsed = parseFloat(nisab.replace(/,/g, ''));
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : NISAB_DEFAULT_PKR;
+  }, [nisab]);
 
   const result = useMemo(() => {
     const w = parseFloat(wealth.replace(/,/g, '')) || 0;
     const d = parseFloat(debts.replace(/,/g, '')) || 0;
     const net = Math.max(0, w - d);
-    if (net < NISAB_PKR) return { zakat: 0, aboveNisab: false, net };
-    return { zakat: net * ZAKAT_RATE, aboveNisab: true, net };
-  }, [wealth, debts]);
+    if (net < nisabValue) return { zakat: 0, aboveNisab: false, net };
+    // Whole rupees. 2.5% of an integer is a float, and nothing here should
+    // present a fraction of a rupee as an amount owed.
+    return { zakat: Math.round(net * ZAKAT_RATE), aboveNisab: true, net };
+  }, [wealth, debts, nisabValue]);
 
   return (
     <View style={[styles.card, { backgroundColor: colors.glass2, borderColor: colors.border1 }]}>
@@ -66,6 +85,20 @@ export function ZakatCalculator() {
               placeholderTextColor={colors.text4}
             />
           </View>
+          <View style={styles.inputRow}>
+            <Text style={[styles.label, { color: colors.text2 }]}>
+              Nisab threshold (PKR) · 85g gold, {NISAB_AS_OF}
+            </Text>
+            <TextInput
+              style={[styles.input, { backgroundColor: colors.glass3, color: colors.text1, borderColor: colors.border2 }]}
+              value={nisab}
+              onChangeText={setNisab}
+              keyboardType="numeric"
+              placeholder={String(NISAB_DEFAULT_PKR)}
+              placeholderTextColor={colors.text4}
+              accessibilityLabel={`Nisab threshold in rupees. Default ${NISAB_DEFAULT_PKR}, taken ${NISAB_AS_OF}. Edit it to use today's gold rate.`}
+            />
+          </View>
           <View style={[styles.result, { backgroundColor: result.aboveNisab ? colors.primaryDim : colors.glass1, borderColor: result.aboveNisab ? colors.primary : colors.border1 }]}>
             {result.net > 0 ? (
               <>
@@ -78,7 +111,7 @@ export function ZakatCalculator() {
                   </>
                 ) : (
                   <Text style={[styles.resultNote, { color: colors.text3 }]}>
-                    Below the gold Nisab ({formatPKR(NISAB_PKR)}, June 2026). Zakat may still be due on the lower silver nisab — ask a scholar.
+                    Below the Nisab you set ({formatPKR(nisabValue)}). Zakat may still be due on the lower silver nisab — ask a scholar.
                   </Text>
                 )}
               </>
@@ -87,7 +120,7 @@ export function ZakatCalculator() {
             )}
           </View>
           <Text style={[styles.disclaimer, { color: colors.text4 }]}>
-            * Based on approx. Nisab of 85g gold (June 2026 rate — verify today&apos;s).
+            * Nisab defaults to approx. 85g gold as of {NISAB_AS_OF} — edit it above with today&apos;s rate.
             Zakat applies after one lunar year of holding (hawl). Consult a scholar for an exact ruling.
           </Text>
         </View>

@@ -6,40 +6,52 @@ import Animated, {
   withRepeat,
   withSequence,
   withTiming,
+  cancelAnimation,
 } from 'react-native-reanimated';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { Mark } from './Mark';
 import { useTheme } from '@/lib/useTheme';
+import { loop } from '@/lib/motion';
+import { useReducedMotion } from '@/hooks/useReducedMotion';
 
 export function LoadingScreen() {
   // Falls back to dark before ThemeProvider mounts (root gate) — matches
   // the splash; inside the app it follows the active theme.
   const { colors } = useTheme();
-  const opacity = useSharedValue(0.4);
-  const scale = useSharedValue(0.9);
+  const reduced = useReducedMotion();
+  const opacity = useSharedValue(1);
 
   useEffect(() => {
+    // A loading pulse is one of the three loops that survive review: it says
+    // "still working" rather than decorating. It still stops for anyone who
+    // has asked the system for less motion — they get the mark held steady,
+    // which communicates the same thing.
+    if (reduced) {
+      opacity.value = 1;
+      return;
+    }
     opacity.value = withRepeat(
-      withSequence(withTiming(1, { duration: 800 }), withTiming(0.4, { duration: 800 })),
-      -1, false,
+      withSequence(
+        withTiming(1, { duration: loop.shimmer / 2 }),
+        withTiming(0.45, { duration: loop.shimmer / 2 }),
+      ),
+      -1,
+      false,
     );
-    scale.value = withRepeat(
-      withSequence(withTiming(1.08, { duration: 800 }), withTiming(0.9, { duration: 800 })),
-      -1, false,
-    );
-    return () => { opacity.value = 0.4; scale.value = 0.9; };
-  }, [opacity, scale]);
+    return () => {
+      cancelAnimation(opacity);
+      opacity.value = 1;
+    };
+  }, [opacity, reduced]);
 
-  const animStyle = useAnimatedStyle(() => ({
-    opacity: opacity.value,
-    transform: [{ scale: scale.value }],
-  }));
+  const animStyle = useAnimatedStyle(() => ({ opacity: opacity.value }));
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.bg0 }]}>
+    <View style={[styles.container, { backgroundColor: colors.bg0 }]} accessibilityLabel="Loading">
       <Animated.View style={animStyle}>
-        <MaterialCommunityIcons name="star-crescent" size={56} color={colors.primary} />
+        {/* The brand mark itself, not an icon-font glyph that merely resembles it. */}
+        <Mark size={56} color={colors.brandGold} />
       </Animated.View>
-      <Text style={[styles.text, { color: colors.text2 }]}>Barakah Hub</Text>
+      <Text style={[styles.text, { color: colors.text2 }]}>Barakah</Text>
     </View>
   );
 }
@@ -47,16 +59,15 @@ export function LoadingScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    
     alignItems: 'center',
     justifyContent: 'center',
     gap: 16,
   },
   text: {
-    
-    fontSize: 16,
+    fontSize: 17,
     fontFamily: 'Inter_600SemiBold',
-    letterSpacing: 2,
-    textTransform: 'uppercase',
+    // Sentence case with slight negative tracking. The previous all-caps,
+    // wide-tracked treatment reads as generic startup SaaS.
+    letterSpacing: -0.2,
   },
 });

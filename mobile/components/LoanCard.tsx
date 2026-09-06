@@ -227,8 +227,7 @@ const styles = StyleSheet.create({
   },
   statValue: {
     fontSize: 13,
-    fontFamily: 'Inter_700Bold',
-  },
+    fontFamily: 'Inter_700Bold', fontVariant: ['tabular-nums'] },
   datesRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',

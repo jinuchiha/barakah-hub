@@ -61,7 +61,7 @@ export const DailyVerseCard = memo(function DailyVerseCard() {
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
       />
-      <View style={[styles.border, { borderColor: colors.goldMuted }]} />
+      <View style={[styles.border, { borderColor: colors.border2 }]} />
 
       <Animated.View style={fadeStyle}>
         <View style={styles.header}>
