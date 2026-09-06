@@ -6,6 +6,7 @@ import { ReceiptSlipModal } from './ReceiptSlipModal';
 import { ReceiptImageModal } from './ReceiptImageModal';
 import { Badge, type BadgeVariant } from './ui/Badge';
 import { formatPKR, formatDate } from '@/lib/format';
+import { MoneyText } from './ui/MoneyText';
 import { useTheme } from '@/lib/useTheme';
 import { poolColor } from '@/lib/pool';
 import { spacing, radius } from '@/lib/theme';
@@ -30,13 +31,15 @@ const POOL_ICONS: Record<string, keyof typeof MaterialCommunityIcons.glyphMap> =
   qarz: 'handshake',
 };
 
-function statusOf(payment: Payment): { label: string; variant: BadgeVariant; pulse: boolean } {
+type RowStatus = { label: string; variant: BadgeVariant; pulse: boolean; exceptional: boolean };
+
+function statusOf(payment: Payment): RowStatus {
   if (payment.pendingVerify) {
-    if (payment.supervisorRejectedAt) return { label: 'Rejected', variant: 'danger', pulse: false };
-    return { label: 'Pending', variant: 'warning', pulse: true };
+    if (payment.supervisorRejectedAt) return { label: 'Rejected', variant: 'danger', pulse: false, exceptional: true };
+    return { label: 'Pending', variant: 'warning', pulse: true, exceptional: true };
   }
-  if (payment.verifiedAt) return { label: 'Verified', variant: 'success', pulse: false };
-  return { label: 'Rejected', variant: 'danger', pulse: false };
+  if (payment.verifiedAt) return { label: 'Verified', variant: 'success', pulse: false, exceptional: false };
+  return { label: 'Rejected', variant: 'danger', pulse: false, exceptional: true };
 }
 
 function DetailLine({ label, value }: { label: string; value: string }) {
@@ -65,7 +68,7 @@ function TransactionDetailSheet({ payment, onClose }: { payment: Payment; onClos
           <View style={[styles.sheetIcon, { backgroundColor: `${accent}16` }]}>
             <MaterialCommunityIcons name={POOL_ICONS[payment.pool] ?? 'cash'} size={22} color={accent} />
           </View>
-          <Text style={[styles.sheetAmount, { color: colors.text1 }]}>{formatPKR(payment.amount)}</Text>
+          <MoneyText amount={payment.amount} size="lg" color={colors.text1} />
           <View style={styles.sheetBadgeRow}>
             <Badge label={status.label} variant={status.variant} pulse={status.pulse} />
           </View>
@@ -119,13 +122,22 @@ export function TransactionRow({ payment }: { payment: Payment }) {
   const status = statusOf(payment);
   const accent = poolColor(payment.pool, colors);
   const paidLine = payment.paidOn ? formatDate(payment.paidOn) : 'Awaiting payment';
+  const statusColor =
+    status.variant === 'success' ? colors.success
+    : status.variant === 'warning' ? colors.warning
+    : colors.danger;
 
   return (
     <>
       <Pressable
         style={({ pressed }) => [
           styles.row,
-          { backgroundColor: pressed ? colors.bg3 : colors.bg1, borderColor: colors.border1 },
+          {
+            backgroundColor: pressed ? colors.bg3 : colors.bg1,
+            borderColor: colors.border1,
+            borderLeftColor: statusColor,
+            borderLeftWidth: 3,
+          },
         ]}
         onPress={() => { void haptic.tap(); setOpen(true); }}
         accessibilityRole="button"
@@ -141,8 +153,10 @@ export function TransactionRow({ payment }: { payment: Payment }) {
           </Text>
         </View>
         <View style={styles.right}>
-          <Text style={[styles.amount, { color: colors.text1 }]}>{formatPKR(payment.amount)}</Text>
-          <Badge label={status.label} variant={status.variant} pulse={status.pulse} />
+          <MoneyText amount={payment.amount} size="md" color={colors.text1} />
+          {status.exceptional ? (
+            <Badge label={status.label} variant={status.variant} pulse={status.pulse} />
+          ) : null}
         </View>
       </Pressable>
       {open ? <TransactionDetailSheet payment={payment} onClose={() => setOpen(false)} /> : null}

@@ -81,4 +81,42 @@ export const textStyles = {
     letterSpacing: 0.8,
     textTransform: 'uppercase',
   } as TextStyle,
+
+  /**
+   * Money.
+   *
+   * A finance app reads as expensive largely because of how its figures are
+   * set, and ours were being rendered as ordinary text. Three things matter:
+   * tabular figures so digits hold their column, negative tracking so large
+   * numbers stop looking gappy, and a currency symbol that steps back instead
+   * of competing with the amount (see `MoneyText`).
+   */
+  moneyHero: {
+    fontSize: 42,
+    lineHeight: 50,
+    fontFamily: 'Inter_700Bold',
+    letterSpacing: -1.5,
+    fontVariant: ['tabular-nums'],
+  } as TextStyle,
+  moneyLG: {
+    fontSize: 26,
+    lineHeight: 32,
+    fontFamily: 'Inter_700Bold',
+    letterSpacing: -0.7,
+    fontVariant: ['tabular-nums'],
+  } as TextStyle,
+  moneyMD: {
+    fontSize: 17,
+    lineHeight: 22,
+    fontFamily: 'Inter_600SemiBold',
+    letterSpacing: -0.3,
+    fontVariant: ['tabular-nums'],
+  } as TextStyle,
+  moneySM: {
+    fontSize: 14,
+    lineHeight: 18,
+    fontFamily: 'Inter_600SemiBold',
+    letterSpacing: -0.2,
+    fontVariant: ['tabular-nums'],
+  } as TextStyle,
 } as const;

@@ -107,7 +107,7 @@ export default function InvitesScreen() {
       ) : (
         <ScrollView
           contentContainerStyle={styles.list}
-          refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={colors.primary} />}
+          refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={colors.brandGold} colors={[colors.brandGold]} progressBackgroundColor={colors.bg2} />}
         >
           {(data ?? []).length === 0 ? (
             <EmptyState icon="link-variant" title="No invites yet" subtitle="Create a link to invite a new member" />

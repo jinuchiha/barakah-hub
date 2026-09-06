@@ -139,7 +139,7 @@ export default function ApproveMembersScreen() {
           data={pending}
           keyExtractor={(item: Member) => item.id}
           contentContainerStyle={styles.list}
-          refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={colors.primary} />}
+          refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={colors.brandGold} colors={[colors.brandGold]} progressBackgroundColor={colors.bg2} />}
           ListHeaderComponent={
             <Text style={[styles.count, { color: colors.text4 }]}>{t('admin.pendingApprovalCount', { count: pending.length })}</Text>
           }

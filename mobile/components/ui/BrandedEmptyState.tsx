@@ -5,6 +5,8 @@ import Animated, {
   useSharedValue, useAnimatedStyle,
 } from 'react-native-reanimated';
 import { Button } from './Button';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { Mark } from './Mark';
 import { useTheme } from '@/lib/useTheme';
 import { spacing, radius } from '@/lib/theme';
 
@@ -60,15 +62,14 @@ function GeometricPattern({ color, size = 120 }: { color: string; size?: number 
   );
 }
 
-const TYPE_ICONS: Record<string, string> = {
-  payments: '₨',
-  cases: '⊞',
-  loans: '⇌',
-  messages: '✉',
-  members: '⊙',
-  search: '◎',
-  notifications: '◉',
-  generic: '☾',
+const TYPE_ICONS: Record<string, keyof typeof MaterialCommunityIcons.glyphMap> = {
+  payments: 'cash-multiple',
+  cases: 'alert-circle-outline',
+  loans: 'handshake-outline',
+  messages: 'email-outline',
+  members: 'account-group-outline',
+  search: 'magnify',
+  notifications: 'bell-outline',
 };
 
 export function BrandedEmptyState({
@@ -93,17 +94,18 @@ export function BrandedEmptyState({
     opacity: 0.5 + pulse.value * 0.5,
   }));
 
-  const icon = TYPE_ICONS[type] ?? '☾';
+  const icon = TYPE_ICONS[type];
 
   return (
     <View style={[styles.container, style]}>
       <Animated.View style={[styles.patternWrap, pulseStyle]}>
         <GeometricPattern color={colors.primary} size={120} />
-        <View style={[
-          styles.iconOverlay,
-          { backgroundColor: colors.primaryDim, borderColor: `${colors.primary}40` },
-        ]}>
-          <Text style={[styles.iconText, { color: colors.primary }]}>{icon}</Text>
+        <View style={[styles.iconOverlay, { backgroundColor: colors.bg2, borderColor: colors.border1 }]}>
+          {icon ? (
+            <MaterialCommunityIcons name={icon} size={26} color={colors.text3} />
+          ) : (
+            <Mark size={30} color={colors.brandGold} />
+          )}
         </View>
       </Animated.View>
 

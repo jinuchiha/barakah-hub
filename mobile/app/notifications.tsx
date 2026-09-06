@@ -76,7 +76,7 @@ export default function NotificationsScreen() {
           keyExtractor={(item: Notification) => item.id}
           renderItem={({ item }) => <NotificationItem notification={item} onPress={() => openNotification(item)} />}
           contentContainerStyle={{ paddingBottom: spacing.xl }}
-          refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={colors.primary} />}
+          refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={colors.brandGold} colors={[colors.brandGold]} progressBackgroundColor={colors.bg2} />}
           ListEmptyComponent={
             <BrandedEmptyState type="notifications" title={t('notifications.noNotifications')} subtitle="You're all caught up!" />
           }

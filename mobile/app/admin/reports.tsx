@@ -68,7 +68,7 @@ export default function ReportsScreen() {
       <Stack.Screen options={{ title: 'Reports' }} />
       <ScrollView
         contentContainerStyle={styles.scroll}
-        refreshControl={<RefreshControl refreshing={annual.isRefetching} onRefresh={annual.refetch} tintColor={colors.primary} />}
+        refreshControl={<RefreshControl refreshing={annual.isRefetching} onRefresh={annual.refetch} tintColor={colors.brandGold} colors={[colors.brandGold]} progressBackgroundColor={colors.bg2} />}
       >
         {/* Year selector */}
         <View style={styles.yearRow}>

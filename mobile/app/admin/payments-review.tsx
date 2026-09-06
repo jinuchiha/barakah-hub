@@ -209,7 +209,7 @@ export default function PaymentsReviewScreen() {
       ) : (
         <ScrollView
           contentContainerStyle={styles.list}
-          refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={colors.primary} />}
+          refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={colors.brandGold} colors={[colors.brandGold]} progressBackgroundColor={colors.bg2} />}
         >
           <Section title={t('admin.awaitingSupervisor')} count={awaitingSupervisor.length}>
             {awaitingSupervisor.map((p) => (

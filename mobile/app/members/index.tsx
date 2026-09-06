@@ -138,7 +138,7 @@ export default function MembersScreen() {
             />
           )}
           contentContainerStyle={styles.list}
-          refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={colors.primary} />}
+          refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={colors.brandGold} colors={[colors.brandGold]} progressBackgroundColor={colors.bg2} />}
           ListHeaderComponent={
             <Text style={[styles.count, { color: colors.text4 }]}>{filtered.length} members</Text>
           }

@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import {
   View, Text, StyleSheet, RefreshControl, TouchableOpacity,
-  FlatList,
+  SectionList,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -15,13 +15,14 @@ import { PaymentSubmitModal } from '@/components/PaymentSubmitModal';
 import { DuaOverlay } from '@/components/DuaOverlay';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { BrandedEmptyState } from '@/components/ui/BrandedEmptyState';
-import { StatCard } from '@/components/ui/StatCard';
 import { AnimatedNumber, fmtRsWorklet } from '@/components/ui/AnimatedNumber';
 import { useMyPayments, useSubmitDonation } from '@/hooks/usePayments';
 import { useConfig } from '@/hooks/useConfig';
 import { useAuthStore } from '@/stores/auth.store';
 import { unlockAchievement } from '@/lib/achievements';
-import { formatPKR } from '@/lib/format';
+
+import { MoneyText } from '@/components/ui/MoneyText';
+import { Grain } from '@/components/ui/Texture';
 import { useTheme } from '@/lib/useTheme';
 import { spacing, radius } from '@/lib/theme';
 import type { Payment, FundPool } from '@/types';
@@ -41,21 +42,6 @@ function FilterChip({ label, active, onPress }: { label: string; active: boolean
       onPress={() => { void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); onPress(); }}
     >
       <Text style={[styles.chipText, { color: active ? colors.primary : colors.text3 }]}>{label}</Text>
-    </TouchableOpacity>
-  );
-}
-
-function FABButton({ onPress }: { onPress: () => void }) {
-  const { colors } = useTheme();
-  return (
-    <TouchableOpacity
-      style={[styles.fab, { backgroundColor: colors.primary }]}
-      onPress={() => { void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); onPress(); }}
-      activeOpacity={0.8}
-      accessibilityLabel="Submit payment"
-      accessibilityRole="button"
-    >
-      <MaterialCommunityIcons name="plus" size={26} color={colors.bg0} />
     </TouchableOpacity>
   );
 }
@@ -106,6 +92,20 @@ function PaymentsScreen() {
 
   const pendingCount = data?.filter((p) => p.pendingVerify).length ?? 0;
 
+  const sections = useMemo(() => {
+    const byMonth = new Map<string, Payment[]>();
+    for (const p of filtered) {
+      const key = p.monthLabel || '—';
+      const bucket = byMonth.get(key);
+      if (bucket) bucket.push(p); else byMonth.set(key, [p]);
+    }
+    return Array.from(byMonth, ([title, items]) => ({
+      title,
+      total: items.reduce((sum, p) => sum + p.amount, 0),
+      data: items,
+    }));
+  }, [filtered]);
+
   // No try/catch here — errors propagate to PaymentSubmitModal which shows Alert.
   const handleSubmit = async (formData: { amount: number; pool: FundPool; monthLabel: string; note?: string; receiptUrl?: string; idempotencyKey: string }) => {
     await submitMutation.mutateAsync(formData);
@@ -136,12 +136,17 @@ function PaymentsScreen() {
           <Text style={[styles.heroLabel, { color: colors.text4 }]}>{t('dashboard.myPayments')}</Text>
           <AnimatedNumber value={totalVerified} format={fmtRsWorklet} style={[styles.heroValue, { color: colors.text1 }]} />
           <Text style={[styles.heroSub, { color: colors.text3 }]}>{t('payments.totalVerified')} · {pendingCount} {t('dashboard.pending').toLowerCase()}</Text>
+          <TouchableOpacity
+            style={[styles.heroCta, { backgroundColor: colors.actionPrimary }]}
+            onPress={() => setShowModal(true)}
+            accessibilityRole="button"
+            accessibilityLabel={t('payments.submitPayment')}
+          >
+            <MaterialCommunityIcons name="plus" size={17} color={colors.onAction} />
+            <Text style={[styles.heroCtaText, { color: colors.onAction }]}>{t('payments.submitPayment')}</Text>
+          </TouchableOpacity>
+          <Grain opacity={0.04} />
         </LinearGradient>
-      </Animated.View>
-
-      <Animated.View entering={FadeInDown.duration(400).delay(80)} style={styles.statsRow}>
-        <StatCard icon="cash-check" value={formatPKR(totalVerified)} label={t('payments.totalVerified')} style={styles.stat} />
-        <StatCard icon="clock-outline" value={`${pendingCount}`} label={t('dashboard.pending')} iconColor={colors.gold} style={styles.stat} />
       </Animated.View>
 
       <Animated.View entering={FadeInDown.duration(400).delay(120)} style={styles.filterRow}>
@@ -155,13 +160,20 @@ function PaymentsScreen() {
       ) : isLoading ? (
         <EmptyState icon="loading" title={t('common.loading')} />
       ) : (
-        <FlatList
+        <SectionList
           style={styles.flex1}
-          data={filtered}
+          sections={sections}
           keyExtractor={(item: Payment) => item.id}
           renderItem={({ item }) => <TransactionRow payment={item} />}
+          stickySectionHeadersEnabled
+          renderSectionHeader={({ section }) => (
+            <View style={[styles.monthHeader, { backgroundColor: colors.bg1, borderBottomColor: colors.border1 }]}>
+              <Text style={[styles.monthTitle, { color: colors.text3 }]}>{section.title}</Text>
+              <MoneyText amount={section.total} size="sm" color={colors.text4} />
+            </View>
+          )}
           contentContainerStyle={styles.list}
-          refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={colors.primary} />}
+          refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={colors.brandGold} colors={[colors.brandGold]} progressBackgroundColor={colors.bg2} />}
           // A short history must still read as a composed screen, not a
           // card floating in a void: close the timeline explicitly.
           ListFooterComponent={
@@ -185,8 +197,6 @@ function PaymentsScreen() {
           }
         />
       )}
-
-      <FABButton onPress={() => setShowModal(true)} />
 
       {successToast ? (
         <Animated.View entering={FadeInDown.duration(250)} style={[styles.toast, { backgroundColor: colors.bg2, borderColor: colors.success }]}>
@@ -223,6 +233,17 @@ export default PaymentsScreen;
 const styles = StyleSheet.create({
   safe: { flex: 1 },
   flex1: { flex: 1 },
+  heroCta: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7,
+    marginTop: 16, paddingVertical: 13, borderRadius: 14, minHeight: 48,
+  },
+  heroCtaText: { fontSize: 15, fontFamily: 'Inter_600SemiBold', letterSpacing: -0.2 },
+  monthHeader: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    paddingVertical: 8, paddingHorizontal: 2, borderBottomWidth: StyleSheet.hairlineWidth,
+    marginBottom: 8,
+  },
+  monthTitle: { fontSize: 12, fontFamily: 'Inter_600SemiBold', letterSpacing: 0.3 },
   timelineEnd: { alignItems: 'center', paddingTop: spacing.md, paddingBottom: spacing.sm, gap: spacing.sm },
   timelineEndLine: { width: 48, height: 1 },
   timelineEndText: { fontSize: 12, fontFamily: 'Inter_400Regular' },

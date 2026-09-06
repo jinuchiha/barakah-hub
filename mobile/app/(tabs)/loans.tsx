@@ -175,7 +175,7 @@ function LoansScreen() {
             </SwipeableRow>
           )}
           contentContainerStyle={styles.list}
-          refreshControl={<RefreshControl refreshing={activeQuery.isRefetching} onRefresh={activeQuery.refetch} tintColor={colors.primary} />}
+          refreshControl={<RefreshControl refreshing={activeQuery.isRefetching} onRefresh={activeQuery.refetch} tintColor={colors.brandGold} colors={[colors.brandGold]} progressBackgroundColor={colors.bg2} />}
           ListEmptyComponent={<BrandedEmptyState type="loans" title={t('loans.noLoans')} subtitle={t('loans.noActiveLoans')} />}
         />
       )}

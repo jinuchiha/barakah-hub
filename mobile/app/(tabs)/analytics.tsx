@@ -105,7 +105,7 @@ export default function AnalyticsScreen() {
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.bg1 }]} edges={['top']}>
       <ScrollView
         contentContainerStyle={styles.scroll}
-        refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={colors.primary} />}
+        refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={colors.brandGold} colors={[colors.brandGold]} progressBackgroundColor={colors.bg2} />}
         showsVerticalScrollIndicator={false}
       >
         <Animated.View entering={FadeInDown.duration(400)} style={styles.header}>

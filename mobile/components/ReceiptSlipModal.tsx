@@ -6,6 +6,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import type { Payment } from '@/types';
 import { formatPKR, formatDate } from '@/lib/format';
+import { MoneyText } from './ui/MoneyText';
 import { DUA_KIND_LABEL, randomDua } from '@/lib/duas';
 import { haptic } from '@/lib/haptics';
 
@@ -49,7 +50,7 @@ export function ReceiptSlipModal({ payment, onClose }: { payment: Payment | null
             <View style={styles.bodyRow}>
               <View style={styles.left}>
                 <Text style={styles.receiptNo}>Receipt <Text style={styles.receiptNoGold}>#{receiptNo}</Text></Text>
-                <Text style={styles.amount}>{formatPKR(payment.amount)}</Text>
+                <MoneyText amount={payment.amount} size="hero" color="#e8c563" style={styles.amount} />
                 <Text style={styles.meta}>{payment.pool.toUpperCase()} · {payment.monthLabel}</Text>
                 {payment.verifiedAt ? (
                   <Text style={styles.metaSub}>Verified {formatDate(payment.verifiedAt)}</Text>
@@ -107,7 +108,7 @@ const styles = StyleSheet.create({
   left: { flex: 1 },
   receiptNo: { fontSize: 11, color: '#94a3b8', fontFamily: 'Inter_400Regular' },
   receiptNoGold: { color: '#d9b04c', fontFamily: 'SpaceMono_400Regular' },
-  amount: { marginTop: 8, fontSize: 30, color: '#e8c563', fontFamily: 'Inter_700Bold', letterSpacing: -0.8 },
+  amount: { marginTop: 8 },
   meta: { marginTop: 8, fontSize: 12, color: '#cbd5e1', fontFamily: 'Inter_600SemiBold', letterSpacing: 0.5 },
   metaSub: { marginTop: 4, fontSize: 11, color: '#94a3b8', fontFamily: 'Inter_400Regular' },
   qrBox: { alignItems: 'center' },

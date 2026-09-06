@@ -144,7 +144,7 @@ export default function MessagesScreen() {
       ) : (
         <ScrollView
           contentContainerStyle={styles.list}
-          refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={colors.primary} />}
+          refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={colors.brandGold} colors={[colors.brandGold]} progressBackgroundColor={colors.bg2} />}
         >
           {(data ?? []).length === 0 ? (
             <BrandedEmptyState type="messages" title={t('messages.noMessages')} subtitle={isAdmin ? 'Member messages appear here' : 'Tap Message Admin to start'} />

@@ -32,7 +32,9 @@ import { Button } from '@/components/ui/Button';
 import { DailyVerseCard } from '@/components/DailyVerseCard';
 import { GlobalSearch } from '@/components/GlobalSearch';
 import { useTheme } from '@/lib/useTheme';
-import { loop } from '@/lib/motion';
+import { loop, duration } from '@/lib/motion';
+import { MoneyText } from '@/components/ui/MoneyText';
+import { Grain, HeroGlow } from '@/components/ui/Texture';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { spacing } from '@/lib/theme';
 import { formatPKR, formatPKRFull } from '@/lib/format';
@@ -133,38 +135,45 @@ function FundHero({ fund, pendingCount, live = true }: {
   live?: boolean;
 }) {
   const { t } = useTranslation();
+  const { colors } = useTheme();
   const sadaqah = fund?.sadaqah ?? 0;
   const zakat = fund?.zakat ?? 0;
   const qarz = fund?.qarz ?? 0;
   const total = sadaqah + zakat + qarz;
 
+  // Pool colours come from the theme now. They were hardcoded — and the
+  // sadaqah one was #c89b3c, the *web* gold, which had leaked into mobile.
   const pools = [
-    { key: 'sadaqah', value: sadaqah, color: '#c89b3c', label: t('dashboard.sadaqahPool') },
-    { key: 'zakat', value: zakat, color: '#2d8a5f', label: t('dashboard.zakatPool') },
-    { key: 'qarz', value: qarz, color: '#8b6ec9', label: t('dashboard.qarzPool') },
+    { key: 'sadaqah', value: sadaqah, color: colors.brandGold, label: t('dashboard.sadaqahPool') },
+    { key: 'zakat', value: zakat, color: colors.success, label: t('dashboard.zakatPool') },
+    { key: 'qarz', value: qarz, color: colors.info, label: t('dashboard.qarzPool') },
   ].filter((p) => p.value > 0);
 
   return (
-    <Animated.View entering={FadeInDown.duration(450)}>
+    <Animated.View entering={FadeInDown.duration(duration.emphasized)}>
       <LinearGradient
-        colors={['#0d1525', '#131e35', '#1e2d4a']}
+        colors={[colors.surfaceGradA, colors.bg2, colors.bg3]}
         start={{ x: 0, y: 0 }}
         end={{ x: 0.9, y: 1 }}
-        style={[styles.heroCard, { borderWidth: 1, borderColor: 'rgba(217,176,76,0.28)' }]}
+        style={[styles.heroCard, { borderWidth: 1, borderColor: colors.border1 }]}
       >
+        {/* Light rather than a border. A gold outline boxes the balance in;
+            a halo behind it makes the figure read as the lit thing on the
+            screen, which is what it is. */}
+        <HeroGlow size={380} style={styles.heroGlow} />
         {live ? <AuroraSweep /> : null}
-        {/* Decorative motif */}
-        <Text style={styles.heroMotif} accessibilityElementsHidden>☽</Text>
 
         <View style={styles.heroLabelRow}>
-          <Text style={styles.heroLabel}>{t('dashboard.totalFamilyFund')}</Text>
+          <Text style={[styles.heroLabel, { color: colors.text3 }]}>{t('dashboard.totalFamilyFund')}</Text>
           {live ? <LiveDot /> : null}
         </View>
+        {/* Counts up once on mount, then holds. Never loops. */}
         <AnimatedNumber value={total} format={fmtRsWorklet} style={styles.heroAmount} />
 
-        {/* Pool breakdown bar */}
+        {/* Composition as one bar rather than three tiles — the shares are
+            the point, and a bar shows a share better than three numbers do. */}
         {total > 0 && (
-          <View style={styles.poolBar}>
+          <View style={[styles.poolBar, { backgroundColor: colors.glass1 }]}>
             {pools.map((p) => (
               <View
                 key={p.key}
@@ -174,24 +183,30 @@ function FundHero({ fund, pendingCount, live = true }: {
           </View>
         )}
 
-        {/* Pool legend */}
+        {/* Legend carries the amounts. A colour and a word alone told the
+            reader nothing they could act on. */}
         {pools.length > 1 && (
           <View style={styles.poolLegend}>
             {pools.map((p) => (
               <View key={p.key} style={styles.poolLegendItem}>
                 <View style={[styles.poolDot, { backgroundColor: p.color }]} />
-                <Text style={styles.poolLegendLabel}>{p.label}</Text>
+                <View>
+                  <Text style={[styles.poolLegendLabel, { color: colors.text4 }]}>{p.label}</Text>
+                  <MoneyText amount={p.value} size="sm" color={colors.text2} />
+                </View>
               </View>
             ))}
           </View>
         )}
 
-        <View style={styles.heroDivider} />
         {(pendingCount ?? 0) > 0 && (
-          <View style={styles.heroFooter}>
-            <Text style={styles.heroFooterText}>{pendingCount} {t('dashboard.pending').toLowerCase()}</Text>
+          <View style={[styles.heroFooter, { borderTopColor: colors.border1 }]}>
+            <Text style={[styles.heroFooterText, { color: colors.warning }]}>
+              {pendingCount} {t('dashboard.pending').toLowerCase()}
+            </Text>
           </View>
         )}
+        <Grain opacity={0.045} />
       </LinearGradient>
     </Animated.View>
   );
@@ -205,7 +220,7 @@ function PaymentBanner({ isPaid, pledge, amount, onPay }: {
 
   if (isPaid) {
     return (
-      <Animated.View entering={FadeInDown.duration(400).delay(80)}>
+      <Animated.View entering={FadeInDown.duration(duration.standard)}>
         <GlassCard style={styles.banner}>
           <View style={[styles.bannerIcon, { backgroundColor: 'rgba(45,138,95,0.15)' }]}>
             <MaterialCommunityIcons name="check-circle" size={22} color="#4ec38d" />
@@ -221,7 +236,7 @@ function PaymentBanner({ isPaid, pledge, amount, onPay }: {
   }
 
   return (
-    <Animated.View entering={FadeInDown.duration(400).delay(80)}>
+    <Animated.View entering={FadeInDown.duration(duration.standard)}>
       <GlassCard glowColor={colors.goldDim} style={styles.banner}>
         <View style={[styles.bannerIcon, { backgroundColor: 'rgba(200,155,60,0.12)' }]}>
           <MaterialCommunityIcons name="alert-circle-outline" size={22} color={colors.gold} />
@@ -242,7 +257,7 @@ function StatsGrid({ pledge, pendingCount, isPaid }: {
   const { colors } = useTheme();
   const { t } = useTranslation();
   return (
-    <Animated.View entering={FadeInDown.duration(400).delay(120)} style={styles.statsGrid}>
+    <Animated.View entering={FadeInDown.duration(duration.standard)} style={styles.statsGrid}>
       <StatCard
         icon="hand-coin-outline"
         value={formatPKRFull(pledge ?? 0)}
@@ -285,7 +300,7 @@ function QuickActions({ isAdmin, onAction }: {
   ];
 
   return (
-    <Animated.View entering={FadeInDown.duration(400).delay(160)} style={styles.quickRow}>
+    <Animated.View entering={FadeInDown.duration(duration.standard)} style={styles.quickRow}>
       {items.map((item) => (
         <TouchableOpacity
           key={item.key}
@@ -320,6 +335,7 @@ function SectionHead({ title, onSeeAll }: { title: string; onSeeAll?: () => void
   );
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- kept for when the section is wanted back
 function CommunityFeed() {
   const { colors } = useTheme();
   const { t } = useTranslation();
@@ -328,7 +344,7 @@ function CommunityFeed() {
 
   if (isLoading) {
     return (
-      <Animated.View entering={FadeInDown.duration(400).delay(280)}>
+      <Animated.View entering={FadeInDown.duration(duration.standard)}>
         <SectionHead title={t('dashboard.communityActivity')} />
         <SkeletonCard />
       </Animated.View>
@@ -338,7 +354,7 @@ function CommunityFeed() {
   if (isError || !items.length) return null;
 
   return (
-    <Animated.View entering={FadeInDown.duration(400).delay(280)}>
+    <Animated.View entering={FadeInDown.duration(duration.standard)}>
       <SectionHead title={t('dashboard.communityActivity')} />
       <GlassCard style={styles.feedCard}>
         {items.map((p, i) => (
@@ -429,7 +445,7 @@ function DashboardScreen() {
 
       <ScrollView
         contentContainerStyle={styles.scroll}
-        refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={handleRefresh} tintColor={colors.primary} />}
+        refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={handleRefresh} tintColor={colors.brandGold} colors={[colors.brandGold]} progressBackgroundColor={colors.bg2} />}
         showsVerticalScrollIndicator={false}
       >
         {/* Top bar */}
@@ -444,7 +460,7 @@ function DashboardScreen() {
         </Animated.View>
 
         {/* Quran verse — top of feed */}
-        <Animated.View entering={FadeInDown.duration(400).delay(40)}>
+        <Animated.View entering={FadeInDown.duration(duration.standard)}>
           <DailyVerseCard />
         </Animated.View>
 
@@ -475,7 +491,7 @@ function DashboardScreen() {
 
         {/* Recent activity — collapsible so history never dominates the
             dashboard; capped at 4 rows with See All for the rest. */}
-        <Animated.View entering={FadeInDown.duration(400).delay(200)}>
+        <Animated.View entering={FadeInDown.duration(duration.standard)}>
           <View style={styles.activityHeadRow}>
             <TouchableOpacity
               style={styles.activityToggle}
@@ -499,9 +515,9 @@ function DashboardScreen() {
         </Animated.View>
 
         {/* Community feed */}
-        <CommunityFeed />
-
-
+        {/* Community Activity is hidden by product decision — a member's own
+            position should not be read past someone else's contributions.
+            <CommunityFeed /> */}
       </ScrollView>
     </SafeAreaView>
   );
@@ -541,21 +557,19 @@ const styles = StyleSheet.create({
   heroCard: {
     borderRadius: 20, padding: 20, marginBottom: spacing.md,
     overflow: 'hidden', position: 'relative',
-    shadowColor: '#c89b3c', shadowOpacity: 0.18,
-    shadowRadius: 10, shadowOffset: { width: 0, height: 3 }, elevation: 3,
+    shadowColor: '#000', shadowOpacity: 0.35,
+    shadowRadius: 18, shadowOffset: { width: 0, height: 8 }, elevation: 8,
   },
-  heroMotif: {
-    position: 'absolute', right: 16, bottom: 12,
-    fontSize: 100, color: 'rgba(0,0,0,0.08)', lineHeight: 110,
-  },
+  heroGlow: { top: -110, left: -60, right: -60, bottom: -40 },
   heroLabelRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   heroLabel: {
-    fontSize: 10, fontFamily: 'Inter_700Bold',
-    color: 'rgba(255,255,255,0.70)', letterSpacing: 2, textTransform: 'uppercase',
+    fontSize: 11, fontFamily: 'Inter_600SemiBold',
+    letterSpacing: 0.6, textTransform: 'uppercase',
   },
   heroAmount: {
-    fontSize: 38, fontFamily: 'Inter_700Bold', color: '#ffffff',
-    letterSpacing: -1.2, marginTop: 4, marginBottom: 14,
+    fontSize: 42, lineHeight: 50, fontFamily: 'Inter_700Bold', color: '#ffffff',
+    letterSpacing: -1.5, fontVariant: ['tabular-nums'],
+    marginTop: 6, marginBottom: 16,
   },
   aurora: {
     position: 'absolute', top: -40, bottom: -40, left: -220, width: 200,
@@ -563,13 +577,12 @@ const styles = StyleSheet.create({
   liveWrap: { flexDirection: 'row', alignItems: 'center', gap: 5 },
   liveDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: '#4ec38d' },
   liveText: { fontSize: 9, fontFamily: 'Inter_700Bold', color: 'rgba(78,195,141,0.9)', letterSpacing: 1.5 },
-  poolBar: { flexDirection: 'row', height: 6, borderRadius: 3, overflow: 'hidden', marginBottom: 10 },
-  poolSegment: { height: 6 },
-  poolLegend: { flexDirection: 'row', gap: 16, marginBottom: 12 },
-  poolLegendItem: { flexDirection: 'row', alignItems: 'center', gap: 5 },
+  poolBar: { flexDirection: 'row', height: 8, borderRadius: 4, overflow: 'hidden', marginBottom: 14 },
+  poolSegment: { height: 8 },
+  poolLegend: { flexDirection: 'row', gap: 20, marginBottom: 4 },
+  poolLegendItem: { flexDirection: 'row', alignItems: 'flex-start', gap: 7 },
   poolDot: { width: 7, height: 7, borderRadius: 4 },
   poolLegendLabel: { fontSize: 11, fontFamily: 'Inter_600SemiBold', color: 'rgba(255,255,255,0.65)' },
-  heroDivider: { height: 1, backgroundColor: 'rgba(255,255,255,0.20)', marginVertical: 10 },
   heroFooter: { flexDirection: 'row', gap: 14 },
   heroFooterText: { fontSize: 12, fontFamily: 'Inter_600SemiBold', color: 'rgba(255,255,255,0.65)' },
   // Banner

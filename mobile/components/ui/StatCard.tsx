@@ -42,15 +42,12 @@ export function StatCard({ icon, value, label, iconColor, style, trend, onPress,
       style={[style, { borderRadius: radius.lg, overflow: 'hidden' }]}
     >
       <Animated.View style={[animStyle, { borderRadius: radius.lg, overflow: 'hidden' }]}>
-        <View style={[styles.card, { borderColor: `${color}26` }]}>
+        <View style={[styles.card, { borderColor: colors.border1 }]}>
           <LinearGradient colors={[colors.surfaceGradA, colors.surfaceGradB]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFillObject} />
-          <LinearGradient colors={[`${color}18`, 'transparent']} start={{ x: 0, y: 0 }} end={{ x: 1.5, y: 1.5 }} style={StyleSheet.absoluteFillObject} />
           <View style={[styles.sheen, { backgroundColor: colors.sheen }]} pointerEvents="none" />
           <View style={styles.header}>
             <Text style={[styles.label, { color: colors.text3 }]} numberOfLines={1}>{label}</Text>
-            <View style={[styles.iconPill, { backgroundColor: `${color}18`, borderColor: `${color}28` }]}>
-              <MaterialCommunityIcons name={icon} size={13} color={color} />
-            </View>
+            <MaterialCommunityIcons name={icon} size={15} color={color} />
           </View>
           {animateValue !== undefined ? (
             <AnimatedNumber value={animateValue} format={format} style={[styles.value, { color: colors.text1 }]} />
@@ -63,7 +60,6 @@ export function StatCard({ icon, value, label, iconColor, style, trend, onPress,
               <Text style={[styles.trendText, { color: trend.direction === 'up' ? colors.success : colors.danger }]}>{trend.percent}%</Text>
             </View>
           ) : null}
-          <View style={[styles.bottomLine, { backgroundColor: color }]} />
         </View>
       </Animated.View>
     </Pressable>
@@ -77,10 +73,8 @@ const styles = StyleSheet.create({
   },
   sheen: { position: 'absolute', top: 0, left: 10, right: 10, height: StyleSheet.hairlineWidth * 2 },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 },
-  label: { fontSize: 10.5, fontFamily: 'Inter_600SemiBold', letterSpacing: 0.8, textTransform: 'uppercase', flex: 1 },
-  iconPill: { width: 24, height: 24, borderRadius: 7, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
-  value: { fontSize: 22, fontFamily: 'SpaceMono_400Regular', fontWeight: '600', letterSpacing: -0.5, lineHeight: 28 },
+  label: { fontSize: 11, fontFamily: 'Inter_400Regular', letterSpacing: 0.2, flex: 1 },
+  value: { fontSize: 23, fontFamily: 'Inter_700Bold', letterSpacing: -0.7, lineHeight: 29, fontVariant: ['tabular-nums'] },
   trendPill: { flexDirection: 'row', alignItems: 'center', gap: 2, alignSelf: 'flex-start', paddingHorizontal: 6, paddingVertical: 3, borderRadius: 20 },
   trendText: { fontSize: 10, fontFamily: 'Inter_600SemiBold' },
-  bottomLine: { position: 'absolute', bottom: 0, left: 0, right: 0, height: 2, opacity: 0.6 },
 });

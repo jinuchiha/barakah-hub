@@ -394,7 +394,7 @@ function CasesScreen() {
             />
           )}
           contentContainerStyle={styles.list}
-          refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={colors.primary} />}
+          refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={colors.brandGold} colors={[colors.brandGold]} progressBackgroundColor={colors.bg2} />}
           ListEmptyComponent={<BrandedEmptyState type="cases" title={t('cases.noCasesFound')} subtitle={t('cases.noEmergencyCases')} />}
         />
       )}

@@ -95,7 +95,7 @@ export default function AdminDashboard() {
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.bg1 }]} edges={['top', 'bottom']}>
       <ScrollView
         contentContainerStyle={styles.scroll}
-        refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={colors.primary} />}
+        refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={colors.brandGold} colors={[colors.brandGold]} progressBackgroundColor={colors.bg2} />}
       >
         <Animated.View entering={FadeInDown.duration(400)} style={styles.pageHeader}>
           <View style={[styles.shieldCircle, { backgroundColor: colors.dangerDim }]}>
