@@ -166,6 +166,7 @@ const styles = StyleSheet.create({
   badgeText: { fontSize: 10, fontFamily: 'Inter_600SemiBold' },
   refText: { fontSize: 10, fontFamily: 'SpaceMono_400Regular' },
   arabic: {
+    fontFamily: 'NotoNaskhArabic_400Regular',
     fontSize: 16,
     lineHeight: 28,
     textAlign: 'right',

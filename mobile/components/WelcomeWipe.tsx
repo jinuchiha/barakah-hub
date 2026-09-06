@@ -9,7 +9,7 @@ const { height: H } = Dimensions.get('window');
 
 /**
  * The web's post-login moment, mobile edition: an ink veil sweeps up,
- * a gold bloom breathes once behind السلام علیکم, then everything lifts
+ * a gold bloom breathes once behind السلام عليكم, then everything lifts
  * away as the dashboard reveals underneath. ~1.5s total.
  */
 export function WelcomeWipe({ name, onDone }: { name?: string; onDone: () => void }) {
@@ -50,7 +50,7 @@ export function WelcomeWipe({ name, onDone }: { name?: string; onDone: () => voi
       <LinearGradient colors={['#04070c', '#0a0f1a', '#0d1525']} style={StyleSheet.absoluteFillObject} />
       <Animated.View style={[styles.bloom, bloomStyle]} />
       <Animated.View style={textStyle}>
-        <Text style={styles.salam}>السلام علیکم</Text>
+        <Text style={styles.salam}>السلام عليكم</Text>
         {name ? <Text style={styles.name}>{name}</Text> : null}
       </Animated.View>
     </Animated.View>
@@ -65,8 +65,9 @@ const styles = StyleSheet.create({
     shadowColor: '#d9b04c', shadowOpacity: 1, shadowRadius: 60, shadowOffset: { width: 0, height: 0 },
   },
   salam: {
+    fontFamily: 'NotoNaskhArabic_600SemiBold',
     fontSize: 34, color: '#e8c563', textAlign: 'center',
-    fontFamily: 'NotoNastaliqUrdu_600SemiBold', lineHeight: 72,
+    lineHeight: 54, writingDirection: 'rtl',
   },
   name: {
     marginTop: 2, fontSize: 15, color: 'rgba(236,235,230,0.75)',

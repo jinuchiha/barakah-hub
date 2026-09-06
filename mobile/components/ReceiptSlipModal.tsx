@@ -120,7 +120,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   ornament: { fontSize: 18, color: '#d9b04c', marginBottom: 8 },
-  duaArabic: { fontSize: 17, color: '#f2ecd9', textAlign: 'center', lineHeight: 32, writingDirection: 'rtl' },
+  duaArabic: { fontSize: 17, fontFamily: 'NotoNaskhArabic_400Regular', color: '#f2ecd9', textAlign: 'center', lineHeight: 32, writingDirection: 'rtl' },
   duaUrdu: { marginTop: 8, fontSize: 12, color: 'rgba(236,235,230,0.7)', textAlign: 'center', lineHeight: 26, writingDirection: 'rtl', fontFamily: 'NotoNastaliqUrdu_400Regular' },
   duaSource: { marginTop: 8, fontSize: 10, color: 'rgba(200,155,60,0.7)', letterSpacing: 1, textTransform: 'uppercase' },
   actions: { flexDirection: 'row', gap: 10, padding: 18, paddingTop: 12 },

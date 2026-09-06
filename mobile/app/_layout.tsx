@@ -16,6 +16,7 @@ import {
 } from '@expo-google-fonts/inter';
 import { SpaceMono_400Regular } from '@expo-google-fonts/space-mono';
 import { NotoNastaliqUrdu_400Regular, NotoNastaliqUrdu_600SemiBold } from '@expo-google-fonts/noto-nastaliq-urdu';
+import { NotoNaskhArabic_400Regular, NotoNaskhArabic_600SemiBold } from '@expo-google-fonts/noto-naskh-arabic';
 import * as SplashScreen from 'expo-splash-screen';
 import * as SecureStore from 'expo-secure-store';
 import i18n, { initI18n } from '@/lib/i18n';
@@ -154,6 +155,13 @@ export default function RootLayout() {
     SpaceMono_400Regular,
     NotoNastaliqUrdu_400Regular,
     NotoNastaliqUrdu_600SemiBold,
+    // Arabic is not Urdu. Nastaliq is a Persian/Urdu calligraphic style whose
+    // glyphs cascade diagonally; setting Arabic in it compresses the line and
+    // clips it, which is why the salam greeting was arriving half-drawn.
+    // Naskh is the correct face for Arabic, and for Qur'anic text especially,
+    // where the app had been falling through to whatever the device provided.
+    NotoNaskhArabic_400Regular,
+    NotoNaskhArabic_600SemiBold,
   });
   const [persister, setPersister] = useState<Persister | null>(null);
 

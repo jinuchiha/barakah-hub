@@ -50,8 +50,8 @@ function TopBar({ displayName, notifCount, onBell, onSearch, onAssistant }: {
   const today = format(new Date(), 'EEE, d MMM');
   return (
     <View style={styles.topBar}>
-      <View>
-        <Text style={[styles.topGreeting, { color: colors.primary }]}>السلام عليكم</Text>
+      <View style={styles.topIdentity}>
+        <Text style={[styles.topGreeting, { color: colors.brandGold }]} numberOfLines={1}>السلام عليكم</Text>
         <Text style={[styles.topName, { color: colors.text1 }]} numberOfLines={1}>{displayName}</Text>
         <Text style={[styles.topDate, { color: colors.text4 }]}>{today}</Text>
       </View>
@@ -539,10 +539,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start',
     paddingTop: spacing.md, paddingBottom: spacing.sm,
   },
-  topGreeting: { fontSize: 14, fontFamily: 'NotoNastaliqUrdu_600SemiBold', lineHeight: 44, paddingTop: 8, includeFontPadding: true },
+  topIdentity: { flex: 1, minWidth: 0, paddingRight: 10 },
+  topGreeting: {
+    fontSize: 15, fontFamily: 'NotoNaskhArabic_600SemiBold',
+    lineHeight: 26, writingDirection: 'rtl', includeFontPadding: true,
+  },
   topName: { fontSize: 24, fontFamily: 'Inter_700Bold', letterSpacing: -0.5, marginTop: 2 },
   topDate: { fontSize: 12, fontFamily: 'Inter_400Regular', marginTop: 2 },
-  topActions: { flexDirection: 'row', gap: 8, marginTop: 4 },
+  topActions: { flexDirection: 'row', gap: 8, marginTop: 4, flexShrink: 0 },
   iconBtn: {
     width: 40, height: 40, borderRadius: 12,
     alignItems: 'center', justifyContent: 'center', borderWidth: 1,

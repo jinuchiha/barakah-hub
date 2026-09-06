@@ -92,6 +92,7 @@ const styles = StyleSheet.create({
     fontWeight: '600', letterSpacing: 0.5,
   },
   arabic: {
+    fontFamily: 'NotoNaskhArabic_400Regular',
     fontSize: 22, color: '#f2ecd9', textAlign: 'center', lineHeight: 40,
     marginBottom: 14, writingDirection: 'rtl',
   },

@@ -58,6 +58,33 @@ export const textStyles = {
     lineHeight: 20,
     fontFamily: 'SpaceMono_400Regular',
   } as TextStyle,
+  /**
+   * Arabic — Naskh, never Nastaliq.
+   *
+   * Nastaliq is for Urdu. Arabic set in it stacks diagonally and loses its
+   * baseline, so a greeting or an ayah renders clipped and barely legible.
+   * Naskh also carries tashkeel properly, which matters for Qur'anic text.
+   */
+  arabicLG: {
+    fontSize: 21,
+    lineHeight: 40,
+    fontFamily: 'NotoNaskhArabic_400Regular',
+    writingDirection: 'rtl',
+    textAlign: 'right',
+  } as TextStyle,
+  arabicMD: {
+    fontSize: 17,
+    lineHeight: 32,
+    fontFamily: 'NotoNaskhArabic_400Regular',
+    writingDirection: 'rtl',
+  } as TextStyle,
+  arabicSM: {
+    fontSize: 14,
+    lineHeight: 26,
+    fontFamily: 'NotoNaskhArabic_600SemiBold',
+    writingDirection: 'rtl',
+  } as TextStyle,
+
   // Nastaliq needs generous line-height — glyphs stack diagonally.
   urduLG: {
     fontSize: 18,

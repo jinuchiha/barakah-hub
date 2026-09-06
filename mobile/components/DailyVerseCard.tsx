@@ -125,6 +125,7 @@ const styles = StyleSheet.create({
     fontFamily: 'SpaceMono_400Regular',
   },
   arabic: {
+    fontFamily: 'NotoNaskhArabic_400Regular',
     fontSize: 20,
     textAlign: 'right',
     lineHeight: 38,

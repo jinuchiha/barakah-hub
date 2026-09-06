@@ -182,7 +182,7 @@ export default function LoginScreen() {
 
             {/* ── Welcome heading ── */}
             <Animated.View entering={FadeInDown.duration(500).delay(80)} style={styles.headingBlock}>
-              <Text style={[styles.greeting, { color: colors.primary }]}>السلام علیکم</Text>
+              <Text style={[styles.greeting, { color: colors.primary }]}>السلام عليكم</Text>
               <Text style={styles.heading}>Welcome back</Text>
               <Text style={[styles.subheading, { color: colors.text3 }]}>
                 Sign in to your family fund
@@ -297,7 +297,7 @@ const styles = StyleSheet.create({
   taglineText: { fontSize: 11, fontFamily: 'Inter_600SemiBold', color: 'rgba(200,155,60,0.80)', letterSpacing: 1.2, textTransform: 'uppercase' },
   // Heading
   headingBlock: { paddingBottom: 28 },
-  greeting: { fontSize: 16, fontFamily: 'NotoNastaliqUrdu_600SemiBold', marginBottom: 6, lineHeight: 44, paddingTop: 6, includeFontPadding: true },
+  greeting: { fontSize: 17, fontFamily: 'NotoNaskhArabic_600SemiBold', marginBottom: 6, lineHeight: 30, writingDirection: 'rtl', includeFontPadding: true },
   heading: { fontSize: 30, fontFamily: 'Inter_700Bold', color: '#ecebe6', letterSpacing: -0.8, lineHeight: 36 },
   subheading: { fontSize: 15, fontFamily: 'Inter_400Regular', marginTop: 6 },
   // Form
