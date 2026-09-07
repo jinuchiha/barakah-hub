@@ -16,7 +16,13 @@ import { REQUEST_ID_HEADER } from '@/lib/log';
 
 // manifest + service worker must stay public or PWA install breaks for
 // logged-out visitors (the manifest request carries no session cookie).
-const PUBLIC_ROUTES = ['/login', '/register', '/forgot-password', '/reset-password', '/verify-email', '/verify-receipt', '/approve', '/pending', '/rejected', '/join', '/privacy', '/terms', '/manifest.webmanifest', '/sw.js'];
+//
+// robots.txt belongs here for the same reason and was missed: a crawler
+// carries no session, so the middleware redirected it to /login and the
+// rules in app/robots.ts were never served to anyone. The file shipped
+// doing nothing — and the pages it exists to keep out of search engines
+// were left with no directive at all.
+const PUBLIC_ROUTES = ['/login', '/register', '/forgot-password', '/reset-password', '/verify-email', '/verify-receipt', '/approve', '/pending', '/rejected', '/join', '/privacy', '/terms', '/manifest.webmanifest', '/sw.js', '/robots.txt'];
 
 /**
  * Stamp a request id on every request.
