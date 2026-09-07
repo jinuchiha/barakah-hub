@@ -186,7 +186,10 @@ curl -s "$APP_URL/api/health?deep=1" | jq .notifications
 - `dead > 0` — messages that will never send without a change. **This is the
   usual answer.** See step 2.
 - `oldestPendingMinutes > 60` — the drain has stopped. The cron runs every 5
-  minutes, so an hour-old backlog means `/api/cron/outbox` is not running:
+  minutes from GitHub Actions (`.github/workflows/outbox-drain.yml`, not
+  Vercel cron — Hobby refuses sub-daily schedules), so an hour-old backlog
+  means that workflow is failing or disabled. Check its runs first, then
+  that the `CRON_SECRET` repo secret still matches Vercel:
   check `CRON_SECRET` is set and look at the Vercel cron logs.
 - All zero and members still report nothing — the message was never queued.
   Check the action actually calls `enqueue()`.

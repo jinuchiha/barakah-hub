@@ -28,8 +28,13 @@ export const dynamic = 'force-dynamic';
  *    to anonymous callers.
  */
 
-// The outbox cron runs every 5 minutes; 15 means three consecutive misses.
-const OUTBOX_HEARTBEAT_STALE_MINUTES = 15;
+// The outbox drain runs every 5 minutes, but from GitHub Actions rather
+// than Vercel cron (Hobby refuses sub-daily expressions — see
+// .github/workflows/outbox-drain.yml). GitHub's scheduler is best-effort
+// and runs late under load, sometimes by 10-20 minutes, so 15 here would
+// flap between ok and degraded for no reason. 30 still catches a drain
+// that has actually stopped, which is what this is for.
+const OUTBOX_HEARTBEAT_STALE_MINUTES = 30;
 
 function hasDiagnosticKey(req: Request): boolean {
   const expected = process.env.HEALTH_CHECK_KEY || process.env.CRON_SECRET;
