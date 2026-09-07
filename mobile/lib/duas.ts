@@ -47,7 +47,7 @@ export const SADQA_DUAS: readonly Dua[] = [
     arabic: 'الصَّدَقَةُ تُطْفِئُ الْخَطِيئَةَ كَمَا يُطْفِئُ الْمَاءُ النَّارَ',
     urdu: 'صدقہ گناہ کو ایسے بجھا دیتا ہے جیسے پانی آگ کو بجھاتا ہے',
     english: 'Charity extinguishes sin as water extinguishes fire.',
-    source: 'Jami at-Tirmidhi 614',
+    source: 'Jami at-Tirmidhi 614 · sahih (al-Albani)',
   },
   {
     type: 'hadith',

@@ -47,6 +47,6 @@ export const VERSES: Verse[] = [
     ar: 'وَتَعَاوَنُوا عَلَى الْبِرِّ وَالتَّقْوَىٰ…',
     ur: 'نیکی اور پرہیزگاری میں ایک دوسرے کی مدد کرو…',
     en: 'Cooperate with one another in righteousness and piety…',
-    ref: 'Al-Maidah 5:2',
+    ref: "Al-Ma'idah 5:2",
   },
 ];
