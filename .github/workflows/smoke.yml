@@ -1,5 +1,11 @@
 name: Production smoke test
 
+# Two things run here, and the second exists because the first was not
+# enough: for three days these smoke checks passed every six hours while
+# production served three-day-old code. Every page they assert on rendered
+# fine on the stale build, so "the site works" and "the site is current"
+# were indistinguishable. The staleness job closes that gap.
+
 on:
   schedule:
     - cron: '0 */6 * * *'
@@ -10,6 +16,69 @@ defaults:
     working-directory: next-app
 
 jobs:
+  freshness:
+    name: Is production running the current commit?
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    # This job never checks the repo out — it only curls a URL and reads
+    # github.sha from the environment. The workflow-level default of
+    # next-app would point at a directory that does not exist here, and
+    # the runner refuses to start a step whose working directory is
+    # missing, so the job would die before running anything.
+    defaults:
+      run:
+        working-directory: .
+
+    steps:
+      # /api/health returns the deployed commit only to a caller holding
+      # the diagnostic key, which falls back to CRON_SECRET — the same
+      # secret the outbox drain already needs, so this adds no new one.
+      - name: Require the diagnostic secret
+        env:
+          KEY: ${{ secrets.HEALTH_CHECK_KEY || secrets.CRON_SECRET }}
+        run: |
+          if [ -z "$KEY" ]; then
+            echo "::error::Neither HEALTH_CHECK_KEY nor CRON_SECRET is set as a" \
+                 "repository secret, so /api/health will not disclose the deployed" \
+                 "commit and staleness cannot be detected."
+            exit 1
+          fi
+
+      - name: Compare the deployed commit with this branch
+        env:
+          KEY: ${{ secrets.HEALTH_CHECK_KEY || secrets.CRON_SECRET }}
+          APP_URL: ${{ vars.APP_URL || 'https://barakah-hub.vercel.app' }}
+          # On a scheduled run this is the default branch's HEAD at the
+          # time the run was created — exactly what production should be.
+          EXPECTED: ${{ github.sha }}
+        run: |
+          body=$(curl -fsS --max-time 30 \
+            -H "Authorization: Bearer $KEY" \
+            "$APP_URL/api/health?deep=1")
+          echo "$body"
+
+          deployed=$(printf '%s' "$body" | jq -r '.release // empty')
+          if [ -z "$deployed" ]; then
+            echo "::error::/api/health did not return a release SHA. Either the key is" \
+                 "wrong, or production predates the health route that reports it —" \
+                 "which is itself a staleness signal."
+            exit 1
+          fi
+
+          echo "deployed=$deployed"
+          echo "expected=$EXPECTED"
+
+          if [ "$deployed" != "$EXPECTED" ]; then
+            echo "::error::Production is serving $deployed but this branch is at" \
+                 "$EXPECTED. Deploys have stopped reaching production. Check that" \
+                 "vercel.json has no sub-daily cron (Hobby refuses the whole" \
+                 "deployment, silently), then Settings → Git → Ignored Build Step," \
+                 "then the GitHub webhook deliveries."
+            exit 1
+          fi
+
+          echo "Production is current."
+
   smoke:
     name: Check public routes on the live site
     runs-on: ubuntu-latest
